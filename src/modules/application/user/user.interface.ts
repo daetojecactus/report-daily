@@ -1,7 +1,7 @@
 export enum UserStatus {
-  PENDING = 'pending',
-  ACTIVE = 'active',
-  BLOCKED = 'blocked',
+  PENDING = 'Pending',
+  ACTIVE = 'Active',
+  BLOCKED = 'Blocked',
 }
 
 export enum UserRole {

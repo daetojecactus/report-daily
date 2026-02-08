@@ -1,0 +1,1 @@
+export const AUTH_INVITE_CODE_LENGTH = 32;

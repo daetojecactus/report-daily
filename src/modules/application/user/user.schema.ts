@@ -11,6 +11,9 @@ export class User {
   @Prop({ required: true, unique: true })
   telegramId!: number;
 
+  @Prop({ required: true })
+  email!: string;
+
   @Prop({ required: true, enum: UserRole })
   role!: UserRole;
 

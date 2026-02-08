@@ -8,43 +8,17 @@ import { UserService } from '../user/user.service';
 import { AuthMessages } from './constants/auth.messages';
 import { UserStatus } from '../user/user.interface';
 import {
-  ActivateInvitePayload,
+  ActivateInviteInput,
   InviteInput,
-  VerifyEmailCodePayload,
+  VerifyEmailCodeInput,
 } from './auth.interface';
 import { InviteService } from './invite/invite.service';
 import { InviteMessages } from './invite/constants/invite.messages';
 import { UserMessages } from '../user/constants/user.messages';
 import { VerificationService } from './verification/verification.service';
 import { VerificationMessages } from './verification/constants/verification.messages';
+import { AUTH_INVITE_CODE_LENGTH } from './constants/auth.constants';
 
-/**
- * Длина invite-кода в байтах
- * 32 байта = 64 символа в hex представлении
- * Это криптографически стойкий случайный код
- */
-const INVITE_CODE_LENGTH = 32;
-
-/**
- * AuthService - сервис авторизации и управления invite-кодами
- *
- * Основные функции:
- * 1. Создание invite-кодов для новых сотрудников
- * 2. Активация invite-кода (первый фактор - Telegram ссылка)
- * 3. Верификация email (второй фактор - код на почту)
- * 4. Валидация пользователя по telegramId
- *
- * Флоу регистрации с 2FA:
- * 1. Админ вызывает createInvite({ adminId, email, role })
- * 2. Система генерит код и возвращает ссылку t.me/bot?start=CODE
- * 3. Сотрудник переходит по ссылке и нажимает Start
- * 4. Бот получает /start CODE, вызывает activateInvite({ code, telegramId })
- * 5. Система отправляет 6-значный код на email, invite удаляется
- * 6. Сотрудник вводит код в Telegram (/verify 123456)
- * 7. Бот вызывает verifyEmailCode({ telegramId, code })
- * 8. При совпадении создаётся user
- * 9. Сотрудник может пользоваться ботом
- */
 @Injectable()
 export class AuthService {
   constructor(
@@ -53,9 +27,10 @@ export class AuthService {
     private readonly verificationService: VerificationService,
   ) {}
 
+  //создание invite-кода админом
   async createInvite(input: InviteInput) {
     //генерируем криптографически стойкий случайный код
-    const code = randomBytes(INVITE_CODE_LENGTH).toString('hex');
+    const code = randomBytes(AUTH_INVITE_CODE_LENGTH).toString('hex');
 
     //cохраняем код в базу с email для будущей верификации
     const invite = await this.inviteService.create({
@@ -74,20 +49,11 @@ export class AuthService {
     };
   }
 
-  /**
-   * Активация invite-кода (первый фактор)
-   *
-   * 1. Проверяет invite
-   * 2. Создаёт/перезаписывает верификацию с 6-значным кодом (upsert)
-   * 3. Удаляет invite
-   * 4. Возвращает код для отправки на email
-   *
-   * Пользователь создаётся только после verifyEmailCode()
-   */
-  async activateInvite(payload: ActivateInvitePayload) {
+  //активация invite-кода (первый фактор)
+  async activateInvite(input: ActivateInviteInput) {
     //ищем неиспользованный invite по коду
     const invite = await this.inviteService.findOne({
-      code: payload.code,
+      code: input.code,
     });
 
     //код не найден или уже использован
@@ -95,16 +61,13 @@ export class AuthService {
       throw new BadRequestException(InviteMessages.INVITE_NOT_FOUND);
     }
 
-    //создаём/перезаписываем верификацию (upsert гарантирует один код)
+    //создаем код для верификации email (второй фактор)
     const verificationCode = await this.verificationService.createVerification({
-      telegramId: payload.telegramId,
+      telegramId: input.telegramId,
       email: invite.email,
       adminId: invite.adminId,
       role: invite.role,
     });
-
-    //удаляем использованный invite
-    await this.inviteService.deleteOne({ code: payload.code });
 
     //возвращаем данные для отправки кода на email
     return {
@@ -114,23 +77,16 @@ export class AuthService {
     };
   }
 
-  /**
-   * Верификация кода с email (второй фактор)
-   *
-   * Проверяет 6-значный код и создаёт пользователя
-   *
-   * @param payload - telegramId и код
-   * @returns созданный user или ошибка
-   */
-  async verifyEmailCode(payload: VerifyEmailCodePayload) {
+  //верификация кода с email (второй фактор)
+  async verifyEmailCode(input: VerifyEmailCodeInput) {
     //проверяем код
     const result = await this.verificationService.verifyCode({
-      telegramId: payload.telegramId,
-      code: payload.code,
+      telegramId: input.telegramId,
+      code: input.code,
     });
 
     //код неверный
-    if (!result.success) {
+    if (!result.success || !result.verification) {
       return {
         success: false,
         message:
@@ -138,18 +94,22 @@ export class AuthService {
       };
     }
 
-    //код верный - создаём пользователя
-    const verification = result.verification!;
-
+    //создаем пользователя
     const user = await this.userService.create({
-      adminId: verification.adminId,
-      telegramId: payload.telegramId,
+      adminId: result.verification.adminId,
+      telegramId: input.telegramId,
+      email: result.verification.email,
       status: UserStatus.ACTIVE,
-      role: verification.role,
+      role: result.verification.role,
       settings: {
         skipAI: false,
         skipGitLab: false,
       },
+    });
+
+    //удаляем код приглашения, второй фактор пройден
+    await this.inviteService.deleteOne({
+      adminId: result.verification.adminId,
     });
 
     return {
@@ -185,11 +145,5 @@ export class AuthService {
     }
 
     return user;
-  }
-
-  //проверка, зарегистрирован ли пользователь по telegramId
-  async isRegistered(telegramId: number) {
-    const user = await this.userService.findOne({ telegramId });
-    return !!user;
   }
 }

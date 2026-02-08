@@ -51,7 +51,7 @@ export class VerificationService {
     return this.verificationRepository.deleteOne(filter);
   }
 
-  //создаем новый код для верификации email
+  //создаем код для верификации email
   async createVerification(input: CreateVerificationInput) {
     const existingVerification = await this.verificationRepository.findOne({
       telegramId: input.telegramId,
@@ -142,13 +142,5 @@ export class VerificationService {
       success: true,
       verification,
     };
-  }
-
-  //есть ли активный код для этого telegramId
-  async hasPendingVerification(telegramId: number) {
-    const verification = await this.verificationRepository.findOne({
-      telegramId,
-    });
-    return !!verification;
   }
 }
