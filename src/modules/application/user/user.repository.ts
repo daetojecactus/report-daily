@@ -1,9 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
 import { User, UserDocument } from './user.schema';
 import { Settings } from './settings/settings.schema';
 import { UserMessages } from './constants/user.messages';
+import { Model, QueryFilter, UpdateQuery, QueryOptions } from 'mongoose';
 
 @Injectable()
 export class UserRepository {
@@ -12,11 +12,11 @@ export class UserRepository {
     private readonly userModel: Model<UserDocument>,
   ) {}
 
-  async findOne(filter: Partial<User>) {
+  async findOne(filter: QueryFilter<UserDocument>) {
     return await this.userModel.findOne(filter);
   }
 
-  find(filter?: Partial<User>) {
+  find(filter?: QueryFilter<UserDocument>) {
     return this.userModel.find(filter ?? {});
   }
 
@@ -28,17 +28,12 @@ export class UserRepository {
     return await this.userModel.insertMany(users);
   }
 
-  async updateOne(filter: Partial<User>, partialUser: Partial<User>) {
-    const user = await this.userModel.findOneAndUpdate(
-      filter,
-      { $set: partialUser },
-      { new: true },
-    );
-    if (!user) {
-      throw new NotFoundException(UserMessages.USER_NOT_FOUND);
-    }
-
-    return user;
+  async updateOne(
+    filter: QueryFilter<UserDocument>,
+    update: UpdateQuery<UserDocument>,
+    options?: QueryOptions<UserDocument>,
+  ) {
+    return await this.userModel.findOneAndUpdate(filter, update, options);
   }
 
   async updateSettings(

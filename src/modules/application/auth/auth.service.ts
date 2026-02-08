@@ -7,17 +7,16 @@ import { randomBytes } from 'crypto';
 import { UserService } from '../user/user.service';
 import { AuthMessages } from './constants/auth.messages';
 import { UserStatus } from '../user/user.interface';
-import { ActivateInvitePayload, InviteInput } from './auth.interface';
-import { User } from '../user/user.schema';
+import {
+  ActivateInvitePayload,
+  InviteInput,
+  VerifyEmailCodePayload,
+} from './auth.interface';
 import { InviteService } from './invite/invite.service';
 import { InviteMessages } from './invite/constants/invite.messages';
 import { UserMessages } from '../user/constants/user.messages';
-
-/**
- * Время жизни invite-кода в часах
- * После этого времени код автоматически удаляется из БД (TTL индекс)
- */
-const INVITE_TTL_HOURS = 48;
+import { VerificationService } from './verification/verification.service';
+import { VerificationMessages } from './verification/constants/verification.messages';
 
 /**
  * Длина invite-кода в байтах
@@ -31,82 +30,64 @@ const INVITE_CODE_LENGTH = 32;
  *
  * Основные функции:
  * 1. Создание invite-кодов для новых сотрудников
- * 2. Активация invite-кода и создание пользователя
- * 3. Валидация пользователя по telegramId
+ * 2. Активация invite-кода (первый фактор - Telegram ссылка)
+ * 3. Верификация email (второй фактор - код на почту)
+ * 4. Валидация пользователя по telegramId
  *
- * Флоу регистрации:
- * 1. Админ вызывает createInvite({ adminId: 'gitlab_username', role: 'Developer' })
+ * Флоу регистрации с 2FA:
+ * 1. Админ вызывает createInvite({ adminId, email, role })
  * 2. Система генерит код и возвращает ссылку t.me/bot?start=CODE
  * 3. Сотрудник переходит по ссылке и нажимает Start
  * 4. Бот получает /start CODE, вызывает activateInvite({ code, telegramId })
- * 5. Создаётся user, код удаляется
- * 6. Сотрудник может пользоваться ботом
+ * 5. Система отправляет 6-значный код на email, invite удаляется
+ * 6. Сотрудник вводит код в Telegram (/verify 123456)
+ * 7. Бот вызывает verifyEmailCode({ telegramId, code })
+ * 8. При совпадении создаётся user
+ * 9. Сотрудник может пользоваться ботом
  */
 @Injectable()
 export class AuthService {
   constructor(
     private readonly inviteService: InviteService,
     private readonly userService: UserService,
+    private readonly verificationService: VerificationService,
   ) {}
 
-  /**
-   * Создать invite-код для нового сотрудника
-   *
-   * @param adminId - GitLab username сотрудника (для генерации отчётов)
-   * @returns объект с кодом, сроком действия и ссылкой для Telegram
-   *
-   * Пример:
-   * const invite = await authService.createInvite('ivanov');
-   * });
-   * // => {
-   * //   code: 'a1b2c3...',
-   * //   expiresAt: 2024-01-03T12:00:00.000Z,
-   * //   link: 'https://t.me/mybot?start=a1b2c3...'
-   * // }
-   */
   async createInvite(input: InviteInput) {
-    // Генерируем криптографически стойкий случайный код
-    // randomBytes безопаснее чем Math.random()
+    //генерируем криптографически стойкий случайный код
     const code = randomBytes(INVITE_CODE_LENGTH).toString('hex');
 
-    //время истечения
-    const expiresAt = new Date(Date.now() + INVITE_TTL_HOURS * 60 * 60 * 1000);
-
-    //cохраняем код в базу
-    //todo возможно updateOne {upsert: true}
+    //cохраняем код в базу с email для будущей верификации
     const invite = await this.inviteService.create({
       code,
       adminId: input.adminId,
+      email: input.email,
       role: input.role,
-      expiresAt,
-      used: false,
+      createdAt: new Date(),
     });
 
     return {
-      code: invite.code,
-      expiresAt: invite.expiresAt,
-      // Ссылка с deep link для Telegram
-      // Когда пользователь перейдёт, бот получит /start CODE
+      //ссылка для приглашения
       link: `https://t.me/${process.env.TELEGRAM_BOT_USERNAME}?start=${invite.code}`,
+      //email куда будет отправлен код (для информации админу)
+      email: input.email,
     };
   }
 
   /**
-   * Активировать invite-код и создать пользователя
+   * Активация invite-кода (первый фактор)
    *
-   * Вызывается когда сотрудник переходит по ссылке и нажимает Start
-   * Бот получает команду /start CODE и вызывает этот метод
+   * 1. Проверяет invite
+   * 2. Создаёт/перезаписывает верификацию с 6-значным кодом (upsert)
+   * 3. Удаляет invite
+   * 4. Возвращает код для отправки на email
    *
-   * @param payload.code - invite-код из команды /start
-   * @param payload.telegramId - Telegram ID пользователя (из message.from.id)
-   * @returns созданный объект User
-   * @throws BadRequestException если код невалидный, истёк или уже использован
+   * Пользователь создаётся только после verifyEmailCode()
    */
   async activateInvite(payload: ActivateInvitePayload) {
     //ищем неиспользованный invite по коду
     const invite = await this.inviteService.findOne({
       code: payload.code,
-      used: false,
     });
 
     //код не найден или уже использован
@@ -114,71 +95,91 @@ export class AuthService {
       throw new BadRequestException(InviteMessages.INVITE_NOT_FOUND);
     }
 
-    //проверяем срок действия
-    //даже если TTL не успел удалить документ, мы проверяем вручную
-    if (invite.expiresAt < new Date()) {
-      //удаляем просроченный код
-      await this.inviteService.deleteOne({ code: payload.code });
-      throw new BadRequestException(InviteMessages.INVITE_EXPIRED);
-    }
-
-    // Дополнительная проверка (на случай race condition)
-    //todo убедится надо ли
-    if (invite.used) {
-      throw new BadRequestException(InviteMessages.INVITE_ALREADY_USED);
-    }
-
-    //Создвем пользователя с данными из invite
-    //telegramId приходит из Telegram, его нельзя подделать
-    const user = await this.userService.create({
+    //создаём/перезаписываем верификацию (upsert гарантирует один код)
+    const verificationCode = await this.verificationService.createVerification({
+      telegramId: payload.telegramId,
+      email: invite.email,
       adminId: invite.adminId,
+      role: invite.role,
+    });
+
+    //удаляем использованный invite
+    await this.inviteService.deleteOne({ code: payload.code });
+
+    //возвращаем данные для отправки кода на email
+    return {
+      email: invite.email,
+      verificationCode,
+      message: VerificationMessages.VERIFICATION_CODE_SENT,
+    };
+  }
+
+  /**
+   * Верификация кода с email (второй фактор)
+   *
+   * Проверяет 6-значный код и создаёт пользователя
+   *
+   * @param payload - telegramId и код
+   * @returns созданный user или ошибка
+   */
+  async verifyEmailCode(payload: VerifyEmailCodePayload) {
+    //проверяем код
+    const result = await this.verificationService.verifyCode({
+      telegramId: payload.telegramId,
+      code: payload.code,
+    });
+
+    //код неверный
+    if (!result.success) {
+      return {
+        success: false,
+        message:
+          VerificationMessages.VERIFICATION_INVALID_CODE + result.attemptsLeft,
+      };
+    }
+
+    //код верный - создаём пользователя
+    const verification = result.verification!;
+
+    const user = await this.userService.create({
+      adminId: verification.adminId,
       telegramId: payload.telegramId,
       status: UserStatus.ACTIVE,
-      role: invite.role,
-      //настройки по умолчанию для нового пользователя
+      role: verification.role,
       settings: {
         skipAI: false,
         skipGitLab: false,
       },
     });
 
-    // Удаляем использованный код
-    // Одноразовый код - повторно использовать нельзя
-    await this.inviteService.deleteOne({ code: payload.code });
-
-    return user;
+    return {
+      success: true,
+      user,
+      message: VerificationMessages.VERIFICATION_SUCCESS,
+    };
   }
 
-  /**
-   * Валидировать пользователя по Telegram ID
-   *
-   * Используется в TelegramGuard для проверки каждого запроса
-   * Проверяет что пользователь существует и активен
-   *
-   * @param telegramId - Telegram ID пользователя
-   * @returns объект User если валидация успешна
-   * @throws ForbiddenException если пользователь не найден или заблокирован
-   */
+  //валидация пользователя по telegramId
   async validateTelegramUser(telegramId: number) {
-    // Базовая проверка telegramId
+    //проверка telegramId
     if (!telegramId || telegramId <= 0) {
       throw new ForbiddenException(AuthMessages.AUTH_INVALID_TELEGRAM_ID);
     }
 
-    // Ищем пользователя в БД
+    //ищем пользователя в БД
     const user = await this.userService.findOne({ telegramId });
 
-    // Пользователь не зарегистрирован
+    //пользователь не зарегистрирован
     if (!user) {
       throw new ForbiddenException(AuthMessages.AUTH_ACCESS_DENIED);
     }
 
-    // Пользователь заблокирован администратором
+    //пользователь заблокирован администратором
     if (user.status === UserStatus.BLOCKED) {
       throw new ForbiddenException(UserMessages.USER_BLOCKED);
     }
 
-    // Пользователь не активен (pending или другой статус)
+    //пользователь не активен
     if (user.status !== UserStatus.ACTIVE) {
       throw new ForbiddenException(UserMessages.USER_NOT_ACTIVE);
     }
@@ -186,15 +187,7 @@ export class AuthService {
     return user;
   }
 
-  /**
-   * Проверить, зарегистрирован ли пользователь
-   *
-   * Быстрая проверка без выбрасывания исключений
-   * Используется для определения нужно ли показывать форму регистрации
-   *
-   * @param telegramId - Telegram ID пользователя
-   * @returns true если пользователь существует в БД
-   */
+  //проверка, зарегистрирован ли пользователь по telegramId
   async isRegistered(telegramId: number) {
     const user = await this.userService.findOne({ telegramId });
     return !!user;

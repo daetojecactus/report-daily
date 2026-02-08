@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { UserRepository } from './user.repository';
 import { User } from './user.schema';
 import { Settings } from './settings/settings.schema';
+import { UserMessages } from './constants/user.messages';
 
 @Injectable()
 export class UserService {
@@ -20,7 +21,16 @@ export class UserService {
   }
 
   async updateOne(filter: Partial<User>, partialUser: Partial<User>) {
-    return this.userRepository.updateOne(filter, partialUser);
+    const user = await this.userRepository.updateOne(
+      filter,
+      { $set: partialUser },
+      { new: true },
+    );
+    if (!user) {
+      throw new NotFoundException(UserMessages.USER_NOT_FOUND);
+    }
+
+    return user;
   }
 
   async updateUserSettings(

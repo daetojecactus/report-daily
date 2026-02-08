@@ -41,6 +41,10 @@ export class TelegramGuard implements CanActivate {
     // Получаем объект HTTP запроса из контекста
     const request = context.switchToHttp().getRequest();
 
+    // Если запрос пришёл от Telegram (webhook update),
+    // дополнительно проверяем секретный токен (если он настроен)
+    this.validateTelegramSecretToken(request);
+
     // Пытаемся извлечь telegramId из разных источников
     const telegramId = this.extractTelegramId(request);
 
@@ -100,15 +104,36 @@ export class TelegramGuard implements CanActivate {
     }
 
     // === QUERY ПАРАМЕТР ===
-    // Для тестирования через браузер
-    // Пример: http://localhost:3000/report?telegramId=123456789
-    // ВНИМАНИЕ: в продакшене лучше отключить этот способ
-    if (request.query?.telegramId) {
-      const parsed = parseInt(request.query.telegramId, 10);
-      if (!isNaN(parsed)) return parsed;
+    // Для локального тестирования можно включить через ALLOW_TELEGRAM_QUERY_ID=true
+    if (process.env.ALLOW_TELEGRAM_QUERY_ID === 'true') {
+      if (request.query?.telegramId) {
+        const parsed = parseInt(request.query.telegramId, 10);
+        if (!isNaN(parsed)) return parsed;
+      }
     }
 
     // telegramId не найден ни в одном источнике
     return null;
+  }
+
+  /**
+   * Дополнительная проверка webhook-запросов от Telegram
+   * Если в окружении задан TELEGRAM_BOT_SECRET_TOKEN,
+   * то запрос обязан содержать заголовок x-telegram-bot-api-secret-token
+   */
+  private validateTelegramSecretToken(request: any): void {
+    const hasTelegramUpdate =
+      !!request.body?.message?.from?.id ||
+      !!request.body?.callback_query?.from?.id;
+
+    if (!hasTelegramUpdate) return;
+
+    const expectedToken = process.env.TELEGRAM_BOT_SECRET_TOKEN;
+    if (!expectedToken) return;
+
+    const actualToken = request.headers?.['x-telegram-bot-api-secret-token'];
+    if (!actualToken || actualToken !== expectedToken) {
+      throw new ForbiddenException(AuthMessages.AUTH_ACCESS_DENIED);
+    }
   }
 }

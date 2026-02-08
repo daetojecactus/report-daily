@@ -18,7 +18,7 @@ export class User {
   status!: UserStatus;
 
   @Prop({ type: Settings })
-  settings: Settings;
+  settings!: Settings;
 }
 
 export type UserDocument = HydratedDocument<User>;

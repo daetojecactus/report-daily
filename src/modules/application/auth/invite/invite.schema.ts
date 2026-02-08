@@ -11,17 +11,18 @@ export class Invite {
   @Prop({ required: true })
   adminId!: string;
 
+  @Prop({ required: true })
+  email!: string;
+
   @Prop({ required: true, enum: UserRole })
   role!: UserRole;
 
-  @Prop({ required: true, index: true })
-  expiresAt!: Date;
-
-  @Prop({ default: false })
-  used!: boolean;
+  @Prop({ index: true })
+  createdAt!: Date;
 }
 
 export type InviteDocument = HydratedDocument<Invite>;
 export const InviteSchema = SchemaFactory.createForClass(Invite);
 
-InviteSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+//день жизни кода пришлашения
+InviteSchema.index({ createdAt: 1 }, { expireAfterSeconds: 24 * 60 * 60 });
