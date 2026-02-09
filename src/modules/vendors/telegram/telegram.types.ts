@@ -3,4 +3,4 @@ export interface TelegramResponse {
   description?: string;
 }
 
-export type ParseMode = "HTML" | "Markdown";
+export type ParseMode = 'HTML' | 'Markdown';

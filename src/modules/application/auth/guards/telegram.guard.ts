@@ -6,134 +6,73 @@ import {
 } from '@nestjs/common';
 import { AuthService } from '../auth.service';
 import { AuthMessages } from '../constants/auth.messages';
+import { UserMessages } from '../../user/constants/user.messages';
+import { ConfigService } from '@nestjs/config';
 
-/**
- * TelegramGuard - защита эндпоинтов авторизацией через Telegram ID
- *
- * Как работает:
- * 1. Перехватывает каждый запрос к защищённому эндпоинту
- * 2. Извлекает telegramId из разных источников (Telegram Update, headers, query)
- * 3. Проверяет что пользователь существует в БД и активен
- * 4. Прокидывает объект user в request для использования в контроллере
- *
- * Использование:
- * @UseGuards(TelegramGuard)
- * @Post('report')
- * generate(@CurrentUser() user: User) { ... }
- *
- * Безопасность:
- * - telegramId из Telegram Update (message.from.id) нельзя подделать -
- *   он приходит напрямую от Telegram API
- * - Для API запросов telegramId передаётся в header X-Telegram-Id
- */
 @Injectable()
 export class TelegramGuard implements CanActivate {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly configService: ConfigService,
+  ) {}
 
-  /**
-   * Главный метод проверки доступа
-   * Вызывается NestJS перед каждым защищённым эндпоинтом
-   *
-   * @param context - контекст выполнения запроса
-   * @returns true если доступ разрешён, иначе выбрасывает ForbiddenException
-   */
-  async canActivate(context: ExecutionContext): Promise<boolean> {
-    // Получаем объект HTTP запроса из контекста
+  async canActivate(context: ExecutionContext) {
     const request = context.switchToHttp().getRequest();
 
-    // Если запрос пришёл от Telegram (webhook update),
-    // дополнительно проверяем секретный токен (если он настроен)
-    this.validateTelegramSecretToken(request);
+    //проверяем токен
+    //если токена нет или он неверный сразу отказ
+    this.validateSecretToken(request);
 
-    // Пытаемся извлечь telegramId из разных источников
+    //достаем id из тела запроса
     const telegramId = this.extractTelegramId(request);
 
-    // Если telegramId не найден - доступ запрещён
     if (!telegramId) {
       throw new ForbiddenException(AuthMessages.AUTH_ACCESS_DENIED);
     }
 
-    // Валидируем пользователя: проверяем что он есть в БД и активен
-    // Метод выбросит ForbiddenException если пользователь не найден или заблокирован
+    //валидируем юзера
     const user = await this.authService.validateTelegramUser(telegramId);
+    if (!user) {
+      throw new ForbiddenException(UserMessages.USER_NOT_FOUND);
+    }
 
-    // Прокидываем user в request
-    // Теперь в контроллере можно получить его через @CurrentUser() декоратор
     request.user = user;
 
     return true;
   }
 
-  /**
-   * Извлекает telegramId из запроса
-   * Проверяет несколько источников в порядке приоритета
-   *
-   * Источники (в порядке проверки):
-   * 1. Telegram Update - message.from.id (основной для бота)
-   * 2. Telegram Callback Query - callback_query.from.id (для inline кнопок)
-   * 3. HTTP Header - X-Telegram-Id (для API запросов)
-   * 4. Query параметр - ?telegramId=123 (для тестирования)
-   *
-   * @param request - объект HTTP запроса
-   * @returns telegramId или null если не найден
-   */
-  private extractTelegramId(request: any): number | null {
-    // === TELEGRAM UPDATE ===
-    // Когда пользователь отправляет сообщение боту,
-    // Telegram присылает webhook с объектом Update
-    // message.from.id - это telegramId отправителя
-    if (request.body?.message?.from?.id) {
-      return request.body.message.from.id;
-    }
+  private validateSecretToken(request: any) {
+    const actualToken = request.headers['x-telegram-bot-api-secret-token'];
 
-    // === CALLBACK QUERY ===
-    // Когда пользователь нажимает inline кнопку,
-    // приходит callback_query вместо message
-    if (request.body?.callback_query?.from?.id) {
-      return request.body.callback_query.from.id;
-    }
-
-    // === HTTP HEADER ===
-    // Для API запросов (не через Telegram)
-    // telegramId передаётся в header X-Telegram-Id
-    // Пример: curl -H "X-Telegram-Id: 123456789" http://...
-    const headerValue = request.headers?.['x-telegram-id'];
-    if (headerValue) {
-      const parsed = parseInt(headerValue, 10);
-      if (!isNaN(parsed)) return parsed;
-    }
-
-    // === QUERY ПАРАМЕТР ===
-    // Для локального тестирования можно включить через ALLOW_TELEGRAM_QUERY_ID=true
-    if (process.env.ALLOW_TELEGRAM_QUERY_ID === 'true') {
-      if (request.query?.telegramId) {
-        const parsed = parseInt(request.query.telegramId, 10);
-        if (!isNaN(parsed)) return parsed;
-      }
-    }
-
-    // telegramId не найден ни в одном источнике
-    return null;
-  }
-
-  /**
-   * Дополнительная проверка webhook-запросов от Telegram
-   * Если в окружении задан TELEGRAM_BOT_SECRET_TOKEN,
-   * то запрос обязан содержать заголовок x-telegram-bot-api-secret-token
-   */
-  private validateTelegramSecretToken(request: any): void {
-    const hasTelegramUpdate =
-      !!request.body?.message?.from?.id ||
-      !!request.body?.callback_query?.from?.id;
-
-    if (!hasTelegramUpdate) return;
-
-    const expectedToken = process.env.TELEGRAM_BOT_SECRET_TOKEN;
-    if (!expectedToken) return;
-
-    const actualToken = request.headers?.['x-telegram-bot-api-secret-token'];
-    if (!actualToken || actualToken !== expectedToken) {
+    //сравнение
+    if (
+      actualToken !==
+      this.configService.get<string>('TELEGRAM_BOT_SECRET_TOKEN')
+    ) {
       throw new ForbiddenException(AuthMessages.AUTH_ACCESS_DENIED);
     }
+  }
+
+  private extractTelegramId(request: any) {
+    const body = request.body;
+
+    //проверяем наличие body
+    if (!body) return null;
+
+    //message
+    if (body.message?.from?.id) {
+      return body.message.from.id;
+    }
+
+    //callback_query
+    if (body.callback_query?.from?.id) {
+      return body.callback_query.from.id;
+    }
+
+    //edited_message
+    if (body.edited_message?.from?.id) {
+      return body.edited_message.from.id;
+    }
+    return null;
   }
 }
