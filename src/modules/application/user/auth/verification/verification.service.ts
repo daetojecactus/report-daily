@@ -79,6 +79,7 @@ export class VerificationService {
       email: input.email,
       adminId: input.adminId,
       role: input.role,
+      gender: input.gender,
       attempts: 0,
       createdAt: new Date(),
     });

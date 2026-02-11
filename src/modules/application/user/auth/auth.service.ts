@@ -4,9 +4,9 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { randomBytes } from 'crypto';
-import { UserService } from '../user/user.service';
+import { UserService } from '../user.service';
 import { AuthMessages } from './constants/auth.messages';
-import { UserStatus } from '../user/user.interface';
+import { UserStatus } from '../user.interface';
 import {
   ActivateInviteInput,
   InviteInput,
@@ -14,7 +14,7 @@ import {
 } from './auth.interface';
 import { InviteService } from './invite/invite.service';
 import { InviteMessages } from './invite/constants/invite.messages';
-import { UserMessages } from '../user/constants/user.messages';
+import { UserMessages } from '../constants/user.messages';
 import { VerificationService } from './verification/verification.service';
 import { VerificationMessages } from './verification/constants/verification.messages';
 import { AUTH_INVITE_CODE_LENGTH } from './constants/auth.constants';
@@ -38,6 +38,7 @@ export class AuthService {
       adminId: input.adminId,
       email: input.email,
       role: input.role,
+      gender: input.gender,
       createdAt: new Date(),
     });
 
@@ -67,6 +68,7 @@ export class AuthService {
       email: invite.email,
       adminId: invite.adminId,
       role: invite.role,
+      gender: invite.gender,
     });
 
     //возвращаем данные для отправки кода на email
@@ -101,6 +103,7 @@ export class AuthService {
       email: result.verification.email,
       status: UserStatus.ACTIVE,
       role: result.verification.role,
+      gender: result.verification.gender,
       settings: {
         skipAI: false,
         skipGitLab: false,

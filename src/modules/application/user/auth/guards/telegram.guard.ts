@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { AuthService } from '../auth.service';
 import { AuthMessages } from '../constants/auth.messages';
-import { UserMessages } from '../../user/constants/user.messages';
+import { UserMessages } from '../../constants/user.messages';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()

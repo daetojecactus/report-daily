@@ -10,3 +10,8 @@ export enum UserRole {
   PROJECT_MANAGER = 'Project Manager',
   ADMIN = 'Admin',
 }
+
+export enum UserGender {
+  MALE = 'Male',
+  FEMALE = 'Female',
+}

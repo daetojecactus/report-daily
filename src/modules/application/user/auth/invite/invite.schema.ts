@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
-import { UserRole } from '../../user/user.interface';
+import { UserGender, UserRole } from '../../user.interface';
 
 //коды приглашения для регистрации новых сотрудников
 @Schema({ collection: 'invite', timestamps: true })
@@ -16,6 +16,9 @@ export class Invite {
 
   @Prop({ required: true, enum: UserRole })
   role!: UserRole;
+
+  @Prop({ required: true, enum: UserGender })
+  gender!: UserGender;
 
   @Prop({ index: true })
   createdAt!: Date;

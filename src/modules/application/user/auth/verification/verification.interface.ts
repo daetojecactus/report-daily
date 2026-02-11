@@ -1,10 +1,11 @@
-import { UserRole } from '../../user/user.interface';
+import { UserGender, UserRole } from '../../user.interface';
 
 export interface CreateVerificationInput {
   telegramId: number;
   email: string;
   adminId: string;
   role: UserRole;
+  gender: UserGender;
 }
 
 export interface VerifyCodeInput {

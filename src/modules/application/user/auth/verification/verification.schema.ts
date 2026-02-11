@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
-import { UserRole } from '../../user/user.interface';
+import { UserGender, UserRole } from '../../user.interface';
 
 @Schema({ collection: 'verification', timestamps: true })
 export class Verification {
@@ -18,6 +18,9 @@ export class Verification {
 
   @Prop({ required: true, enum: UserRole })
   role!: UserRole;
+
+  @Prop({ required: true, enum: UserGender })
+  gender!: UserGender;
 
   @Prop({ required: true, default: 0 })
   attempts!: number;
