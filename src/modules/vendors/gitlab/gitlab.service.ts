@@ -5,12 +5,31 @@ import { GitLabRepository } from './gitlab.repository';
 export class GitLabService {
   constructor(private readonly gitlabRepository: GitLabRepository) {}
 
+  async findUserByUsername(username: string) {
+    return this.gitlabRepository.findUserByUsername(username);
+  }
+
   async getEvents(afterDate: string, userId?: number) {
     return this.gitlabRepository.getEvents(afterDate, userId);
   }
 
   async getUserProjects(userId: number) {
     return this.gitlabRepository.getUserProjects(userId);
+  }
+
+  async getProject(projectId: number) {
+    return this.gitlabRepository.getProject(projectId);
+  }
+
+  async getMergeRequestByBranch(projectId: number, sourceBranch: string) {
+    return this.gitlabRepository.getMergeRequestByBranch(
+      projectId,
+      sourceBranch,
+    );
+  }
+
+  async getMergeRequestCommits(projectId: number, mrIid: number) {
+    return this.gitlabRepository.getMergeRequestCommits(projectId, mrIid);
   }
 
   async getCommit(projectId: number, commitId: string) {

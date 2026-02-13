@@ -12,10 +12,16 @@ export interface GitLabEvent {
   project_id: number;
   action_name:
     | 'pushed'
+    | 'pushed to'
+    | 'pushed new'
     | 'created'
+    | 'opened'
     | 'closed'
     | 'merged'
+    | 'approved'
+    | 'accepted'
     | 'commented on'
+    | 'deleted'
     | 'joined'
     | 'left'
     | 'expired';
@@ -187,4 +193,13 @@ export interface GitLabMRApprovals {
   approvals_required: number;
   approvals_left: number;
   approved_by: Array<{ user: GitLabAuthor }>;
+}
+
+export interface GitLabUser {
+  id: number;
+  username: string;
+  name: string;
+  state: string;
+  avatar_url: string;
+  web_url: string;
 }

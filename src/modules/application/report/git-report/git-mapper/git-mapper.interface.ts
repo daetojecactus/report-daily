@@ -1,10 +1,16 @@
 import { TaskStatus, TaskType } from 'src/common/enums/task.enum';
 import {
   GroupedIssue,
-  GroupedMergeRequest,
   StandaloneMergeRequest,
   StandalonePush,
 } from '../git-group/git-group.interface';
+
+//роль пользователя в контексте задачи
+export enum TaskRole {
+  ASSIGNEE = 'assignee',
+  REVIEWER = 'reviewer',
+  OBSERVER = 'observer',
+}
 
 //результат анализа действий — что именно было сделано
 export interface WorkResult {
@@ -17,7 +23,7 @@ export interface MappedIssue extends GroupedIssue {
   workResult: WorkResult;
 }
 
-//мр с определенным статусом работы
+//MR с определенным статусом работы (хотфиксы и т.д. без задачи)
 export interface MappedMergeRequest extends StandaloneMergeRequest {
   workResult: WorkResult;
 }
@@ -32,17 +38,4 @@ export interface MappedDailyData {
   issues: MappedIssue[];
   standaloneMergeRequests: MappedMergeRequest[];
   standalonePushes: MappedPush[];
-}
-
-//контекст для определения статуса
-export interface StatusContext {
-  hasCreatedToday: boolean;
-  hasClosedToday: boolean;
-  hasPushToday: boolean;
-  hasCommentToday: boolean;
-  hasMergedToday: boolean;
-  hasOpenedMrToday: boolean;
-  labels: string[];
-  mrState?: string;
-  issueState?: string;
 }

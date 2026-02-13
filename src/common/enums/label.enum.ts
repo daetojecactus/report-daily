@@ -12,6 +12,7 @@ export enum LabelType {
 export enum LabelStatus {
   DOING = 'doing',
   REVIEW = 'review',
+  AFTER_REVIEW = 'after_review',
   FRONTEND = 'frontend',
   NEED_INFORMATION = 'need information',
 }

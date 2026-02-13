@@ -7,11 +7,25 @@ import {
   GitLabLabelEvent,
   GitLabMergeRequest,
   GitLabNote,
+  GitLabUser,
 } from './gitlab.types';
 
 @Injectable()
 export class GitLabRepository {
   constructor(private readonly gitlabClient: GitLabClient) {}
+
+  //находим пользователя по username
+  async findUserByUsername(username: string): Promise<GitLabUser | null> {
+    try {
+      const { data } = await this.gitlabClient.instance.get<GitLabUser[]>(
+        '/users',
+        { params: { username } },
+      );
+      return data.length > 0 ? data[0] : null;
+    } catch {
+      return null;
+    }
+  }
 
   //получаем события из ленты активности пользователя
   async getEvents(afterDate: string, userId?: number): Promise<GitLabEvent[]> {
@@ -121,6 +135,51 @@ export class GitLabRepository {
       const { data } = await this.gitlabClient.instance.get<GitLabNote[]>(
         `/projects/${projectId}/issues/${issueIid}/notes`,
         { params: { sort: 'desc', per_page: 50 } },
+      );
+      return data;
+    } catch {
+      return [];
+    }
+  }
+
+  //получаем проект по id
+  async getProject(projectId: number) {
+    try {
+      const { data } = await this.gitlabClient.instance.get(
+        `/projects/${projectId}`,
+      );
+      return data;
+    } catch {
+      return null;
+    }
+  }
+
+  //получаем мр по ветке
+  async getMergeRequestByBranch(
+    projectId: number,
+    sourceBranch: string,
+  ): Promise<GitLabMergeRequest | null> {
+    try {
+      const { data } = await this.gitlabClient.instance.get<
+        GitLabMergeRequest[]
+      >(`/projects/${projectId}/merge_requests`, {
+        params: { source_branch: sourceBranch, per_page: 1 },
+      });
+      return data.length > 0 ? data[0] : null;
+    } catch {
+      return null;
+    }
+  }
+
+  //получаем коммиты мр
+  async getMergeRequestCommits(
+    projectId: number,
+    mrIid: number,
+  ): Promise<GitLabCommit[]> {
+    try {
+      const { data } = await this.gitlabClient.instance.get<GitLabCommit[]>(
+        `/projects/${projectId}/merge_requests/${mrIid}/commits`,
+        { params: { per_page: 100 } },
       );
       return data;
     } catch {

@@ -12,7 +12,7 @@ import { GitPattern, GitMessages } from './constants/git.messages';
 import type {
   GitLabEvent,
   GitLabMergeRequest,
-  GitLabMRNote,
+  GitLabNote,
 } from '../../vendors/gitlab/gitlab.types';
 import type {
   MergeContext,
@@ -233,7 +233,7 @@ export class GitService {
                 new Date(event.created_at).getTime(),
             ) < 2000,
         );
-        if (hasMergeNearby) acceptedMRs.add(event.target_id);
+        if (hasMergeNearby && event.target_id) acceptedMRs.add(event.target_id);
       }
     }
 
@@ -257,7 +257,11 @@ export class GitService {
       }
     }
 
-    if (this.isAcceptedMR(event) && acceptedMRs.has(event.target_id)) {
+    if (
+      this.isAcceptedMR(event) &&
+      event.target_id &&
+      acceptedMRs.has(event.target_id)
+    ) {
       return true;
     }
 
@@ -319,7 +323,7 @@ export class GitService {
     return requests;
   }
 
-  private analyzeComments(notes: GitLabMRNote[]): CommentContext {
+  private analyzeComments(notes: GitLabNote[]): CommentContext {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -502,7 +506,7 @@ export class GitService {
     );
   }
 
-  private isIssueType(type: string | undefined): boolean {
+  private isIssueType(type: string | null | undefined): boolean {
     return (
       type === GitLabTargetType.ISSUE || type === GitLabTargetType.WORK_ITEM
     );
