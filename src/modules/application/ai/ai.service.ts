@@ -1,8 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { TaskStatus, TaskType } from '../../../common/enums/task.enum';
-import type { AITaskContext } from './ai.types';
+import { UserGender } from '../user/user.interface';
+import type { AITaskContext, AIEnhanceRequest } from './ai.types';
 import { AI_SYSTEM_PROMPT } from './constants/ai.prompt';
-import { TASK_STATUS_VERB } from '../report/constants/report.messages';
+import { getTaskStatusAction } from '../report/constants/report.messages';
 import { GroqService } from '../../vendors/groq/groq.service';
 
 @Injectable()
@@ -14,27 +15,47 @@ export class AiService {
     return this.groqService.isEnabled();
   }
 
-  async enhanceTasks(contexts: AITaskContext[]): Promise<Map<number, string>> {
-    if (!this.isEnabled() || contexts.length === 0) {
-      return this.fallbackAll(contexts);
+  //обогащает задачи через AI, возвращает map taskId → описание
+  async enhanceTasks(request: AIEnhanceRequest): Promise<Map<string, string>> {
+    const { tasks, gender } = request;
+
+    if (!this.isEnabled() || tasks.length === 0) {
+      return this.fallbackAll(tasks, gender);
     }
 
     try {
-      const prompt = this.buildPrompt(contexts);
+      const prompt = this.buildPrompt(tasks, gender);
       const response = await this.groqService.generate(prompt);
-      return this.parseResponse(response, contexts);
+      return this.parseResponse(response, tasks, gender);
     } catch (error) {
       this.logger.error('AI enhancement failed', error);
-      return this.fallbackAll(contexts);
+      return this.fallbackAll(tasks, gender);
     }
   }
 
-  private buildPrompt(contexts: AITaskContext[]): string {
+  //формирует fallback без AI — просто глагол + название задачи
+  formatFallback(
+    status: TaskStatus,
+    title: string,
+    gender: UserGender,
+  ): string {
+    const verb = getTaskStatusAction(status, gender);
+    return `${verb} «${title}»`;
+  }
+
+  private buildPrompt(contexts: AITaskContext[], gender: UserGender): string {
+    const genderHint =
+      gender === UserGender.FEMALE
+        ? 'Пиши от лица ДЕВУШКИ (женский род): "Продолжила", "Добавила", "Исправила"'
+        : 'Пиши от лица МУЖЧИНЫ (мужской род): "Продолжил", "Добавил", "Исправил"';
+
     const tasks = contexts
       .map((ctx, i) => `[${i + 1}] ${this.formatContext(ctx)}`)
       .join('\n\n---\n\n');
 
     return `${AI_SYSTEM_PROMPT}
+
+${genderHint}
 
 ${contexts.length} задач. Для каждой напиши ОДНУ строку (начинай с глагола!).
 
@@ -72,8 +93,9 @@ ${tasks}
   private parseResponse(
     response: string,
     contexts: AITaskContext[],
-  ): Map<number, string> {
-    const results = new Map<number, string>();
+    gender: UserGender,
+  ): Map<string, string> {
+    const results = new Map<string, string>();
     const lines = response.split('\n').filter((line) => line.trim());
 
     for (let i = 0; i < contexts.length; i++) {
@@ -85,24 +107,31 @@ ${tasks}
           .trim();
         results.set(contexts[i].taskId, cleaned);
       } else {
-        results.set(contexts[i].taskId, this.formatFallback(contexts[i]));
+        results.set(
+          contexts[i].taskId,
+          this.formatFallback(
+            contexts[i].status,
+            contexts[i].taskTitle,
+            gender,
+          ),
+        );
       }
     }
 
     return results;
   }
 
-  private fallbackAll(contexts: AITaskContext[]): Map<number, string> {
-    const results = new Map<number, string>();
+  private fallbackAll(
+    contexts: AITaskContext[],
+    gender: UserGender,
+  ): Map<string, string> {
+    const results = new Map<string, string>();
     for (const context of contexts) {
-      results.set(context.taskId, this.formatFallback(context));
+      results.set(
+        context.taskId,
+        this.formatFallback(context.status, context.taskTitle, gender),
+      );
     }
     return results;
-  }
-
-  private formatFallback(context: AITaskContext): string {
-    const verb =
-      TASK_STATUS_VERB[context.status] || TASK_STATUS_VERB[TaskStatus.UNKNOWN];
-    return `${verb} «${context.taskTitle}»`;
   }
 }

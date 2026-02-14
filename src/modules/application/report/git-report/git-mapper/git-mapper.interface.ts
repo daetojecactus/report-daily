@@ -9,6 +9,7 @@ import {
 export enum TaskRole {
   ASSIGNEE = 'assignee',
   REVIEWER = 'reviewer',
+  AUTHOR = 'author',
   OBSERVER = 'observer',
 }
 

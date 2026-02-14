@@ -71,225 +71,313 @@ export class GitMapperService {
     };
   }
 
-  //определение статуса задачи
+  //определение статуса по роли
   determineTaskStatus(context: TaskContext): TaskStatus {
-    //мр без задачи + приоритет critical/high + тип bug
-    if (context.isStandaloneMergeRequest() && context.isUrgentTask()) {
-      return TaskStatus.URGENT_HOTFIX;
+    //стезя qa
+    if (context.isQualityAssurance()) {
+      return this.determineForQA(context);
     }
 
-    //мр без привязанной задачи
-    if (context.isStandaloneMergeRequest()) {
-      return TaskStatus.HOTFIX;
+    //стезя pm
+    if (context.isProjectManager()) {
+      return this.determineForPM(context);
     }
 
-    // --- задача закрыта + мр смерджена ---
+    //стезя developer и admin
+    return this.determineForDeveloper(context);
+  }
 
-    //на мне + я смерджил + баг → пофиксил баг
+  //определяем для qa
+  private determineForQA(context: TaskContext): TaskStatus {
+    //qa как ревьюер
+    if (context.isReviewer()) {
+      return this.determineForQAReviewer(context);
+    }
+
+    //qa не ревьюер
+    return this.determineForQAWorker(context);
+  }
+
+  //qa как ревьюер
+  private determineForQAReviewer(context: TaskContext): TaskStatus {
+    //закрыл задачу и принял исправление
+    if (context.currentUserClosedIssue() || context.isIssueClosed()) {
+      return TaskStatus.VERIFIED_FIX;
+    }
+
+    //апрувнул после доработок
+    if (context.currentUserApproved() && context.isAfterReview()) {
+      return TaskStatus.APPROVED_AFTER_REWORK;
+    }
+
+    //протестировал и апрувнул
     if (
-      context.isAssignee() &&
-      context.isIssueClosedWithMerge() &&
-      context.currentUserMergedMergeRequest() &&
+      context.currentUserApproved() &&
+      context.currentUserCommentedOnMergeRequest()
+    ) {
+      return TaskStatus.TESTED_AND_APPROVED;
+    }
+
+    //протестировал и апрувнул
+    if (context.currentUserApproved()) {
+      return TaskStatus.TESTED_AND_APPROVED;
+    }
+
+    //вернул задачу на доработку
+    if (context.currentUserReturnedToDoing() && context.wasReturnedToDoing()) {
+      return TaskStatus.RETURNED_FOR_REVISION;
+    }
+
+    //начал тестирование
+    if (context.currentUserSentToTesting()) {
+      return TaskStatus.STARTED_TESTING;
+    }
+
+    //провел тестирование и оставил замечания
+    if (
+      context.currentUserCommentedOnMergeRequest() &&
+      context.hasManyMergeRequestComments() &&
+      !context.currentUserApproved()
+    ) {
+      return TaskStatus.TESTED_WITH_COMMENTS;
+    }
+
+    //уточнил детали бага
+    if (
+      context.currentUserCommentedOnIssue() &&
+      (context.isDoing() || context.isNeedInformation()) &&
       context.isBug()
     ) {
-      return TaskStatus.FIXED_BUG;
+      return TaskStatus.CLARIFIED_BUG;
     }
 
-    //на мне + я смерджил + фича → реализовал фичу
-    if (
-      context.isAssignee() &&
-      context.isIssueClosedWithMerge() &&
-      context.currentUserMergedMergeRequest() &&
-      context.isFeature()
-    ) {
-      return TaskStatus.IMPLEMENTED_FEATURE;
+    //оставил комментарий к мр
+    if (context.currentUserCommentedOnMergeRequest()) {
+      return TaskStatus.REVIEW_COMMENT;
     }
 
-    //на мне + я смерджил → закрыл задачу мержем
-    if (
-      context.isAssignee() &&
-      context.isIssueClosedWithMerge() &&
-      context.currentUserMergedMergeRequest()
-    ) {
-      return TaskStatus.COMPLETED_BY_MERGE;
+    //прокомментировал задачу
+    if (context.currentUserCommentedAnywhere()) {
+      return TaskStatus.COMMENTED;
     }
 
-    //на мне + смерджена но мерджил не я + нет рабочих событий → завершил задачу
-    //если есть пуш/открытие мр сегодня — мердж был позже, пропускаем
-    if (
-      context.isAssignee() &&
-      context.isIssueClosedWithMerge() &&
-      !context.hasActiveWorkOnMergeRequest()
-    ) {
-      return TaskStatus.COMPLETED;
+    return TaskStatus.UNKNOWN;
+  }
+
+  //qa не ревьюер
+  private determineForQAWorker(context: TaskContext): TaskStatus {
+    //закрыл задачу и принял исправление
+    if (context.currentUserClosedIssue() || context.isIssueClosed()) {
+      return TaskStatus.VERIFIED_FIX;
     }
 
-    //на мне + задача закрыта без мр
-    if (
-      context.isAssignee() &&
-      context.isIssueClosed() &&
-      !context.hasMergeRequest()
-    ) {
-      return TaskStatus.COMPLETED;
+    //создал баг-репорт
+    if (context.currentUserOpenedIssue() && context.isBug()) {
+      return TaskStatus.FOUND_BUG;
     }
 
-    //ревьюер + разработчик + закрыто + смерджено + апрувнул
-    if (
-      context.isReviewer() &&
-      context.isDeveloper() &&
-      context.isIssueClosedWithMerge() &&
-      context.currentUserApproved()
-    ) {
-      return TaskStatus.COMPLETED_CODE_REVIEW;
+    //создал задачу
+    if (context.currentUserOpenedIssue()) {
+      return TaskStatus.CREATED_TASK;
     }
 
-    //ревьюер + QA + закрыто + смерджено + апрувнул
-    if (
-      context.isReviewer() &&
-      context.isQualityAssurance() &&
-      context.isIssueClosedWithMerge() &&
-      context.currentUserApproved()
-    ) {
-      return TaskStatus.COMPLETED_TESTING;
+    //пуш + e2e задача
+    if (context.currentUserPushedCode() && context.isE2E()) {
+      return TaskStatus.WROTE_TESTS;
     }
 
-    //ревьюер + закрыто + смерджено + апрувнул
-    if (
-      context.isReviewer() &&
-      context.isIssueClosedWithMerge() &&
-      context.currentUserApproved()
-    ) {
-      return TaskStatus.APPROVED_AND_MERGED;
-    }
-
-    //просто смерджил или наблюдатель (нет рабочих событий за день)
-    if (
-      context.isIssueClosedWithMerge() &&
-      !context.hasActiveWorkOnMergeRequest()
-    ) {
-      return TaskStatus.MERGED;
-    }
-
-    // --- задача открыта, мр существует ---
-
-    //ревьюер + разработчик + мр + апрувнул (задача ещё открыта)
-    if (
-      context.isReviewer() &&
-      context.isDeveloper() &&
-      context.hasMergeRequest() &&
-      context.currentUserApproved()
-    ) {
-      return TaskStatus.COMPLETED_CODE_REVIEW;
-    }
-
-    //ревьюер + QA + мр + апрувнул (задача ещё открыта)
-    if (
-      context.isReviewer() &&
-      context.isQualityAssurance() &&
-      context.hasMergeRequest() &&
-      context.currentUserApproved()
-    ) {
-      return TaskStatus.COMPLETED_TESTING;
-    }
-
-    //ревьюер + мр + апрувнул (PM/Admin)
-    if (
-      context.isReviewer() &&
-      context.hasMergeRequest() &&
-      context.currentUserApproved()
-    ) {
-      return TaskStatus.APPROVED_AFTER_REVIEW;
-    }
-
-    //ревьюер + мр + after_review + оставил комменты
-    if (
-      context.isReviewer() &&
-      context.hasMergeRequest() &&
-      context.isAfterReview() &&
-      context.currentUserCommentedOnMergeRequest()
-    ) {
-      return TaskStatus.CONTINUED_REVIEW;
-    }
-
-    //ревьюер + мр + диалог в комментах
-    if (
-      context.isReviewer() &&
-      context.hasMergeRequest() &&
-      context.hasReviewDialog()
-    ) {
-      return TaskStatus.CONTINUED_REVIEW;
-    }
-
-    //ревьюер + мр + оставил комменты (без ответа автора)
-    if (
-      context.isReviewer() &&
-      context.hasMergeRequest() &&
-      context.currentUserCommentedOnMergeRequest()
-    ) {
-      return TaskStatus.REVIEWED;
-    }
-
-    //на мне + мр + другие апрувнули
-    if (
-      context.isAssignee() &&
-      context.hasMergeRequest() &&
-      context.isApprovedByOtherUsers()
-    ) {
-      return TaskStatus.APPROVED;
-    }
-
-    //на мне + мр + диалог + задача в фазе ревью
-    if (
-      context.isAssignee() &&
-      context.hasMergeRequest() &&
-      context.hasReviewDialog() &&
-      context.isInReviewPhase()
-    ) {
-      return TaskStatus.ANSWERED_REVIEW;
-    }
-
-    //на мне + поставил лейбл review
-    if (context.isAssignee() && context.currentUserSentToReview()) {
+    //отдал на ревью
+    if (context.currentUserSentToReview()) {
       return TaskStatus.SENT_TO_REVIEW;
     }
 
-    //на мне + поставил лейбл need_information
-    if (context.isAssignee() && context.currentUserRequestedInformation()) {
+    //пуш + after_review
+    if (context.currentUserPushedCode() && context.isAfterReview()) {
+      return TaskStatus.CORRECTED_AFTER_REVIEW;
+    }
+
+    //пуш + мр создана сегодня
+    if (
+      context.currentUserPushedCode() &&
+      context.isMergeRequestCreatedOnReportDate()
+    ) {
+      return TaskStatus.STARTED_IMPLEMENTATION;
+    }
+
+    //пуш в мр
+    if (context.currentUserPushedCode() && context.hasMergeRequest()) {
+      return TaskStatus.WROTE_CODE;
+    }
+
+    //уточнил детали бага
+    if (
+      context.currentUserCommentedOnIssue() &&
+      (context.isDoing() || context.isNeedInformation()) &&
+      context.isBug()
+    ) {
+      return TaskStatus.CLARIFIED_BUG;
+    }
+
+    //прокомментировал задачу
+    if (context.currentUserCommentedAnywhere()) {
+      return TaskStatus.COMMENTED;
+    }
+
+    //дальше как разработчик (мр, статусы, fallback)
+    return this.determineForDeveloperAssignee(context);
+  }
+
+  //pm
+  private determineForPM(context: TaskContext): TaskStatus {
+    //закрыл задачу
+    if (context.currentUserClosedIssue() || context.isIssueClosed()) {
+      return TaskStatus.ACCEPTED_WORK;
+    }
+
+    //запланировал фичу
+    if (context.currentUserOpenedIssue() && context.isFeature()) {
+      return TaskStatus.PLANNED_FEATURE;
+    }
+
+    //сообщил о баге
+    if (context.currentUserOpenedIssue() && context.isBug()) {
+      return TaskStatus.REPORTED_BUG;
+    }
+
+    //создал задачу
+    if (context.currentUserOpenedIssue()) {
+      return TaskStatus.CREATED;
+    }
+
+    //повысил приоритет задачи
+    if (context.currentUserEscalatedPriority()) {
+      return TaskStatus.ESCALATED_PRIORITY;
+    }
+
+    //предоставил требования
+    if (context.currentUserCommentedAnywhere() && context.isNeedInformation()) {
+      return TaskStatus.PROVIDED_REQUIREMENTS;
+    }
+
+    //прокомментировал задачу
+    if (context.currentUserCommentedAnywhere()) {
+      return TaskStatus.COMMENTED;
+    }
+
+    return TaskStatus.UNKNOWN;
+  }
+
+  //developer/admin
+  private determineForDeveloper(context: TaskContext): TaskStatus {
+    //ревьюер проверяет чужой код
+    if (context.isReviewer()) {
+      return this.determineForDeveloperReviewer(context);
+    }
+
+    //автор задачи, но не исполнитель
+    if (context.isAuthor()) {
+      return this.determineForDeveloperAuthor(context);
+    }
+
+    //исполнитель или наблюдатель
+    return this.determineForDeveloperAssignee(context);
+  }
+
+  //developer/admin как исполнитель
+  private determineForDeveloperAssignee(context: TaskContext): TaskStatus {
+    //только мр + критический баг
+    if (
+      context.isStandaloneMergeRequest() &&
+      context.isUrgentTask() &&
+      context.currentUserMergedMergeRequest()
+    ) {
+      return TaskStatus.HOTFIX_DEPLOYED;
+    }
+
+    //только мр + хотфикс
+    if (
+      context.isStandaloneMergeRequest() &&
+      context.currentUserMergedMergeRequest()
+    ) {
+      return context.isBug()
+        ? TaskStatus.FIXED_BUG
+        : TaskStatus.COMPLETED_BY_MERGE;
+    }
+
+    //смерджил мр + критический приоритет + баг → хотфикс
+    if (
+      context.currentUserMergedMergeRequest() &&
+      context.isCriticalPriority() &&
+      context.isBug()
+    ) {
+      return TaskStatus.HOTFIX_DEPLOYED;
+    }
+
+    //смерджил мр + баг
+    if (context.currentUserMergedMergeRequest() && context.isBug()) {
+      return TaskStatus.FIXED_BUG;
+    }
+
+    //смерджил мр + фича
+    if (context.currentUserMergedMergeRequest() && context.isFeature()) {
+      return TaskStatus.IMPLEMENTED_FEATURE;
+    }
+
+    //смерджил мр
+    if (context.currentUserMergedMergeRequest()) {
+      return TaskStatus.COMPLETED_BY_MERGE;
+    }
+
+    //задача закрыта с мерджем (но мерджил не я)
+    if (context.isIssueClosedWithMerge() && context.isAssignee()) {
+      return TaskStatus.COMPLETED_BY_MERGE;
+    }
+
+    //отдал на ревью
+    if (context.currentUserSentToReview()) {
+      return TaskStatus.SENT_TO_REVIEW;
+    }
+
+    //запросил информацию
+    if (context.currentUserRequestedInformation()) {
       return TaskStatus.NEED_INFORMATION;
     }
 
-    //на мне + поставил лейбл frontend
-    if (context.isAssignee() && context.currentUserPassedToFrontend()) {
+    //передал на фронтенд
+    if (context.currentUserPassedToFrontend()) {
       return TaskStatus.PASSED_TO_FRONTEND;
     }
 
-    //на мне + мр создана давно + свежий пуш → вернулся к работе
+    //пуш в статусе after_review
+    if (context.currentUserPushedCode() && context.isAfterReview()) {
+      return TaskStatus.CORRECTED_AFTER_REVIEW;
+    }
+
+    //пуш + мр создана сегодня
     if (
-      context.isAssignee() &&
-      context.hasMergeRequest() &&
-      context.isResumedWork() &&
-      context.currentUserPushedCode()
+      context.currentUserPushedCode() &&
+      context.isMergeRequestCreatedOnReportDate()
     ) {
-      return TaskStatus.RESUMED;
+      return TaskStatus.STARTED_IMPLEMENTATION;
     }
 
-    //пушил код в мр
-    if (context.hasMergeRequest() && context.currentUserPushedCode()) {
-      return TaskStatus.CONTINUED;
+    //пуш в мр
+    if (context.currentUserPushedCode() && context.hasMergeRequest()) {
+      return TaskStatus.WROTE_CODE;
     }
 
-    //мр создана сегодня → начал работу
+    //мр создана сегодня
     if (
       context.isAssignee() &&
       context.hasMergeRequest() &&
       context.isMergeRequestCreatedOnReportDate()
     ) {
-      return TaskStatus.STARTED;
+      return TaskStatus.STARTED_IMPLEMENTATION;
     }
 
-    //оставил комментарий
-    if (context.currentUserCommentedAnywhere()) {
-      return TaskStatus.COMMENTED;
+    //ответил на комментарий ревьюера
+    if (context.hasReviewDialog() && context.isAssignee()) {
+      return TaskStatus.DISCUSSED_CODE;
     }
 
     //создал задачу
@@ -299,39 +387,145 @@ export class GitMapperService {
 
     //создал проект
     if (context.currentUserCreatedProject()) {
-      return TaskStatus.CREATED;
+      return TaskStatus.CREATED_PROJECT;
     }
 
-    //на мне + лейбл doing
+    // получил апрув
+    if (context.isApprovedByOtherUsers() && context.isAssignee()) {
+      return TaskStatus.WROTE_CODE;
+    }
+
+    //комментировал, но нет активной работы с кодом
+    if (
+      context.isAssignee() &&
+      context.currentUserCommentedAnywhere() &&
+      !context.hasActiveWorkOnMergeRequest()
+    ) {
+      return TaskStatus.COMMENTED;
+    }
+
+    //задача в doing
     if (context.isAssignee() && context.isDoing()) {
       return TaskStatus.CONTINUED;
     }
 
-    //на мне + лейбл review
+    //задача в review
     if (context.isAssignee() && context.isInReview()) {
       return TaskStatus.SENT_TO_REVIEW;
     }
 
-    //на мне + лейбл after_review
+    //задача в after_review
     if (context.isAssignee() && context.isAfterReview()) {
-      return TaskStatus.ANSWERED_REVIEW;
+      return TaskStatus.CORRECTED_AFTER_REVIEW;
     }
 
-    //на мне + мр открыта
+    //задача с мр (fallback)
     if (context.isAssignee() && context.hasMergeRequest()) {
       return TaskStatus.CONTINUED;
     }
 
-    //ревьюер + мр открыта
-    if (context.isReviewer() && context.hasMergeRequest()) {
-      return TaskStatus.REVIEWED;
+    //standalone мр без мерджа
+    if (context.isStandaloneMergeRequest()) {
+      return context.currentUserPushedCode()
+        ? TaskStatus.WROTE_CODE
+        : TaskStatus.CONTINUED;
     }
 
-    //недостаточно данных
+    //просто комменты
+    if (context.currentUserCommentedAnywhere()) {
+      return TaskStatus.COMMENTED;
+    }
+
     return TaskStatus.UNKNOWN;
   }
 
-  //построение контекста для задачи
+  //developer/admin (reviewer)
+  private determineForDeveloperReviewer(context: TaskContext): TaskStatus {
+    //апрув после правок
+    if (context.currentUserApproved() && context.isAfterReview()) {
+      return TaskStatus.APPROVED_FIXES;
+    }
+
+    //апрув
+    if (context.currentUserApproved()) {
+      return TaskStatus.APPROVED_MR;
+    }
+
+    //ревьюер смерджил чужую задачу
+    if (context.currentUserMergedMergeRequest()) {
+      return TaskStatus.MERGED_OTHERS_WORK;
+    }
+
+    //много комментариев без апрува
+    if (
+      context.currentUserCommentedOnMergeRequest() &&
+      context.hasManyMergeRequestComments() &&
+      !context.currentUserApproved()
+    ) {
+      return TaskStatus.REQUESTED_CHANGES;
+    }
+
+    //мало комментариев (вопросы по коду)
+    if (context.currentUserCommentedOnMergeRequest()) {
+      return TaskStatus.REVIEW_COMMENT;
+    }
+
+    //вернул задачу на доработку
+    if (context.currentUserReturnedToDoing() && context.wasReturnedToDoing()) {
+      return TaskStatus.RETURNED_FOR_REVISION;
+    }
+
+    //комментарий к задаче
+    if (context.currentUserCommentedOnIssue()) {
+      return TaskStatus.COMMENTED;
+    }
+
+    //есть мр, но ревьюер не оставил действий
+    if (context.hasMergeRequest()) {
+      return TaskStatus.REVIEW_COMMENT;
+    }
+
+    return TaskStatus.UNKNOWN;
+  }
+
+  //developer/admin (author)
+  private determineForDeveloperAuthor(context: TaskContext): TaskStatus {
+    //принял результат (задача закрыта/смерджена)
+    if (context.isIssueClosedWithMerge() || context.isIssueClosed()) {
+      return TaskStatus.ACCEPTED_RESULT;
+    }
+
+    //смерджил чужую работу
+    if (context.currentUserMergedMergeRequest()) {
+      return TaskStatus.MERGED_OTHERS_WORK;
+    }
+
+    //создал тех. долг
+    if (context.currentUserOpenedIssue() && context.isMaintenance()) {
+      return TaskStatus.CREATED_TECH_DEBT;
+    }
+
+    //нашел баг при работе
+    if (context.currentUserOpenedIssue() && context.isBug()) {
+      return TaskStatus.FOUND_BUG_DURING_WORK;
+    }
+
+    //создал задачу (фича или прочее)
+    if (context.currentUserOpenedIssue()) {
+      return TaskStatus.CREATED;
+    }
+
+    //комментарий
+    if (context.currentUserCommentedAnywhere()) {
+      return TaskStatus.COMMENTED;
+    }
+
+    return TaskStatus.UNKNOWN;
+  }
+
+  //построение контекста
+
+  //построение контекста для задачи (issue)
   private buildIssueContext(
     issue: GroupedIssue,
     username: string,
@@ -348,6 +542,7 @@ export class GitMapperService {
         issue.assignee,
         mergeRequest?.reviewers ?? [],
         username,
+        issue.events,
       ),
       taskType: this.resolveTaskType(issue.labels),
       taskDates: {
@@ -359,7 +554,12 @@ export class GitMapperService {
         priorities: this.parseLabelPriorities(issue.labels),
         types: this.parseLabelTypes(issue.labels),
         currentStatus: this.resolveCurrentStatusLabel(issue.labelEvents),
+        previousStatus: this.resolvePreviousStatusLabel(issue.labelEvents),
         statusLabelsSetByCurrentUser: this.resolveStatusLabelsSetByUser(
+          issue.labelEvents,
+          username,
+        ),
+        priorityChangedByCurrentUser: this.hasPriorityEscalation(
           issue.labelEvents,
           username,
         ),
@@ -408,6 +608,7 @@ export class GitMapperService {
         mergeRequest.assignee,
         mergeRequest.reviewers,
         username,
+        mergeRequest.events,
       ),
       taskType: this.resolveTaskType(mergeRequest.labels),
       taskDates: {
@@ -419,7 +620,9 @@ export class GitMapperService {
         priorities: this.parseLabelPriorities(mergeRequest.labels),
         types: this.parseLabelTypes(mergeRequest.labels),
         currentStatus: null,
+        previousStatus: null,
         statusLabelsSetByCurrentUser: [],
+        priorityChangedByCurrentUser: false,
       },
       activityStream: {
         issueState: null,
@@ -450,8 +653,6 @@ export class GitMapperService {
     });
   }
 
-  //парсинг сырых данных
-
   //тип задачи по лейблам
   private resolveTaskType(labels: string[]): TaskType {
     const values = this.extractLabelValues(labels);
@@ -462,13 +663,24 @@ export class GitMapperService {
   }
 
   //роль пользователя в задаче
+  //учитывает: assignee, reviewer, а также автор (создатель issue)
   private resolveTaskRole(
     assignee: string | null,
     reviewers: string[],
     username: string,
+    events: { actionName: string }[],
   ): TaskRole {
     if (assignee === username) return TaskRole.ASSIGNEE;
     if (reviewers.includes(username)) return TaskRole.REVIEWER;
+
+    //если пользователь создал задачу, но не assignee и не reviewer → автор
+    const isIssueCreator = events.some(
+      (event) =>
+        event.actionName === GitLabAction.OPENED ||
+        event.actionName === GitLabAction.CREATED,
+    );
+    if (isIssueCreator) return TaskRole.AUTHOR;
+
     return TaskRole.OBSERVER;
   }
 
@@ -508,6 +720,30 @@ export class GitMapperService {
       : null;
   }
 
+  //предпоследний статус-лейбл (для определения перехода, например review → doing)
+  private resolvePreviousStatusLabel(
+    labelEvents: CleanLabelEvent[],
+  ): LabelStatus | null {
+    const statusLabelValues = Object.values(LabelStatus) as string[];
+
+    const sortedStatusEvents = [...labelEvents]
+      .filter(
+        (event) =>
+          event.action === 'add' &&
+          statusLabelValues.includes(this.extractLabelValue(event.labelName)),
+      )
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      );
+
+    //второй по хронологии (предыдущий)
+    const previousEvent = sortedStatusEvents[1];
+    return previousEvent
+      ? (this.extractLabelValue(previousEvent.labelName) as LabelStatus)
+      : null;
+  }
+
   //все статус-лейблы, поставленные конкретным пользователем
   private resolveStatusLabelsSetByUser(
     labelEvents: CleanLabelEvent[],
@@ -523,6 +759,19 @@ export class GitMapperService {
           statusLabelValues.includes(this.extractLabelValue(event.labelName)),
       )
       .map((event) => this.extractLabelValue(event.labelName) as LabelStatus);
+  }
+
+  //проверяет, повысил ли пользователь приоритет до critical
+  private hasPriorityEscalation(
+    labelEvents: CleanLabelEvent[],
+    username: string,
+  ): boolean {
+    return labelEvents.some(
+      (event) =>
+        event.action === 'add' &&
+        event.username === username &&
+        this.extractLabelValue(event.labelName) === LabelPriority.CRITICAL,
+    );
   }
 
   //количество НЕ системных комментариев пользователя

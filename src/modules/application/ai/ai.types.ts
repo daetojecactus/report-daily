@@ -1,7 +1,9 @@
 import { TaskStatus, TaskType } from '../../../common/enums/task.enum';
+import { UserGender } from '../user/user.interface';
 
+//контекст задачи для AI-обогащения
 export interface AITaskContext {
-  taskId: number;
+  taskId: string;
   taskTitle: string;
   status: TaskStatus;
   commitMessages: string[];
@@ -10,4 +12,10 @@ export interface AITaskContext {
   labels: string[];
   mrBranch?: string;
   mrTitle?: string;
+}
+
+//параметры запроса к AI
+export interface AIEnhanceRequest {
+  tasks: AITaskContext[];
+  gender: UserGender;
 }

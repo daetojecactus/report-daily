@@ -1,43 +1,24 @@
-import {
-  TaskStatus,
-  TaskType,
-  TaskAction,
-} from '../../../common/enums/task.enum';
-import { GitLabIssueState } from '../../../common/enums/gitlab.enum';
-import type { MRInfo, AIContext } from '../git/git.types';
+import { TaskStatus, TaskType } from '../../../common/enums/task.enum';
 
-export interface TaskActionInfo {
-  type: TaskAction;
-  count: number;
-}
-
-export interface TaskInfo {
+//строка отчёта — одна задача
+export interface ReportLine {
   title: string;
-  state: GitLabIssueState;
-  labels: string[];
-  createdAt: Date;
-  taskType: TaskType;
-}
-
-export interface TaskGroup {
-  taskId: number;
-  projectId: number;
-  taskTitle: string;
-  actions: TaskActionInfo[];
   status: TaskStatus;
-  taskInfo?: TaskInfo;
-  mrInfo?: MRInfo;
-  aiContext?: AIContext;
-  aiDescription?: string;
+  taskType: TaskType;
+  //финальный текст: «Начал работу «Задача»» или AI-описание
+  description: string;
 }
 
+//проект с задачами
 export interface ProjectReport {
-  projectId: number;
   projectName: string;
-  tasks: TaskGroup[];
+  lines: ReportLine[];
 }
 
+//итоговый отчёт за день
 export interface DailyReport {
-  date: Date;
+  date: string;
   projects: ProjectReport[];
+  //отформатированный текст для отправки (project:\n• description)
+  text: string;
 }

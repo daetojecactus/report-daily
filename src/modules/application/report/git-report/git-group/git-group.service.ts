@@ -31,7 +31,7 @@ export class GitGroupService {
 
   //собирает и группирует все события пользователя за день
   async collectAndGroupDailyEvents(userId: number, date: string) {
-    const events = await this.gitlabService.getEvents(date, userId);
+    const events = await this.gitlabService.getEventsForDate(userId, date);
 
     const { issueKeys, mrKeys } = this.extractUniqueKeys(events);
 
@@ -100,12 +100,12 @@ export class GitGroupService {
     const projectId = event.project_id;
 
     if (this.isIssueRelated(event)) {
-      const iid = event.target_iid ?? event.note?.noteable_iid;
+      const iid = event.note?.noteable_iid ?? event.target_iid;
       return { type: ParsedEventType.ISSUE, projectId, iid };
     }
 
     if (this.isMergeRequestRelated(event)) {
-      const iid = event.target_iid ?? event.note?.noteable_iid;
+      const iid = event.note?.noteable_iid ?? event.target_iid;
       return { type: ParsedEventType.MERGE_REQUEST, projectId, iid };
     }
 
@@ -124,8 +124,10 @@ export class GitGroupService {
   private isIssueRelated(event: GitLabEvent): boolean {
     return (
       event.target_type === GitLabTargetType.ISSUE ||
+      event.target_type === GitLabTargetType.WORK_ITEM ||
       (event.target_type === GitLabTargetType.NOTE &&
-        event.note?.noteable_type === GitLabNoteableType.ISSUE)
+        (event.note?.noteable_type === GitLabNoteableType.ISSUE ||
+          event.note?.noteable_type === GitLabNoteableType.WORK_ITEM))
     );
   }
 

@@ -1,4 +1,4 @@
-import { IsString, IsInt, IsBoolean } from 'class-validator';
+import { IsString } from 'class-validator';
 
 export class ReportDailyBotEnvs {
   @IsString()
@@ -21,22 +21,4 @@ export class ReportDailyBotEnvs {
 
   @IsString()
   MONGODB_URI!: string;
-
-  @IsString()
-  MAIL_HOST!: string;
-
-  @IsInt()
-  MAIL_PORT!: number;
-
-  @IsBoolean()
-  MAIL_SECURE!: boolean;
-
-  @IsString()
-  MAIL_USER!: string;
-
-  @IsString()
-  MAIL_PASSWORD!: string;
-
-  @IsString()
-  MAIL_FROM_NAME!: string;
 }

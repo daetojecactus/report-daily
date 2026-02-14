@@ -11,13 +11,13 @@ export class User {
   @Prop({ required: true, unique: true })
   telegramId!: number;
 
-  @Prop({ required: true })
-  email!: string;
+  @Prop({ required: true, unique: true })
+  gitLabId!: number;
 
   @Prop({ required: true, enum: UserRole })
   role!: UserRole;
 
-  @Prop({ default: UserStatus.PENDING, enum: UserStatus })
+  @Prop({ default: UserStatus.ACTIVE, enum: UserStatus })
   status!: UserStatus;
 
   @Prop({ required: true, enum: UserGender })

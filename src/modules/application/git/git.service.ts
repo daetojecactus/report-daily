@@ -35,7 +35,9 @@ export class GitService {
   }
 
   async getEvents(afterDate: Date): Promise<GitLabEvent[]> {
-    return this.gitLabService.getEvents(afterDate.toISOString());
+    return this.gitLabService.getEvents({
+      after: afterDate.toISOString().split('T')[0],
+    });
   }
 
   async getProjectNames(projectIds: number[]): Promise<Map<number, string>> {

@@ -32,6 +32,7 @@ export interface GitLabEvent {
     | 'Note'
     | 'MergeRequest'
     | 'Issue'
+    | 'WorkItem'
     | 'Snippet'
     | null;
   target_title: string | null;

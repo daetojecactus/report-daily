@@ -15,6 +15,9 @@ import { TaskRole } from './git-mapper.interface';
 //порог дней для определения «вернулся к работе»
 const DAYS_THRESHOLD_RESUMED_WORK = 7;
 
+//порог для «много комментариев» блокирующее ревью
+const MANY_COMMENTS_THRESHOLD = 3;
+
 //входные данные для создания контекста задачи
 export interface TaskContextData {
   currentUserGlobalRole: UserRole;
@@ -38,7 +41,9 @@ export interface TaskLabels {
   priorities: LabelPriority[];
   types: LabelType[];
   currentStatus: LabelStatus | null;
+  previousStatus: LabelStatus | null;
   statusLabelsSetByCurrentUser: LabelStatus[];
+  priorityChangedByCurrentUser: boolean;
 }
 
 //поток активности пользователя
@@ -67,7 +72,8 @@ export class TaskContext {
     this.taskType = data.taskType;
   }
 
-  //роль пользователя в задаче
+  //роли пользователя в задаче
+
   //текущий пользователь является исполнителем задачи
   isAssignee(): boolean {
     return this.data.userRoleInTask === TaskRole.ASSIGNEE;
@@ -78,7 +84,18 @@ export class TaskContext {
     return this.data.userRoleInTask === TaskRole.REVIEWER;
   }
 
-  //системная роль пользователя
+  //текущий пользователь — автор задачи (создал, но не исполнитель)
+  isAuthor(): boolean {
+    return this.data.userRoleInTask === TaskRole.AUTHOR;
+  }
+
+  //текущий пользователь — наблюдатель (не assignee, не reviewer, не author)
+  isObserver(): boolean {
+    return this.data.userRoleInTask === TaskRole.OBSERVER;
+  }
+
+  //глобальные роли пользователя
+
   //пользователь разработчик
   isDeveloper(): boolean {
     return this.data.currentUserGlobalRole === UserRole.DEVELOPER;
@@ -89,7 +106,18 @@ export class TaskContext {
     return this.data.currentUserGlobalRole === UserRole.QA;
   }
 
-  //состояние артефактов
+  //пользователь PM
+  isProjectManager(): boolean {
+    return this.data.currentUserGlobalRole === UserRole.PROJECT_MANAGER;
+  }
+
+  //пользователь Admin
+  isAdmin(): boolean {
+    return this.data.currentUserGlobalRole === UserRole.ADMIN;
+  }
+
+  //состояние и действия в задаче
+
   //мр существует без привязанной задачи (хотфикс)
   isStandaloneMergeRequest(): boolean {
     return (
@@ -122,6 +150,7 @@ export class TaskContext {
   }
 
   //тип задачи
+
   //задача типа баг
   isBug(): boolean {
     return this.data.taskType === TaskType.BUG;
@@ -132,7 +161,38 @@ export class TaskContext {
     return this.data.taskType === TaskType.FEATURE;
   }
 
+  //задача типа maintenance/chore
+  isMaintenance(): boolean {
+    return this.data.taskType === TaskType.CHORE;
+  }
+
+  //задача на e2e тесты (лейбл type::e2e)
+  isE2E(): boolean {
+    return this.data.labels.types.includes(LabelType.E2E);
+  }
+
+  //приоритет
+
+  //критический приоритет
+  isCriticalPriority(): boolean {
+    return this.data.labels.priorities.includes(LabelPriority.CRITICAL);
+  }
+
+  //задача срочная (приоритет critical/high + тип bug)
+  isUrgentTask(): boolean {
+    const hasHighPriority =
+      this.data.labels.priorities.includes(LabelPriority.CRITICAL) ||
+      this.data.labels.priorities.includes(LabelPriority.HIGH);
+    return hasHighPriority && this.data.labels.types.includes(LabelType.BUG);
+  }
+
+  //текущий пользователь изменил приоритет на critical
+  currentUserEscalatedPriority(): boolean {
+    return this.data.labels.priorityChangedByCurrentUser;
+  }
+
   //действия пользователя с кодом
+
   //текущий пользователь запушил код в мр
   currentUserPushedCode(): boolean {
     return this.data.activityStream.mergeRequestActions.some(
@@ -156,7 +216,6 @@ export class TaskContext {
   }
 
   //есть рабочие события в мр за день (пуш, открытие), но не мердж
-  //помогает отличить "я работал сегодня" от "задача уже закрыта"
   hasActiveWorkOnMergeRequest(): boolean {
     return this.currentUserPushedCode() || this.currentUserOpenedMergeRequest();
   }
@@ -164,6 +223,11 @@ export class TaskContext {
   //текущий пользователь создал задачу
   currentUserOpenedIssue(): boolean {
     return this.data.activityStream.issueActions.includes(GitLabAction.OPENED);
+  }
+
+  //текущий пользователь закрыл задачу
+  currentUserClosedIssue(): boolean {
+    return this.data.activityStream.issueActions.includes(GitLabAction.CLOSED);
   }
 
   //текущий пользователь создал проект/репозиторий
@@ -199,7 +263,16 @@ export class TaskContext {
     );
   }
 
+  //много комментариев от текущего пользователя (блокирующее ревью)
+  hasManyMergeRequestComments(): boolean {
+    return (
+      this.data.activityStream.mergeRequestCommentsFromCurrentUser >=
+      MANY_COMMENTS_THRESHOLD
+    );
+  }
+
   //апрувы
+
   //текущий пользователь поставил апрув
   currentUserApproved(): boolean {
     return this.data.approvals.currentUserApproved;
@@ -210,14 +283,7 @@ export class TaskContext {
     return this.data.approvals.otherApprovers.length > 0;
   }
 
-  //статус задачи
-  //задача срочная (приоритет critical/high + тип bug)
-  isUrgentTask(): boolean {
-    const hasHighPriority =
-      this.data.labels.priorities.includes(LabelPriority.CRITICAL) ||
-      this.data.labels.priorities.includes(LabelPriority.HIGH);
-    return hasHighPriority && this.data.labels.types.includes(LabelType.BUG);
-  }
+  //статус задачи (лейблы)
 
   //задача в статусе «в работе»
   isDoing(): boolean {
@@ -229,9 +295,19 @@ export class TaskContext {
     return this.data.labels.currentStatus === LabelStatus.REVIEW;
   }
 
-  //задача в статусе «после ревью»
+  //задача в статусе «после ревью» (правки после замечаний)
   isAfterReview(): boolean {
     return this.data.labels.currentStatus === LabelStatus.AFTER_REVIEW;
+  }
+
+  //задача в статусе «тестирование»
+  isTesting(): boolean {
+    return this.data.labels.currentStatus === LabelStatus.TESTING;
+  }
+
+  //задача в статусе «нужна информация»
+  isNeedInformation(): boolean {
+    return this.data.labels.currentStatus === LabelStatus.NEED_INFORMATION;
   }
 
   //задача в любой фазе ревью (review или after_review)
@@ -239,37 +315,57 @@ export class TaskContext {
     return this.isInReview() || this.isAfterReview();
   }
 
-  //лейблы — действия пользователя
+  //задача была в ревью/тестировании и вернулась в doing (возврат на доработку)
+  wasReturnedToDoing(): boolean {
+    const { previousStatus, currentStatus } = this.data.labels;
+    return (
+      currentStatus === LabelStatus.DOING &&
+      (previousStatus === LabelStatus.REVIEW ||
+        previousStatus === LabelStatus.TESTING ||
+        previousStatus === LabelStatus.AFTER_REVIEW)
+    );
+  }
+
+  //лейблы (действия пользователя)
 
   //текущий пользователь отправил задачу на ревью
   currentUserSentToReview(): boolean {
-    return (
-      this.isInReview() &&
-      this.data.labels.statusLabelsSetByCurrentUser.includes(LabelStatus.REVIEW)
+    return this.data.labels.statusLabelsSetByCurrentUser.includes(
+      LabelStatus.REVIEW,
     );
   }
 
   //текущий пользователь запросил дополнительную информацию
   currentUserRequestedInformation(): boolean {
-    return (
-      this.data.labels.currentStatus === LabelStatus.NEED_INFORMATION &&
-      this.data.labels.statusLabelsSetByCurrentUser.includes(
-        LabelStatus.NEED_INFORMATION,
-      )
+    return this.data.labels.statusLabelsSetByCurrentUser.includes(
+      LabelStatus.NEED_INFORMATION,
     );
   }
 
   //текущий пользователь передал задачу на фронтенд
   currentUserPassedToFrontend(): boolean {
-    return (
-      this.data.labels.currentStatus === LabelStatus.FRONTEND &&
-      this.data.labels.statusLabelsSetByCurrentUser.includes(
-        LabelStatus.FRONTEND,
-      )
+    return this.data.labels.statusLabelsSetByCurrentUser.includes(
+      LabelStatus.FRONTEND,
     );
   }
 
-  //мр создан в день отчёта (не раньше)
+  //текущий пользователь перевел задачу в тестирование
+  currentUserSentToTesting(): boolean {
+    return this.data.labels.statusLabelsSetByCurrentUser.includes(
+      LabelStatus.TESTING,
+    );
+  }
+
+  //текущий пользователь вернул задачу в doing
+  currentUserReturnedToDoing(): boolean {
+    return this.data.labels.statusLabelsSetByCurrentUser.includes(
+      LabelStatus.DOING,
+    );
+  }
+
+  //даты
+
+  //мр создан в день отчета (не раньше)
   isMergeRequestCreatedOnReportDate(): boolean {
     const createdAt = this.data.taskDates.mergeRequestCreatedAt;
     if (!createdAt) return false;

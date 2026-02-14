@@ -9,8 +9,23 @@ export class GitLabService {
     return this.gitlabRepository.findUserByUsername(username);
   }
 
-  async getEvents(afterDate: string, userId?: number) {
-    return this.gitlabRepository.getEvents(afterDate, userId);
+  async getEvents(params: { after: string; before?: string; userId?: number }) {
+    return this.gitlabRepository.getEvents(params);
+  }
+
+  //события за конкретную дату (after/before — исключающие)
+  async getEventsForDate(userId: number, date: string) {
+    const target = new Date(date);
+    const dayBefore = new Date(target);
+    dayBefore.setDate(dayBefore.getDate() - 1);
+    const dayAfter = new Date(target);
+    dayAfter.setDate(dayAfter.getDate() + 1);
+
+    return this.getEvents({
+      after: dayBefore.toISOString().split('T')[0],
+      before: dayAfter.toISOString().split('T')[0],
+      userId,
+    });
   }
 
   async getUserProjects(userId: number) {
