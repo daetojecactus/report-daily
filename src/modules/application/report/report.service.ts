@@ -2,15 +2,13 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { GitReportService } from './git-report/git-report.service';
 import { AiService } from '../ai/ai.service';
 import { UserGender } from '../user/user.interface';
-import {
-  getTaskStatusAction,
-  ReportMessages,
-} from './constants/report.messages';
 import type { AITaskContext } from '../ai/ai.types';
 import type { ReportTaskItem } from './git-report/git-report.interface';
 import type { DailyReport, ProjectReport } from './report.types';
 import { UserService } from '../user/user.service';
 import { UserMessages } from '../user/constants/user.messages';
+import { AiMessages } from '../ai/constants/ai.messages';
+import { getReportTaskAction } from 'src/common/helpers/get-report-task-action';
 
 @Injectable()
 export class ReportService {
@@ -29,7 +27,7 @@ export class ReportService {
       throw new NotFoundException(UserMessages.USER_NOT_FOUND);
     }
 
-    //собираем данные из gitlab: группировка → маппинг → сбор контекста
+    //собираем данные из gitlab: группировка, маппинг, сбор контекста
     const gitReport = await this.gitReportService.generateDailyReport(
       user.gitLabId,
       user.adminId,
@@ -54,7 +52,7 @@ export class ReportService {
         taskType: task.taskType,
         description:
           descriptions.get(task.taskKey) ??
-          `${getTaskStatusAction(task.status, user.gender)} «${task.title}»`,
+          `${getReportTaskAction(task.status, user.gender)} «${task.title}»`,
       })),
     }));
 
@@ -79,7 +77,7 @@ export class ReportService {
         taskId: task.taskKey,
         taskTitle: task.title,
         status: task.status,
-        actionVerb: getTaskStatusAction(task.status, gender),
+        actionVerb: getReportTaskAction(task.status, gender),
         taskType: task.taskType,
         commitMessages: task.aiContext.commitMessages,
         comments: task.aiContext.userComments,
@@ -88,19 +86,19 @@ export class ReportService {
 
       return await this.aiService.enhanceTasks({ tasks: contexts, gender });
     } catch (error) {
-      this.logger.error(ReportMessages.AI_FALLBACK, error);
+      this.logger.error(AiMessages.AI_FALLBACK, error);
       return this.buildFallback(tasks, gender);
     }
   }
 
-  //простой fallback — глагол + «название задачи»
+  //простой fallback действие + «название задачи»
   private buildFallback(
     tasks: ReportTaskItem[],
     gender: UserGender,
   ): Map<string, string> {
     const map = new Map<string, string>();
     for (const task of tasks) {
-      const verb = getTaskStatusAction(task.status, gender);
+      const verb = getReportTaskAction(task.status, gender);
       map.set(task.taskKey, `${verb} «${task.title}»`);
     }
     return map;

@@ -15,6 +15,7 @@ import {
   MappedPush,
 } from './git-mapper/git-mapper.interface';
 import { CleanEvent, CleanNote } from './git-group/git-group.interface';
+import { DefaultMessages } from 'src/common/constants/defautl.messages';
 
 @Injectable()
 export class GitReportService {
@@ -79,7 +80,7 @@ export class GitReportService {
         projectId,
         projectName:
           projectNames.get(projectId) ??
-          `${ReportMessages.DEFAULT_PROJECT}_${projectId}`,
+          `${DefaultMessages.DEFAULT_PROJECT}_${projectId}`,
         tasks,
       });
     }
@@ -214,8 +215,10 @@ export class GitReportService {
           const project = await this.gitLabService.getProject(id);
           names.set(id, project.name);
         } catch {
-          this.logger.warn(`${ReportMessages.PROJECT_RESOLVE_FAILED}: ${id}`);
-          names.set(id, `${ReportMessages.DEFAULT_PROJECT}_${id}`);
+          this.logger.warn(
+            `${ReportMessages.REPORT_PROJECT_RESOLVE_FAILED}: ${id}`,
+          );
+          names.set(id, `${DefaultMessages.DEFAULT_PROJECT}_${id}`);
         }
       }),
     );

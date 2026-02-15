@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { TelegramClient } from './telegram.client';
 import { TelegramRepository } from './telegram.repository';
 import { ParseMode } from './telegram.types';
+import { DefaultMessages } from 'src/common/constants/defautl.messages';
+import { TelegramMessages } from './constants/telegram.messages';
 
 @Injectable()
 export class TelegramService {
@@ -16,13 +18,15 @@ export class TelegramService {
 
   async sendMessage(text: string, parseMode?: ParseMode): Promise<void> {
     if (!this.isConfigured()) {
-      throw new Error('Telegram not configured');
+      throw new Error(TelegramMessages.TELEGRAM_NOT_CONFIGURED);
     }
 
     const result = await this.telegramRepository.sendMessage(text, parseMode);
 
     if (!result.ok) {
-      throw new Error(`Telegram API: ${result.description || 'Unknown error'}`);
+      throw new Error(
+        `${TelegramMessages.TELEGRAM_API_ERROR}: ${result.description || DefaultMessages.DEFAULT_UNKNOWN_ERROR}`,
+      );
     }
   }
 
@@ -39,7 +43,9 @@ export class TelegramService {
     );
 
     if (!result.ok) {
-      throw new Error(`Telegram API: ${result.description || 'Unknown error'}`);
+      throw new Error(
+        `${TelegramMessages.TELEGRAM_API_ERROR}: ${result.description || DefaultMessages.DEFAULT_UNKNOWN_ERROR}`,
+      );
     }
   }
 }

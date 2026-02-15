@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { GroqRepository } from './groq.repository';
-import type { AiProvider } from '../ai-provider.interface';
+import type { AiProvider } from '../../../common/interfaces/ai-provider.interface';
 
 @Injectable()
 export class GroqService implements AiProvider {

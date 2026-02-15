@@ -6,7 +6,7 @@ import { AI_SYSTEM_PROMPT, AiPromptTemplate } from './constants/ai.prompt';
 import { AiMessages } from './constants/ai.messages';
 import { OpenRouterService } from '../../vendors/open-router/open-router.service';
 import { GroqService } from '../../vendors/groq/groq.service';
-import type { AiProvider } from '../../vendors/ai-provider.interface';
+import type { AiProvider } from '../../../common/interfaces/ai-provider.interface';
 
 @Injectable()
 export class AiService {
@@ -14,7 +14,7 @@ export class AiService {
   private readonly providers: AiProvider[];
 
   constructor(openRouterService: OpenRouterService, groqService: GroqService) {
-    //приоритет: OpenRouter → Groq → статический fallback
+    //приоритет: OpenRouter, Groq, fallback
     this.providers = [openRouterService, groqService];
   }
 
@@ -36,13 +36,13 @@ export class AiService {
         return this.parseResponse(response, tasks);
       } catch (error) {
         this.logger.warn(
-          `${AiMessages.PROVIDER_FAILED}: ${provider.name}`,
+          `${AiMessages.AI_PROVIDER_FAILED}: ${provider.name}`,
           error,
         );
       }
     }
 
-    this.logger.warn(AiMessages.ALL_PROVIDERS_FAILED);
+    this.logger.warn(AiMessages.AI_ALL_PROVIDERS_FAILED);
     return this.fallbackAll(tasks);
   }
 
@@ -142,6 +142,6 @@ export class AiService {
         `${response}\n` +
         `====================================================`,
     );
-    this.logger.log(`${AiMessages.GENERATED}: ${provider}`);
+    this.logger.log(`${AiMessages.AI_GENERATED}: ${provider}`);
   }
 }

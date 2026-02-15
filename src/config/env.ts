@@ -44,6 +44,10 @@ export class ReportDailyBotEnvs {
   @IsString()
   GROQ_MODEL!: string;
 
+  // Production Calendar
+  @IsString()
+  PRODUCTION_CALENDAR_BASE_URL!: string;
+
   // Database
   @IsString()
   MONGODB_URI!: string;

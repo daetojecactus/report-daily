@@ -11,12 +11,10 @@ import {
   GitLabMergeRequestState,
 } from 'src/common/enums/gitlab.enum';
 import { TaskRole } from './git-mapper.interface';
-
-//порог дней для определения «вернулся к работе»
-const DAYS_THRESHOLD_RESUMED_WORK = 7;
-
-//порог для «много комментариев» блокирующее ревью
-const MANY_COMMENTS_THRESHOLD = 3;
+import {
+  GIT_MAPPER_DAYS_THRESHOLD_RESUMED_WORK,
+  GIT_MAPPER_MANY_COMMENTS_THRESHOLD,
+} from './constants/git-mapper.constants';
 
 //входные данные для создания контекста задачи
 export interface TaskContextData {
@@ -267,7 +265,7 @@ export class TaskContext {
   hasManyMergeRequestComments(): boolean {
     return (
       this.data.activityStream.mergeRequestCommentsFromCurrentUser >=
-      MANY_COMMENTS_THRESHOLD
+      GIT_MAPPER_MANY_COMMENTS_THRESHOLD
     );
   }
 
@@ -385,6 +383,6 @@ export class TaskContext {
         new Date(mergeRequestCreatedAt).getTime()) /
       (1000 * 60 * 60 * 24);
 
-    return daysSinceCreation > DAYS_THRESHOLD_RESUMED_WORK;
+    return daysSinceCreation > GIT_MAPPER_DAYS_THRESHOLD_RESUMED_WORK;
   }
 }

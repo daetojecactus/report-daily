@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Cron } from '@nestjs/schedule';
 import { UserService } from '../user/user.service';
 import { ReportService } from '../report/report.service';
 import { TelegramService } from '../../vendors/telegram/telegram.service';
@@ -10,6 +9,9 @@ import {
 } from './constants/scheduler.constants';
 import type { User } from '../user/user.schema';
 import type { BatchUserResult } from './scheduler.types';
+import { UserMessages } from '../user/constants/user.messages';
+import { ReportMessages } from '../report/constants/report.messages';
+import { DefaultMessages } from 'src/common/constants/defautl.messages';
 
 @Injectable()
 export class SchedulerService {
@@ -21,25 +23,17 @@ export class SchedulerService {
     private readonly telegramService: TelegramService,
   ) {}
 
-  //крон — каждый час, находит пользователей и отправляет отчеты батчем
-  @Cron('0 * * * *')
-  async handleReportCron(): Promise<void> {
-    const currentHour = new Date().getHours();
-    this.logger.log(`${SchedulerMessages.CRON_TRIGGERED}: hour ${currentHour}`);
-    await this.sendReportsForHour(currentHour);
-  }
-
   //генерирует и отправляет отчеты для всех пользователей на указанный час
   async sendReportsForHour(hour: number): Promise<BatchUserResult[]> {
     const users = await this.userService.findByReportHour(hour);
 
     if (users.length === 0) {
-      this.logger.log(`${SchedulerMessages.NO_USERS}: hour ${hour}`);
+      this.logger.log(`${SchedulerMessages.SCHEDULER_NO_USERS}: hour ${hour}`);
       return [];
     }
 
     this.logger.log(
-      `${SchedulerMessages.FOUND_USERS}: ${users.length} user(s), hour ${hour}`,
+      `${SchedulerMessages.SCHEDULER_FOUND_USERS}: ${users.length} user(s), hour ${hour}`,
     );
     const today = new Date().toISOString().split('T')[0]!;
 
@@ -52,9 +46,8 @@ export class SchedulerService {
     date?: string,
   ): Promise<BatchUserResult> {
     const user = await this.userService.findOne({ adminId });
-
     if (!user) {
-      this.logger.warn(`${SchedulerMessages.USER_NOT_FOUND}: ${adminId}`);
+      this.logger.warn(`${UserMessages.USER_NOT_FOUND}: ${adminId}`);
       return { adminId, telegramId: 0, success: false };
     }
 
@@ -83,7 +76,7 @@ export class SchedulerService {
     const succeeded = results.filter((result) => result.success).length;
     const failed = results.filter((result) => !result.success).length;
     this.logger.log(
-      `${SchedulerMessages.BATCH_DONE}: ${succeeded} sent, ${failed} failed`,
+      `${SchedulerMessages.SCHEDULER_BATCH_DONE}: ${succeeded} sent, ${failed} failed`,
     );
 
     return results;
@@ -97,7 +90,7 @@ export class SchedulerService {
     const { adminId, telegramId } = user;
 
     this.logger.log(
-      `${SchedulerMessages.PROCESSING}: ${adminId} (tg: ${telegramId})`,
+      `${SchedulerMessages.SCHEDULER_PROCESSING}: ${adminId} (tg: ${telegramId})`,
     );
 
     for (let attempt = 1; attempt <= SCHEDULER_MAX_RETRIES + 1; attempt++) {
@@ -105,13 +98,15 @@ export class SchedulerService {
         const report = await this.reportService.generateReport(adminId, date);
 
         if (!report.text || report.projects.length === 0) {
-          this.logger.warn(`${SchedulerMessages.EMPTY_REPORT}: ${adminId}`);
+          this.logger.warn(
+            `${SchedulerMessages.SCHEDULER_EMPTY_REPORT}: ${adminId}`,
+          );
           return { adminId, telegramId, success: true };
         }
 
         await this.telegramService.sendMessageTo(telegramId, report.text);
         this.logger.log(
-          `${SchedulerMessages.REPORT_SENT}: ${adminId} (tg: ${telegramId})`,
+          `${ReportMessages.REPORT_SENT}: ${adminId} (tg: ${telegramId})`,
         );
         return { adminId, telegramId, success: true };
       } catch (error) {
@@ -119,19 +114,24 @@ export class SchedulerService {
 
         if (attempt <= SCHEDULER_MAX_RETRIES) {
           this.logger.warn(
-            `${SchedulerMessages.ATTEMPT_FAILED}: attempt ${attempt}, ${adminId}: ${errMsg}`,
+            `${SchedulerMessages.SCHEDULER_ATTEMPT_FAILED}: attempt ${attempt}, ${adminId}: ${errMsg}`,
           );
           await this.sleep(2000 * attempt);
         } else {
           this.logger.error(
-            `${SchedulerMessages.ALL_FAILED}: ${adminId}: ${errMsg}`,
+            `${SchedulerMessages.SCHEDULER_ALL_FAILED}: ${adminId}: ${errMsg}`,
           );
           return { adminId, telegramId, success: false, error: errMsg };
         }
       }
     }
 
-    return { adminId, telegramId, success: false, error: 'Unknown error' };
+    return {
+      adminId,
+      telegramId,
+      success: false,
+      error: DefaultMessages.DEFAULT_UNKNOWN_ERROR,
+    };
   }
 
   private sleep(ms: number): Promise<void> {

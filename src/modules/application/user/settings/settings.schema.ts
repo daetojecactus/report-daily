@@ -4,7 +4,7 @@ export class Settings {
   @Prop({ default: false })
   useAI!: boolean;
 
-  //час отправки автоматического отчета (0–23), null = отключено
+  //час отправки автоматического отчета (0–23)
   @Prop({ type: Number, default: null })
   reportHour!: number | null;
 }

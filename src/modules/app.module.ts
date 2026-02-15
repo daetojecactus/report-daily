@@ -7,6 +7,7 @@ import { ReportDailyBotEnvs } from '../config/env';
 import { ApiModule } from './api/api.module';
 import { ApplicationModule } from './application/application.module';
 import { DatabaseModule } from './database/database.module';
+import { TaskModule } from './task/task.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { DatabaseModule } from './database/database.module';
     ApiModule,
     ApplicationModule,
     DatabaseModule,
+    TaskModule,
   ],
 })
 export class AppModule {}
