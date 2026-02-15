@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { plainToInstance } from 'class-transformer';
 import { validateSync } from 'class-validator';
 import { ReportDailyBotEnvs } from '../config/env';
@@ -26,6 +27,7 @@ import { DatabaseModule } from './database/database.module';
         return validated;
       },
     }),
+    ScheduleModule.forRoot(),
     ApiModule,
     ApplicationModule,
     DatabaseModule,

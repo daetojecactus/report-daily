@@ -1,0 +1,2 @@
+export const SCHEDULER_SEND_DELAY_MS = 1500;
+export const SCHEDULER_MAX_RETRIES = 2;

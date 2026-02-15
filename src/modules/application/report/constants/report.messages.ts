@@ -34,7 +34,7 @@ export const TASK_STATUS_ACTION: Record<TaskStatus, Gendered> = {
     female: 'Протестировала и апрувнула',
   },
   [TaskStatus.TESTED_WITH_COMMENTS]: {
-    male: 'Провёл тестирование и оставил замечания',
+    male: 'Провел тестирование и оставил замечания',
     female: 'Провела тестирование и оставила замечания',
   },
   [TaskStatus.APPROVED_AFTER_REWORK]: {
@@ -167,7 +167,7 @@ export const TASK_STATUS_ACTION: Record<TaskStatus, Gendered> = {
   },
 };
 
-//получить глагол с учётом пола пользователя
+//получить глагол с учетом пола пользователя
 export function getTaskStatusAction(
   status: TaskStatus,
   gender: UserGender,
@@ -177,11 +177,8 @@ export function getTaskStatusAction(
   return gender === UserGender.FEMALE ? action.female : action.male;
 }
 
-export const ReportMessage = {
-  NO_EVENTS: 'Нет событий за указанный период.',
-  REPORT_HEADER: (date: string) => `Отчет за ${date}`,
-  CONSOLE_HEADER: (date: string) => `\n——— ОТЧеТ ЗА ${date} ———\n`,
-  DEFAULT_PROJECT_NAME: (id: number) => `Project_${id}`,
-  DEFAULT_TASK_TITLE: (id: number) => `Задача #${id}`,
-  HOTFIX_TITLE: 'Хотфикс',
-} as const;
+export enum ReportMessages {
+  AI_FALLBACK = 'AI failed, using fallback',
+  PROJECT_RESOLVE_FAILED = 'Failed to resolve project name',
+  DEFAULT_PROJECT = 'Project',
+}

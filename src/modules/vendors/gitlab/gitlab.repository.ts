@@ -7,6 +7,7 @@ import {
   GitLabLabelEvent,
   GitLabMergeRequest,
   GitLabNote,
+  GitLabStateEvent,
   GitLabUser,
 } from './gitlab.types';
 
@@ -205,6 +206,36 @@ export class GitLabRepository {
       return data;
     } catch {
       return null;
+    }
+  }
+
+  //получаем историю смены статусов задачи
+  async getIssueStateEvents(
+    projectId: number,
+    issueIid: number,
+  ): Promise<GitLabStateEvent[]> {
+    try {
+      const { data } = await this.gitlabClient.instance.get<GitLabStateEvent[]>(
+        `/projects/${projectId}/issues/${issueIid}/resource_state_events`,
+      );
+      return data;
+    } catch {
+      return [];
+    }
+  }
+
+  //получаем историю смены статусов мр
+  async getMergeRequestStateEvents(
+    projectId: number,
+    mrIid: number,
+  ): Promise<GitLabStateEvent[]> {
+    try {
+      const { data } = await this.gitlabClient.instance.get<GitLabStateEvent[]>(
+        `/projects/${projectId}/merge_requests/${mrIid}/resource_state_events`,
+      );
+      return data;
+    } catch {
+      return [];
     }
   }
 }

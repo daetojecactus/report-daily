@@ -1,25 +1,21 @@
-import { Controller, Post } from '@nestjs/common';
+import { Controller, Post, Query } from '@nestjs/common';
 import { ReportService } from 'src/modules/application/report/report.service';
-import {
-  UserGender,
-  UserRole,
-} from 'src/modules/application/user/user.interface';
+import { SchedulerService } from 'src/modules/application/scheduler/scheduler.service';
 
 @Controller('report')
 export class ReportController {
-  constructor(private readonly reportService: ReportService) {}
+  constructor(
+    private readonly reportService: ReportService,
+    private readonly schedulerService: SchedulerService,
+  ) {}
 
-  //тест fallback (без AI) за 13 февраля
+  //тест fallback (без AI)
   @Post('test/fallback')
-  async testFallback() {
-    const report = await this.reportService.generateReport({
-      gitLabUserId: 342,
-      username: 'dzubenko',
-      userRole: UserRole.DEVELOPER,
-      gender: UserGender.MALE,
-      date: '2026-02-13',
-      useAI: false,
-    });
+  async testFallback(
+    @Query('adminId') adminId: string,
+    @Query('date') date: string,
+  ) {
+    const report = await this.reportService.generateReport(adminId, date);
 
     return {
       date: report.date,
@@ -28,22 +24,32 @@ export class ReportController {
     };
   }
 
-  //тест с AI за 13 февраля
+  //тест с AI
   @Post('test/ai')
-  async testAI() {
-    const report = await this.reportService.generateReport({
-      gitLabUserId: 342,
-      username: 'dzubenko',
-      userRole: UserRole.DEVELOPER,
-      gender: UserGender.MALE,
-      date: '2026-02-13',
-      useAI: true,
-    });
+  async testAI(@Query('adminId') adminId: string, @Query('date') date: string) {
+    const report = await this.reportService.generateReport(adminId, date);
 
     return {
       date: report.date,
       text: report.text,
       projects: report.projects,
     };
+  }
+
+  //тест отправки в Telegram
+  @Post('test/send-telegram')
+  async testSendTelegram(
+    @Query('adminId') adminId: string,
+    @Query('date') date?: string,
+  ) {
+    return await this.schedulerService.sendReportForUser(adminId, date);
+  }
+
+  //тест триггернуть крон вручную для текущего часа
+  @Post('test/trigger-cron')
+  async testTriggerCron() {
+    const currentHour = new Date().getHours();
+    const results = await this.schedulerService.sendReportsForHour(currentHour);
+    return { hour: currentHour, total: results.length, results };
   }
 }

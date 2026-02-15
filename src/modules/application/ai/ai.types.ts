@@ -6,11 +6,10 @@ export interface AITaskContext {
   taskId: string;
   taskTitle: string;
   status: TaskStatus;
+  actionVerb: string;
+  taskType: TaskType;
   commitMessages: string[];
   comments: string[];
-  taskType: TaskType;
-  labels: string[];
-  mrBranch?: string;
   mrTitle?: string;
 }
 

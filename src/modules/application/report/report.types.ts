@@ -1,6 +1,6 @@
 import { TaskStatus, TaskType } from '../../../common/enums/task.enum';
 
-//строка отчёта — одна задача
+//строка отчета — одна задача
 export interface ReportLine {
   title: string;
   status: TaskStatus;
@@ -15,7 +15,7 @@ export interface ProjectReport {
   lines: ReportLine[];
 }
 
-//итоговый отчёт за день
+//итоговый отчет за день
 export interface DailyReport {
   date: string;
   projects: ProjectReport[];

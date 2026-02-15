@@ -1,15 +1,7 @@
 import {
   GitLabIssueState,
   GitLabMergeRequestState,
-  ParsedEventType,
 } from 'src/common/enums/gitlab.enum';
-
-export interface ParsedEvent {
-  type: ParsedEventType;
-  projectId: number;
-  iid?: number;
-  branch?: string;
-}
 
 //очищенное событие без лишних данных (аватары и тд)
 export interface CleanEvent {

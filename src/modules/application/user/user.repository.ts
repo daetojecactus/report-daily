@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from './user.schema';
 import { Settings } from './settings/settings.schema';
 import { UserMessages } from './constants/user.messages';
+import { UserStatus } from './user.interface';
 import { Model, QueryFilter, UpdateQuery, QueryOptions } from 'mongoose';
 
 @Injectable()
@@ -34,6 +35,13 @@ export class UserRepository {
     options?: QueryOptions<UserDocument>,
   ) {
     return await this.userModel.findOneAndUpdate(filter, update, options);
+  }
+
+  async findByReportHour(hour: number) {
+    return this.userModel.find({
+      'settings.reportHour': hour,
+      status: UserStatus.ACTIVE,
+    });
   }
 
   async updateSettings(

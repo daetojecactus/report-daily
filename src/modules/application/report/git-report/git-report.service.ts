@@ -3,11 +3,10 @@ import { GitGroupService } from './git-group/git-group.service';
 import { GitMapperService } from './git-mapper/git-mapper.service';
 import { GitLabService } from 'src/modules/vendors/gitlab/gitlab.service';
 import { UserRole } from 'src/modules/application/user/user.interface';
-import { ReportMessage } from '../constants/report.messages';
+import { ReportMessages } from '../constants/report.messages';
 import {
   GitDailyReport,
   ProjectReportGroup,
-  ReportAIContext,
   ReportTaskItem,
 } from './git-report.interface';
 import {
@@ -80,7 +79,7 @@ export class GitReportService {
         projectId,
         projectName:
           projectNames.get(projectId) ??
-          ReportMessage.DEFAULT_PROJECT_NAME(projectId),
+          `${ReportMessages.DEFAULT_PROJECT}_${projectId}`,
         tasks,
       });
     }
@@ -88,12 +87,25 @@ export class GitReportService {
     return { date, projects };
   }
 
-  //строим элемент отчёта из задачи (issue + привязанный мр)
+  //строим элемент отчета из задачи (issue + привязанный мр)
   private buildIssueReportItem(
     issue: MappedIssue,
     username: string,
   ): ReportTaskItem {
     const mergeRequest = issue.mergeRequests[0] ?? null;
+
+    const commitMessages = this.extractCommitMessages(
+      mergeRequest?.events ?? [],
+    );
+    const userComments = this.extractUserComments(
+      [...issue.notes, ...(mergeRequest?.notes ?? [])],
+      username,
+    );
+
+    //mrTitle передаем только если есть реальные коммиты/комментарии,
+    //иначе AI галлюцинирует детали из названия ветки
+    const hasMeaningfulContext =
+      commitMessages.length > 0 || userComments.length > 0;
 
     return {
       taskKey: `${issue.projectId}:${issue.iid}`,
@@ -105,22 +117,23 @@ export class GitReportService {
       taskType: issue.workResult.taskType,
       labels: issue.labels,
       aiContext: {
-        commitMessages: this.extractCommitMessages(mergeRequest?.events ?? []),
-        userComments: this.extractUserComments(
-          [...issue.notes, ...(mergeRequest?.notes ?? [])],
-          username,
-        ),
-        mrTitle: mergeRequest?.title ?? null,
-        mrBranch: mergeRequest?.sourceBranch ?? null,
+        commitMessages,
+        userComments,
+        mrTitle: hasMeaningfulContext ? (mergeRequest?.title ?? null) : null,
       },
     };
   }
 
-  //строим элемент отчёта из standalone мр
+  //строим элемент отчета из standalone мр
   private buildMergeRequestReportItem(
     mr: MappedMergeRequest,
     username: string,
   ): ReportTaskItem {
+    const commitMessages = this.extractCommitMessages(mr.events);
+    const userComments = this.extractUserComments(mr.notes, username);
+    const hasMeaningfulContext =
+      commitMessages.length > 0 || userComments.length > 0;
+
     return {
       taskKey: `${mr.projectId}:mr-${mr.iid}`,
       projectId: mr.projectId,
@@ -131,15 +144,14 @@ export class GitReportService {
       taskType: mr.workResult.taskType,
       labels: mr.labels,
       aiContext: {
-        commitMessages: this.extractCommitMessages(mr.events),
-        userComments: this.extractUserComments(mr.notes, username),
-        mrTitle: mr.title,
-        mrBranch: mr.sourceBranch,
+        commitMessages,
+        userComments,
+        mrTitle: hasMeaningfulContext ? mr.title : null,
       },
     };
   }
 
-  //строим элемент отчёта из standalone пуша
+  //строим элемент отчета из standalone пуша
   private buildPushReportItem(push: MappedPush): ReportTaskItem {
     return {
       taskKey: `${push.projectId}:push-${push.branch}`,
@@ -154,7 +166,6 @@ export class GitReportService {
         commitMessages: this.extractCommitMessages(push.events),
         userComments: [],
         mrTitle: null,
-        mrBranch: push.branch,
       },
     };
   }
@@ -184,9 +195,11 @@ export class GitReportService {
     standalonePushes: MappedPush[];
   }): number[] {
     const ids = new Set<number>();
-    mapped.issues.forEach((i) => ids.add(i.projectId));
-    mapped.standaloneMergeRequests.forEach((mr) => ids.add(mr.projectId));
-    mapped.standalonePushes.forEach((p) => ids.add(p.projectId));
+    mapped.issues.forEach((issue) => ids.add(issue.projectId));
+    mapped.standaloneMergeRequests.forEach((mergeRequest) =>
+      ids.add(mergeRequest.projectId),
+    );
+    mapped.standalonePushes.forEach((push) => ids.add(push.projectId));
     return [...ids];
   }
 
@@ -201,8 +214,8 @@ export class GitReportService {
           const project = await this.gitLabService.getProject(id);
           names.set(id, project.name);
         } catch {
-          this.logger.warn(`Не удалось получить имя проекта ${id}`);
-          names.set(id, ReportMessage.DEFAULT_PROJECT_NAME(id));
+          this.logger.warn(`${ReportMessages.PROJECT_RESOLVE_FAILED}: ${id}`);
+          names.set(id, `${ReportMessages.DEFAULT_PROJECT}_${id}`);
         }
       }),
     );

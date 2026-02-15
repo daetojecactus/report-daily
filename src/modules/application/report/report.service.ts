@@ -1,11 +1,16 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { GitReportService } from './git-report/git-report.service';
 import { AiService } from '../ai/ai.service';
-import { UserGender, UserRole } from '../user/user.interface';
-import { getTaskStatusAction } from './constants/report.messages';
+import { UserGender } from '../user/user.interface';
+import {
+  getTaskStatusAction,
+  ReportMessages,
+} from './constants/report.messages';
 import type { AITaskContext } from '../ai/ai.types';
 import type { ReportTaskItem } from './git-report/git-report.interface';
-import type { DailyReport, ProjectReport, ReportLine } from './report.types';
+import type { DailyReport, ProjectReport } from './report.types';
+import { UserService } from '../user/user.service';
+import { UserMessages } from '../user/constants/user.messages';
 
 @Injectable()
 export class ReportService {
@@ -13,42 +18,32 @@ export class ReportService {
 
   constructor(
     private readonly gitReportService: GitReportService,
+    private readonly userService: UserService,
     private readonly aiService: AiService,
   ) {}
 
-  //генерирует итоговый отчёт за день
-  async generateReport(params: {
-    gitLabUserId: number;
-    username: string;
-    userRole: UserRole;
-    gender: UserGender;
-    date: string;
-    useAI?: boolean;
-  }): Promise<DailyReport> {
-    const {
-      gitLabUserId,
-      username,
-      userRole,
-      gender,
-      date,
-      useAI = true,
-    } = params;
+  //генерирует итоговый отчет за день
+  async generateReport(adminId: string, date: string): Promise<DailyReport> {
+    const user = await this.userService.findOne({ adminId });
+    if (!user) {
+      throw new NotFoundException(UserMessages.USER_NOT_FOUND);
+    }
 
     //собираем данные из gitlab: группировка → маппинг → сбор контекста
     const gitReport = await this.gitReportService.generateDailyReport(
-      gitLabUserId,
-      username,
-      userRole,
+      user.gitLabId,
+      user.adminId,
+      user.role,
       date,
     );
 
     //все задачи в плоский список
-    const allTasks = gitReport.projects.flatMap((p) => p.tasks);
+    const allTasks = gitReport.projects.flatMap((project) => project.tasks);
 
     //получаем описания: AI или fallback
-    const descriptions = useAI
-      ? await this.enhanceWithAI(allTasks, gender)
-      : this.buildFallback(allTasks, gender);
+    const descriptions = user.settings.useAI
+      ? await this.enhanceWithAI(allTasks, user.gender)
+      : this.buildFallback(allTasks, user.gender);
 
     //собираем финальные проекты
     const projects: ProjectReport[] = gitReport.projects.map((project) => ({
@@ -59,7 +54,7 @@ export class ReportService {
         taskType: task.taskType,
         description:
           descriptions.get(task.taskKey) ??
-          `${getTaskStatusAction(task.status, gender)} «${task.title}»`,
+          `${getTaskStatusAction(task.status, user.gender)} «${task.title}»`,
       })),
     }));
 
@@ -84,17 +79,16 @@ export class ReportService {
         taskId: task.taskKey,
         taskTitle: task.title,
         status: task.status,
+        actionVerb: getTaskStatusAction(task.status, gender),
         taskType: task.taskType,
-        labels: task.labels,
         commitMessages: task.aiContext.commitMessages,
         comments: task.aiContext.userComments,
         mrTitle: task.aiContext.mrTitle ?? undefined,
-        mrBranch: task.aiContext.mrBranch ?? undefined,
       }));
 
       return await this.aiService.enhanceTasks({ tasks: contexts, gender });
     } catch (error) {
-      this.logger.error('AI failed, using fallback', error);
+      this.logger.error(ReportMessages.AI_FALLBACK, error);
       return this.buildFallback(tasks, gender);
     }
   }
@@ -112,7 +106,7 @@ export class ReportService {
     return map;
   }
 
-  //форматирует текстовый отчёт
+  //форматирует текстовый отчет
   //project:\n• description\n\nproject2:\n• description
   private formatText(projects: ProjectReport[]): string {
     return projects

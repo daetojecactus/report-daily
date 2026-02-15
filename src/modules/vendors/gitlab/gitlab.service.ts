@@ -59,11 +59,6 @@ export class GitLabService {
     return this.gitlabRepository.getIssueNotes(projectId, issueIid);
   }
 
-  async getIssueSystemNotes(projectId: number, issueIid: number) {
-    const notes = await this.getIssueNotes(projectId, issueIid);
-    return notes.filter((note) => note.system === true);
-  }
-
   async getIssueLabelEvents(projectId: number, issueIid: number) {
     return this.gitlabRepository.getIssueLabelEvents(projectId, issueIid);
   }
@@ -76,12 +71,15 @@ export class GitLabService {
     return this.gitlabRepository.getMergeRequestNotes(projectId, mrIid);
   }
 
-  async getMergeRequestSystemNotes(projectId: number, mrIid: number) {
-    const notes = await this.getMergeRequestNotes(projectId, mrIid);
-    return notes.filter((note) => note.system === true);
-  }
-
   async getMergeRequestLabelEvents(projectId: number, mrIid: number) {
     return this.gitlabRepository.getMergeRequestLabelEvents(projectId, mrIid);
+  }
+
+  async getIssueStateEvents(projectId: number, issueIid: number) {
+    return this.gitlabRepository.getIssueStateEvents(projectId, issueIid);
+  }
+
+  async getMergeRequestStateEvents(projectId: number, mrIid: number) {
+    return this.gitlabRepository.getMergeRequestStateEvents(projectId, mrIid);
   }
 }

@@ -186,16 +186,6 @@ export interface GitLabCommit {
   };
 }
 
-export interface GitLabMRApprovals {
-  id: number;
-  iid: number;
-  project_id: number;
-  title: string;
-  approvals_required: number;
-  approvals_left: number;
-  approved_by: Array<{ user: GitLabAuthor }>;
-}
-
 export interface GitLabUser {
   id: number;
   username: string;

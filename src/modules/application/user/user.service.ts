@@ -33,6 +33,10 @@ export class UserService {
     return user;
   }
 
+  async findByReportHour(hour: number) {
+    return this.userRepository.findByReportHour(hour);
+  }
+
   async updateUserSettings(
     filter: Partial<User>,
     partialSettings: Partial<Settings>,

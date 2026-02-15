@@ -6,6 +6,7 @@ import {
   GitLabLabelEvent,
   GitLabMergeRequest,
   GitLabNote,
+  GitLabStateEvent,
 } from 'src/modules/vendors/gitlab/gitlab.types';
 import {
   GitLabNoteableType,
@@ -55,14 +56,22 @@ export class GitGroupService {
       mrKeys,
     );
 
-    //загружаем комментарии и историю лейблов для задач и мр
-    const [issueNotesMap, issueLabelEventsMap, mrNotesMap, mrLabelEventsMap] =
-      await Promise.all([
-        this.fetchNotesForIssues(issuesMap),
-        this.fetchLabelEventsForIssues(issuesMap),
-        this.fetchNotesForMRs(mrsMap),
-        this.fetchLabelEventsForMRs(mrsMap),
-      ]);
+    //загружаем комментарии, историю лейблов и историю состояний для задач и мр
+    const [
+      issueNotesMap,
+      issueLabelEventsMap,
+      mrNotesMap,
+      mrLabelEventsMap,
+      issueStateEventsMap,
+      mrStateEventsMap,
+    ] = await Promise.all([
+      this.fetchNotesForIssues(issuesMap),
+      this.fetchLabelEventsForIssues(issuesMap),
+      this.fetchNotesForMRs(mrsMap),
+      this.fetchLabelEventsForMRs(mrsMap),
+      this.fetchStateEventsForIssues(issuesMap),
+      this.fetchStateEventsForMRs(mrsMap),
+    ]);
 
     return this.buildGroupedData(
       events,
@@ -73,6 +82,8 @@ export class GitGroupService {
       issueLabelEventsMap,
       mrNotesMap,
       mrLabelEventsMap,
+      issueStateEventsMap,
+      mrStateEventsMap,
       date,
     );
   }
@@ -379,6 +390,42 @@ export class GitGroupService {
     return map;
   }
 
+  //загружает историю смены состояний для задач
+  private async fetchStateEventsForIssues(issuesMap: Map<string, GitLabIssue>) {
+    const map = new Map<string, GitLabStateEvent[]>();
+
+    await Promise.all(
+      Array.from(issuesMap.entries()).map(async ([key, issue]) => {
+        const events = await this.gitlabService.getIssueStateEvents(
+          issue.project_id,
+          issue.iid,
+        );
+        map.set(key, events);
+      }),
+    );
+
+    return map;
+  }
+
+  //загружает историю смены состояний для мр
+  private async fetchStateEventsForMRs(
+    mrsMap: Map<string, GitLabMergeRequest>,
+  ) {
+    const map = new Map<string, GitLabStateEvent[]>();
+
+    await Promise.all(
+      Array.from(mrsMap.entries()).map(async ([key, mr]) => {
+        const events = await this.gitlabService.getMergeRequestStateEvents(
+          mr.project_id,
+          mr.iid,
+        );
+        map.set(key, events);
+      }),
+    );
+
+    return map;
+  }
+
   //собирает сгруппированные данные из событий
   private buildGroupedData(
     events: GitLabEvent[],
@@ -389,6 +436,8 @@ export class GitGroupService {
     issueLabelEventsMap: Map<string, GitLabLabelEvent[]>,
     mrNotesMap: Map<string, GitLabNote[]>,
     mrLabelEventsMap: Map<string, GitLabLabelEvent[]>,
+    issueStateEventsMap: Map<string, GitLabStateEvent[]>,
+    mrStateEventsMap: Map<string, GitLabStateEvent[]>,
     date: string,
   ): GroupedDailyData {
     const eventsByIssue = this.initializeEventsMap(issuesMap.keys());
@@ -408,6 +457,8 @@ export class GitGroupService {
         issueLabelEventsMap,
         mrNotesMap,
         mrLabelEventsMap,
+        issueStateEventsMap,
+        mrStateEventsMap,
         date,
       ),
       standaloneMergeRequests: this.assembleStandaloneMergeRequests(
@@ -416,6 +467,7 @@ export class GitGroupService {
         mrToIssueLinks,
         mrNotesMap,
         mrLabelEventsMap,
+        mrStateEventsMap,
         date,
       ),
       standalonePushes: this.assembleStandalonePushes(
@@ -471,13 +523,19 @@ export class GitGroupService {
     issueLabelEventsMap: Map<string, GitLabLabelEvent[]>,
     mrNotesMap: Map<string, GitLabNote[]>,
     mrLabelEventsMap: Map<string, GitLabLabelEvent[]>,
+    issueStateEventsMap: Map<string, GitLabStateEvent[]>,
+    mrStateEventsMap: Map<string, GitLabStateEvent[]>,
     date: string,
   ): GroupedIssue[] {
     return Array.from(issuesMap.entries()).map(([issueKey, issue]) => ({
       projectId: issue.project_id,
       iid: issue.iid,
       title: issue.title,
-      state: issue.state as GroupedIssue['state'],
+      state: this.resolveStateAsOfDate(
+        issue.state,
+        issueStateEventsMap.get(issueKey) ?? [],
+        date,
+      ) as GroupedIssue['state'],
       webUrl: issue.web_url,
       labels: issue.labels,
       createdAt: issue.created_at,
@@ -495,6 +553,7 @@ export class GitGroupService {
         mrToIssueLinks,
         mrNotesMap,
         mrLabelEventsMap,
+        mrStateEventsMap,
         date,
       ),
     }));
@@ -508,6 +567,7 @@ export class GitGroupService {
     mrToIssueLinks: Map<string, string>,
     mrNotesMap: Map<string, GitLabNote[]>,
     mrLabelEventsMap: Map<string, GitLabLabelEvent[]>,
+    mrStateEventsMap: Map<string, GitLabStateEvent[]>,
     date: string,
   ): GroupedMergeRequest[] {
     const related: GroupedMergeRequest[] = [];
@@ -520,13 +580,17 @@ export class GitGroupService {
         projectId: mr.project_id,
         iid: mr.iid,
         title: mr.title,
-        state: mr.state as GroupedMergeRequest['state'],
+        state: this.resolveStateAsOfDate(
+          mr.state,
+          mrStateEventsMap.get(mrKey) ?? [],
+          date,
+        ) as GroupedMergeRequest['state'],
         webUrl: mr.web_url,
         sourceBranch: mr.source_branch,
         labels: mr.labels,
         createdAt: mr.created_at,
         assignee: mr.assignee?.username ?? null,
-        reviewers: mr.reviewers?.map((r) => r.username) ?? [],
+        reviewers: mr.reviewers?.map((reviewer) => reviewer.username) ?? [],
         events: this.cleanEvents(eventsByMr.get(mrKey) ?? [], date),
         notes: this.cleanNotes(mrNotesMap.get(mrKey) ?? [], date),
         labelEvents: this.cleanLabelEvents(
@@ -546,6 +610,7 @@ export class GitGroupService {
     mrToIssueLinks: Map<string, string>,
     mrNotesMap: Map<string, GitLabNote[]>,
     mrLabelEventsMap: Map<string, GitLabLabelEvent[]>,
+    mrStateEventsMap: Map<string, GitLabStateEvent[]>,
     date: string,
   ): StandaloneMergeRequest[] {
     return Array.from(mrsMap.entries())
@@ -554,13 +619,17 @@ export class GitGroupService {
         projectId: mr.project_id,
         iid: mr.iid,
         title: mr.title,
-        state: mr.state as StandaloneMergeRequest['state'],
+        state: this.resolveStateAsOfDate(
+          mr.state,
+          mrStateEventsMap.get(mrKey) ?? [],
+          date,
+        ) as StandaloneMergeRequest['state'],
         webUrl: mr.web_url,
         sourceBranch: mr.source_branch,
         labels: mr.labels,
         createdAt: mr.created_at,
         assignee: mr.assignee?.username ?? null,
-        reviewers: mr.reviewers?.map((r) => r.username) ?? [],
+        reviewers: mr.reviewers?.map((reviewer) => reviewer.username) ?? [],
         events: this.cleanEvents(eventsByMr.get(mrKey) ?? [], date),
         notes: this.cleanNotes(mrNotesMap.get(mrKey) ?? [], date),
         labelEvents: this.cleanLabelEvents(
@@ -604,15 +673,12 @@ export class GitGroupService {
 
   //очищает события от лишних данных и фильтрует за указанный день
   private cleanEvents(events: GitLabEvent[], date: string): CleanEvent[] {
-    const dayStart = new Date(date);
-    dayStart.setHours(0, 0, 0, 0);
-    const dayEnd = new Date(date);
-    dayEnd.setHours(23, 59, 59, 999);
+    const { start, end } = this.getDayRange(date);
 
     return events
       .filter((event) => {
         const eventDate = new Date(event.created_at);
-        return eventDate >= dayStart && eventDate <= dayEnd;
+        return eventDate >= start && eventDate <= end;
       })
       .map((event) => ({
         id: event.id,
@@ -636,15 +702,12 @@ export class GitGroupService {
 
   //очищает комментарии и фильтрует за указанный день
   private cleanNotes(notes: GitLabNote[], date: string): CleanNote[] {
-    const dayStart = new Date(date);
-    dayStart.setHours(0, 0, 0, 0);
-    const dayEnd = new Date(date);
-    dayEnd.setHours(23, 59, 59, 999);
+    const { start, end } = this.getDayRange(date);
 
     return notes
       .filter((note) => {
         const noteDate = new Date(note.created_at);
-        return noteDate >= dayStart && noteDate <= dayEnd;
+        return noteDate >= start && noteDate <= end;
       })
       .map((note) => ({
         id: note.id,
@@ -664,15 +727,12 @@ export class GitGroupService {
     labelEvents: GitLabLabelEvent[],
     date: string,
   ): CleanLabelEvent[] {
-    const dayStart = new Date(date);
-    dayStart.setHours(0, 0, 0, 0);
-    const dayEnd = new Date(date);
-    dayEnd.setHours(23, 59, 59, 999);
+    const { start, end } = this.getDayRange(date);
 
     return labelEvents
       .filter((event) => {
         const eventDate = new Date(event.created_at);
-        return eventDate >= dayStart && eventDate <= dayEnd;
+        return eventDate >= start && eventDate <= end;
       })
       .map((event) => ({
         id: event.id,
@@ -681,5 +741,47 @@ export class GitGroupService {
         createdAt: event.created_at,
         username: event.user.username,
       }));
+  }
+
+  /**
+   * Восстанавливает состояние (state) задачи/MR на конец указанного дня.
+   * Берет все state-events до конца дня (включительно) и возвращает
+   * state последнего из них. Если до конца дня нет ни одного события —
+   * возвращаем 'opened' (начальное состояние в GitLab).
+   */
+  private resolveStateAsOfDate(
+    currentState: string,
+    stateEvents: GitLabStateEvent[],
+    date: string,
+  ): string {
+    if (!stateEvents.length) {
+      return currentState;
+    }
+
+    const { end } = this.getDayRange(date);
+
+    const eventsBeforeDate = stateEvents
+      .filter((event) => new Date(event.created_at) <= end)
+      .sort(
+        (a, b) =>
+          new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+      );
+
+    if (!eventsBeforeDate.length) {
+      return 'opened';
+    }
+
+    const lastState = eventsBeforeDate[eventsBeforeDate.length - 1].state;
+    //reopened → opened для совместимости с GitLabIssueState/GitLabMergeRequestState
+    return lastState === 'reopened' ? 'opened' : lastState;
+  }
+
+  //вычисляет границы дня (начало и конец) из строковой даты
+  private getDayRange(date: string): { start: Date; end: Date } {
+    const start = new Date(date);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(date);
+    end.setHours(23, 59, 59, 999);
+    return { start, end };
   }
 }
