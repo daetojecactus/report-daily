@@ -1,27 +1,23 @@
 import { Injectable } from '@nestjs/common';
 import { GroqClient } from './groq.client';
-import type { GroqGenerateContentResponse } from './groq.types';
 
 @Injectable()
 export class GroqRepository {
-  constructor(private readonly groqClient: GroqClient) {}
+  constructor(private readonly client: GroqClient) {}
 
-  async generate(prompt: string): Promise<GroqGenerateContentResponse> {
-    const client = this.groqClient.instance;
-    if (!client) {
-      throw new Error('Groq API not configured');
+  async generate(prompt: string, systemPrompt?: string): Promise<string> {
+    const messages: { role: 'system' | 'user'; content: string }[] = [];
+
+    if (systemPrompt) {
+      messages.push({ role: 'system', content: systemPrompt });
     }
+    messages.push({ role: 'user', content: prompt });
 
-    const result = await client.chat.completions.create({
-      model: this.groqClient.getModel(),
-      messages: [{ role: 'user', content: prompt }],
+    const result = await this.client.instance.chat.completions.create({
+      model: this.client.getModel(),
+      messages,
     });
 
-    const text = result.choices[0]?.message?.content ?? '';
-    return { text };
-  }
-
-  isEnabled(): boolean {
-    return this.groqClient.isEnabled();
+    return result.choices[0]?.message?.content ?? '';
   }
 }

@@ -1,20 +1,22 @@
-import { Injectable, Inject } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
+import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import type { ReportDailyBotEnvs } from '../../../config/env';
 
 @Injectable()
 export class TelegramClient {
-  private readonly botToken: string;
-  private readonly chatId: string;
   private readonly baseUrl: string;
+  private readonly chatId: string;
 
-  constructor(@Inject(ConfigService) config: ConfigService) {
-    this.botToken = config.get("TELEGRAM_BOT_TOKEN") || "";
-    this.chatId = config.get("TELEGRAM_ID") || "";
-    this.baseUrl = `https://api.telegram.org/bot${this.botToken}`;
+  constructor(
+    private readonly config: ConfigService<ReportDailyBotEnvs, true>,
+  ) {
+    const botToken = this.config.get('TELEGRAM_BOT_TOKEN');
+    this.chatId = this.config.get('TELEGRAM_ID') ?? '';
+    this.baseUrl = `https://api.telegram.org/bot${botToken}`;
   }
 
   isConfigured(): boolean {
-    return Boolean(this.botToken && this.chatId);
+    return Boolean(this.chatId);
   }
 
   getBaseUrl(): string {

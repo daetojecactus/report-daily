@@ -75,7 +75,7 @@ export class ReportService {
     tasks: ReportTaskItem[],
     gender: UserGender,
   ): Promise<Map<string, string>> {
-    if (!this.aiService.isEnabled() || tasks.length === 0) {
+    if (tasks.length === 0) {
       return this.buildFallback(tasks, gender);
     }
 

@@ -1,27 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Groq from 'groq-sdk';
+import type { ReportDailyBotEnvs } from '../../../config/env';
 
 @Injectable()
 export class GroqClient {
-  private readonly client: Groq | null;
+  private readonly client: Groq;
   private readonly model: string;
-  private readonly enabled: boolean;
 
-  constructor(private readonly configService: ConfigService) {
-    const apiKey = this.configService.get<string>('GROQ_API_KEY');
-    this.model =
-      this.configService.get<string>('GROQ_MODEL') || 'llama-3.3-70b-versatile';
-
-    this.enabled = Boolean(apiKey);
-    this.client = apiKey ? new Groq({ apiKey }) : null;
+  constructor(
+    private readonly config: ConfigService<ReportDailyBotEnvs, true>,
+  ) {
+    this.model = this.config.get('GROQ_MODEL');
+    this.client = new Groq({ apiKey: this.config.get('GROQ_API_KEY') });
   }
 
-  isEnabled(): boolean {
-    return this.enabled;
-  }
-
-  get instance(): Groq | null {
+  get instance(): Groq {
     return this.client;
   }
 

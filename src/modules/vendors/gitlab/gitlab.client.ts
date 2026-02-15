@@ -1,25 +1,28 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios, { AxiosInstance } from 'axios';
 import * as https from 'https';
+import type { ReportDailyBotEnvs } from '../../../config/env';
+
+const DEFAULT_EVENTS_PER_PAGE = 100;
 
 @Injectable()
 export class GitLabClient {
   private readonly client: AxiosInstance;
   private readonly eventsPerPage: number;
 
-  constructor(@Inject(ConfigService) config: ConfigService) {
-    const httpsAgent = new https.Agent({
-      rejectUnauthorized: config.get('SSL_REJECT_UNAUTHORIZED') === 'true',
-    });
+  constructor(
+    private readonly config: ConfigService<ReportDailyBotEnvs, true>,
+  ) {
+    const httpsAgent = new https.Agent({ rejectUnauthorized: false });
 
     this.client = axios.create({
-      baseURL: config.get('GITLAB_API_URL'),
-      headers: { 'PRIVATE-TOKEN': config.get('GITLAB_API_TOKEN') },
+      baseURL: this.config.get('GITLAB_API_URL'),
+      headers: { 'PRIVATE-TOKEN': this.config.get('GITLAB_API_TOKEN') },
       httpsAgent,
     });
 
-    this.eventsPerPage = parseInt(config.get('EVENTS_PER_PAGE') || '100', 10);
+    this.eventsPerPage = DEFAULT_EVENTS_PER_PAGE;
   }
 
   get instance(): AxiosInstance {

@@ -4,33 +4,42 @@ import { UserGender } from '../user/user.interface';
 import type { AITaskContext, AIEnhanceRequest } from './ai.types';
 import { AI_SYSTEM_PROMPT } from './constants/ai.prompt';
 import { getTaskStatusAction } from '../report/constants/report.messages';
+import { OpenRouterService } from '../../vendors/open-router/open-router.service';
 import { GroqService } from '../../vendors/groq/groq.service';
+import type { AiProvider } from '../../vendors/ai-provider.interface';
 
 @Injectable()
 export class AiService {
   private readonly logger = new Logger(AiService.name);
-  constructor(private readonly groqService: GroqService) {}
+  private readonly providers: AiProvider[];
 
-  isEnabled(): boolean {
-    return this.groqService.isEnabled();
+  constructor(openRouterService: OpenRouterService, groqService: GroqService) {
+    // приоритет: OpenRouter → Groq → статический fallback
+    this.providers = [openRouterService, groqService];
   }
 
-  //обогащает задачи через AI, возвращает map taskId → описание
+  // обогащает задачи через AI, при ошибке пробует следующий провайдер
   async enhanceTasks(request: AIEnhanceRequest): Promise<Map<string, string>> {
     const { tasks, gender } = request;
 
-    if (!this.isEnabled() || tasks.length === 0) {
+    if (tasks.length === 0) {
       return this.fallbackAll(tasks, gender);
     }
 
-    try {
-      const prompt = this.buildPrompt(tasks, gender);
-      const response = await this.groqService.generate(prompt);
-      return this.parseResponse(response, tasks, gender);
-    } catch (error) {
-      this.logger.error('AI enhancement failed', error);
-      return this.fallbackAll(tasks, gender);
+    const prompt = this.buildPrompt(tasks, gender);
+
+    for (const provider of this.providers) {
+      try {
+        const response = await provider.generate(prompt, AI_SYSTEM_PROMPT);
+        this.logger.log(`Report generated via ${provider.name}`);
+        return this.parseResponse(response, tasks, gender);
+      } catch (error) {
+        this.logger.warn(`${provider.name} failed, trying next...`, error);
+      }
     }
+
+    this.logger.warn('All AI providers failed, using static fallback');
+    return this.fallbackAll(tasks, gender);
   }
 
   //формирует fallback без AI — просто глагол + название задачи
@@ -53,9 +62,7 @@ export class AiService {
       .map((ctx, i) => `[${i + 1}] ${this.formatContext(ctx)}`)
       .join('\n\n---\n\n');
 
-    return `${AI_SYSTEM_PROMPT}
-
-${genderHint}
+    return `${genderHint}
 
 ${contexts.length} задач. Для каждой напиши ОДНУ строку (начинай с глагола!).
 
