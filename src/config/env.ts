@@ -27,6 +27,14 @@ export class ReportDailyBotEnvs {
   @IsOptional()
   TELEGRAM_ID?: string;
 
+  @IsNumber()
+  @Type(() => Number)
+  OWNER_TELEGRAM_ID!: number;
+
+  @IsString()
+  @IsOptional()
+  TELEGRAM_TRANSPORT?: 'webhook' | 'polling';
+
   // OpenRouter
   @IsString()
   OPENROUTER_API_URL!: string;
@@ -43,6 +51,10 @@ export class ReportDailyBotEnvs {
 
   @IsString()
   GROQ_MODEL!: string;
+
+  // Portal Bitrix24
+  @IsString()
+  PORTAL_WEBHOOK_URL!: string;
 
   // Production Calendar
   @IsString()

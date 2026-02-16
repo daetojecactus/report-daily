@@ -121,7 +121,12 @@ export class SchedulerService {
           this.logger.error(
             `${SchedulerMessages.SCHEDULER_ALL_FAILED}: ${adminId}: ${errMsg}`,
           );
-          return { adminId, telegramId, success: false, error: errMsg };
+          return {
+            adminId,
+            telegramId,
+            success: false,
+            error: errMsg,
+          };
         }
       }
     }

@@ -11,10 +11,10 @@ export class ProductionCalendarClient {
   private readonly client: AxiosInstance;
 
   constructor(
-    private readonly config: ConfigService<ReportDailyBotEnvs, true>,
+    private readonly configService: ConfigService<ReportDailyBotEnvs, true>,
   ) {
     this.client = axios.create({
-      baseURL: this.config.get('PRODUCTION_CALENDAR_BASE_URL'),
+      baseURL: this.configService.get('PRODUCTION_CALENDAR_BASE_URL'),
       timeout: PRODUCTION_CALENDAR_TIMEOUT,
       responseType: 'text',
     });

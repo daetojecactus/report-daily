@@ -4,6 +4,7 @@ import { HolidayCalendarService } from '../../application/holiday-calendar/holid
 import { BotSettingsService } from '../../application/bot-settings/bot-settings.service';
 import { HolidayCalendarMessages } from '../../application/holiday-calendar/constants/holiday-calendar.messages';
 import { CalendarTaskMessages } from './constants/calendar-task.messages';
+import { BOT_SETTINGS_KEY } from 'src/modules/application/bot-settings/constants/bot-settings.constants';
 
 @Injectable()
 export class CalendarTask {
@@ -20,12 +21,11 @@ export class CalendarTask {
     this.logger.log(CalendarTaskMessages.CALENDAR_CHECK_STARTED);
 
     //если бот принудительно заблокирован — не трогаем isActive
-    const settings = await this.botSettingsService.getSettings();
+    const settings = await this.botSettingsService.findOne({
+      key: BOT_SETTINGS_KEY,
+    });
 
     if (settings.isForceBlocked) {
-      this.logger.warn(
-        `${CalendarTaskMessages.CALENDAR_CHECK_SKIPPED_FORCE_BLOCK}: ${settings.forceBlockReason}`,
-      );
       return;
     }
 

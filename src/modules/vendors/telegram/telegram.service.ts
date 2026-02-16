@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { TelegramClient } from './telegram.client';
 import { TelegramRepository } from './telegram.repository';
-import { ParseMode } from './telegram.types';
+import type { ParseMode, BotCommand, TelegramUpdate } from './telegram.types';
 import { DefaultMessages } from 'src/common/constants/defautl.messages';
 import { TelegramMessages } from './constants/telegram.messages';
 
@@ -47,5 +47,43 @@ export class TelegramService {
         `${TelegramMessages.TELEGRAM_API_ERROR}: ${result.description || DefaultMessages.DEFAULT_UNKNOWN_ERROR}`,
       );
     }
+  }
+
+  //устанавливает команды бота только для конкретного чата (owner)
+  async setCommandsForChat(
+    chatId: number | string,
+    commands: BotCommand[],
+  ): Promise<void> {
+    //сначала удаляем глобальные команды (чтоб остальные не видели)
+    await this.telegramRepository.deleteMyCommands();
+    //устанавливаем только для owner
+    await this.telegramRepository.setMyCommandsForChat(chatId, commands);
+  }
+
+  //включает режим long polling (выключает webhook)
+  async enableLongPollingMode(): Promise<void> {
+    const result = await this.telegramRepository.deleteWebhook(true);
+
+    if (!result.ok) {
+      throw new Error(
+        `${TelegramMessages.TELEGRAM_API_ERROR}: ${result.description || DefaultMessages.DEFAULT_UNKNOWN_ERROR}`,
+      );
+    }
+  }
+
+  //получает апдейты через long polling
+  async getUpdates(params: {
+    offset?: number;
+    timeout?: number;
+  }): Promise<TelegramUpdate[]> {
+    const result = await this.telegramRepository.getUpdates(params);
+
+    if (!result.ok) {
+      throw new Error(
+        `${TelegramMessages.TELEGRAM_API_ERROR}: ${result.description || DefaultMessages.DEFAULT_UNKNOWN_ERROR}`,
+      );
+    }
+
+    return result.result;
   }
 }

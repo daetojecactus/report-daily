@@ -3,7 +3,7 @@ import { HydratedDocument } from 'mongoose';
 import { UserGender, UserRole, UserStatus } from './user.interface';
 import { Settings } from './settings/settings.schema';
 
-@Schema({ collection: 'user', timestamps: true })
+@Schema({ collection: 'users', timestamps: true })
 export class User {
   @Prop({ unique: true })
   adminId!: string;
@@ -13,6 +13,9 @@ export class User {
 
   @Prop({ required: true, unique: true })
   gitLabId!: number;
+
+  @Prop({ required: true, unique: true })
+  portalId!: number;
 
   @Prop({ required: true, enum: UserRole })
   role!: UserRole;

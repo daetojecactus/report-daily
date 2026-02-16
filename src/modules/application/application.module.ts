@@ -4,6 +4,7 @@ import { UserModule } from './user/user.module';
 import { SchedulerModule } from './scheduler/scheduler.module';
 import { BotSettingsModule } from './bot-settings/bot-settings.module';
 import { HolidayCalendarModule } from './holiday-calendar/holiday-calendar.module';
+import { BotCommandModule } from './bot-command/bot-command.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { HolidayCalendarModule } from './holiday-calendar/holiday-calendar.modul
     SchedulerModule,
     BotSettingsModule,
     HolidayCalendarModule,
+    BotCommandModule,
   ],
   exports: [
     ReportModule,
@@ -19,6 +21,7 @@ import { HolidayCalendarModule } from './holiday-calendar/holiday-calendar.modul
     SchedulerModule,
     BotSettingsModule,
     HolidayCalendarModule,
+    BotCommandModule,
   ],
 })
 export class ApplicationModule {}

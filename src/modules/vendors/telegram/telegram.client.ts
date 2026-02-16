@@ -8,10 +8,10 @@ export class TelegramClient {
   private readonly chatId: string;
 
   constructor(
-    private readonly config: ConfigService<ReportDailyBotEnvs, true>,
+    private readonly configService: ConfigService<ReportDailyBotEnvs, true>,
   ) {
-    const botToken = this.config.get('TELEGRAM_BOT_TOKEN');
-    this.chatId = this.config.get('TELEGRAM_ID') ?? '';
+    const botToken = this.configService.get('TELEGRAM_BOT_TOKEN');
+    this.chatId = this.configService.get('TELEGRAM_ID') ?? '';
     this.baseUrl = `https://api.telegram.org/bot${botToken}`;
   }
 

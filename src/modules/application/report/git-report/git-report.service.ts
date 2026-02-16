@@ -213,7 +213,10 @@ export class GitReportService {
       projectIds.map(async (id) => {
         try {
           const project = await this.gitLabService.getProject(id);
-          names.set(id, project.name);
+          names.set(
+            id,
+            project?.name ?? `${DefaultMessages.DEFAULT_PROJECT}_${id}`,
+          );
         } catch {
           this.logger.warn(
             `${ReportMessages.REPORT_PROJECT_RESOLVE_FAILED}: ${id}`,

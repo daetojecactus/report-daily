@@ -1,10 +1,9 @@
 import { Module } from '@nestjs/common';
 import { AiService } from './ai.service';
-import { OpenRouterModule } from '../../vendors/open-router/open-router.module';
-import { GroqModule } from '../../vendors/groq/groq.module';
+import { VendorModule } from 'src/modules/vendors/vendor.module';
 
 @Module({
-  imports: [OpenRouterModule, GroqModule],
+  imports: [VendorModule],
   providers: [AiService],
   exports: [AiService],
 })

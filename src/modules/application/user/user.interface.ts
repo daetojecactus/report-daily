@@ -14,3 +14,10 @@ export enum UserGender {
   MALE = 'Male',
   FEMALE = 'Female',
 }
+
+export interface CreateUserInput {
+  adminId: string;
+  telegramId: number;
+  role: UserRole;
+  reportHour: number;
+}

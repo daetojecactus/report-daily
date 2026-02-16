@@ -1,4 +1,5 @@
 export enum BotSettingsMessages {
+  BOT_SETTINGS_NOT_FOUND = 'Bot settings not found',
   BOT_ACTIVATED = 'Bot activated — working day',
   BOT_DEACTIVATED = 'Bot deactivated — non-working day',
   BOT_SETTINGS_UPDATED = 'Bot settings updated',

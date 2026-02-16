@@ -6,10 +6,12 @@ import { UserService } from './user.service';
 import { SettingsService } from './settings/settings.service';
 import { AuthService } from './auth/auth.service';
 import { TelegramGuard } from './auth/guards/telegram.guard';
+import { VendorModule } from 'src/modules/vendors/vendor.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+    VendorModule,
   ],
   providers: [
     UserRepository,

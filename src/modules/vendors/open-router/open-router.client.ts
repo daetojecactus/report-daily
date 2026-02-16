@@ -9,12 +9,12 @@ export class OpenRouterClient {
   private readonly model: string;
 
   constructor(
-    private readonly config: ConfigService<ReportDailyBotEnvs, true>,
+    private readonly configService: ConfigService<ReportDailyBotEnvs, true>,
   ) {
-    this.model = this.config.get('OPENROUTER_MODEL');
+    this.model = this.configService.get('OPENROUTER_MODEL');
     this.client = new OpenAI({
-      apiKey: this.config.get('OPENROUTER_API_KEY'),
-      baseURL: this.config.get('OPENROUTER_API_URL'),
+      apiKey: this.configService.get('OPENROUTER_API_KEY'),
+      baseURL: this.configService.get('OPENROUTER_API_URL'),
     });
   }
 

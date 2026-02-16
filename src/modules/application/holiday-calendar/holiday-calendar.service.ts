@@ -13,7 +13,7 @@ export class HolidayCalendarService {
     private readonly productionCalendarService: ProductionCalendarService,
   ) {}
 
-  //возвращает календарь из базы, если нет — загружает с zakon.kz и сохраняет
+  //возвращает календарь из базы, если нет то загружает и сохраняет
   async getOrFetchCalendar(year: number): Promise<HolidayCalendar> {
     const existing = await this.holidayCalendarRepository.findOne({ year });
 
@@ -27,7 +27,7 @@ export class HolidayCalendarService {
     return this.fetchAndSaveCalendar(year);
   }
 
-  //принудительно загружает календарь с zakon.kz и сохраняет в базу
+  //принудительно загружает календарь и сохраняет в базу
   async fetchAndSaveCalendar(year: number): Promise<HolidayCalendar> {
     const parsed = await this.productionCalendarService.fetchHolidays(year);
 

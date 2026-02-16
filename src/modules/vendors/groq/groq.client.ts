@@ -9,10 +9,10 @@ export class GroqClient {
   private readonly model: string;
 
   constructor(
-    private readonly config: ConfigService<ReportDailyBotEnvs, true>,
+    private readonly configService: ConfigService<ReportDailyBotEnvs, true>,
   ) {
-    this.model = this.config.get('GROQ_MODEL');
-    this.client = new Groq({ apiKey: this.config.get('GROQ_API_KEY') });
+    this.model = this.configService.get('GROQ_MODEL');
+    this.client = new Groq({ apiKey: this.configService.get('GROQ_API_KEY') });
   }
 
   get instance(): Groq {

@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { BotSettingsRepository } from './bot-settings.repository';
 import { BotSettingsMessages } from './constants/bot-settings.messages';
 import { BOT_SETTINGS_KEY } from './constants/bot-settings.constants';
@@ -10,38 +10,46 @@ export class BotSettingsService {
 
   constructor(private readonly botSettingsRepository: BotSettingsRepository) {}
 
-  //возвращает текущие настройки бота (создаёт документ, если его нет)
-  async getSettings(): Promise<BotSettings> {
-    const settings = await this.botSettingsRepository.findOne({
-      key: BOT_SETTINGS_KEY,
-    });
-
-    if (settings) return settings;
-
-    return this.botSettingsRepository.create({
-      key: BOT_SETTINGS_KEY,
-      isActive: true,
-      reason: null,
-      isForceBlocked: false,
-      forceBlockReason: null,
-    });
+  async findOne(filter: Partial<BotSettings>) {
+    const settings = await this.botSettingsRepository.findOne(filter);
+    if (!settings) {
+      throw new NotFoundException(BotSettingsMessages.BOT_SETTINGS_NOT_FOUND);
+    }
+    return settings;
   }
 
-  //проверяет, может ли бот работать (force block приоритетнее isActive)
+  async create(settings: BotSettings) {
+    return this.botSettingsRepository.create(settings);
+  }
+
+  async updateOne(
+    filter: Partial<BotSettings>,
+    partialSettings: Partial<BotSettings>,
+  ) {
+    const settings = await this.botSettingsRepository.updateOne(
+      filter,
+      { $set: partialSettings },
+      { new: true },
+    );
+    if (!settings) {
+      throw new NotFoundException(BotSettingsMessages.BOT_SETTINGS_NOT_FOUND);
+    }
+
+    return settings;
+  }
+
+  //проверяет, может ли бот работать
   async canWork(): Promise<boolean> {
-    const settings = await this.getSettings();
+    const settings = await this.findOne({ key: BOT_SETTINGS_KEY });
 
     if (settings.isForceBlocked) {
-      this.logger.warn(
-        `${BotSettingsMessages.BOT_FORCE_BLOCKED}: ${settings.forceBlockReason}`,
-      );
       return false;
     }
 
     return settings.isActive;
   }
 
-  //активирует бота (рабочий день)
+  //активирует бота
   async activate(): Promise<void> {
     await this.botSettingsRepository.updateOne(
       { key: BOT_SETTINGS_KEY },
@@ -51,7 +59,7 @@ export class BotSettingsService {
     this.logger.log(BotSettingsMessages.BOT_ACTIVATED);
   }
 
-  //деактивирует бота (выходной / праздник)
+  //деактивирует бота выходной/праздник
   async deactivate(reason: string): Promise<void> {
     await this.botSettingsRepository.updateOne(
       { key: BOT_SETTINGS_KEY },
@@ -61,7 +69,7 @@ export class BotSettingsService {
     this.logger.log(`${BotSettingsMessages.BOT_DEACTIVATED}: ${reason}`);
   }
 
-  //принудительно блокирует бота (приоритет выше календаря)
+  //принудительно блокирует бота
   async forceBlock(reason: string): Promise<void> {
     await this.botSettingsRepository.updateOne(
       { key: BOT_SETTINGS_KEY },

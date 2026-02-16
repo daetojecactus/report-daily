@@ -12,13 +12,13 @@ export class GitLabClient {
   private readonly eventsPerPage: number;
 
   constructor(
-    private readonly config: ConfigService<ReportDailyBotEnvs, true>,
+    private readonly configService: ConfigService<ReportDailyBotEnvs, true>,
   ) {
     const httpsAgent = new https.Agent({ rejectUnauthorized: false });
 
     this.client = axios.create({
-      baseURL: this.config.get('GITLAB_API_URL'),
-      headers: { 'PRIVATE-TOKEN': this.config.get('GITLAB_API_TOKEN') },
+      baseURL: this.configService.get('GITLAB_API_URL'),
+      headers: { 'PRIVATE-TOKEN': this.configService.get('GITLAB_API_TOKEN') },
       httpsAgent,
     });
 
