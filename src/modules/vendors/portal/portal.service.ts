@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PortalRepository } from './portal.repository';
+import { formatDateToISO } from 'src/common/helpers/date.helper';
 import type { PortalAbsence, PortalUser } from './portal.types';
 
 @Injectable()
@@ -31,14 +32,12 @@ export class PortalService {
   }
 
   async getTodayOffUsers(): Promise<PortalAbsence[]> {
-    const today = new Date();
-    const date = today.toISOString().split('T')[0];
+    const date = formatDateToISO();
     return this.getAbsences({ dateFrom: date, dateTo: date });
   }
 
   async getUserAbsencesForDate(userId: string) {
-    const today = new Date();
-    const date = today.toISOString().split('T')[0];
+    const date = formatDateToISO();
     return this.getAbsences({ dateFrom: date, dateTo: date, userId });
   }
 }

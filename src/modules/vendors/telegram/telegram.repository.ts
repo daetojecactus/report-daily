@@ -6,6 +6,7 @@ import type {
   ParseMode,
   BotCommand,
   TelegramUpdate,
+  InlineKeyboardMarkup,
 } from './telegram.types';
 
 @Injectable()
@@ -30,6 +31,49 @@ export class TelegramRepository {
       chat_id: chatId,
       text,
       parse_mode: parseMode,
+    });
+  }
+
+  //отправка с inline клавиатурой
+  async sendMessageWithKeyboard(
+    chatId: number | string,
+    text: string,
+    keyboard: InlineKeyboardMarkup,
+    parseMode: ParseMode = 'HTML',
+  ): Promise<TelegramResponse> {
+    return this.callApi('sendMessage', {
+      chat_id: chatId,
+      text,
+      parse_mode: parseMode,
+      reply_markup: keyboard,
+    });
+  }
+
+  //ответ на callback query (убирает часики загрузки)
+  async answerCallbackQuery(
+    callbackQueryId: string,
+    text?: string,
+  ): Promise<TelegramResponse> {
+    return this.callApi('answerCallbackQuery', {
+      callback_query_id: callbackQueryId,
+      ...(text ? { text } : {}),
+    });
+  }
+
+  //редактирование сообщения
+  async editMessageText(
+    chatId: number | string,
+    messageId: number,
+    text: string,
+    parseMode: ParseMode = 'HTML',
+    keyboard?: InlineKeyboardMarkup,
+  ): Promise<TelegramResponse> {
+    return this.callApi('editMessageText', {
+      chat_id: chatId,
+      message_id: messageId,
+      text,
+      parse_mode: parseMode,
+      ...(keyboard ? { reply_markup: keyboard } : {}),
     });
   }
 

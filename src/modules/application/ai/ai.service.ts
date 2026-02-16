@@ -7,6 +7,7 @@ import { AiMessages } from './constants/ai.messages';
 import { OpenRouterService } from '../../vendors/open-router/open-router.service';
 import { GroqService } from '../../vendors/groq/groq.service';
 import type { AiProvider } from '../../../common/interfaces/ai-provider.interface';
+import { AiPromptLabels } from '../../../common/constants/defautl.messages';
 
 @Injectable()
 export class AiService {
@@ -63,24 +64,26 @@ export class AiService {
   //форматирует контекст одной задачи для промпта
   private formatContext(context: AITaskContext): string {
     const parts = [
-      `Задача: «${context.taskTitle}»`,
-      `Действие: ${context.actionVerb}`,
+      `${AiPromptLabels.TASK}: «${context.taskTitle}»`,
+      `${AiPromptLabels.ACTION}: ${context.actionVerb}`,
     ];
 
     if (context.taskType !== TaskType.UNKNOWN) {
-      parts.push(`Тип: ${context.taskType}`);
+      parts.push(`${AiPromptLabels.TYPE}: ${context.taskType}`);
     }
     if (context.commitMessages.length > 0) {
-      parts.push(`Коммиты: ${context.commitMessages.join('; ')}`);
+      parts.push(
+        `${AiPromptLabels.COMMITS}: ${context.commitMessages.join('; ')}`,
+      );
     }
     if (context.comments.length > 0) {
       const truncated = context.comments.map((comment) =>
         comment.length > 150 ? comment.slice(0, 150) + '...' : comment,
       );
-      parts.push(`Комментарии: ${truncated.join('; ')}`);
+      parts.push(`${AiPromptLabels.COMMENTS}: ${truncated.join('; ')}`);
     }
     if (context.mrTitle) {
-      parts.push(`МР: «${context.mrTitle}»`);
+      parts.push(`${AiPromptLabels.MR}: «${context.mrTitle}»`);
     }
 
     return parts.join('\n');

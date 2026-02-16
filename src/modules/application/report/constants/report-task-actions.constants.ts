@@ -86,6 +86,10 @@ export const REPORT_TASK_ACTIONS: Record<TaskStatus, Gendered> = {
     male: 'Отдал на ревью',
     female: 'Отдала на ревью',
   },
+  [TaskStatus.PASSED_REVIEW]: {
+    male: 'Прошёл ревью',
+    female: 'Прошла ревью',
+  },
   [TaskStatus.NEED_INFORMATION]: {
     male: 'Запросил информацию',
     female: 'Запросила информацию',

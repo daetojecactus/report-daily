@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { GitLabRepository } from './gitlab.repository';
+import { formatDateToISO, shiftDate } from 'src/common/helpers/date.helper';
 import type {
   GitLabCommit,
   GitLabEvent,
@@ -31,14 +32,10 @@ export class GitLabService {
   //события за конкретную дату (after/before — исключающие)
   async getEventsForDate(userId: number, date: string): Promise<GitLabEvent[]> {
     const target = new Date(date);
-    const dayBefore = new Date(target);
-    dayBefore.setDate(dayBefore.getDate() - 1);
-    const dayAfter = new Date(target);
-    dayAfter.setDate(dayAfter.getDate() + 1);
 
     return this.getEvents({
-      after: dayBefore.toISOString().split('T')[0],
-      before: dayAfter.toISOString().split('T')[0],
+      after: formatDateToISO(shiftDate(target, -1)),
+      before: formatDateToISO(shiftDate(target, 1)),
       userId,
     });
   }

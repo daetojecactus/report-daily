@@ -12,6 +12,9 @@ import type { BatchUserResult } from './scheduler.types';
 import { UserMessages } from '../user/constants/user.messages';
 import { ReportMessages } from '../report/constants/report.messages';
 import { DefaultMessages } from 'src/common/constants/defautl.messages';
+import { formatDateToISO } from 'src/common/helpers/date.helper';
+import { getErrorMessage } from 'src/common/helpers/error.helper';
+import { sleep } from 'src/common/helpers/sleep.helper';
 
 @Injectable()
 export class SchedulerService {
@@ -35,9 +38,8 @@ export class SchedulerService {
     this.logger.log(
       `${SchedulerMessages.SCHEDULER_FOUND_USERS}: ${users.length} user(s), hour ${hour}`,
     );
-    const today = new Date().toISOString().split('T')[0]!;
 
-    return this.processBatch(users, today);
+    return this.processBatch(users, formatDateToISO());
   }
 
   //генерирует и отправляет отчет для одного пользователя по adminId
@@ -51,8 +53,7 @@ export class SchedulerService {
       return { adminId, telegramId: 0, success: false };
     }
 
-    const targetDate = date ?? new Date().toISOString().split('T')[0]!;
-    return this.processOneUser(user, targetDate);
+    return this.processOneUser(user, date ?? formatDateToISO());
   }
 
   //обрабатывает батч пользователей последовательно с задержкой
@@ -66,7 +67,7 @@ export class SchedulerService {
       const user = users[i]!;
 
       if (i > 0) {
-        await this.sleep(SCHEDULER_SEND_DELAY_MS);
+        await sleep(SCHEDULER_SEND_DELAY_MS);
       }
 
       const result = await this.processOneUser(user, date);
@@ -101,6 +102,11 @@ export class SchedulerService {
           this.logger.warn(
             `${SchedulerMessages.SCHEDULER_EMPTY_REPORT}: ${adminId}`,
           );
+          //отправляем уведомление об отсутствии активности
+          await this.telegramService.sendMessageTo(
+            telegramId,
+            SchedulerMessages.SCHEDULER_NO_ACTIVITY,
+          );
           return { adminId, telegramId, success: true };
         }
 
@@ -110,13 +116,13 @@ export class SchedulerService {
         );
         return { adminId, telegramId, success: true };
       } catch (error) {
-        const errMsg = error instanceof Error ? error.message : String(error);
+        const errMsg = getErrorMessage(error);
 
         if (attempt <= SCHEDULER_MAX_RETRIES) {
           this.logger.warn(
             `${SchedulerMessages.SCHEDULER_ATTEMPT_FAILED}: attempt ${attempt}, ${adminId}: ${errMsg}`,
           );
-          await this.sleep(2000 * attempt);
+          await sleep(2000 * attempt);
         } else {
           this.logger.error(
             `${SchedulerMessages.SCHEDULER_ALL_FAILED}: ${adminId}: ${errMsg}`,
@@ -137,9 +143,5 @@ export class SchedulerService {
       success: false,
       error: DefaultMessages.DEFAULT_UNKNOWN_ERROR,
     };
-  }
-
-  private sleep(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }

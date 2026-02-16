@@ -14,7 +14,7 @@ export class SchedulerTask {
     private readonly botSettingsService: BotSettingsService,
   ) {}
 
-  //крон каждый час — проверяет статус бота и запускает рассылку отчётов
+  //крон каждый час проверяет статус бота и запускает рассылку отчётов
   @Cron('0 * * * *')
   async handleReportCron(): Promise<void> {
     const canWork = await this.botSettingsService.canWork();

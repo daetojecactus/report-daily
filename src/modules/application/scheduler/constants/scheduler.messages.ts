@@ -7,4 +7,5 @@ export enum SchedulerMessages {
   SCHEDULER_BATCH_DONE = 'Batch complete',
   SCHEDULER_ATTEMPT_FAILED = 'Attempt failed, retrying',
   SCHEDULER_ALL_FAILED = 'All attempts failed',
+  SCHEDULER_NO_ACTIVITY = 'Сегодня не было активности в git. Если это ошибка — проверь настройки gitlab.',
 }

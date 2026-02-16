@@ -338,6 +338,11 @@ export class GitMapperService {
       return TaskStatus.SENT_TO_REVIEW;
     }
 
+    //получил апрув (прошёл ревью) — важный приоритет, следующий шаг — мердж
+    if (context.isApprovedByOtherUsers() && context.isAssignee()) {
+      return TaskStatus.PASSED_REVIEW;
+    }
+
     //запросил информацию
     if (context.currentUserRequestedInformation()) {
       return TaskStatus.NEED_INFORMATION;
@@ -388,11 +393,6 @@ export class GitMapperService {
     //создал проект
     if (context.currentUserCreatedProject()) {
       return TaskStatus.CREATED_PROJECT;
-    }
-
-    // получил апрув
-    if (context.isApprovedByOtherUsers() && context.isAssignee()) {
-      return TaskStatus.WROTE_CODE;
     }
 
     //комментировал, но нет активной работы с кодом

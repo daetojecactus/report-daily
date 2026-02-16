@@ -68,16 +68,14 @@ export class ReportController {
 
   @Post('test/logs-portal')
   async testLogsPortal() {
-    const test = await this.portalService.findUserByEmail(
-      'milana.kadushina@ps.kz',
-    );
+    const test = await this.portalService.findUserByEmail('');
     console.log('🌵 => test:', test);
     return test;
   }
 
   @Post('test/logs-git')
   async testLogsGit() {
-    const test = await this.gitLabService.findUserByUsername('agranevsky');
+    const test = await this.gitLabService.findUserByUsername('dzubenko');
     console.log('🌵 => test:', test);
     return test;
   }

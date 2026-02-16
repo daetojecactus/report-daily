@@ -1,7 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { TelegramClient } from './telegram.client';
 import { TelegramRepository } from './telegram.repository';
-import type { ParseMode, BotCommand, TelegramUpdate } from './telegram.types';
+import type {
+  ParseMode,
+  BotCommand,
+  TelegramUpdate,
+  InlineKeyboardMarkup,
+} from './telegram.types';
 import { DefaultMessages } from 'src/common/constants/defautl.messages';
 import { TelegramMessages } from './constants/telegram.messages';
 
@@ -47,6 +52,52 @@ export class TelegramService {
         `${TelegramMessages.TELEGRAM_API_ERROR}: ${result.description || DefaultMessages.DEFAULT_UNKNOWN_ERROR}`,
       );
     }
+  }
+
+  //отправка с inline клавиатурой
+  async sendMessageWithKeyboard(
+    chatId: number | string,
+    text: string,
+    keyboard: InlineKeyboardMarkup,
+    parseMode?: ParseMode,
+  ): Promise<void> {
+    const result = await this.telegramRepository.sendMessageWithKeyboard(
+      chatId,
+      text,
+      keyboard,
+      parseMode,
+    );
+
+    if (!result.ok) {
+      throw new Error(
+        `${TelegramMessages.TELEGRAM_API_ERROR}: ${result.description || DefaultMessages.DEFAULT_UNKNOWN_ERROR}`,
+      );
+    }
+  }
+
+  //ответ на callback query
+  async answerCallbackQuery(
+    callbackQueryId: string,
+    text?: string,
+  ): Promise<void> {
+    await this.telegramRepository.answerCallbackQuery(callbackQueryId, text);
+  }
+
+  //редактирование сообщения
+  async editMessage(
+    chatId: number | string,
+    messageId: number,
+    text: string,
+    keyboard?: InlineKeyboardMarkup,
+    parseMode?: ParseMode,
+  ): Promise<void> {
+    await this.telegramRepository.editMessageText(
+      chatId,
+      messageId,
+      text,
+      parseMode,
+      keyboard,
+    );
   }
 
   //устанавливает команды бота только для конкретного чата (owner)

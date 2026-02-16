@@ -23,7 +23,7 @@ import { VendorModule } from './vendors/vendor.module';
         });
         if (errors.length > 0) {
           throw new Error(
-            `Env validation failed:\n${errors.map((e) => Object.values(e.constraints ?? {}).join(', ')).join('\n')}`,
+            `Env validation failed:\n${errors.map((error) => Object.values(error.constraints ?? {}).join(', ')).join('\n')}`,
           );
         }
         return validated;
