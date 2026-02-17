@@ -7,7 +7,6 @@ import type { BotSettings } from './bot-settings.schema';
 @Injectable()
 export class BotSettingsService {
   private readonly logger = new Logger(BotSettingsService.name);
-
   constructor(private readonly botSettingsRepository: BotSettingsRepository) {}
 
   async findOne(filter: Partial<BotSettings>) {

@@ -1,13 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { UserRepository } from './user.repository';
-import { User } from './user.schema';
+import { User, UserDocument } from './user.schema';
 import { Settings } from './settings/settings.schema';
-import { UserMessages } from './constants/user.messages';
 import { CreateUserInput, UserGender, UserStatus } from './user.interface';
+import { UserMessages } from './constants/user.messages';
 import { GitLabService } from 'src/modules/vendors/gitlab/gitlab.service';
 import { GitLabMessages } from 'src/modules/vendors/gitlab/constants/gitlab.messages';
 import { PortalService } from 'src/modules/vendors/portal/portal.service';
 import { PortalMessages } from 'src/modules/vendors/portal/constants/portal.messages';
+import { QueryFilter } from 'mongoose';
 
 @Injectable()
 export class UserService {
@@ -21,7 +22,8 @@ export class UserService {
     return this.userRepository.findOne(filter);
   }
 
-  async find(filter?: Partial<User>) {
+  async find(filter?: QueryFilter<Partial<UserDocument>>) {
+    console.log('🌵 => filter:', filter);
     return this.userRepository.find(filter);
   }
 
@@ -42,8 +44,8 @@ export class UserService {
     return user;
   }
 
-  async findByReportHour(hour: number) {
-    return this.userRepository.findByReportHour(hour);
+  async findUsersByReportHour(hour: number) {
+    return this.userRepository.findUsersByReportHour(hour);
   }
 
   async updateUserSettings(
@@ -85,5 +87,36 @@ export class UserService {
       },
     });
     return user;
+  }
+
+  //синхронизирует статус отпуска
+  async syncVacationStatuses(): Promise<void> {
+    const users = await this.userRepository.find({
+      status: { $nin: [UserStatus.BLOCKED] },
+    });
+
+    if (users.length === 0) {
+      return;
+    }
+
+    const portalIds = users.map((user) => String(user.portalId));
+    const offPortalIds = await this.portalService.getTodayOffUsers(portalIds);
+    const offPortalIdSet = new Set(offPortalIds);
+
+    for (const user of users) {
+      const isOff = offPortalIdSet.has(String(user.portalId));
+
+      if (isOff && user.status === UserStatus.ACTIVE) {
+        await this.updateOne(
+          { portalId: user.portalId },
+          { status: UserStatus.VACATION },
+        );
+      } else if (!isOff && user.status === UserStatus.VACATION) {
+        await this.updateOne(
+          { portalId: user.portalId },
+          { status: UserStatus.ACTIVE },
+        );
+      }
+    }
   }
 }

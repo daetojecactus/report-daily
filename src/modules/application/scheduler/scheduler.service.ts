@@ -15,6 +15,7 @@ import { DefaultMessages } from 'src/common/constants/defautl.messages';
 import { formatDateToISO } from 'src/common/helpers/date.helper';
 import { getErrorMessage } from 'src/common/helpers/error.helper';
 import { sleep } from 'src/common/helpers/sleep.helper';
+import { UserStatus } from '../user/user.interface';
 
 @Injectable()
 export class SchedulerService {
@@ -28,7 +29,7 @@ export class SchedulerService {
 
   //генерирует и отправляет отчеты для всех пользователей на указанный час
   async sendReportsForHour(hour: number): Promise<BatchUserResult[]> {
-    const users = await this.userService.findByReportHour(hour);
+    const users = await this.userService.findUsersByReportHour(hour);
 
     if (users.length === 0) {
       this.logger.log(`${SchedulerMessages.SCHEDULER_NO_USERS}: hour ${hour}`);

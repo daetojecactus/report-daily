@@ -8,7 +8,7 @@ import type { DailyReport, ProjectReport } from './report.types';
 import { UserService } from '../user/user.service';
 import { UserMessages } from '../user/constants/user.messages';
 import { AiMessages } from '../ai/constants/ai.messages';
-import { getReportTaskAction } from 'src/common/helpers/get-report-task-action';
+import { getReportTaskAction } from 'src/common/helpers/get-report-task-action.helper';
 
 @Injectable()
 export class ReportService {

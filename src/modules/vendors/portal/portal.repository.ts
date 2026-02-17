@@ -1,12 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PortalClient } from './portal.client';
 import { PortalMessages } from './constants/portal.messages';
-import type { PortalAbsence, PortalResponse, PortalUser } from './portal.types';
+import type {
+  PortalAccessibility,
+  PortalResponse,
+  PortalUser,
+} from './portal.interface';
 
 @Injectable()
 export class PortalRepository {
   private readonly logger = new Logger(PortalRepository.name);
-
   constructor(private readonly portalClient: PortalClient) {}
 
   //находим пользователя по email
@@ -46,62 +49,20 @@ export class PortalRepository {
     }
   }
 
-  //получаем график отсутствий за период
-  async getAbsences(params: {
-    dateFrom: string;
-    dateTo: string;
-    userId?: string;
-  }): Promise<PortalAbsence[]> {
-    try {
-      const { dateFrom, dateTo, userId } = params;
+  //получаем занятость пользователей из календаря
+  async getUsersAccessibility(
+    userIds: string[],
+    dateFrom: string,
+    dateTo: string,
+  ): Promise<PortalAccessibility[]> {
+    const { data } = await this.portalClient.instance.post<
+      PortalResponse<PortalAccessibility[]>
+    >('calendar.accessibility.get.json', {
+      users: userIds,
+      from: dateFrom,
+      to: dateTo,
+    });
 
-      const filter: Record<string, string> = {
-        '>=DATE_FROM': dateFrom,
-        '<=DATE_TO': dateTo,
-      };
-
-      if (userId) {
-        filter.USER_ID = userId;
-      }
-
-      const { data } = await this.portalClient.instance.post<
-        PortalResponse<PortalAbsence[]>
-      >('timeman.timecontrol.reports.get.json', {
-        filter,
-      });
-
-      this.logger.log(PortalMessages.PORTAL_ABSENCE_FETCH_SUCCESS);
-      return data.result;
-    } catch (error) {
-      this.logger.error(PortalMessages.PORTAL_ABSENCE_FETCH_ERROR, error);
-      return [];
-    }
-  }
-
-  // получаем график отсутствий пользователя за период
-  async getUserAbsences(params: {
-    userId: string;
-    dateFrom: string;
-    dateTo: string;
-  }): Promise<PortalAbsence[]> {
-    try {
-      const { userId, dateFrom, dateTo } = params;
-
-      const { data } = await this.portalClient.instance.post<
-        PortalResponse<PortalAbsence[]>
-      >('user.absence.get.json', {
-        FILTER: {
-          USER_ID: userId,
-          DATE_FROM: dateFrom,
-          DATE_TO: dateTo,
-        },
-      });
-
-      this.logger.log(PortalMessages.PORTAL_ABSENCE_FETCH_SUCCESS);
-      return data.result;
-    } catch (error) {
-      this.logger.error(PortalMessages.PORTAL_ABSENCE_FETCH_ERROR, error);
-      return [];
-    }
+    return data.result ?? [];
   }
 }

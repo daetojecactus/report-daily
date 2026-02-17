@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { PortalRepository } from './portal.repository';
+import type { PortalUser } from './portal.interface';
 import { formatDateToISO } from 'src/common/helpers/date.helper';
-import type { PortalAbsence, PortalUser } from './portal.types';
+import { PortalAccessibilityType } from './portal.type';
 
 @Injectable()
 export class PortalService {
@@ -23,21 +24,41 @@ export class PortalService {
     return this.findUserByName(name, lastName);
   }
 
-  async getAbsences(params: {
-    dateFrom: string;
-    dateTo: string;
-    userId?: string;
-  }): Promise<PortalAbsence[]> {
-    return this.portalRepository.getAbsences(params);
+  async getUsersAccessibility(
+    userIds: string[],
+    dateFrom: string,
+    dateTo: string,
+  ) {
+    return this.portalRepository.getUsersAccessibility(
+      userIds,
+      dateFrom,
+      dateTo,
+    );
   }
 
-  async getTodayOffUsers(): Promise<PortalAbsence[]> {
+  async getTodayOffUsers(userIds: string[]) {
     const date = formatDateToISO();
-    return this.getAbsences({ dateFrom: date, dateTo: date });
-  }
 
-  async getUserAbsencesForDate(userId: string) {
-    const date = formatDateToISO();
-    return this.getAbsences({ dateFrom: date, dateTo: date, userId });
+    const userAccessibilities = await this.getUsersAccessibility(
+      userIds,
+      date,
+      date,
+    );
+
+    const offUsers: string[] = [];
+
+    for (const userId of userIds) {
+      const records = userAccessibilities[userId] ?? [];
+
+      const isAbsentToday = records.some(
+        (record) => record.ACCESSIBILITY === PortalAccessibilityType.ABSENT,
+      );
+
+      if (isAbsentToday) {
+        offUsers.push(userId);
+      }
+    }
+
+    return offUsers;
   }
 }

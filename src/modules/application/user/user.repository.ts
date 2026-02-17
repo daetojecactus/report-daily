@@ -37,7 +37,7 @@ export class UserRepository {
     return await this.userModel.findOneAndUpdate(filter, update, options);
   }
 
-  async findByReportHour(hour: number) {
+  async findUsersByReportHour(hour: number) {
     return this.userModel.find({
       'settings.reportHour': hour,
       status: UserStatus.ACTIVE,

@@ -68,7 +68,9 @@ export class ReportController {
 
   @Post('test/logs-portal')
   async testLogsPortal() {
-    const test = await this.portalService.findUserByEmail('');
+    const test = await this.portalService.findUserByEmail(
+      'milana.kadushina@ps.kz',
+    );
     console.log('🌵 => test:', test);
     return test;
   }
@@ -76,20 +78,6 @@ export class ReportController {
   @Post('test/logs-git')
   async testLogsGit() {
     const test = await this.gitLabService.findUserByUsername('dzubenko');
-    console.log('🌵 => test:', test);
-    return test;
-  }
-
-  @Post('test/off-users')
-  async testOffUsers() {
-    const test = await this.portalService.getUserAbsencesForDate('237');
-    console.log('🌵 => test:', test);
-    return test;
-  }
-
-  @Post('test/today-off-users')
-  async getTodayOffUsers() {
-    const test = await this.portalService.getTodayOffUsers();
     console.log('🌵 => test:', test);
     return test;
   }

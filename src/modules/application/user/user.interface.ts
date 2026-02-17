@@ -1,6 +1,7 @@
 export enum UserStatus {
   ACTIVE = 'Active',
   BLOCKED = 'Blocked',
+  VACATION = 'Vacation',
 }
 
 export enum UserRole {
