@@ -28,12 +28,11 @@ export class AiService {
     }
 
     const prompt = this.buildPrompt(tasks, gender);
-    this.logRequest(prompt);
 
     for (const provider of this.providers) {
       try {
         const response = await provider.generate(prompt, AI_SYSTEM_PROMPT);
-        this.logResponse(provider.name, response);
+        this.logger.log(`${AiMessages.AI_GENERATED}: ${provider.name}`);
         return this.parseResponse(response, tasks);
       } catch (error) {
         this.logger.warn(
@@ -126,25 +125,5 @@ export class AiService {
       );
     }
     return results;
-  }
-
-  //лог запроса к AI (для отладки)
-  private logRequest(prompt: string): void {
-    this.logger.log(
-      `\n========== AI REQUEST ==========\n` +
-        `System prompt: ${AI_SYSTEM_PROMPT}\n---\n` +
-        `User prompt:\n${prompt}\n` +
-        `================================`,
-    );
-  }
-
-  //лог ответа от AI (для отладки)
-  private logResponse(provider: string, response: string): void {
-    this.logger.log(
-      `\n========== AI RESPONSE (${provider}) ==========\n` +
-        `${response}\n` +
-        `====================================================`,
-    );
-    this.logger.log(`${AiMessages.AI_GENERATED}: ${provider}`);
   }
 }

@@ -10,12 +10,10 @@ import {
 import type { User } from '../user/user.schema';
 import type { BatchUserResult } from './scheduler.types';
 import { UserMessages } from '../user/constants/user.messages';
-import { ReportMessages } from '../report/constants/report.messages';
 import { DefaultMessages } from 'src/common/constants/defautl.messages';
 import { formatDateToISO } from 'src/common/helpers/date.helper';
 import { getErrorMessage } from 'src/common/helpers/error.helper';
 import { sleep } from 'src/common/helpers/sleep.helper';
-import { UserStatus } from '../user/user.interface';
 
 @Injectable()
 export class SchedulerService {
@@ -91,10 +89,6 @@ export class SchedulerService {
   ): Promise<BatchUserResult> {
     const { adminId, telegramId } = user;
 
-    this.logger.log(
-      `${SchedulerMessages.SCHEDULER_PROCESSING}: ${adminId} (tg: ${telegramId})`,
-    );
-
     for (let attempt = 1; attempt <= SCHEDULER_MAX_RETRIES + 1; attempt++) {
       try {
         const report = await this.reportService.generateReport(adminId, date);
@@ -112,9 +106,6 @@ export class SchedulerService {
         }
 
         await this.telegramService.sendMessageTo(telegramId, report.text);
-        this.logger.log(
-          `${ReportMessages.REPORT_SENT}: ${adminId} (tg: ${telegramId})`,
-        );
         return { adminId, telegramId, success: true };
       } catch (error) {
         const errMsg = getErrorMessage(error);

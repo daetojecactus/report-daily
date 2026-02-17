@@ -2,7 +2,6 @@ export enum SchedulerMessages {
   SCHEDULER_CRON_TRIGGERED = 'Cron triggered',
   SCHEDULER_NO_USERS = 'No users scheduled',
   SCHEDULER_FOUND_USERS = 'Found users for batch',
-  SCHEDULER_PROCESSING = 'Processing report',
   SCHEDULER_EMPTY_REPORT = 'Empty report, skipping',
   SCHEDULER_BATCH_DONE = 'Batch complete',
   SCHEDULER_ATTEMPT_FAILED = 'Attempt failed, retrying',

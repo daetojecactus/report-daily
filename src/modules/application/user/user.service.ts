@@ -23,7 +23,6 @@ export class UserService {
   }
 
   async find(filter?: QueryFilter<Partial<UserDocument>>) {
-    console.log('🌵 => filter:', filter);
     return this.userRepository.find(filter);
   }
 

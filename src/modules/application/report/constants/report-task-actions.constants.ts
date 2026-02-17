@@ -7,7 +7,7 @@ export interface Gendered {
 
 export const REPORT_TASK_ACTIONS: Record<TaskStatus, Gendered> = {
   //QA
-  [TaskStatus.FOUND_BUG]: { male: 'Нашел баг', female: 'Нашла баг' },
+  [TaskStatus.FOUND_BUG]: { male: 'Обнаружил баг', female: 'Обнаружила баг' },
   [TaskStatus.CREATED_TASK]: {
     male: 'Создал задачу',
     female: 'Создала задачу',
@@ -87,8 +87,8 @@ export const REPORT_TASK_ACTIONS: Record<TaskStatus, Gendered> = {
     female: 'Отдала на ревью',
   },
   [TaskStatus.PASSED_REVIEW]: {
-    male: 'Прошёл ревью',
-    female: 'Прошла ревью',
+    male: 'Успешно прошёл ревью',
+    female: 'Успешно прошла ревью',
   },
   [TaskStatus.NEED_INFORMATION]: {
     male: 'Запросил информацию',
@@ -106,7 +106,10 @@ export const REPORT_TASK_ACTIONS: Record<TaskStatus, Gendered> = {
     male: 'Начал реализацию',
     female: 'Начала реализацию',
   },
-  [TaskStatus.WROTE_CODE]: { male: 'Писал код', female: 'Писала код' },
+  [TaskStatus.WROTE_CODE]: {
+    male: 'Работал над кодом',
+    female: 'Работала над кодом',
+  },
   [TaskStatus.DISCUSSED_CODE]: {
     male: 'Обсуждал решение',
     female: 'Обсуждала решение',
@@ -114,31 +117,35 @@ export const REPORT_TASK_ACTIONS: Record<TaskStatus, Gendered> = {
 
   //Developer (Reviewer)
   [TaskStatus.APPROVED_FIXES]: {
-    male: 'Принял правки',
-    female: 'Приняла правки',
+    male: 'Принял исправления',
+    female: 'Приняла исправления',
   },
   [TaskStatus.APPROVED_MR]: { male: 'Одобрил МР', female: 'Одобрила МР' },
+  [TaskStatus.APPROVED_AND_MERGED]: {
+    male: 'Апрувнул и смерджил',
+    female: 'Апрувнула и смерджила',
+  },
   [TaskStatus.REQUESTED_CHANGES]: {
     male: 'Запросил изменения',
     female: 'Запросила изменения',
   },
   [TaskStatus.REVIEW_COMMENT]: {
-    male: 'Задал вопросы по коду',
-    female: 'Задала вопросы по коду',
+    male: 'Оставил замечания по коду',
+    female: 'Оставила замечания по коду',
   },
   [TaskStatus.MERGED_OTHERS_WORK]: {
-    male: 'Смерджил чужую задачу',
-    female: 'Смерджила чужую задачу',
+    male: 'Выполнил мердж задачи',
+    female: 'Выполнила мердж задачи',
   },
 
   //Developer (Author)
   [TaskStatus.CREATED_TECH_DEBT]: {
-    male: 'Завел тех. долг',
-    female: 'Завела тех. долг',
+    male: 'Зафиксировал тех. долг',
+    female: 'Зафиксировала тех. долг',
   },
   [TaskStatus.FOUND_BUG_DURING_WORK]: {
-    male: 'Нашел баг при работе',
-    female: 'Нашла баг при работе',
+    male: 'Обнаружил ошибку в процессе',
+    female: 'Обнаружила ошибку в процессе',
   },
   [TaskStatus.ACCEPTED_RESULT]: {
     male: 'Принял результат',
@@ -149,6 +156,10 @@ export const REPORT_TASK_ACTIONS: Record<TaskStatus, Gendered> = {
   [TaskStatus.COMMENTED]: {
     male: 'Оставил комментарий',
     female: 'Оставила комментарий',
+  },
+  [TaskStatus.PARTICIPATED_IN_CLOSURE]: {
+    male: 'Участвовал в закрытии задачи',
+    female: 'Участвовала в закрытии задачи',
   },
   [TaskStatus.STARTED]: { male: 'Начал работу', female: 'Начала работу' },
   [TaskStatus.CONTINUED]: {

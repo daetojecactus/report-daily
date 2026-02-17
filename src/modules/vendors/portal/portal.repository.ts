@@ -21,7 +21,6 @@ export class PortalRepository {
         filter: { EMAIL: email },
       });
 
-      this.logger.log(PortalMessages.PORTAL_USER_FETCH_SUCCESS);
       return data.result.length > 0 ? data.result[0] : null;
     } catch (error) {
       this.logger.error(PortalMessages.PORTAL_USER_FETCH_ERROR, error);
@@ -41,7 +40,6 @@ export class PortalRepository {
         filter: { NAME: name, LAST_NAME: lastName },
       });
 
-      this.logger.log(PortalMessages.PORTAL_USER_FETCH_SUCCESS);
       return data.result.length > 0 ? data.result[0] : null;
     } catch (error) {
       this.logger.error(PortalMessages.PORTAL_USER_FETCH_ERROR, error);

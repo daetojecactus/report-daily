@@ -431,6 +431,15 @@ export class GitMapperService {
         : TaskStatus.CONTINUED;
     }
 
+    //observer комментировал и задача закрыта/смерджена (участвовал в закрытии)
+    if (
+      context.isObserver() &&
+      context.currentUserCommentedAnywhere() &&
+      (context.isIssueClosed() || context.isMergeRequestMerged())
+    ) {
+      return TaskStatus.PARTICIPATED_IN_CLOSURE;
+    }
+
     //просто комменты
     if (context.currentUserCommentedAnywhere()) {
       return TaskStatus.COMMENTED;
@@ -441,19 +450,27 @@ export class GitMapperService {
 
   //developer/admin (reviewer)
   private determineForDeveloperReviewer(context: TaskContext): TaskStatus {
+    //апрувнул и смерджил (комбо)
+    if (
+      context.currentUserApproved() &&
+      context.currentUserMergedMergeRequest()
+    ) {
+      return TaskStatus.APPROVED_AND_MERGED;
+    }
+
     //апрув после правок
     if (context.currentUserApproved() && context.isAfterReview()) {
       return TaskStatus.APPROVED_FIXES;
     }
 
+    //ревьюер смерджил чужую задачу (без апрува)
+    if (context.currentUserMergedMergeRequest()) {
+      return TaskStatus.MERGED_OTHERS_WORK;
+    }
+
     //апрув
     if (context.currentUserApproved()) {
       return TaskStatus.APPROVED_MR;
-    }
-
-    //ревьюер смерджил чужую задачу
-    if (context.currentUserMergedMergeRequest()) {
-      return TaskStatus.MERGED_OTHERS_WORK;
     }
 
     //много комментариев без апрува

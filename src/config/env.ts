@@ -8,6 +8,10 @@ export class ReportDailyBotEnvs {
   @Type(() => Number)
   PORT?: number;
 
+  @IsString()
+  @IsOptional()
+  TZ?: string;
+
   // GitLab
   @IsString()
   GITLAB_API_URL!: string;
