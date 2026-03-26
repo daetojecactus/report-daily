@@ -1,4 +1,4 @@
-import {
+import type {
   GitLabIssueState,
   GitLabMergeRequestState,
 } from 'src/common/enums/gitlab.enum';

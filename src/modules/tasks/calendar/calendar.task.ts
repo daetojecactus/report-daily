@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { HolidayCalendarService } from '../../application/holiday-calendar/holiday-calendar.service';
 import { BotSettingsService } from '../../application/bot-settings/bot-settings.service';

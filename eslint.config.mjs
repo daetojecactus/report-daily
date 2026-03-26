@@ -17,7 +17,6 @@ export default tseslint.config(
         ...globals.node,
         ...globals.jest,
       },
-      ecmaVersion: 5,
       sourceType: 'module',
       parserOptions: {
         projectService: true,
@@ -28,7 +27,6 @@ export default tseslint.config(
   {
     rules: {
       '@typescript-eslint/no-inferrable-types': 'off',
-      '@typescript-eslint/interface-name-prefix': 'off',
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
@@ -36,10 +34,6 @@ export default tseslint.config(
       '@typescript-eslint/no-restricted-types': 'warn',
       '@typescript-eslint/consistent-type-imports': 'warn',
       '@typescript-eslint/no-floating-promises': 'error',
-      '@typescript-eslint/no-empty-interface': 'warn',
-      '@typescript-eslint/no-parameter-properties': 'off',
-      'import/no-unresolved': 'warn',
-      'unused-imports/no-unused-imports': 'error',
     },
   },
 );

@@ -1,6 +1,6 @@
 //форматирует дату в ISO строку (YYYY-MM-DD)
 export function formatDateToISO(date: Date = new Date()): string {
-  return date.toISOString().split('T')[0]!;
+  return date.toISOString().split('T')[0];
 }
 
 //возвращает дату на N дней раньше/позже

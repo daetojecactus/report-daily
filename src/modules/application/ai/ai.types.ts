@@ -1,5 +1,6 @@
-import { TaskStatus, TaskType } from '../../../common/enums/task.enum';
-import { UserGender } from '../user/user.interface';
+import type { TaskStatus, TaskType } from '../../../common/enums/task.enum';
+import type { UserGender } from '../user/user.interface';
+import type { Language } from '../../../common/i18n/i18n';
 
 //контекст задачи для AI-обогащения
 export interface AITaskContext {
@@ -17,4 +18,5 @@ export interface AITaskContext {
 export interface AIEnhanceRequest {
   tasks: AITaskContext[];
   gender: UserGender;
+  language: Language;
 }

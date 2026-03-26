@@ -26,6 +26,7 @@ export enum GitLabAction {
   ACCEPTED = 'accepted',
   COMMENTED_ON = 'commented on',
   DELETED = 'deleted',
+  REOPENED = 'reopened',
 }
 
 export enum GitLabIssueState {

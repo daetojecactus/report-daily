@@ -4,9 +4,11 @@ import { User, UserDocument } from './user.schema';
 import { Settings } from './settings/settings.schema';
 import { CreateUserInput, UserGender, UserStatus } from './user.interface';
 import { UserMessages } from './constants/user.messages';
+import { ReportTemplate } from './user.interface';
 import { GitLabService } from 'src/modules/vendors/gitlab/gitlab.service';
 import { GitLabMessages } from 'src/modules/vendors/gitlab/constants/gitlab.messages';
 import { PortalService } from 'src/modules/vendors/portal/portal.service';
+import { Language } from 'src/common/i18n/i18n';
 import { PortalMessages } from 'src/modules/vendors/portal/constants/portal.messages';
 import { QueryFilter } from 'mongoose';
 
@@ -83,6 +85,8 @@ export class UserService {
       settings: {
         reportHour: Number(input.reportHour),
         useAI: true,
+        reportTemplate: ReportTemplate.STANDARD,
+        language: Language.RU,
       },
     });
     return user;

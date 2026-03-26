@@ -1,5 +1,5 @@
-import { TaskStatus, TaskType } from 'src/common/enums/task.enum';
-import {
+import type { TaskStatus, TaskType } from 'src/common/enums/task.enum';
+import type {
   GroupedIssue,
   StandaloneMergeRequest,
   StandalonePush,

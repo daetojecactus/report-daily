@@ -1,21 +1,62 @@
 import type { BotCommand } from 'src/modules/vendors/telegram/telegram.types';
+import type { Locale } from 'src/common/i18n/i18n.types';
 import { UserRole, UserStatus } from '../../user/user.interface';
 
-//команды доступные только owner (для меню бота)
-export const OWNER_BOT_COMMANDS: BotCommand[] = [
-  { command: 'add_user', description: 'Добавить пользователя' },
-  { command: 'update_user', description: 'Обновить пользователя' },
-  { command: 'block_user', description: 'Заблокировать пользователя' },
-  { command: 'unblock_user', description: 'Разблокировать пользователя' },
-  { command: 'user_info', description: 'Информация о пользователе' },
-  { command: 'list_users', description: 'Список пользователей' },
-  { command: 'test_report', description: 'Тест отчёта' },
-  { command: 'help', description: 'Список команд' },
-];
+export function getOwnerBotCommands(locale: Locale): BotCommand[] {
+  return [
+    { command: 'add_user', description: locale.commands.descriptions.add_user },
+    {
+      command: 'update_user',
+      description: locale.commands.descriptions.update_user,
+    },
+    {
+      command: 'block_user',
+      description: locale.commands.descriptions.block_user,
+    },
+    {
+      command: 'unblock_user',
+      description: locale.commands.descriptions.unblock_user,
+    },
+    {
+      command: 'user_info',
+      description: locale.commands.descriptions.user_info,
+    },
+    {
+      command: 'list_users',
+      description: locale.commands.descriptions.list_users,
+    },
+    {
+      command: 'send_user_report',
+      description: locale.commands.descriptions.send_user_report,
+    },
+    { command: 'help', description: locale.commands.descriptions.help },
+  ];
+}
 
-//часы для выбора времени отчёта
+export function getUserBotCommands(locale: Locale): BotCommand[] {
+  return [
+    { command: 'info', description: locale.commands.descriptions.info },
+    {
+      command: 'send_report',
+      description: locale.commands.descriptions.send_report,
+    },
+    {
+      command: 'toggle_ai',
+      description: locale.commands.descriptions.toggle_ai,
+    },
+    {
+      command: 'change_report_hour',
+      description: locale.commands.descriptions.change_report_hour,
+    },
+    { command: 'language', description: locale.commands.descriptions.language },
+    { command: 'help', description: locale.commands.descriptions.help },
+  ];
+}
+
+export const ALL_REPORT_HOURS = Array.from({ length: 24 }, (_, i) => i);
 export const REPORT_HOURS = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
-
-//допустимые роли и статусы
 export const VALID_ROLES: string[] = Object.values(UserRole);
 export const VALID_STATUSES: string[] = Object.values(UserStatus);
+
+//маркер для передачи adminId при тестовом отчёте через callback
+export const TEST_REPORT_MARKER = '__TEST_REPORT__:';

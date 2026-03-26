@@ -15,7 +15,7 @@ import {
   MappedPush,
 } from './git-mapper/git-mapper.interface';
 import { CleanEvent, CleanNote } from './git-group/git-group.interface';
-import { DefaultMessages } from 'src/common/constants/defautl.messages';
+import { DefaultMessages } from 'src/common/constants/default.messages';
 
 @Injectable()
 export class GitReportService {
@@ -88,25 +88,29 @@ export class GitReportService {
     return { date, projects };
   }
 
-  //строим элемент отчета из задачи (issue + привязанный мр)
+  //строим элемент отчета из задачи (issue + привязанные мр)
   private buildIssueReportItem(
     issue: MappedIssue,
     username: string,
   ): ReportTaskItem {
-    const mergeRequest = issue.mergeRequests[0] ?? null;
+    const commitMessages = issue.mergeRequests.flatMap((mr) =>
+      this.extractCommitMessages(mr.events),
+    );
 
-    const commitMessages = this.extractCommitMessages(
-      mergeRequest?.events ?? [],
-    );
-    const userComments = this.extractUserComments(
-      [...issue.notes, ...(mergeRequest?.notes ?? [])],
-      username,
-    );
+    const allNotes = [
+      ...issue.notes,
+      ...issue.mergeRequests.flatMap((mr) => mr.notes),
+    ];
+    const userComments = this.extractUserComments(allNotes, username);
 
     //mrTitle передаем только если есть реальные коммиты/комментарии,
     //иначе AI галлюцинирует детали из названия ветки
     const hasMeaningfulContext =
       commitMessages.length > 0 || userComments.length > 0;
+
+    const mrTitle = hasMeaningfulContext
+      ? (issue.mergeRequests[0]?.title ?? null)
+      : null;
 
     return {
       taskKey: `${issue.projectId}:${issue.iid}`,
@@ -120,7 +124,7 @@ export class GitReportService {
       aiContext: {
         commitMessages,
         userComments,
-        mrTitle: hasMeaningfulContext ? (mergeRequest?.title ?? null) : null,
+        mrTitle,
       },
     };
   }

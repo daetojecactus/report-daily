@@ -6,15 +6,12 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TelegramService } from 'src/modules/vendors/telegram/telegram.service';
-import { BotCommandService } from 'src/modules/application/bot-command/bot-command.service';
 import { SchedulerService } from 'src/modules/application/scheduler/scheduler.service';
+import { TelegramCommandRouter } from './telegram-command-router.service';
 import { BotCommandMessages } from 'src/modules/application/bot-command/constants/bot-command.messages';
+import { TelegramPollingMessages } from './constants/telegram-polling.messages';
 import type { TelegramUpdate } from 'src/modules/vendors/telegram/telegram.types';
-import type { ReportDailyBotEnvs } from 'src/config/env';
-import {
-  BotCommand,
-  CommandResult,
-} from 'src/modules/application/bot-command/bot-command.types';
+import type { ReportDailyBotEnvs } from 'src/modules/config/env';
 import {
   TELEGRAM_POLLING_ERROR_DELAY_MS,
   TELEGRAM_POLLING_TIMEOUT,
@@ -32,7 +29,7 @@ export class TelegramPollingService implements OnModuleInit, OnModuleDestroy {
   constructor(
     private readonly configService: ConfigService<ReportDailyBotEnvs, true>,
     private readonly telegramService: TelegramService,
-    private readonly botCommandService: BotCommandService,
+    private readonly commandRouter: TelegramCommandRouter,
     private readonly schedulerService: SchedulerService,
   ) {}
 
@@ -40,7 +37,7 @@ export class TelegramPollingService implements OnModuleInit, OnModuleDestroy {
     const transport = this.configService.get('TELEGRAM_TRANSPORT') ?? 'webhook';
     if (transport !== 'polling') return;
 
-    this.logger.log('Telegram polling mode enabled');
+    this.logger.log(TelegramPollingMessages.POLLING_ENABLED);
     await this.telegramService.enableLongPollingMode();
     void this.pollLoop();
   }
@@ -62,7 +59,9 @@ export class TelegramPollingService implements OnModuleInit, OnModuleDestroy {
           this.offset = update.update_id + 1;
         }
       } catch (error) {
-        this.logger.error(`Polling error: ${getErrorMessage(error)}`);
+        this.logger.error(
+          `${TelegramPollingMessages.POLLING_ERROR}: ${getErrorMessage(error)}`,
+        );
         await sleep(TELEGRAM_POLLING_ERROR_DELAY_MS);
       }
     }
@@ -84,30 +83,17 @@ export class TelegramPollingService implements OnModuleInit, OnModuleDestroy {
 
     if (!telegramId || !chatId || !data) return;
 
-    if (telegramId !== this.configService.get('OWNER_TELEGRAM_ID')) {
-      await this.telegramService.answerCallbackQuery(callback.id);
-      return;
+    const testReportAdminId = await this.commandRouter.handleCallbackQuery(
+      telegramId,
+      chatId,
+      callback.id,
+      data,
+    );
+
+    // send_user_report — специальный обработчик с синхронной генерацией
+    if (testReportAdminId) {
+      await this.executeTestReport(chatId, testReportAdminId);
     }
-
-    await this.telegramService.answerCallbackQuery(callback.id);
-
-    let result: CommandResult;
-
-    if (data.startsWith('uf:')) {
-      result = await this.botCommandService.handleFieldCallback(data);
-    } else if (data.startsWith('uv:')) {
-      result = await this.botCommandService.handleValueCallback(data);
-    } else {
-      result = await this.botCommandService.handleCallback(data);
-    }
-
-    if (result.text.startsWith('__TEST_REPORT__:')) {
-      const adminId = result.text.split(':')[1]!;
-      await this.executeTestReport(chatId, adminId);
-      return;
-    }
-
-    await this.sendCommandResult(chatId, result);
   }
 
   private async processTextCommand(update: TelegramUpdate): Promise<void> {
@@ -115,40 +101,13 @@ export class TelegramPollingService implements OnModuleInit, OnModuleDestroy {
     const chatId = update.message?.chat?.id ?? telegramId;
     const text = update.message?.text;
 
-    if (!telegramId || !chatId || !text?.startsWith('/')) return;
+    if (!telegramId || !chatId) return;
 
-    if (text.toLowerCase().startsWith(BotCommand.START)) {
-      const response =
-        await this.botCommandService.handleStartCommand(telegramId);
-      if (response) await this.telegramService.sendMessageTo(chatId, response);
-      return;
-    }
-
-    if (telegramId !== this.configService.get('OWNER_TELEGRAM_ID')) return;
-
-    const result = await this.botCommandService.handleCommand(text);
-    await this.sendCommandResult(chatId, result);
+    await this.commandRouter.handleTextMessage(telegramId, chatId, text);
   }
 
-  private async sendCommandResult(
-    chatId: number,
-    result: CommandResult,
-  ): Promise<void> {
-    if (result.keyboard) {
-      await this.telegramService.sendMessageWithKeyboard(
-        chatId,
-        result.text,
-        result.keyboard,
-      );
-    } else {
-      await this.telegramService.sendMessageTo(chatId, result.text);
-    }
-  }
-
-  private async executeTestReport(
-    chatId: number,
-    adminId: string,
-  ): Promise<void> {
+  // выполнение тестового отчёта (вызывается из роутера через sendResult)
+  async executeTestReport(chatId: number, adminId: string): Promise<void> {
     const date = formatDateToISO();
 
     try {

@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import axios, { AxiosInstance } from 'axios';
 import { PRODUCTION_CALENDAR_TIMEOUT } from './constants/production-calendar.constants';
 import { ProductionCalendarMessages } from './constants/production-calendar.messages';
-import { ReportDailyBotEnvs } from 'src/config/env';
+import { ReportDailyBotEnvs } from 'src/modules/config/env';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()

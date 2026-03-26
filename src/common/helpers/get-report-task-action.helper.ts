@@ -1,13 +1,15 @@
 import { UserGender } from 'src/modules/application/user/user.interface';
 import { TaskStatus } from '../enums/task.enum';
-import { REPORT_TASK_ACTIONS } from 'src/modules/application/report/constants/report-task-actions.constants';
+import { Language, getLocale } from '../i18n/i18n';
 
-//получить действие с учетом пола пользователя
+//получить действие с учетом пола пользователя и языка
 export function getReportTaskAction(
   status: TaskStatus,
   gender: UserGender,
+  language: Language = Language.RU,
 ): string {
+  const locale = getLocale(language);
   const action =
-    REPORT_TASK_ACTIONS[status] ?? REPORT_TASK_ACTIONS[TaskStatus.UNKNOWN];
+    locale.taskActions[status] ?? locale.taskActions[TaskStatus.UNKNOWN];
   return gender === UserGender.FEMALE ? action.female : action.male;
 }

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios, { AxiosInstance } from 'axios';
-import type { ReportDailyBotEnvs } from '../../../config/env';
+import type { ReportDailyBotEnvs } from '../../config/env';
 
 @Injectable()
 export class PortalClient {

@@ -7,7 +7,7 @@ import type {
   TelegramUpdate,
   InlineKeyboardMarkup,
 } from './telegram.types';
-import { DefaultMessages } from 'src/common/constants/defautl.messages';
+import { DefaultMessages } from 'src/common/constants/default.messages';
 import { TelegramMessages } from './constants/telegram.messages';
 
 @Injectable()
@@ -100,14 +100,11 @@ export class TelegramService {
     );
   }
 
-  //устанавливает команды бота только для конкретного чата (owner)
+  // устанавливает команды бота для конкретного чата (scope: chat)
   async setCommandsForChat(
     chatId: number | string,
     commands: BotCommand[],
   ): Promise<void> {
-    //сначала удаляем глобальные команды (чтоб остальные не видели)
-    await this.telegramRepository.deleteMyCommands();
-    //устанавливаем только для owner
     await this.telegramRepository.setMyCommandsForChat(chatId, commands);
   }
 

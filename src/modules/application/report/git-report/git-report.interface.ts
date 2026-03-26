@@ -1,4 +1,4 @@
-import { TaskStatus, TaskType } from 'src/common/enums/task.enum';
+import type { TaskStatus, TaskType } from 'src/common/enums/task.enum';
 
 //один элемент отчета — задача/мр/пуш с обогащенным контекстом
 export interface ReportTaskItem {

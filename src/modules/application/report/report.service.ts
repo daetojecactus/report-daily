@@ -1,5 +1,6 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { GitReportService } from './git-report/git-report.service';
+import { ReportTemplateService } from './report-template/report-template.service';
 import { AiService } from '../ai/ai.service';
 import { UserGender } from '../user/user.interface';
 import type { AITaskContext } from '../ai/ai.types';
@@ -9,6 +10,8 @@ import { UserService } from '../user/user.service';
 import { UserMessages } from '../user/constants/user.messages';
 import { AiMessages } from '../ai/constants/ai.messages';
 import { getReportTaskAction } from 'src/common/helpers/get-report-task-action.helper';
+import { ReportTemplate } from '../user/user.interface';
+import { Language } from 'src/common/i18n/i18n';
 
 @Injectable()
 export class ReportService {
@@ -16,6 +19,7 @@ export class ReportService {
 
   constructor(
     private readonly gitReportService: GitReportService,
+    private readonly reportTemplateService: ReportTemplateService,
     private readonly userService: UserService,
     private readonly aiService: AiService,
   ) {}
@@ -26,6 +30,8 @@ export class ReportService {
     if (!user) {
       throw new NotFoundException(UserMessages.USER_NOT_FOUND);
     }
+
+    const language = user.settings?.language ?? Language.RU;
 
     //собираем данные из gitlab: группировка, маппинг, сбор контекста
     const gitReport = await this.gitReportService.generateDailyReport(
@@ -40,8 +46,8 @@ export class ReportService {
 
     //получаем описания: AI или fallback
     const descriptions = user.settings.useAI
-      ? await this.enhanceWithAI(allTasks, user.gender)
-      : this.buildFallback(allTasks, user.gender);
+      ? await this.enhanceWithAI(allTasks, user.gender, language)
+      : this.buildFallback(allTasks, user.gender, language);
 
     //собираем финальные проекты
     const projects: ProjectReport[] = gitReport.projects.map((project) => ({
@@ -52,14 +58,16 @@ export class ReportService {
         taskType: task.taskType,
         description:
           descriptions.get(task.taskKey) ??
-          `${getReportTaskAction(task.status, user.gender)} «${task.title}»`,
+          `${getReportTaskAction(task.status, user.gender, language)} «${task.title}»`,
       })),
     }));
+
+    const template = user.settings.reportTemplate ?? ReportTemplate.STANDARD;
 
     return {
       date,
       projects,
-      text: this.formatText(projects),
+      text: this.reportTemplateService.formatText(projects, template, language),
     };
   }
 
@@ -67,9 +75,10 @@ export class ReportService {
   private async enhanceWithAI(
     tasks: ReportTaskItem[],
     gender: UserGender,
+    language: Language,
   ): Promise<Map<string, string>> {
     if (tasks.length === 0) {
-      return this.buildFallback(tasks, gender);
+      return this.buildFallback(tasks, gender, language);
     }
 
     try {
@@ -77,17 +86,21 @@ export class ReportService {
         taskId: task.taskKey,
         taskTitle: task.title,
         status: task.status,
-        actionVerb: getReportTaskAction(task.status, gender),
+        actionVerb: getReportTaskAction(task.status, gender, language),
         taskType: task.taskType,
         commitMessages: task.aiContext.commitMessages,
         comments: task.aiContext.userComments,
         mrTitle: task.aiContext.mrTitle ?? undefined,
       }));
 
-      return await this.aiService.enhanceTasks({ tasks: contexts, gender });
+      return await this.aiService.enhanceTasks({
+        tasks: contexts,
+        gender,
+        language,
+      });
     } catch (error) {
       this.logger.error(AiMessages.AI_FALLBACK, error);
-      return this.buildFallback(tasks, gender);
+      return this.buildFallback(tasks, gender, language);
     }
   }
 
@@ -95,25 +108,13 @@ export class ReportService {
   private buildFallback(
     tasks: ReportTaskItem[],
     gender: UserGender,
+    language: Language,
   ): Map<string, string> {
     const map = new Map<string, string>();
     for (const task of tasks) {
-      const verb = getReportTaskAction(task.status, gender);
+      const verb = getReportTaskAction(task.status, gender, language);
       map.set(task.taskKey, `${verb} «${task.title}»`);
     }
     return map;
-  }
-
-  //форматирует текстовый отчет
-  //project:\n• description\n\nproject2:\n• description
-  private formatText(projects: ProjectReport[]): string {
-    return projects
-      .map((project) => {
-        const lines = project.lines
-          .map((line) => `• ${line.description}`)
-          .join('\n');
-        return `${project.projectName}:\n${lines}`;
-      })
-      .join('\n\n');
   }
 }

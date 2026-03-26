@@ -67,4 +67,12 @@ export class ReportDailyBotEnvs {
   // Database
   @IsString()
   MONGODB_URI!: string;
+
+  // Redis
+  @IsString()
+  REDIS_HOST!: string;
+
+  @IsNumber()
+  @Type(() => Number)
+  REDIS_PORT!: number;
 }

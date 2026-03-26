@@ -1,0 +1,620 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>!!!$$$ КУПИ REPORTDAILYBOT СЕЙЧАС $$$!!!</title>
+    <style>
+      /* --- БАЗОВЫЕ АНИМАЦИИ ДЛЯ ЭПИЛЕПСИИ --- */
+      @keyframes rainbow-bg {
+        0% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+        100% {
+          background-position: 0% 50%;
+        }
+      }
+      @keyframes rainbow-text {
+        0% {
+          color: red;
+        }
+        20% {
+          color: yellow;
+        }
+        40% {
+          color: lime;
+        }
+        60% {
+          color: cyan;
+        }
+        80% {
+          color: blue;
+        }
+        100% {
+          color: magenta;
+        }
+      }
+      @keyframes blink {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0;
+        }
+      }
+      @keyframes spin-wild {
+        from {
+          transform: rotate(0deg) scale(1);
+        }
+        to {
+          transform: rotate(360deg) scale(1.2);
+        }
+      }
+      @keyframes shake-hard {
+        0% {
+          transform: translate(2px, 1px) rotate(0deg);
+        }
+        10% {
+          transform: translate(-1px, -2px) rotate(-2deg);
+        }
+        20% {
+          transform: translate(-3px, 0px) rotate(3deg);
+        }
+        30% {
+          transform: translate(0px, 2px) rotate(0deg);
+        }
+        40% {
+          transform: translate(1px, -1px) rotate(1deg);
+        }
+        50% {
+          transform: translate(-1px, 2px) rotate(-1deg);
+        }
+        60% {
+          transform: translate(-3px, 1px) rotate(0deg);
+        }
+        70% {
+          transform: translate(2px, 1px) rotate(-2deg);
+        }
+        80% {
+          transform: translate(-1px, -1px) rotate(3deg);
+        }
+        90% {
+          transform: translate(2px, 2px) rotate(0deg);
+        }
+        100% {
+          transform: translate(1px, -2px) rotate(-1deg);
+        }
+      }
+      @keyframes falling-stuff {
+        0% {
+          top: -10%;
+          transform: rotate(0deg);
+        }
+        100% {
+          top: 110%;
+          transform: rotate(360deg);
+        }
+      }
+      @keyframes rising-stuff {
+        0% {
+          bottom: -10%;
+          transform: rotate(0deg);
+          opacity: 0;
+        }
+        50% {
+          opacity: 1;
+        }
+        100% {
+          bottom: 110%;
+          transform: rotate(-360deg);
+          opacity: 0;
+        }
+      }
+
+      /* --- ОСНОВНОЙ СТИЛЬ --- */
+      body {
+        /* Фон теперь двигается */
+        background:
+          url('https://www.transparenttextures.com/patterns/cubes.png'),
+          linear-gradient(45deg, #ff00ff, #00ffff, #ffff00, #ff0000);
+        background-size:
+          auto,
+          400% 400%;
+        animation: rainbow-bg 3s ease infinite;
+
+        font-family: 'Comic Sans MS', 'Comic Sans', cursive;
+        color: #fff;
+        margin: 0;
+        overflow-x: hidden; /* Чтобы падающие элементы не растягивали страницу */
+        cursor: url('https://cur.cursors-4u.net/symbols/sym-1/sym46.cur'), auto;
+      }
+
+      /* --- ДЕКОРАЦИИ ПО БОКАМ (АБСУРД) --- */
+      .side-decoration {
+        position: fixed;
+        z-index: 999; /* Поверх всего, но под попапом */
+        pointer-events: none; /* Чтобы сквозь них можно было кликать */
+        width: 60px;
+      }
+
+      /* Падающие деньги слева */
+      .fall-left-1 {
+        left: 2%;
+        animation: falling-stuff 3s linear infinite;
+        animation-delay: 0s;
+      }
+      .fall-left-2 {
+        left: 8%;
+        animation: falling-stuff 4s linear infinite;
+        animation-delay: 1.5s;
+        width: 40px;
+      }
+
+      /* Падающие деньги справа */
+      .fall-right-1 {
+        right: 2%;
+        animation: falling-stuff 3.5s linear infinite;
+        animation-delay: 0.5s;
+      }
+      .fall-right-2 {
+        right: 8%;
+        animation: falling-stuff 4.5s linear infinite;
+        animation-delay: 2s;
+        width: 50px;
+      }
+
+      /* Взлетающие бриллианты */
+      .rise-left {
+        left: 5%;
+        animation: rising-stuff 5s linear infinite;
+        width: 30px;
+      }
+      .rise-right {
+        right: 5%;
+        animation: rising-stuff 6s linear infinite;
+        width: 30px;
+        animation-delay: 3s;
+      }
+
+      /* Статичные взрывы по углам */
+      .explosion-corner {
+        position: fixed;
+        width: 150px;
+        z-index: 998;
+        pointer-events: none;
+        mix-blend-mode: screen; /* Чтобы черного фона гифки не было видно */
+      }
+      .exp-tl {
+        top: 0;
+        left: 0;
+      }
+      .exp-tr {
+        top: 0;
+        right: 0;
+        transform: scaleX(-1);
+      }
+      .exp-bl {
+        bottom: 0;
+        left: 0;
+        transform: scaleY(-1);
+      }
+      .exp-br {
+        bottom: 0;
+        right: 0;
+        transform: scale(-1);
+      }
+
+      /* Танцующий банан - классика */
+      .banana-dancer {
+        position: fixed;
+        bottom: 100px;
+        left: 20px;
+        width: 80px;
+        z-index: 1001;
+      }
+
+      /* --- КОНТЕНТ СТРАНИЦЫ --- */
+      .header-marquee {
+        background: repeating-linear-gradient(
+          45deg,
+          yellow,
+          yellow 10px,
+          black 10px,
+          black 20px
+        );
+        color: red;
+        font-size: 35px;
+        font-weight: bold;
+        padding: 15px 0;
+        border-bottom: 10px ridge gold;
+        text-shadow: 2px 2px 0px white;
+      }
+
+      .hero {
+        text-align: center;
+        padding: 50px;
+        position: relative;
+      }
+
+      h1 {
+        font-size: 80px;
+        color: yellow;
+        /* Тройная обводка текста */
+        text-shadow:
+          5px 5px 0 red,
+          -5px -5px 0 blue,
+          10px 10px 10px black;
+        animation: shake-hard 0.2s infinite;
+        border: 5px dotted lime;
+        display: inline-block;
+        padding: 10px;
+        background: rgba(0, 0, 0, 0.5);
+      }
+
+      .price-tag {
+        background: red;
+        display: inline-block;
+        padding: 30px;
+        border: 15px dashed yellow;
+        font-size: 60px;
+        transform: rotate(-5deg);
+        animation:
+          blink 0.2s infinite,
+          spin-wild 3s infinite linear alternate;
+        box-shadow: 0 0 50px yellow;
+      }
+
+      .benefits {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 50px;
+        gap: 20px;
+      }
+
+      .card {
+        background: lime;
+        color: black;
+        border: 10px outset blue;
+        padding: 20px;
+        width: 250px;
+        transform: skew(10deg);
+        font-weight: bold;
+      }
+
+      .card:hover {
+        animation: spin-wild 0.5s infinite linear;
+        background: magenta;
+        color: white;
+      }
+
+      /* Кнопка теперь просто безумная и не кликабельная по сути */
+      .cta-button {
+        background: #ff00ff;
+        color: white;
+        font-size: 50px;
+        padding: 30px 60px;
+        border: 20px ridge gold;
+        cursor: wait; /* Курсор ожидания для троллинга */
+        margin: 50px;
+        display: inline-block;
+        text-decoration: blink;
+        text-transform: uppercase;
+        font-weight: 900;
+        animation:
+          rainbow-text 0.5s infinite,
+          shake-hard 0.5s infinite;
+        box-shadow:
+          0 0 30px white,
+          inset 0 0 30px white;
+      }
+
+      .cta-button:hover {
+        animation: spin-wild 0.2s infinite;
+      }
+
+      .discount-popup {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: yellow;
+        color: red;
+        padding: 30px;
+        border: 10px dotted red;
+        z-index: 2000; /* Самый верхний */
+        font-weight: bold;
+        font-size: 24px;
+        animation: blink 0.8s infinite;
+        box-shadow: 10px 10px 0px black;
+      }
+
+      .gitlab-logo {
+        width: 150px;
+        animation: spin-wild 2s infinite linear;
+        filter: invert(1) hue-rotate(180deg); /* Инвертируем цвета логотипа */
+      }
+
+      .fire-text {
+        color: orange;
+        text-shadow:
+          0 0 10px red,
+          0 0 20px yellow,
+          0 0 30px white;
+        font-size: 45px;
+        font-weight: bold;
+        background-color: blue;
+      }
+
+      footer {
+        text-align: center;
+        padding: 30px;
+        background: repeating-linear-gradient(
+          to right,
+          red,
+          orange,
+          yellow,
+          green,
+          blue,
+          indigo,
+          violet
+        );
+        color: white;
+        font-size: 20px;
+        text-shadow: 2px 2px 4px black;
+        border-top: 10px solid white;
+      }
+    </style>
+  </head>
+  <body>
+    <img
+      src="https://media.giphy.com/media/xTiTnqUxyWbsAXq7Ju/giphy.gif"
+      class="side-decoration fall-left-1"
+      alt="money"
+    />
+    <img
+      src="https://media.giphy.com/media/xTiTnqUxyWbsAXq7Ju/giphy.gif"
+      class="side-decoration fall-left-2"
+      alt="money"
+    />
+    <img
+      src="https://media.giphy.com/media/3o6gDWzmAzrpi5DQU8/giphy.gif"
+      class="side-decoration fall-right-1"
+      alt="money bag"
+    />
+    <img
+      src="https://media.giphy.com/media/xUPGGw9yYhaVw1c1QQ/giphy.gif"
+      class="side-decoration fall-right-2"
+      alt="diamond"
+    />
+
+    <img
+      src="https://media.giphy.com/media/xUPGGw9yYhaVw1c1QQ/giphy.gif"
+      class="side-decoration rise-left"
+      alt="diamond rise"
+    />
+    <img
+      src="https://media.giphy.com/media/3o6gDWzmAzrpi5DQU8/giphy.gif"
+      class="side-decoration rise-right"
+      alt="money rise"
+    />
+
+    <img
+      src="https://i.gifer.com/origin/d5/d52585d1066b81f205f56fb2280089af_w200.gif"
+      class="explosion-corner exp-tl"
+      alt="boom"
+    />
+    <img
+      src="https://i.gifer.com/origin/d5/d52585d1066b81f205f56fb2280089af_w200.gif"
+      class="explosion-corner exp-tr"
+      alt="boom"
+    />
+    <img
+      src="https://i.gifer.com/origin/d5/d52585d1066b81f205f56fb2280089af_w200.gif"
+      class="explosion-corner exp-bl"
+      alt="boom"
+    />
+    <img
+      src="https://i.gifer.com/origin/d5/d52585d1066b81f205f56fb2280089af_w200.gif"
+      class="explosion-corner exp-br"
+      alt="boom"
+    />
+
+    <img
+      src="https://media.tenor.com/Images/DancingBanana.gif"
+      class="banana-dancer"
+      alt="banana"
+    />
+
+    <div class="header-marquee">
+      <marquee scrollamount="30" bgcolor="black">
+        <span style="color: yellow">!!! ВНИМАНИЕ !!!</span>
+        <span style="color: lime"
+          >ЛУЧШЕЕ ПРЕДЛОЖЕНИЕ В ИСТОРИИ ЧЕЛОВЕЧЕСТВА</span
+        >
+        <span style="color: cyan">!!! ОТЧЕТЫ САМИ ЛЕТЯТ В ТЕЛЕГУ !!!</span>
+        <span style="color: magenta">ШОК КОНТЕНТ!!!</span> КУПИ СЕЙЧАС ИЛИ ЖАЛЕЙ
+        ВСЮ ЖИЗНЬ !!!
+      </marquee>
+    </div>
+
+    <div class="hero">
+      <img
+        src="https://upload.wikimedia.org/wikipedia/commons/e/e1/GitLab_logo.svg"
+        alt="GitLab"
+        class="gitlab-logo"
+      />
+      <br /><br />
+      <h1>ReportDailyBot</h1>
+      <p class="fire-text">
+        <blink>ТЫ ВСЕ ЕЩЕ ПИШЕШЬ ОТЧЕТЫ РУКАМИ???</blink> <br />
+        ТЫ ЧТО, ИЗ КАМЕННОГО ВЕКА???
+      </p>
+
+      <div class="price-tag">
+        СКИДКА -146% <br />
+        <strike style="font-size: 30px; color: black">$9999999</strike> <br />
+        <span style="color: yellow; text-shadow: 2px 2px red"
+          >БЕСПЛАТНО!!!*</span
+        >
+        <br />
+        (только сегодня!)
+      </div>
+
+      <br />
+      <a href="#" class="cta-button">>>> ХОЧУ СЕЙЧАС <<<</a>
+    </div>
+
+    <div class="benefits">
+      <div class="card">
+        <img
+          src="https://media.giphy.com/media/26AHLBZUC1n53oAfC/giphy.gif"
+          width="100"
+        />
+        <h3>МЕГА СКОРОСТЬ</h3>
+        <p>
+          GitLab еще не проснулся, а бот уже отправил отчет твоему лиду!
+          ПУШКА-ГОНКА!
+        </p>
+      </div>
+      <div class="card" style="background: yellow; border-color: red">
+        <img
+          src="https://media.giphy.com/media/l0HlHFRbmaZtBRhXG/giphy.gif"
+          width="100"
+        />
+        <h3>VIP ЭКСКЛЮЗИВ</h3>
+        <p>
+          Уникальный алгоритм (на самом деле `if/else`) специально для твоего
+          гениального кода!
+        </p>
+      </div>
+      <div class="card" style="background: cyan; border-color: magenta">
+        <img
+          src="https://media.giphy.com/media/3o7aD2saalBwwftBIY/giphy.gif"
+          width="100"
+        />
+        <h3>SUCCESSFUL SUCCESS</h3>
+        <p>Стань самым продуктивным в команде, ничего не делая!</p>
+      </div>
+    </div>
+
+    <center
+      style="
+        margin-top: 50px;
+        background: url('https://i.gifer.com/7SE.gif');
+        padding: 20px;
+      "
+    >
+      <h2
+        style="
+          font-size: 60px;
+          color: yellow;
+          background: red;
+          display: inline-block;
+          border: 5px dashed white;
+        "
+      >
+        ОТЗЫВЫ КЛИЕНТОВ (REAL!):
+      </h2>
+      <br />
+      <div
+        style="
+          background: rgba(0, 0, 0, 0.7);
+          padding: 20px;
+          display: inline-block;
+          border: 5px dotted yellow;
+        "
+      >
+        <p style="font-size: 30px; color: lime; font-weight: bold">
+          "Этот бот изменил мою жизнь. Раньше я был джуном, а теперь я СЕО
+          Гитлаба!"
+        </p>
+        <p style="font-size: 20px; color: white">— <i>Ярослав Старченков</i></p>
+      </div>
+      <br />
+      <img
+        src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJqZ3R4bmR4Z3R4Z3R4Z3R4Z3R4Z3R4Z3R4Z3R4Z3R4JmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/3o7TKMGpxVfS9Vvl9u/giphy.gif"
+        width="300"
+        style="border: 10px double gold"
+      />
+    </center>
+
+    <div class="discount-popup">
+      ЭЙ! Псс!
+      <img
+        src="https://media.giphy.com/media/U5UgL0iVzCpEc/giphy.gif"
+        width="30"
+      />
+      <br />
+      Не уходи без подарка! <br />
+      Твоя персональная скидка сгорит через: <br />
+      <span id="timer" style="font-size: 40px; color: blue">00:59</span>
+      <br />
+      <small>(нажми Alt+F4 чтобы забрать!)</small>
+    </div>
+
+    <marquee
+      direction="right"
+      scrollamount="40"
+      bgcolor="red"
+      style="border-top: 10px solid yellow; border-bottom: 10px solid yellow"
+    >
+      <img
+        src="https://media.giphy.com/media/v9bip8fEf8s7e/giphy.gif"
+        width="150"
+        style="vertical-align: middle"
+      />
+      <span
+        style="
+          font-size: 60px;
+          color: yellow;
+          font-weight: 900;
+          text-shadow: 3px 3px black;
+        "
+        >КУПИ-КУПИ-КУПИ-КУПИ-КУПИ-КУПИ-КУПИ-КУПИ-КУПИ-КУПИ</span
+      >
+      <img
+        src="https://media.giphy.com/media/v9bip8fEf8s7e/giphy.gif"
+        width="150"
+        style="vertical-align: middle"
+      />
+    </marquee>
+
+    <script>
+      // Фейковый таймер (бесконечный)
+      let timeLeft = 59;
+      const timerElement = document.getElementById('timer');
+      setInterval(() => {
+        if (timeLeft > 0) {
+          timeLeft--;
+          // Добавляем нервозности таймеру цветом
+          timerElement.style.color = timeLeft % 2 === 0 ? 'blue' : 'red';
+          timerElement.textContent = `00:${timeLeft < 10 ? '0' : ''}${timeLeft}`;
+        } else {
+          timeLeft = 59; // И снова здравствуйте!
+        }
+      }, 800); // Чуть быстрее секунды для стресса
+    </script>
+
+    <footer>
+      <marquee scrollamount="10">
+        *Предложение действует только в твоей голове. ReportDailyBot не несет
+        ответственности за приступы эпилепсии, потерю зрения или желание
+        переписать проект на jQuery. &copy; 1998-3000 ReportDailyBot Mega Turbo
+        Ultimate Edition Platinum Status.
+      </marquee>
+      <br />
+      <img
+        src="https://www.w3.org/Icons/valid-html401"
+        alt="Valid HTML 4.01!"
+        height="31"
+        width="88"
+        style="border: 5px dotted red"
+      />
+      (ШУТКА, КОНЕЧНО НЕ ВАЛИДНЫЙ)
+    </footer>
+  </body>
+</html>

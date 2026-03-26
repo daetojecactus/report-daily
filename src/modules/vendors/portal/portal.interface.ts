@@ -1,4 +1,7 @@
-import { PortalAccessibilityType, PortalImportanceType } from './portal.type';
+import type {
+  PortalAccessibilityType,
+  PortalImportanceType,
+} from './portal.type';
 
 //пользователь Bitrix24
 export interface PortalUser {

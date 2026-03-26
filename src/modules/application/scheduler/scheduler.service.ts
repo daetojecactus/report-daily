@@ -2,18 +2,17 @@ import { Injectable, Logger } from '@nestjs/common';
 import { UserService } from '../user/user.service';
 import { ReportService } from '../report/report.service';
 import { TelegramService } from '../../vendors/telegram/telegram.service';
+import { ReportQueueProducer } from 'src/modules/queue/report/report-queue.producer';
 import { SchedulerMessages } from './constants/scheduler.messages';
-import {
-  SCHEDULER_MAX_RETRIES,
-  SCHEDULER_SEND_DELAY_MS,
-} from './constants/scheduler.constants';
+import { SCHEDULER_MAX_RETRIES } from './constants/scheduler.constants';
 import type { User } from '../user/user.schema';
 import type { BatchUserResult } from './scheduler.types';
 import { UserMessages } from '../user/constants/user.messages';
-import { DefaultMessages } from 'src/common/constants/defautl.messages';
+import { DefaultMessages } from 'src/common/constants/default.messages';
 import { formatDateToISO } from 'src/common/helpers/date.helper';
 import { getErrorMessage } from 'src/common/helpers/error.helper';
 import { sleep } from 'src/common/helpers/sleep.helper';
+import { Language, getLocale } from 'src/common/i18n/i18n';
 
 @Injectable()
 export class SchedulerService {
@@ -23,25 +22,40 @@ export class SchedulerService {
     private readonly userService: UserService,
     private readonly reportService: ReportService,
     private readonly telegramService: TelegramService,
+    private readonly reportQueueProducer: ReportQueueProducer,
   ) {}
 
-  //генерирует и отправляет отчеты для всех пользователей на указанный час
-  async sendReportsForHour(hour: number): Promise<BatchUserResult[]> {
+  //генерирует и отправляет отчеты для всех пользователей на указанный час через очередь
+  async sendReportsForHour(hour: number): Promise<void> {
     const users = await this.userService.findUsersByReportHour(hour);
 
     if (users.length === 0) {
       this.logger.log(`${SchedulerMessages.SCHEDULER_NO_USERS}: hour ${hour}`);
-      return [];
+      return;
     }
 
     this.logger.log(
       `${SchedulerMessages.SCHEDULER_FOUND_USERS}: ${users.length} user(s), hour ${hour}`,
     );
 
-    return this.processBatch(users, formatDateToISO());
+    const date = formatDateToISO();
+
+    //добавляем всех пользователей в очередь одним батчем
+    const jobs = users.map((user) => ({
+      adminId: user.adminId,
+      telegramId: user.telegramId,
+      date,
+      language: user.settings?.language ?? Language.RU,
+    }));
+
+    await this.reportQueueProducer.addBatchReportJobs(jobs);
+
+    this.logger.log(
+      `${SchedulerMessages.SCHEDULER_BATCH_QUEUED}: ${users.length} job(s), hour ${hour}`,
+    );
   }
 
-  //генерирует и отправляет отчет для одного пользователя по adminId
+  //генерирует и отправляет отчет для одного пользователя по adminId (синхронно, для ручного запуска)
   async sendReportForUser(
     adminId: string,
     date?: string,
@@ -55,34 +69,7 @@ export class SchedulerService {
     return this.processOneUser(user, date ?? formatDateToISO());
   }
 
-  //обрабатывает батч пользователей последовательно с задержкой
-  private async processBatch(
-    users: User[],
-    date: string,
-  ): Promise<BatchUserResult[]> {
-    const results: BatchUserResult[] = [];
-
-    for (let i = 0; i < users.length; i++) {
-      const user = users[i]!;
-
-      if (i > 0) {
-        await sleep(SCHEDULER_SEND_DELAY_MS);
-      }
-
-      const result = await this.processOneUser(user, date);
-      results.push(result);
-    }
-
-    const succeeded = results.filter((result) => result.success).length;
-    const failed = results.filter((result) => !result.success).length;
-    this.logger.log(
-      `${SchedulerMessages.SCHEDULER_BATCH_DONE}: ${succeeded} sent, ${failed} failed`,
-    );
-
-    return results;
-  }
-
-  //генерация + отправка для одного пользователя с retry
+  //генерация + отправка для одного пользователя с retry (для ручных запросов)
   private async processOneUser(
     user: User,
     date: string,
@@ -97,10 +84,11 @@ export class SchedulerService {
           this.logger.warn(
             `${SchedulerMessages.SCHEDULER_EMPTY_REPORT}: ${adminId}`,
           );
-          //отправляем уведомление об отсутствии активности
+          const language = user.settings?.language ?? Language.RU;
+          const locale = getLocale(language);
           await this.telegramService.sendMessageTo(
             telegramId,
-            SchedulerMessages.SCHEDULER_NO_ACTIVITY,
+            locale.report.noActivity,
           );
           return { adminId, telegramId, success: true };
         }

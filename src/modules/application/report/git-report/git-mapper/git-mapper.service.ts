@@ -105,17 +105,28 @@ export class GitMapperService {
       return TaskStatus.VERIFIED_FIX;
     }
 
+    //переоткрыл баг
+    if (context.currentUserReopenedIssue() && context.isBug()) {
+      return TaskStatus.REOPENED_BUG;
+    }
+
+    //переоткрыл задачу
+    if (context.currentUserReopenedIssue()) {
+      return TaskStatus.REOPENED;
+    }
+
+    //заблокировал релиз — эскалация критического бага при тестировании
+    if (
+      context.currentUserEscalatedPriority() &&
+      context.isBug() &&
+      context.isTesting()
+    ) {
+      return TaskStatus.BLOCKED_RELEASE;
+    }
+
     //апрувнул после доработок
     if (context.currentUserApproved() && context.isAfterReview()) {
       return TaskStatus.APPROVED_AFTER_REWORK;
-    }
-
-    //протестировал и апрувнул
-    if (
-      context.currentUserApproved() &&
-      context.currentUserCommentedOnMergeRequest()
-    ) {
-      return TaskStatus.TESTED_AND_APPROVED;
     }
 
     //протестировал и апрувнул
@@ -171,6 +182,25 @@ export class GitMapperService {
       return TaskStatus.VERIFIED_FIX;
     }
 
+    //переоткрыл баг
+    if (context.currentUserReopenedIssue() && context.isBug()) {
+      return TaskStatus.REOPENED_BUG;
+    }
+
+    //переоткрыл задачу
+    if (context.currentUserReopenedIssue()) {
+      return TaskStatus.REOPENED;
+    }
+
+    //нашел регрессию — создал баг, пока задача в тестировании
+    if (
+      context.currentUserOpenedIssue() &&
+      context.isBug() &&
+      context.isTesting()
+    ) {
+      return TaskStatus.REGRESSION_FOUND;
+    }
+
     //создал баг-репорт
     if (context.currentUserOpenedIssue() && context.isBug()) {
       return TaskStatus.FOUND_BUG;
@@ -179,6 +209,15 @@ export class GitMapperService {
     //создал задачу
     if (context.currentUserOpenedIssue()) {
       return TaskStatus.CREATED_TASK;
+    }
+
+    //заблокировал релиз — эскалация критического бага
+    if (
+      context.currentUserEscalatedPriority() &&
+      context.isBug() &&
+      context.isTesting()
+    ) {
+      return TaskStatus.BLOCKED_RELEASE;
     }
 
     //пуш + e2e задача
@@ -229,9 +268,22 @@ export class GitMapperService {
 
   //pm
   private determineForPM(context: TaskContext): TaskStatus {
+    //проверил и закрыл фичу
+    if (
+      (context.currentUserClosedIssue() || context.isIssueClosed()) &&
+      context.isFeature()
+    ) {
+      return TaskStatus.REVIEWED_AND_CLOSED;
+    }
+
     //закрыл задачу
     if (context.currentUserClosedIssue() || context.isIssueClosed()) {
       return TaskStatus.ACCEPTED_WORK;
+    }
+
+    //переоткрыл задачу
+    if (context.currentUserReopenedIssue()) {
+      return TaskStatus.REOPENED;
     }
 
     //запланировал фичу
@@ -252,6 +304,13 @@ export class GitMapperService {
     //повысил приоритет задачи
     if (context.currentUserEscalatedPriority()) {
       return TaskStatus.ESCALATED_PRIORITY;
+    }
+
+    //назначил задачу в работу
+    if (context.currentUserReturnedToDoing() || context.isDoing()) {
+      if (context.currentUserCommentedAnywhere()) {
+        return TaskStatus.DELEGATED_TASK;
+      }
     }
 
     //предоставил требования
@@ -285,16 +344,25 @@ export class GitMapperService {
 
   //developer/admin как исполнитель
   private determineForDeveloperAssignee(context: TaskContext): TaskStatus {
-    //только мр + критический баг
+    //только мр + критический баг → деплой на прод
     if (
       context.isStandaloneMergeRequest() &&
       context.isUrgentTask() &&
       context.currentUserMergedMergeRequest()
     ) {
+      return TaskStatus.DEPLOYED_TO_PRODUCTION;
+    }
+
+    //только мр + критический приоритет + мердж → хотфикс
+    if (
+      context.isStandaloneMergeRequest() &&
+      context.currentUserMergedMergeRequest() &&
+      context.isCriticalPriority()
+    ) {
       return TaskStatus.HOTFIX_DEPLOYED;
     }
 
-    //только мр + хотфикс
+    //только мр + мердж
     if (
       context.isStandaloneMergeRequest() &&
       context.currentUserMergedMergeRequest()
@@ -304,13 +372,13 @@ export class GitMapperService {
         : TaskStatus.COMPLETED_BY_MERGE;
     }
 
-    //смерджил мр + критический приоритет + баг → хотфикс
+    //смерджил мр + критический приоритет + баг → деплой
     if (
       context.currentUserMergedMergeRequest() &&
       context.isCriticalPriority() &&
       context.isBug()
     ) {
-      return TaskStatus.HOTFIX_DEPLOYED;
+      return TaskStatus.DEPLOYED_TO_PRODUCTION;
     }
 
     //смерджил мр + баг
@@ -333,12 +401,22 @@ export class GitMapperService {
       return TaskStatus.COMPLETED_BY_MERGE;
     }
 
+    //задача закрыта без мерджа
+    if (context.isClosedWithoutMerge() && context.isAssignee()) {
+      return TaskStatus.CLOSED_WITHOUT_MERGE;
+    }
+
+    //переоткрыл задачу
+    if (context.currentUserReopenedIssue()) {
+      return TaskStatus.REOPENED;
+    }
+
     //отдал на ревью
     if (context.currentUserSentToReview()) {
       return TaskStatus.SENT_TO_REVIEW;
     }
 
-    //получил апрув (прошёл ревью) — важный приоритет, следующий шаг — мердж
+    //получил апрув (прошёл ревью)
     if (context.isApprovedByOtherUsers() && context.isAssignee()) {
       return TaskStatus.PASSED_REVIEW;
     }
@@ -353,9 +431,28 @@ export class GitMapperService {
       return TaskStatus.PASSED_TO_FRONTEND;
     }
 
+    //устранил замечания ревьюера (пуш + диалог в мр)
+    if (
+      context.currentUserPushedCode() &&
+      context.hasReviewDialog() &&
+      context.isAssignee()
+    ) {
+      return TaskStatus.RESOLVED_REVIEW_COMMENTS;
+    }
+
     //пуш в статусе after_review
     if (context.currentUserPushedCode() && context.isAfterReview()) {
       return TaskStatus.CORRECTED_AFTER_REVIEW;
+    }
+
+    //рефакторинг — maintenance + пуш
+    if (context.currentUserPushedCode() && context.isMaintenance()) {
+      return TaskStatus.REFACTORED_CODE;
+    }
+
+    //возобновил работу — старая мр (7+ дней) + пуш
+    if (context.currentUserPushedCode() && context.isResumedWork()) {
+      return TaskStatus.RESUMED_WORK;
     }
 
     //пуш + мр создана сегодня
@@ -458,8 +555,13 @@ export class GitMapperService {
       return TaskStatus.APPROVED_AND_MERGED;
     }
 
-    //апрув после правок
+    //повторно проверил и одобрил (after_review + апрув)
     if (context.currentUserApproved() && context.isAfterReview()) {
+      return TaskStatus.RE_REVIEWED_AND_APPROVED;
+    }
+
+    //апрув после правок
+    if (context.currentUserApproved() && context.wasReturnedToDoing()) {
       return TaskStatus.APPROVED_FIXES;
     }
 
@@ -510,6 +612,11 @@ export class GitMapperService {
     //принял результат (задача закрыта/смерджена)
     if (context.isIssueClosedWithMerge() || context.isIssueClosed()) {
       return TaskStatus.ACCEPTED_RESULT;
+    }
+
+    //переоткрыл задачу
+    if (context.currentUserReopenedIssue()) {
+      return TaskStatus.REOPENED;
     }
 
     //смерджил чужую работу

@@ -1,4 +1,4 @@
-import { TaskStatus, TaskType } from '../../../common/enums/task.enum';
+import type { TaskStatus, TaskType } from '../../../common/enums/task.enum';
 
 //строка отчета — одна задача
 export interface ReportLine {

@@ -2,12 +2,11 @@ import { Injectable, Logger } from '@nestjs/common';
 import { TaskType } from '../../../common/enums/task.enum';
 import { UserGender } from '../user/user.interface';
 import type { AITaskContext, AIEnhanceRequest } from './ai.types';
-import { AI_SYSTEM_PROMPT, AiPromptTemplate } from './constants/ai.prompt';
 import { AiMessages } from './constants/ai.messages';
 import { OpenRouterService } from '../../vendors/open-router/open-router.service';
 import { GroqService } from '../../vendors/groq/groq.service';
 import type { AiProvider } from '../../../common/interfaces/ai-provider.interface';
-import { AiPromptLabels } from '../../../common/constants/defautl.messages';
+import { getLocale } from '../../../common/i18n/i18n';
 
 @Injectable()
 export class AiService {
@@ -21,17 +20,19 @@ export class AiService {
 
   //обогащает задачи через AI, при ошибке пробует следующий провайдер
   async enhanceTasks(request: AIEnhanceRequest): Promise<Map<string, string>> {
-    const { tasks, gender } = request;
+    const { tasks, gender, language } = request;
 
     if (tasks.length === 0) {
       return this.fallbackAll(tasks);
     }
 
-    const prompt = this.buildPrompt(tasks, gender);
+    const locale = getLocale(language);
+    const prompt = this.buildPrompt(tasks, gender, locale);
+    const systemPrompt = locale.ai.systemPrompt;
 
     for (const provider of this.providers) {
       try {
-        const response = await provider.generate(prompt, AI_SYSTEM_PROMPT);
+        const response = await provider.generate(prompt, systemPrompt);
         this.logger.log(`${AiMessages.AI_GENERATED}: ${provider.name}`);
         return this.parseResponse(response, tasks);
       } catch (error) {
@@ -47,42 +48,51 @@ export class AiService {
   }
 
   //собирает пользовательский промпт из контекстов задач
-  private buildPrompt(contexts: AITaskContext[], gender: UserGender): string {
+  private buildPrompt(
+    contexts: AITaskContext[],
+    gender: UserGender,
+    locale: ReturnType<typeof getLocale>,
+  ): string {
     const genderHint =
       gender === UserGender.FEMALE
-        ? AiPromptTemplate.GENDER_FEMALE
-        : AiPromptTemplate.GENDER_MALE;
+        ? locale.ai.genderFemale
+        : locale.ai.genderMale;
 
     const tasks = contexts
-      .map((context, index) => `[${index + 1}] ${this.formatContext(context)}`)
+      .map(
+        (context, index) =>
+          `[${index + 1}] ${this.formatContext(context, locale)}`,
+      )
       .join('\n\n---\n\n');
 
-    return `${genderHint}\n\n${contexts.length} задач:\n\n${tasks}\n\nОтвет (${contexts.length} строк):\n1.`;
+    return `${genderHint}\n\n${contexts.length} ${locale.ai.tasksWord}:\n\n${tasks}\n\n${locale.ai.responseWord} (${contexts.length}):\n1.`;
   }
 
   //форматирует контекст одной задачи для промпта
-  private formatContext(context: AITaskContext): string {
+  private formatContext(
+    context: AITaskContext,
+    locale: ReturnType<typeof getLocale>,
+  ): string {
+    const labels = locale.ai.labels;
     const parts = [
-      `${AiPromptLabels.TASK}: «${context.taskTitle}»`,
-      `${AiPromptLabels.ACTION}: ${context.actionVerb}`,
+      `${labels.task}: «${context.taskTitle}»`,
+      `${labels.action}: ${context.actionVerb}`,
     ];
 
     if (context.taskType !== TaskType.UNKNOWN) {
-      parts.push(`${AiPromptLabels.TYPE}: ${context.taskType}`);
+      parts.push(`${labels.type}: ${context.taskType}`);
     }
     if (context.commitMessages.length > 0) {
-      parts.push(
-        `${AiPromptLabels.COMMITS}: ${context.commitMessages.join('; ')}`,
-      );
+      parts.push(`${labels.commits}: ${context.commitMessages.join('; ')}`);
     }
     if (context.comments.length > 0) {
       const truncated = context.comments.map((comment) =>
         comment.length > 150 ? comment.slice(0, 150) + '...' : comment,
       );
-      parts.push(`${AiPromptLabels.COMMENTS}: ${truncated.join('; ')}`);
+      parts.push(`${labels.comments}: ${truncated.join('; ')}`);
     }
     if (context.mrTitle) {
-      parts.push(`${AiPromptLabels.MR}: «${context.mrTitle}»`);
+      parts.push(`${labels.mr}: «${context.mrTitle}»`);
     }
 
     return parts.join('\n');

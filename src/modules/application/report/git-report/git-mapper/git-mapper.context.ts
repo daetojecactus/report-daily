@@ -385,4 +385,19 @@ export class TaskContext {
 
     return daysSinceCreation > GIT_MAPPER_DAYS_THRESHOLD_RESUMED_WORK;
   }
+
+  //текущий пользователь переоткрыл задачу
+  currentUserReopenedIssue(): boolean {
+    return this.data.activityStream.issueActions.includes(
+      GitLabAction.REOPENED,
+    );
+  }
+
+  //задача закрыта без мерджа (отменена, невалидна и т.д.)
+  isClosedWithoutMerge(): boolean {
+    return (
+      this.isIssueClosed() &&
+      (!this.hasMergeRequest() || !this.isMergeRequestMerged())
+    );
+  }
 }
