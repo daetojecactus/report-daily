@@ -445,6 +445,7 @@ export class GitGroupService {
     const eventsByPush = new Map<string, GitLabEvent[]>();
 
     this.distributeEvents(events, eventsByIssue, eventsByMr, eventsByPush);
+    this.injectPushEventsIntoMrs(eventsByPush, eventsByMr, mrsMap);
 
     return {
       issues: this.assembleGroupedIssues(
@@ -508,6 +509,28 @@ export class GitGroupService {
         const existing = eventsByPush.get(key) ?? [];
         existing.push(event);
         eventsByPush.set(key, existing);
+      }
+    }
+  }
+
+  //переносит push-события в связанные мр (push на ветку мр = коммиты мр)
+  private injectPushEventsIntoMrs(
+    eventsByPush: Map<string, GitLabEvent[]>,
+    eventsByMr: Map<string, GitLabEvent[]>,
+    mrsMap: Map<string, GitLabMergeRequest>,
+  ) {
+    const branchToMrKey = new Map<string, string>();
+    for (const [mrKey, mr] of mrsMap) {
+      branchToMrKey.set(`${mr.project_id}_${mr.source_branch}`, mrKey);
+    }
+
+    for (const [pushKey, pushEvents] of eventsByPush) {
+      const mrKey = branchToMrKey.get(pushKey);
+      if (!mrKey) continue;
+
+      const mrEvents = eventsByMr.get(mrKey);
+      if (mrEvents) {
+        mrEvents.push(...pushEvents);
       }
     }
   }

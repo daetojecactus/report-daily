@@ -49,6 +49,13 @@ export class ReportDailyBotEnvs {
   @IsString()
   OPENROUTER_MODEL!: string;
 
+  // Gemini
+  @IsString()
+  GEMINI_API_KEY!: string;
+
+  @IsString()
+  GEMINI_MODEL!: string;
+
   // Groq
   @IsString()
   GROQ_API_KEY!: string;

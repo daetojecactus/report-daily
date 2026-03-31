@@ -3,6 +3,7 @@ import { TaskType } from '../../../common/enums/task.enum';
 import { UserGender } from '../user/user.interface';
 import type { AITaskContext, AIEnhanceRequest } from './ai.types';
 import { AiMessages } from './constants/ai.messages';
+import { GeminiService } from '../../vendors/gemini/gemini.service';
 import { OpenRouterService } from '../../vendors/open-router/open-router.service';
 import { GroqService } from '../../vendors/groq/groq.service';
 import type { AiProvider } from '../../../common/interfaces/ai-provider.interface';
@@ -13,9 +14,13 @@ export class AiService {
   private readonly logger = new Logger(AiService.name);
   private readonly providers: AiProvider[];
 
-  constructor(openRouterService: OpenRouterService, groqService: GroqService) {
-    //приоритет: OpenRouter, Groq, fallback
-    this.providers = [openRouterService, groqService];
+  constructor(
+    geminiService: GeminiService,
+    openRouterService: OpenRouterService,
+    groqService: GroqService,
+  ) {
+    //приоритет: Gemini, OpenRouter, Groq, fallback
+    this.providers = [geminiService, openRouterService, groqService];
   }
 
   //обогащает задачи через AI, при ошибке пробует следующий провайдер
