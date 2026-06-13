@@ -3,6 +3,7 @@ import { BullModule } from '@nestjs/bullmq';
 import { ConfigService } from '@nestjs/config';
 import { ReportDailyBotEnvs } from 'src/modules/config/env';
 import { ReportQueueModule } from './report/report-queue.module';
+import { BroadcastQueueModule } from './broadcast/broadcast-queue.module';
 
 @Module({
   imports: [
@@ -16,7 +17,8 @@ import { ReportQueueModule } from './report/report-queue.module';
       inject: [ConfigService],
     }),
     ReportQueueModule,
+    BroadcastQueueModule,
   ],
-  exports: [ReportQueueModule],
+  exports: [ReportQueueModule, BroadcastQueueModule],
 })
 export class QueueModule {}

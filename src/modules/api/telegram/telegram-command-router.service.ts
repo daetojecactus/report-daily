@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { TelegramService } from 'src/modules/vendors/telegram/telegram.service';
 import { UserService } from 'src/modules/application/user/user.service';
 import { BotCommandService } from 'src/modules/application/bot-command/bot-command.service';
+import { BotCommandSetupService } from 'src/modules/application/bot-command/bot-command-setup.service';
 import { UserCommandService } from 'src/modules/application/bot-command/user-command.service';
 import {
   getOwnerBotCommands,
@@ -15,6 +16,7 @@ import {
 } from './constants/telegram-command-router.constants';
 import type { ReportDailyBotEnvs } from 'src/modules/config/env';
 import {
+  BotCallbackAction,
   BotCommand,
   CallbackDataPrefix,
   CommandResult,
@@ -31,6 +33,7 @@ export class TelegramCommandRouter {
     private readonly telegramService: TelegramService,
     private readonly userService: UserService,
     private readonly botCommandService: BotCommandService,
+    private readonly botCommandSetupService: BotCommandSetupService,
     private readonly userCommandService: UserCommandService,
     private readonly configService: ConfigService<ReportDailyBotEnvs, true>,
   ) {
@@ -93,7 +96,16 @@ export class TelegramCommandRouter {
     const language = await this.getOwnerLanguage();
     let result: CommandResult;
 
-    if (data.startsWith(`${CallbackDataPrefix.UPDATE_FIELD}:`)) {
+    if (
+      data === BotCallbackAction.BROADCAST_CONFIRM ||
+      data === BotCallbackAction.BROADCAST_CANCEL
+    ) {
+      result = await this.botCommandService.handleBroadcastCallback(
+        telegramId,
+        data,
+        language,
+      );
+    } else if (data.startsWith(`${CallbackDataPrefix.UPDATE_FIELD}:`)) {
       result = await this.botCommandService.handleFieldCallback(data, language);
     } else if (data.startsWith(`${CallbackDataPrefix.UPDATE_VALUE}:`)) {
       result = await this.botCommandService.handleValueCallback(data, language);
@@ -121,6 +133,11 @@ export class TelegramCommandRouter {
       if (user) {
         const lang = user.settings?.language ?? Language.RU;
         const locale = getLocale(lang);
+        //гарантируем актуальное меню команд при первом входе пользователя
+        await this.botCommandSetupService.syncCommandsForTelegramId(
+          telegramId,
+          lang,
+        );
         await this.telegramService.sendMessageTo(
           chatId,
           locale.commands.welcome,
@@ -196,6 +213,15 @@ export class TelegramCommandRouter {
       const [, ...args] = text.trim().split(/\s+/);
       const result = await this.botCommandService.startAddUserWizard(
         args,
+        telegramId,
+        language,
+      );
+      await this.sendResult(chatId, result);
+      return null;
+    }
+
+    if (command === BotCommand.BROADCAST) {
+      const result = this.botCommandService.startBroadcastWizard(
         telegramId,
         language,
       );

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import {
+  CleanEvent,
   CleanLabelEvent,
   CleanNote,
   GroupedDailyData,
@@ -440,6 +441,23 @@ export class GitMapperService {
       return TaskStatus.RESOLVED_REVIEW_COMMENTS;
     }
 
+    //вторичный участник: внёс код в чужую задачу, но не её основной исполнитель
+    //(например, один-два коммита — это не «возобновил работу»)
+    if (context.currentUserPushedCode() && context.isSupportingContributor()) {
+      //писал код и параллельно вёл диалог в мр — совместная работа
+      if (context.hasReviewDialog()) {
+        return TaskStatus.PAIRED_ON_TASK;
+      }
+      //помощь именно с багом
+      if (context.isBug()) {
+        return TaskStatus.HELPED_RESOLVE_BUG;
+      }
+      //значимый вклад vs незначительный
+      return context.isSecondaryContributor()
+        ? TaskStatus.CONTRIBUTED_CODE
+        : TaskStatus.HELPED_WITH_TASK;
+    }
+
     //пуш в статусе after_review
     if (context.currentUserPushedCode() && context.isAfterReview()) {
       return TaskStatus.CORRECTED_AFTER_REVIEW;
@@ -537,6 +555,18 @@ export class GitMapperService {
       return TaskStatus.PARTICIPATED_IN_CLOSURE;
     }
 
+    //вторичный участник оставил замечания по чужому мр (неформальное ревью)
+    if (
+      !context.isAssignee() &&
+      context.currentUserCommentedOnMergeRequest() &&
+      !context.hasActiveWorkOnMergeRequest()
+    ) {
+      //значимое участие → помог с ревью, иначе → лёгкая подсказка
+      return context.isSecondaryContributor()
+        ? TaskStatus.ASSISTED_REVIEW
+        : TaskStatus.LEFT_SUGGESTION;
+    }
+
     //просто комменты
     if (context.currentUserCommentedAnywhere()) {
       return TaskStatus.COMMENTED;
@@ -599,9 +629,9 @@ export class GitMapperService {
       return TaskStatus.COMMENTED;
     }
 
-    //есть мр, но ревьюер не оставил действий
+    //есть мр, но ревьюер не оставил действий — назначен ревьюером, взял в ревью
     if (context.hasMergeRequest()) {
-      return TaskStatus.REVIEW_COMMENT;
+      return TaskStatus.STARTED_REVIEW;
     }
 
     return TaskStatus.UNKNOWN;
@@ -709,6 +739,7 @@ export class GitMapperService {
           mergeRequestNotes,
           username,
         ),
+        mergeRequestCommitCount: this.countCommits(mergeRequestEvents),
       },
       approvals: {
         currentUserApproved: mergeRequestEvents.some(
@@ -764,6 +795,7 @@ export class GitMapperService {
           mergeRequest.notes,
           username,
         ),
+        mergeRequestCommitCount: this.countCommits(mergeRequest.events),
       },
       approvals: {
         currentUserApproved: mergeRequest.events.some(
@@ -910,6 +942,14 @@ export class GitMapperService {
     return notes.filter(
       (note) => note.authorUsername !== username && !note.system,
     ).length;
+  }
+
+  //суммарное количество коммитов из push-событий
+  private countCommits(events: CleanEvent[]): number {
+    return events.reduce(
+      (total, event) => total + (event.pushData?.commitCount ?? 0),
+      0,
+    );
   }
 
   //usernames пользователей, которые апрувнули (кроме текущего)

@@ -11,6 +11,8 @@ import {
   GitLabMergeRequestState,
 } from 'src/common/enums/gitlab.enum';
 import { TaskRole } from './git-mapper.interface';
+import { EngagementLevel, calculateEngagement } from './git-mapper.engagement';
+import type { EngagementResult } from './git-mapper.engagement';
 import {
   GIT_MAPPER_DAYS_THRESHOLD_RESUMED_WORK,
   GIT_MAPPER_MANY_COMMENTS_THRESHOLD,
@@ -53,6 +55,7 @@ export interface ActivityStream {
   issueCommentsFromCurrentUser: number;
   mergeRequestCommentsFromCurrentUser: number;
   mergeRequestCommentsFromOthers: number;
+  mergeRequestCommitCount: number;
 }
 
 //данные об апрувах
@@ -65,6 +68,9 @@ export interface TaskApprovals {
 export class TaskContext {
   //тип задачи
   readonly taskType: TaskType;
+
+  //лениво вычисляемая степень вовлечённости
+  private engagementCache: EngagementResult | null = null;
 
   constructor(private readonly data: TaskContextData) {
     this.taskType = data.taskType;
@@ -398,6 +404,63 @@ export class TaskContext {
     return (
       this.isIssueClosed() &&
       (!this.hasMergeRequest() || !this.isMergeRequestMerged())
+    );
+  }
+
+  //степень вовлечённости
+
+  //рассчитывает (и кэширует) степень вовлечённости пользователя в задачу
+  private resolveEngagement(): EngagementResult {
+    if (this.engagementCache) return this.engagementCache;
+
+    this.engagementCache = calculateEngagement({
+      isAssignee: this.isAssignee(),
+      isReviewer: this.isReviewer(),
+      isIssueAuthor: this.currentUserOpenedIssue(),
+      isMergeRequestAuthor: this.currentUserOpenedMergeRequest(),
+      mergedMergeRequest: this.currentUserMergedMergeRequest(),
+      commitCount: this.data.activityStream.mergeRequestCommitCount,
+      commentCount:
+        this.data.activityStream.issueCommentsFromCurrentUser +
+        this.data.activityStream.mergeRequestCommentsFromCurrentUser,
+      statusChangesCount: this.data.labels.statusLabelsSetByCurrentUser.length,
+      escalatedPriority: this.data.labels.priorityChangedByCurrentUser,
+    });
+
+    return this.engagementCache;
+  }
+
+  //уровень вовлечённости
+  engagementLevel(): EngagementLevel {
+    return this.resolveEngagement().level;
+  }
+
+  //балл вовлечённости
+  engagementScore(): number {
+    return this.resolveEngagement().score;
+  }
+
+  //основной двигатель задачи
+  isPrimaryContributor(): boolean {
+    return this.engagementLevel() === EngagementLevel.PRIMARY;
+  }
+
+  //значимый соучастник (но не основной)
+  isSecondaryContributor(): boolean {
+    return this.engagementLevel() === EngagementLevel.SECONDARY;
+  }
+
+  //незначительное участие
+  isMinorContributor(): boolean {
+    return this.engagementLevel() === EngagementLevel.MINOR;
+  }
+
+  //внёс вклад в чужую задачу, не будучи её основным исполнителем
+  isSupportingContributor(): boolean {
+    return (
+      !this.isAssignee() &&
+      !this.isPrimaryContributor() &&
+      (this.isSecondaryContributor() || this.isMinorContributor())
     );
   }
 }

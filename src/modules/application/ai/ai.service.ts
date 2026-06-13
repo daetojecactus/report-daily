@@ -70,7 +70,7 @@ export class AiService {
       )
       .join('\n\n---\n\n');
 
-    return `${genderHint}\n\n${contexts.length} ${locale.ai.tasksWord}:\n\n${tasks}\n\n${locale.ai.responseWord} (${contexts.length}):\n1.`;
+    return `${genderHint}\n\n${contexts.length} ${locale.ai.tasksWord}:\n\n${tasks}\n\n${locale.ai.responseWord} (${contexts.length}):`;
   }
 
   //форматирует контекст одной задачи для промпта
@@ -109,25 +109,71 @@ export class AiService {
     contexts: AITaskContext[],
   ): Map<string, string> {
     const results = new Map<string, string>();
-    const lines = response.split('\n').filter((line) => line.trim());
+
+    //основной путь: берём строки вида «N. текст» по их номеру
+    const numbered = this.extractNumberedLines(response);
+
+    //запасной путь: модель не пронумеровала — отфильтровываем мусор и берём по порядку
+    const fallbackLines =
+      numbered.size === 0 ? this.extractCleanLines(response) : [];
 
     for (let i = 0; i < contexts.length; i++) {
-      const line = lines[i];
-      if (line) {
-        const cleaned = line
-          .replace(/^[\d]+[.):\s]+/, '')
-          .replace(/^[-•*]\s*/, '')
-          .trim();
-        results.set(contexts[i].taskId, cleaned);
-      } else {
-        results.set(
-          contexts[i].taskId,
-          `${contexts[i].actionVerb} «${contexts[i].taskTitle}»`,
-        );
-      }
+      const text = numbered.get(i + 1) ?? fallbackLines[i];
+      results.set(
+        contexts[i].taskId,
+        text && text.length > 0
+          ? text
+          : `${contexts[i].actionVerb} «${contexts[i].taskTitle}»`,
+      );
     }
 
     return results;
+  }
+
+  //извлекает строки вида «N. текст», игнорируя заголовки/вводные фразы/markdown
+  private extractNumberedLines(response: string): Map<number, string> {
+    const numbered = new Map<number, string>();
+
+    for (const raw of response.split('\n')) {
+      const match = raw.match(/^\s*(\d{1,3})\s*[.):\-]\s+(.*\S.*)$/);
+      if (!match) continue;
+
+      const num = parseInt(match[1], 10);
+      if (numbered.has(num)) continue;
+
+      const text = this.sanitizeLine(match[2]);
+      if (text) numbered.set(num, text);
+    }
+
+    return numbered;
+  }
+
+  //запасной разбор без нумерации: убираем заголовки/вводные строки
+  private extractCleanLines(response: string): string[] {
+    return response
+      .split('\n')
+      .map((line) => this.sanitizeLine(line))
+      .filter((line) => line.length > 0 && !this.isNoiseLine(line));
+  }
+
+  //строка-мусор: тег [PROJECT] или вводная фраза, заканчивающаяся двоеточием
+  private isNoiseLine(line: string): boolean {
+    if (/^\[[^\]]+\]$/.test(line)) return true;
+    if (line.endsWith(':')) return true;
+    return false;
+  }
+
+  //убирает markdown-разметку, экранирование и мусорные префиксы из строки
+  private sanitizeLine(text: string): string {
+    return text
+      .replace(/\\([*_`~[\]])/g, '$1') //снимаем экранирование \* \_ \[ ...
+      .replace(/[*_`~]+/g, '') //markdown-символы (*, **, _, `, ~)
+      .replace(/^>\s*/, '') //цитата
+      .replace(/^#+\s*/, '') //markdown-заголовок
+      .replace(/^[-•]\s*/, '') //маркер списка
+      .replace(/^\[[^\]]+\]\s*/, '') //ведущий тег [PROJECT]
+      .replace(/\s+/g, ' ') //схлопываем пробелы
+      .trim();
   }
 
   //статический fallback — глагол + название задачи

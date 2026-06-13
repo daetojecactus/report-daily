@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { UserService } from '../user/user.service';
+import { BotCommandSetupService } from './bot-command-setup.service';
 import { UserRole, UserStatus, ReportTemplate } from '../user/user.interface';
 import {
   getOwnerBotCommands,
@@ -12,6 +13,7 @@ import {
   AddUserStep,
   BotCallbackAction,
   BotCommand,
+  BroadcastStep,
   CallbackDataPrefix,
   CommandResult,
   InlineKeyboardMarkup,
@@ -20,6 +22,13 @@ import {
 import { getErrorMessage } from 'src/common/helpers/error.helper';
 import { Language, getLocale } from 'src/common/i18n/i18n';
 import type { Locale } from 'src/common/i18n/i18n.types';
+import {
+  getRoleLabel,
+  getStatusLabel,
+  getTemplateLabel,
+  getGenderLabel,
+} from 'src/common/i18n/entity-labels';
+import { BroadcastQueueProducer } from 'src/modules/queue/broadcast/broadcast-queue.producer';
 
 interface AddUserSession {
   step: AddUserStep;
@@ -28,15 +37,29 @@ interface AddUserSession {
   role?: UserRole;
 }
 
+//сессия визарда рассылки
+interface BroadcastSession {
+  step: BroadcastStep;
+  text?: string;
+}
+
 @Injectable()
 export class BotCommandService {
   private readonly logger = new Logger(BotCommandService.name);
   private addUserSessions = new Map<number, AddUserSession>();
+  private broadcastSessions = new Map<number, BroadcastSession>();
 
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly botCommandSetupService: BotCommandSetupService,
+    private readonly broadcastQueueProducer: BroadcastQueueProducer,
+  ) {}
 
   hasActiveInputSession(ownerTelegramId: number): boolean {
-    return this.addUserSessions.has(ownerTelegramId);
+    return (
+      this.addUserSessions.has(ownerTelegramId) ||
+      this.broadcastSessions.has(ownerTelegramId)
+    );
   }
 
   async handleTextInput(
@@ -44,9 +67,15 @@ export class BotCommandService {
     text: string,
     language: Language,
   ): Promise<CommandResult | null> {
+    const locale = getLocale(language);
+
+    const broadcastSession = this.broadcastSessions.get(ownerTelegramId);
+    if (broadcastSession?.step === BroadcastStep.TEXT) {
+      return this.handleBroadcastTextInput(ownerTelegramId, text, locale);
+    }
+
     const session = this.addUserSessions.get(ownerTelegramId);
     if (!session) return null;
-    const locale = getLocale(language);
 
     if (session.step === AddUserStep.ADMIN_ID) {
       const adminId = text.trim();
@@ -91,21 +120,25 @@ export class BotCommandService {
         return this.showUserSelectMenu(
           BotCallbackAction.BLOCK_USER,
           locale.admin.selectUserBlock,
+          locale,
         );
       case BotCommand.UNBLOCK_USER:
         return this.showUserSelectMenu(
           BotCallbackAction.UNBLOCK_USER,
           locale.admin.selectUserUnblock,
+          locale,
         );
       case BotCommand.USER_INFO:
         return this.showUserSelectMenu(
           BotCallbackAction.USER_INFO,
           locale.admin.selectUserInfo,
+          locale,
         );
       case BotCommand.SEND_USER_REPORT:
         return this.showUserSelectMenu(
           BotCallbackAction.TEST_REPORT,
           locale.admin.selectUserReport,
+          locale,
         );
       case BotCommand.LIST_USERS:
         return { text: await this.listUsers(locale) };
@@ -260,6 +293,111 @@ export class BotCommandService {
     return { text: locale.admin.enterAdminId };
   }
 
+  //старт визарда рассылки: запрашиваем текст сообщения
+  startBroadcastWizard(
+    ownerTelegramId: number,
+    language: Language = Language.RU,
+  ): CommandResult {
+    const locale = getLocale(language);
+    this.broadcastSessions.set(ownerTelegramId, { step: BroadcastStep.TEXT });
+    return { text: locale.admin.broadcastEnterText };
+  }
+
+  //обработка введённого текста рассылки: показываем предпросмотр с кнопками
+  private handleBroadcastTextInput(
+    ownerTelegramId: number,
+    text: string,
+    locale: Locale,
+  ): CommandResult {
+    const message = text.trim();
+    if (!message) {
+      return { text: locale.admin.broadcastEmpty };
+    }
+
+    const session = this.broadcastSessions.get(ownerTelegramId);
+    if (!session) return { text: locale.admin.parseError };
+
+    session.text = message;
+    session.step = BroadcastStep.CONFIRM;
+
+    const keyboard: InlineKeyboardMarkup = {
+      inline_keyboard: [
+        [
+          {
+            text: locale.admin.broadcastSend,
+            callback_data: BotCallbackAction.BROADCAST_CONFIRM,
+          },
+          {
+            text: locale.admin.broadcastCancel,
+            callback_data: BotCallbackAction.BROADCAST_CANCEL,
+          },
+        ],
+      ],
+    };
+
+    return {
+      text: `${locale.admin.broadcastPreview}:\n\n${message}`,
+      keyboard,
+    };
+  }
+
+  //обработка кнопок предпросмотра рассылки (отправить / отмена)
+  async handleBroadcastCallback(
+    ownerTelegramId: number,
+    data: string,
+    language: Language,
+  ): Promise<CommandResult> {
+    const locale = getLocale(language);
+    const session = this.broadcastSessions.get(ownerTelegramId);
+
+    if (data === BotCallbackAction.BROADCAST_CANCEL) {
+      this.broadcastSessions.delete(ownerTelegramId);
+      return { text: locale.admin.broadcastCancelled };
+    }
+
+    if (data !== BotCallbackAction.BROADCAST_CONFIRM) {
+      return { text: locale.admin.unknownAction };
+    }
+
+    const message = session?.text?.trim();
+    this.broadcastSessions.delete(ownerTelegramId);
+
+    if (!message) {
+      return { text: locale.admin.broadcastEmpty };
+    }
+
+    return this.enqueueBroadcast(message, locale);
+  }
+
+  //ставит рассылку в очередь всем активным получателям
+  private async enqueueBroadcast(
+    message: string,
+    locale: Locale,
+  ): Promise<CommandResult> {
+    const users = await this.userService.find({ status: UserStatus.ACTIVE });
+    const recipients = (users ?? []).filter((user) => user.telegramId);
+
+    if (recipients.length === 0) {
+      return { text: locale.admin.broadcastNoRecipients };
+    }
+
+    try {
+      await this.broadcastQueueProducer.addBatchBroadcastJobs(
+        recipients.map((user) => ({
+          telegramId: user.telegramId,
+          text: message,
+        })),
+      );
+      return {
+        text: `${locale.admin.broadcastQueued} ${recipients.length}`,
+      };
+    } catch (error) {
+      const msg = getErrorMessage(error);
+      this.logger.error(`Broadcast enqueue failed: ${msg}`);
+      return { text: `${locale.admin.reportError}: ${msg}` };
+    }
+  }
+
   private async addUserDirect(
     args: string[],
     locale: Locale,
@@ -287,6 +425,7 @@ export class BotCommandService {
         role: role as UserRole,
         reportHour,
       });
+      await this.botCommandSetupService.syncAllCommandsSafe();
       return { text: `${locale.admin.userCreated}: ${user.adminId}` };
     } catch (error) {
       const msg = getErrorMessage(error);
@@ -369,6 +508,7 @@ export class BotCommandService {
         role,
         reportHour,
       });
+      await this.botCommandSetupService.syncAllCommandsSafe();
       return { text: `${l.admin.userCreated}: ${user.adminId}` };
     } catch (error) {
       const msg = getErrorMessage(error);
@@ -387,6 +527,7 @@ export class BotCommandService {
   private async showUserSelectMenu(
     action: BotCallbackAction,
     title: string,
+    locale: Locale,
   ): Promise<CommandResult> {
     const users = await this.userService.find();
     if (!users?.length) return { text: title };
@@ -394,7 +535,7 @@ export class BotCommandService {
     const keyboard: InlineKeyboardMarkup = {
       inline_keyboard: users.map((user) => [
         {
-          text: `${user.adminId} (${user.role})`,
+          text: `${user.adminId} (${getRoleLabel(user.role, locale)})`,
           callback_data: `${action}:${user.adminId}`,
         },
       ]),
@@ -416,6 +557,7 @@ export class BotCommandService {
     return this.showUserSelectMenu(
       BotCallbackAction.UPDATE_USER,
       locale.admin.selectUserUpdate,
+      locale,
     );
   }
 
@@ -464,7 +606,7 @@ export class BotCommandService {
     const keyboard: InlineKeyboardMarkup = {
       inline_keyboard: VALID_ROLES.map((role) => [
         {
-          text: role,
+          text: getRoleLabel(role, locale),
           callback_data: `${CallbackDataPrefix.UPDATE_VALUE}:${adminId}:${UserField.ROLE}:${role}`,
         },
       ]),
@@ -479,7 +621,7 @@ export class BotCommandService {
     const keyboard: InlineKeyboardMarkup = {
       inline_keyboard: VALID_STATUSES.map((status) => [
         {
-          text: status,
+          text: getStatusLabel(status, locale),
           callback_data: `${CallbackDataPrefix.UPDATE_VALUE}:${adminId}:${UserField.STATUS}:${status}`,
         },
       ]),
@@ -535,7 +677,7 @@ export class BotCommandService {
     const keyboard: InlineKeyboardMarkup = {
       inline_keyboard: templates.map((template) => [
         {
-          text: template,
+          text: getTemplateLabel(template, locale),
           callback_data: `${CallbackDataPrefix.UPDATE_VALUE}:${adminId}:${UserField.REPORT_TEMPLATE}:${template}`,
         },
       ]),
@@ -605,14 +747,14 @@ export class BotCommandService {
     return [
       `<b>${locale.admin.userInfoTitle}:</b> ${user.adminId}`,
       `<b>${locale.admin.telegramId}:</b> ${user.telegramId}`,
-      `<b>${locale.commands.role}:</b> ${user.role}`,
-      `<b>${locale.commands.status}:</b> ${user.status}`,
+      `<b>${locale.commands.role}:</b> ${getRoleLabel(user.role, locale)}`,
+      `<b>${locale.commands.status}:</b> ${getStatusLabel(user.status, locale)}`,
       `<b>${locale.admin.gitlabId}:</b> ${user.gitLabId}`,
       `<b>${locale.admin.portalId}:</b> ${user.portalId}`,
-      `<b>${locale.admin.gender}:</b> ${user.gender}`,
+      `<b>${locale.admin.gender}:</b> ${getGenderLabel(user.gender, locale)}`,
       `<b>${locale.commands.reportHour}:</b> ${user.settings?.reportHour ?? '—'}:00`,
       `<b>${locale.commands.ai}:</b> ${user.settings?.useAI ? locale.admin.yes : locale.admin.no}`,
-      `<b>${locale.commands.template}:</b> ${user.settings?.reportTemplate ?? 'Standard'}`,
+      `<b>${locale.commands.template}:</b> ${getTemplateLabel(user.settings?.reportTemplate ?? 'Standard', locale)}`,
       `<b>${locale.commands.language}:</b> ${user.settings?.language ?? Language.RU}`,
     ].join('\n');
   }
@@ -622,7 +764,8 @@ export class BotCommandService {
     if (!users?.length) return locale.admin.noUsers;
 
     const lines = users.map(
-      (user) => `${user.adminId} — ${user.role} (${user.status})`,
+      (user) =>
+        `${user.adminId} — ${getRoleLabel(user.role, locale)} (${getStatusLabel(user.status, locale)})`,
     );
     return `${locale.admin.usersTitle} (${users.length}):\n${lines.join('\n')}`;
   }

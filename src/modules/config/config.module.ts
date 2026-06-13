@@ -8,6 +8,9 @@ import { ReportDailyBotEnvs } from './env';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      //файл окружения лежит в src/.env (относительно корня проекта);
+      //в Docker переменные приходят через env_file и process.env
+      envFilePath: ['.env', 'src/.env'],
       validate: (config: Record<string, unknown>) => {
         const validated = plainToInstance(ReportDailyBotEnvs, config, {
           enableImplicitConversion: true,

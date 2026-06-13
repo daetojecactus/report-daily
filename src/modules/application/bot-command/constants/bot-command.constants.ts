@@ -29,6 +29,10 @@ export function getOwnerBotCommands(locale: Locale): BotCommand[] {
       command: 'send_user_report',
       description: locale.commands.descriptions.send_user_report,
     },
+    {
+      command: 'broadcast',
+      description: locale.commands.descriptions.broadcast,
+    },
     { command: 'help', description: locale.commands.descriptions.help },
   ];
 }

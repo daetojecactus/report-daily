@@ -2,8 +2,8 @@ import { Controller, Post } from '@nestjs/common';
 import { TelegramService } from 'src/modules/vendors/telegram/telegram.service';
 import {
   getOwnerBotCommands,
-  getUserBotCommands,
 } from 'src/modules/application/bot-command/constants/bot-command.constants';
+import { BotCommandSetupService } from 'src/modules/application/bot-command/bot-command-setup.service';
 import { ConfigService } from '@nestjs/config';
 import { UserService } from 'src/modules/application/user/user.service';
 import type { ReportDailyBotEnvs } from 'src/modules/config/env';
@@ -14,8 +14,16 @@ export class ReportController {
   constructor(
     private readonly telegramService: TelegramService,
     private readonly userService: UserService,
+    private readonly botCommandSetupService: BotCommandSetupService,
     private readonly configService: ConfigService<ReportDailyBotEnvs, true>,
   ) {}
+
+  //проставляет корректное меню команд всем пользователям и овнеру разом
+  @Post('setup-commands')
+  async setupCommands() {
+    const results = await this.botCommandSetupService.syncAllCommands();
+    return { ok: true, results };
+  }
 
   @Post('setup-owner-commands')
   async setupOwnerCommands() {
@@ -32,27 +40,7 @@ export class ReportController {
 
   @Post('setup-user-commands')
   async setupUserCommands() {
-    const users = await this.userService.find({
-      telegramId: { $exists: true },
-    });
-    const results: { telegramId: number; ok: boolean }[] = [];
-
-    for (const user of users) {
-      if (!user.telegramId) continue;
-      const lang = user.settings?.language ?? Language.RU;
-      const locale = getLocale(lang);
-      const commands = getUserBotCommands(locale);
-      try {
-        await this.telegramService.setCommandsForChat(
-          user.telegramId,
-          commands,
-        );
-        results.push({ telegramId: user.telegramId, ok: true });
-      } catch {
-        results.push({ telegramId: user.telegramId, ok: false });
-      }
-    }
-
+    const results = await this.botCommandSetupService.syncAllCommands();
     return { ok: true, results };
   }
 }

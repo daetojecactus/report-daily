@@ -6,6 +6,8 @@ export enum BotCallbackAction {
   UPDATE_USER = 'up',
   ADD_USER_ROLE = 'ar',
   ADD_USER_HOUR = 'ah',
+  BROADCAST_CONFIRM = 'bc_ok',
+  BROADCAST_CANCEL = 'bc_no',
 }
 
 //callback-действия для пользовательских команд (не-админ)
@@ -21,6 +23,12 @@ export enum AddUserStep {
   TELEGRAM_ID = 'telegramId',
   ROLE = 'role',
   HOUR = 'hour',
+}
+
+//шаги визарда рассылки
+export enum BroadcastStep {
+  TEXT = 'text',
+  CONFIRM = 'confirm',
 }
 
 //префиксы callback-данных для обновления пользователя
@@ -48,6 +56,7 @@ export enum BotCommand {
   USER_INFO = '/user_info',
   SEND_USER_REPORT = '/send_user_report',
   LIST_USERS = '/list_users',
+  BROADCAST = '/broadcast',
   HELP = '/help',
   START = '/start',
   //пользовательские команды

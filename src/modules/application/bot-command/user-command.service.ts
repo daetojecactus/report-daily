@@ -12,6 +12,11 @@ import {
   InlineKeyboardMarkup,
 } from './bot-command.types';
 import { Language, getLocale } from 'src/common/i18n/i18n';
+import {
+  getRoleLabel,
+  getStatusLabel,
+  getTemplateLabel,
+} from 'src/common/i18n/entity-labels';
 import { formatDateToISO } from 'src/common/helpers/date.helper';
 import { getErrorMessage } from 'src/common/helpers/error.helper';
 import type { User } from '../user/user.schema';
@@ -32,11 +37,11 @@ export class UserCommandService {
     const lines = [
       `<b>${user.adminId}</b>`,
       ``,
-      `<b>${locale.commands.role}:</b> ${user.role}`,
-      `<b>${locale.commands.status}:</b> ${user.status}`,
+      `<b>${locale.commands.role}:</b> ${getRoleLabel(user.role, locale)}`,
+      `<b>${locale.commands.status}:</b> ${getStatusLabel(user.status, locale)}`,
       `<b>${locale.commands.reportHour}:</b> ${user.settings?.reportHour ?? '—'}:00`,
       `<b>${locale.commands.ai}:</b> ${user.settings?.useAI ? locale.commands.enable : locale.commands.disable}`,
-      `<b>${locale.commands.template}:</b> ${user.settings?.reportTemplate ?? 'Standard'}`,
+      `<b>${locale.commands.template}:</b> ${getTemplateLabel(user.settings?.reportTemplate ?? 'Standard', locale)}`,
       `<b>${locale.commands.language}:</b> ${lang === Language.RU ? locale.commands.russian : locale.commands.english}`,
     ];
 

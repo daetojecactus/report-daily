@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import * as cheerio from 'cheerio';
 import { ProductionCalendarClient } from './production-calendar.client';
-import { PRODUCTION_CALENDAR_MONTH_NAME_TO_NUMBER } from './constants/production-calendar.constants';
+import { PRODUCTION_CALENDAR_MONTH_SLUG_TO_NUMBER } from './constants/production-calendar.constants';
 import { ProductionCalendarMessages } from './constants/production-calendar.messages';
 import type {
   HolidayDay,
@@ -21,54 +21,41 @@ export class ProductionCalendarRepository {
     return { year, holidays };
   }
 
-  //извлекает нерабочие дни из HTML производственного календаря zakon.kz
+  //извлекает нерабочие дни из HTML производственного календаря lugasoft.ru
   private parseHolidaysFromHtml(html: string): HolidayDay[] {
     const $ = cheerio.load(html);
     const holidays: HolidayDay[] = [];
 
-    const monthDivs = $('div.month-col');
+    //каждый месяц — отдельная таблица с заголовком-ссылкой на этот месяц
+    $('table').each((_, tableEl) => {
+      //определяем номер месяца по slug в ссылке заголовка
+      const href = $(tableEl).find('h3 a').attr('href');
+      const slug = href?.split('/').filter(Boolean).pop();
+      const monthNumber = slug
+        ? PRODUCTION_CALENDAR_MONTH_SLUG_TO_NUMBER[slug]
+        : undefined;
 
-    if (monthDivs.length === 0) {
-      this.logger.warn(
-        ProductionCalendarMessages.PRODUCTION_CALENDAR_NO_HOLIDAYS_FOUND,
-      );
-      return holidays;
-    }
-
-    monthDivs.each((_, monthEl) => {
-      const monthNameEl = $(monthEl).find('h6.text-uppercase.font-weight-bold');
-      const monthName = monthNameEl.text().trim().toUpperCase();
-      const monthNumber = PRODUCTION_CALENDAR_MONTH_NAME_TO_NUMBER[monthName];
-
+      //таблицы без месяца (сводки по кварталам/году) пропускаем
       if (!monthNumber) {
-        this.logger.warn(
-          `${ProductionCalendarMessages.PRODUCTION_CALENDAR_UNKNOWN_MONTH}: "${monthName}"`,
-        );
         return;
       }
 
-      const weekDivs = $(monthEl).find('div.week-row');
-
-      weekDivs.each((_, weekEl) => {
-        const holidayDays = $(weekEl).find('div.holiday');
-
-        holidayDays.each((_, dayEl) => {
-          const classes = $(dayEl).attr('class') ?? '';
-
-          //пропускаем дни с классом 'masked' (они принадлежат другому месяцу)
-          if (classes.includes('masked')) {
-            return;
-          }
-
-          const dayText = $(dayEl).find('span').text().trim();
-          const dayNumber = parseInt(dayText, 10);
-
+      //нерабочие дни помечены классом 'v' (выходной/праздник)
+      $(tableEl)
+        .find('td.day.v')
+        .each((_, dayEl) => {
+          const dayNumber = parseInt($(dayEl).text().trim(), 10);
           if (!isNaN(dayNumber)) {
             holidays.push({ month: monthNumber, day: dayNumber });
           }
         });
-      });
     });
+
+    if (holidays.length === 0) {
+      this.logger.warn(
+        ProductionCalendarMessages.PRODUCTION_CALENDAR_NO_HOLIDAYS_FOUND,
+      );
+    }
 
     return holidays;
   }

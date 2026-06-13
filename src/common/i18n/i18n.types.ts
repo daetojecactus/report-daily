@@ -21,6 +21,14 @@ export interface Locale {
     noActivity: string;
   };
 
+  //человекочитаемые названия сущностей (статусы, роли, шаблоны, пол)
+  entities: {
+    userStatus: Record<string, string>;
+    userRole: Record<string, string>;
+    reportTemplate: Record<string, string>;
+    gender: Record<string, string>;
+  };
+
   ai: {
     systemPrompt: string;
     genderMale: string;
@@ -106,5 +114,13 @@ export interface Locale {
     yes: string;
     no: string;
     usersTitle: string;
+    broadcastEnterText: string;
+    broadcastPreview: string;
+    broadcastSend: string;
+    broadcastCancel: string;
+    broadcastQueued: string;
+    broadcastCancelled: string;
+    broadcastEmpty: string;
+    broadcastNoRecipients: string;
   };
 }
