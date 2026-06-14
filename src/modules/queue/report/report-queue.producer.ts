@@ -8,7 +8,7 @@ import {
   REPORT_QUEUE_BACKOFF_DELAY,
 } from './constants/report-queue.constants';
 import { ReportQueueMessages } from './constants/report-queue.messages';
-import type { ReportJobData } from './report-queue.types';
+import type { ReportJobData } from './report-queue.interface';
 
 @Injectable()
 export class ReportQueueProducer {

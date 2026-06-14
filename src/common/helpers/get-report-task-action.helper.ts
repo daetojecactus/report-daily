@@ -1,4 +1,4 @@
-import { UserGender } from 'src/modules/application/user/user.interface';
+import { UserGender } from 'src/modules/application/user/user.enums';
 import { TaskStatus } from '../enums/task.enum';
 import { Language, getLocale } from '../i18n/i18n';
 

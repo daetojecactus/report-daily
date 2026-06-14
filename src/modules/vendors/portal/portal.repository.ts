@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PortalClient } from './portal.client';
 import { PortalMessages } from './constants/portal.messages';
 import type {
-  PortalAccessibility,
+  PortalAccessibilityMap,
   PortalResponse,
   PortalUser,
 } from './portal.interface';
@@ -52,15 +52,15 @@ export class PortalRepository {
     userIds: string[],
     dateFrom: string,
     dateTo: string,
-  ): Promise<PortalAccessibility[]> {
+  ): Promise<PortalAccessibilityMap> {
     const { data } = await this.portalClient.instance.post<
-      PortalResponse<PortalAccessibility[]>
+      PortalResponse<PortalAccessibilityMap>
     >('calendar.accessibility.get.json', {
       users: userIds,
       from: dateFrom,
       to: dateTo,
     });
 
-    return data.result ?? [];
+    return data.result ?? {};
   }
 }

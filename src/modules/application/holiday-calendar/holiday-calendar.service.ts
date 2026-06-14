@@ -13,15 +13,30 @@ export class HolidayCalendarService {
     private readonly productionCalendarService: ProductionCalendarService,
   ) {}
 
+  async findOne(filter: Partial<HolidayCalendar>) {
+    return this.holidayCalendarRepository.findOne(filter);
+  }
+
+  async updateOne(
+    filter: Partial<HolidayCalendar>,
+    partialCalendar: Partial<HolidayCalendar>,
+  ) {
+    return this.holidayCalendarRepository.updateOne(
+      filter,
+      { $set: partialCalendar },
+      { new: true },
+    );
+  }
+
   //возвращает календарь из базы, если нет то загружает и сохраняет
   async getOrFetchCalendar(year: number): Promise<HolidayCalendar> {
-    const existing = await this.holidayCalendarRepository.findOne({ year });
+    const calendar = await this.findOne({ year });
 
-    if (existing) {
+    if (calendar) {
       this.logger.log(
         `${HolidayCalendarMessages.HOLIDAY_CALENDAR_FOUND}: ${year}`,
       );
-      return existing;
+      return calendar;
     }
 
     return this.fetchAndSaveCalendar(year);
@@ -31,10 +46,9 @@ export class HolidayCalendarService {
   async fetchAndSaveCalendar(year: number): Promise<HolidayCalendar> {
     const parsed = await this.productionCalendarService.fetchHolidays(year);
 
-    const calendar = await this.holidayCalendarRepository.updateOne(
+    const calendar = await this.updateOne(
       { year: parsed.year },
-      { $set: { year: parsed.year, holidays: parsed.holidays } },
-      { upsert: true, new: true },
+      { year: parsed.year, holidays: parsed.holidays },
     );
 
     this.logger.log(

@@ -6,17 +6,14 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TelegramService } from 'src/modules/vendors/telegram/telegram.service';
-import { SchedulerService } from 'src/modules/application/scheduler/scheduler.service';
-import { TelegramCommandRouter } from './telegram-command-router.service';
-import { BotCommandMessages } from 'src/modules/application/bot-command/constants/bot-command.messages';
+import { TelegramCommandRouter } from 'src/modules/application/bot-command/router/telegram-command-router.service';
 import { TelegramPollingMessages } from './constants/telegram-polling.messages';
-import type { TelegramUpdate } from 'src/modules/vendors/telegram/telegram.types';
-import type { ReportDailyBotEnvs } from 'src/modules/config/env';
+import type { TelegramUpdate } from 'src/modules/vendors/telegram/telegram.interface';
+import type { ReportDailyBotEnvs } from 'src/modules/infrastructure/config/env';
 import {
   TELEGRAM_POLLING_ERROR_DELAY_MS,
   TELEGRAM_POLLING_TIMEOUT,
 } from './constants/telegram-polling.constants';
-import { formatDateToISO } from 'src/common/helpers/date.helper';
 import { getErrorMessage } from 'src/common/helpers/error.helper';
 import { sleep } from 'src/common/helpers/sleep.helper';
 
@@ -30,7 +27,6 @@ export class TelegramPollingService implements OnModuleInit, OnModuleDestroy {
     private readonly configService: ConfigService<ReportDailyBotEnvs, true>,
     private readonly telegramService: TelegramService,
     private readonly commandRouter: TelegramCommandRouter,
-    private readonly schedulerService: SchedulerService,
   ) {}
 
   async onModuleInit(): Promise<void> {
@@ -92,7 +88,7 @@ export class TelegramPollingService implements OnModuleInit, OnModuleDestroy {
 
     // send_user_report — специальный обработчик с синхронной генерацией
     if (testReportAdminId) {
-      await this.executeTestReport(chatId, testReportAdminId);
+      await this.commandRouter.executeTestReport(chatId, testReportAdminId);
     }
   }
 
@@ -104,27 +100,5 @@ export class TelegramPollingService implements OnModuleInit, OnModuleDestroy {
     if (!telegramId || !chatId) return;
 
     await this.commandRouter.handleTextMessage(telegramId, chatId, text);
-  }
-
-  // выполнение тестового отчёта (вызывается из роутера через sendResult)
-  async executeTestReport(chatId: number, adminId: string): Promise<void> {
-    const date = formatDateToISO();
-
-    try {
-      await this.telegramService.sendMessageTo(
-        chatId,
-        `${BotCommandMessages.REPORT_GENERATING} ${adminId} (${date})...`,
-      );
-      await this.schedulerService.sendReportForUser(adminId, date);
-      await this.telegramService.sendMessageTo(
-        chatId,
-        `${BotCommandMessages.REPORT_SENT}: ${adminId} (${date})`,
-      );
-    } catch (error) {
-      await this.telegramService.sendMessageTo(
-        chatId,
-        `${BotCommandMessages.REPORT_ERROR}: ${getErrorMessage(error)}`,
-      );
-    }
   }
 }

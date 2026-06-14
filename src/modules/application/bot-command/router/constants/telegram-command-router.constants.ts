@@ -1,7 +1,7 @@
 import {
   BotCommand,
   UserCallbackAction,
-} from 'src/modules/application/bot-command/bot-command.types';
+} from 'src/modules/application/bot-command/bot-command.enums';
 
 export const USER_COMMANDS = new Set<string>([
   BotCommand.INFO,

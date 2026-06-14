@@ -6,11 +6,7 @@ import {
   getUserBotCommands,
 } from './constants/bot-command.constants';
 import { BotCommandMessages } from './constants/bot-command.messages';
-import {
-  UserCallbackAction,
-  CommandResult,
-  InlineKeyboardMarkup,
-} from './bot-command.types';
+import { UserCallbackAction } from './bot-command.enums';
 import { Language, getLocale } from 'src/common/i18n/i18n';
 import {
   getRoleLabel,
@@ -20,6 +16,7 @@ import {
 import { formatDateToISO } from 'src/common/helpers/date.helper';
 import { getErrorMessage } from 'src/common/helpers/error.helper';
 import type { User } from '../user/user.schema';
+import { CommandResult, InlineKeyboardMarkup } from './bot-command.interface';
 
 @Injectable()
 export class UserCommandService {
@@ -153,7 +150,9 @@ export class UserCommandService {
     const locale = getLocale(lang);
 
     const commands = getUserBotCommands(locale);
-    const lines = commands.map((c) => `/${c.command} — ${c.description}`);
+    const lines = commands.map(
+      (command) => `/${command.command} — ${command.description}`,
+    );
 
     return {
       text: `${locale.commands.availableCommands}:\n${lines.join('\n')}`,

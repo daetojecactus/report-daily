@@ -11,7 +11,7 @@ import type {
   GitLabProject,
   GitLabStateEvent,
   GitLabUser,
-} from './gitlab.types';
+} from './gitlab.interface';
 
 @Injectable()
 export class GitLabService {

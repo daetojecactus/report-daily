@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import type { ReportDailyBotEnvs } from '../../config/env';
+import type { ReportDailyBotEnvs } from '../../infrastructure/config/env';
 
 @Injectable()
 export class GeminiClient {

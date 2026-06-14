@@ -19,6 +19,5 @@ export interface ProjectReport {
 export interface DailyReport {
   date: string;
   projects: ProjectReport[];
-  //отформатированный текст для отправки (project:\n• description)
   text: string;
 }

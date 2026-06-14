@@ -2,16 +2,15 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { GitReportService } from './git-report/git-report.service';
 import { ReportTemplateService } from './report-template/report-template.service';
 import { AiService } from '../ai/ai.service';
-import { UserGender } from '../user/user.interface';
-import type { AITaskContext } from '../ai/ai.types';
+import type { AITaskContext } from '../ai/ai.interface';
 import type { ReportTaskItem } from './git-report/git-report.interface';
-import type { DailyReport, ProjectReport } from './report.types';
+import type { DailyReport, ProjectReport } from './report.interface';
 import { UserService } from '../user/user.service';
 import { UserMessages } from '../user/constants/user.messages';
 import { AiMessages } from '../ai/constants/ai.messages';
 import { getReportTaskAction } from 'src/common/helpers/get-report-task-action.helper';
-import { ReportTemplate } from '../user/user.interface';
 import { Language } from 'src/common/i18n/i18n';
+import { ReportTemplate, UserGender } from '../user/user.enums';
 
 @Injectable()
 export class ReportService {

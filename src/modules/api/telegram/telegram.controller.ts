@@ -7,9 +7,9 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { TelegramCommandRouter } from './telegram-command-router.service';
-import type { TelegramUpdate } from 'src/modules/vendors/telegram/telegram.types';
-import type { ReportDailyBotEnvs } from 'src/modules/config/env';
+import { TelegramCommandRouter } from 'src/modules/application/bot-command/router/telegram-command-router.service';
+import type { TelegramUpdate } from 'src/modules/vendors/telegram/telegram.interface';
+import type { ReportDailyBotEnvs } from 'src/modules/infrastructure/config/env';
 
 @Controller('telegram')
 export class TelegramWebhookController {

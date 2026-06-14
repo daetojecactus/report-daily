@@ -57,7 +57,7 @@ export enum TaskStatus {
   FOUND_BUG_DURING_WORK = 'FOUND_BUG_DURING_WORK',
   ACCEPTED_RESULT = 'ACCEPTED_RESULT',
 
-  //Вторичное участие (по степени вовлечённости)
+  //Вторичное участие
   CONTRIBUTED_CODE = 'CONTRIBUTED_CODE',
   HELPED_WITH_TASK = 'HELPED_WITH_TASK',
   ASSISTED_REVIEW = 'ASSISTED_REVIEW',

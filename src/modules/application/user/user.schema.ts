@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
-import { UserGender, UserRole, UserStatus } from './user.interface';
 import { Settings } from './settings/settings.schema';
+import { UserGender, UserRole, UserStatus } from './user.enums';
 
 @Schema({ collection: 'users', timestamps: true })
 export class User {

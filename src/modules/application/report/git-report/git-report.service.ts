@@ -2,7 +2,6 @@ import { Injectable, Logger } from '@nestjs/common';
 import { GitGroupService } from './git-group/git-group.service';
 import { GitMapperService } from './git-mapper/git-mapper.service';
 import { GitLabService } from 'src/modules/vendors/gitlab/gitlab.service';
-import { UserRole } from 'src/modules/application/user/user.interface';
 import { ReportMessages } from '../constants/report.messages';
 import {
   GitDailyReport,
@@ -16,6 +15,7 @@ import {
 } from './git-mapper/git-mapper.interface';
 import { CleanEvent, CleanNote } from './git-group/git-group.interface';
 import { DefaultMessages } from 'src/common/constants/default.messages';
+import { UserRole } from '../../user/user.enums';
 
 @Injectable()
 export class GitReportService {

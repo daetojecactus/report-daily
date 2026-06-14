@@ -1,10 +1,10 @@
-export enum PortalAccessibilityType {
+export enum PortalAccessibility {
   FREE = 'free',
   BUSY = 'busy',
   ABSENT = 'absent',
 }
 
-export enum PortalImportanceType {
+export enum PortalImportance {
   NORMAL = 'normal',
   HIGH = 'high',
 }

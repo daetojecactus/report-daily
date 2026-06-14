@@ -1,6 +1,6 @@
 import type { TaskStatus, TaskType } from '../../../common/enums/task.enum';
-import type { UserGender } from '../user/user.interface';
 import type { Language } from '../../../common/i18n/i18n';
+import type { UserGender } from '../user/user.enums';
 
 //контекст задачи для AI-обогащения
 export interface AITaskContext {

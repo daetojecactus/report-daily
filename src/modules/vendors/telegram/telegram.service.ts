@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { TelegramClient } from './telegram.client';
 import { TelegramRepository } from './telegram.repository';
+import { ParseMode } from './telegram.enums';
 import type {
-  ParseMode,
   BotCommand,
   TelegramUpdate,
   InlineKeyboardMarkup,
-} from './telegram.types';
+} from './telegram.interface';
 import { DefaultMessages } from 'src/common/constants/default.messages';
 import { TelegramMessages } from './constants/telegram.messages';
 

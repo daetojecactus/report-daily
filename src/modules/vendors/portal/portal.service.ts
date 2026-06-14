@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { PortalRepository } from './portal.repository';
-import type { PortalUser } from './portal.interface';
+import type { PortalAccessibilityMap, PortalUser } from './portal.interface';
 import { formatDateToISO } from 'src/common/helpers/date.helper';
-import { PortalAccessibilityType } from './portal.type';
+import { PortalAccessibility } from './portal.enums';
 
 @Injectable()
 export class PortalService {
@@ -28,7 +28,7 @@ export class PortalService {
     userIds: string[],
     dateFrom: string,
     dateTo: string,
-  ) {
+  ): Promise<PortalAccessibilityMap> {
     return this.portalRepository.getUsersAccessibility(
       userIds,
       dateFrom,
@@ -36,7 +36,7 @@ export class PortalService {
     );
   }
 
-  async getTodayOffUsers(userIds: string[]) {
+  async getTodayOffUsers(userIds: string[]): Promise<string[]> {
     const date = formatDateToISO();
 
     const userAccessibilities = await this.getUsersAccessibility(
@@ -51,7 +51,7 @@ export class PortalService {
       const records = userAccessibilities[userId] ?? [];
 
       const isAbsentToday = records.some(
-        (record) => record.ACCESSIBILITY === PortalAccessibilityType.ABSENT,
+        (record) => record.ACCESSIBILITY === PortalAccessibility.ABSENT,
       );
 
       if (isAbsentToday) {

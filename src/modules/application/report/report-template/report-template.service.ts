@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { ReportTemplate } from '../../user/user.interface';
-import type { ProjectReport, ReportLine } from '../report.types';
+import type { ProjectReport, ReportLine } from '../report.interface';
 import { Language, getLocale } from 'src/common/i18n/i18n';
 import { QA_SECTIONS } from './constants/report-template.constants';
+import { ReportTemplate } from '../../user/user.enums';
 
 @Injectable()
 export class ReportTemplateService {

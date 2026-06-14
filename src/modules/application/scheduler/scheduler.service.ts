@@ -6,7 +6,7 @@ import { ReportQueueProducer } from 'src/modules/queue/report/report-queue.produ
 import { SchedulerMessages } from './constants/scheduler.messages';
 import { SCHEDULER_MAX_RETRIES } from './constants/scheduler.constants';
 import type { User } from '../user/user.schema';
-import type { BatchUserResult } from './scheduler.types';
+import type { BatchUserResult } from './scheduler.interface';
 import { UserMessages } from '../user/constants/user.messages';
 import { DefaultMessages } from 'src/common/constants/default.messages';
 import { formatDateToISO } from 'src/common/helpers/date.helper';

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ProductionCalendarRepository } from './production-calendar.repository';
-import type { ParsedYearHolidays } from './production-calendar.types';
+import type { ParsedYearHolidays } from './production-calendar.interface';
 
 @Injectable()
 export class ProductionCalendarService {

@@ -6,7 +6,7 @@ import { ProductionCalendarMessages } from './constants/production-calendar.mess
 import type {
   HolidayDay,
   ParsedYearHolidays,
-} from './production-calendar.types';
+} from './production-calendar.interface';
 
 @Injectable()
 export class ProductionCalendarRepository {

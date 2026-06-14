@@ -1,10 +1,10 @@
 import { Prop } from '@nestjs/mongoose';
-import { ReportTemplate } from '../user.interface';
 import { Language } from '../../../../common/i18n/i18n';
+import { ReportTemplate } from '../user.enums';
 
 export class Settings {
   @Prop({ default: false })
-  useAI: boolean;
+  useAI!: boolean;
 
   //час отправки автоматического отчета (0–23)
   @Prop({ type: Number })

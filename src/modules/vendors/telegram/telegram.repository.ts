@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { TelegramClient } from './telegram.client';
+import { ParseMode } from './telegram.enums';
 import type {
   TelegramResponse,
   TelegramApiResponse,
-  ParseMode,
   BotCommand,
   TelegramUpdate,
   InlineKeyboardMarkup,
-} from './telegram.types';
+} from './telegram.interface';
 
 @Injectable()
 export class TelegramRepository {
@@ -16,7 +16,7 @@ export class TelegramRepository {
   //отправка в дефолтный chatId из env
   async sendMessage(
     text: string,
-    parseMode: ParseMode = 'HTML',
+    parseMode: ParseMode = ParseMode.HTML,
   ): Promise<TelegramResponse> {
     return this.sendMessageTo(this.telegramClient.getChatId(), text, parseMode);
   }
@@ -25,7 +25,7 @@ export class TelegramRepository {
   async sendMessageTo(
     chatId: number | string,
     text: string,
-    parseMode: ParseMode = 'HTML',
+    parseMode: ParseMode = ParseMode.HTML,
   ): Promise<TelegramResponse> {
     return this.callApi('sendMessage', {
       chat_id: chatId,
@@ -39,7 +39,7 @@ export class TelegramRepository {
     chatId: number | string,
     text: string,
     keyboard: InlineKeyboardMarkup,
-    parseMode: ParseMode = 'HTML',
+    parseMode: ParseMode = ParseMode.HTML,
   ): Promise<TelegramResponse> {
     return this.callApi('sendMessage', {
       chat_id: chatId,
@@ -65,7 +65,7 @@ export class TelegramRepository {
     chatId: number | string,
     messageId: number,
     text: string,
-    parseMode: ParseMode = 'HTML',
+    parseMode: ParseMode = ParseMode.HTML,
     keyboard?: InlineKeyboardMarkup,
   ): Promise<TelegramResponse> {
     return this.callApi('editMessageText', {

@@ -1,4 +1,4 @@
-import { UserRole } from 'src/modules/application/user/user.interface';
+import { UserRole } from 'src/modules/application/user/user.enums';
 import { TaskType } from 'src/common/enums/task.enum';
 import {
   LabelPriority,
@@ -10,59 +10,13 @@ import {
   GitLabIssueState,
   GitLabMergeRequestState,
 } from 'src/common/enums/gitlab.enum';
-import { TaskRole } from './git-mapper.interface';
-import { EngagementLevel, calculateEngagement } from './git-mapper.engagement';
-import type { EngagementResult } from './git-mapper.engagement';
+import { calculateEngagement } from './git-mapper.engagement';
 import {
   GIT_MAPPER_DAYS_THRESHOLD_RESUMED_WORK,
   GIT_MAPPER_MANY_COMMENTS_THRESHOLD,
 } from './constants/git-mapper.constants';
-
-//входные данные для создания контекста задачи
-export interface TaskContextData {
-  currentUserGlobalRole: UserRole;
-  userRoleInTask: TaskRole;
-  taskType: TaskType;
-  taskDates: TaskDates;
-  labels: TaskLabels;
-  activityStream: ActivityStream;
-  approvals: TaskApprovals;
-}
-
-//временные метки жизненного цикла задачи
-export interface TaskDates {
-  issueCreatedAt: string | null;
-  mergeRequestCreatedAt: string | null;
-  reportDate: string;
-}
-
-//разобранные лейблы задачи
-export interface TaskLabels {
-  priorities: LabelPriority[];
-  types: LabelType[];
-  currentStatus: LabelStatus | null;
-  previousStatus: LabelStatus | null;
-  statusLabelsSetByCurrentUser: LabelStatus[];
-  priorityChangedByCurrentUser: boolean;
-}
-
-//поток активности пользователя
-export interface ActivityStream {
-  issueState: GitLabIssueState | null;
-  mergeRequestState: GitLabMergeRequestState | null;
-  issueActions: GitLabAction[];
-  mergeRequestActions: GitLabAction[];
-  issueCommentsFromCurrentUser: number;
-  mergeRequestCommentsFromCurrentUser: number;
-  mergeRequestCommentsFromOthers: number;
-  mergeRequestCommitCount: number;
-}
-
-//данные об апрувах
-export interface TaskApprovals {
-  currentUserApproved: boolean;
-  otherApprovers: string[];
-}
+import { EngagementLevel, TaskRole } from './git-mapper.enums';
+import { EngagementResult, TaskContextData } from './git-mapper.interface';
 
 //контекст задачи
 export class TaskContext {
@@ -379,17 +333,17 @@ export class TaskContext {
     return reportDay === createdDay;
   }
 
-  //работа возобновлена: MR создан более 7 дней назад
+  //работа возобновлена: последний коммит был более N дней назад
   isResumedWork(): boolean {
-    const mergeRequestCreatedAt = this.data.taskDates.mergeRequestCreatedAt;
-    if (!mergeRequestCreatedAt) return false;
+    const lastCommitAt = this.data.taskDates.mergeRequestLastCommitAt;
+    if (!lastCommitAt) return false;
 
-    const daysSinceCreation =
+    const daysSinceLastCommit =
       (new Date(this.data.taskDates.reportDate).getTime() -
-        new Date(mergeRequestCreatedAt).getTime()) /
+        new Date(lastCommitAt).getTime()) /
       (1000 * 60 * 60 * 24);
 
-    return daysSinceCreation > GIT_MAPPER_DAYS_THRESHOLD_RESUMED_WORK;
+    return daysSinceLastCommit > GIT_MAPPER_DAYS_THRESHOLD_RESUMED_WORK;
   }
 
   //текущий пользователь переоткрыл задачу

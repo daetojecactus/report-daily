@@ -2,15 +2,15 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { UserRepository } from './user.repository';
 import { User, UserDocument } from './user.schema';
 import { Settings } from './settings/settings.schema';
-import { CreateUserInput, UserGender, UserStatus } from './user.interface';
+import { CreateUserInput } from './user.interface';
 import { UserMessages } from './constants/user.messages';
-import { ReportTemplate } from './user.interface';
 import { GitLabService } from 'src/modules/vendors/gitlab/gitlab.service';
 import { GitLabMessages } from 'src/modules/vendors/gitlab/constants/gitlab.messages';
 import { PortalService } from 'src/modules/vendors/portal/portal.service';
 import { Language } from 'src/common/i18n/i18n';
 import { PortalMessages } from 'src/modules/vendors/portal/constants/portal.messages';
 import { QueryFilter } from 'mongoose';
+import { ReportTemplate, UserGender, UserStatus } from './user.enums';
 
 @Injectable()
 export class UserService {
@@ -92,7 +92,6 @@ export class UserService {
     return user;
   }
 
-  //синхронизирует статус отпуска
   async syncVacationStatuses(): Promise<void> {
     const users = await this.userRepository.find({
       status: { $nin: [UserStatus.BLOCKED] },

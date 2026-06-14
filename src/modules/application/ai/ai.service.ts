@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { TaskType } from '../../../common/enums/task.enum';
-import { UserGender } from '../user/user.interface';
-import type { AITaskContext, AIEnhanceRequest } from './ai.types';
+import { UserGender } from '../user/user.enums';
+import type { AITaskContext, AIEnhanceRequest } from './ai.interface';
 import { AiMessages } from './constants/ai.messages';
 import { GeminiService } from '../../vendors/gemini/gemini.service';
 import { OpenRouterService } from '../../vendors/open-router/open-router.service';
@@ -103,17 +103,15 @@ export class AiService {
     return parts.join('\n');
   }
 
-  //парсит ответ AI — сопоставляет строки с задачами
+  //парсит ответ AI сопоставляет строки с задачами
   private parseResponse(
     response: string,
     contexts: AITaskContext[],
   ): Map<string, string> {
     const results = new Map<string, string>();
 
-    //основной путь: берём строки вида «N. текст» по их номеру
     const numbered = this.extractNumberedLines(response);
 
-    //запасной путь: модель не пронумеровала — отфильтровываем мусор и берём по порядку
     const fallbackLines =
       numbered.size === 0 ? this.extractCleanLines(response) : [];
 

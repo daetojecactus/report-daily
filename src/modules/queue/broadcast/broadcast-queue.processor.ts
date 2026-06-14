@@ -13,7 +13,7 @@ import { getErrorMessage } from 'src/common/helpers/error.helper';
 import type {
   BroadcastJobData,
   BroadcastJobResult,
-} from './broadcast-queue.types';
+} from './broadcast-queue.interface';
 
 @Processor(BROADCAST_QUEUE_NAME, {
   concurrency: BROADCAST_QUEUE_CONCURRENCY,

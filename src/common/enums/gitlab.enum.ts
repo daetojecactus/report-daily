@@ -47,7 +47,6 @@ export enum MainBranch {
   DEVELOP = 'develop',
 }
 
-// Тип распознанного события для группировки
 export enum ParsedEventType {
   ISSUE = 'issue',
   MERGE_REQUEST = 'merge_request',

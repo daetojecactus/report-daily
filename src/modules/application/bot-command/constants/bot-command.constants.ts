@@ -1,6 +1,6 @@
-import type { BotCommand } from 'src/modules/vendors/telegram/telegram.types';
+import type { BotCommand } from 'src/modules/vendors/telegram/telegram.interface';
 import type { Locale } from 'src/common/i18n/i18n.types';
-import { UserRole, UserStatus } from '../../user/user.interface';
+import { UserRole, UserStatus } from '../../user/user.enums';
 
 export function getOwnerBotCommands(locale: Locale): BotCommand[] {
   return [
@@ -58,7 +58,9 @@ export function getUserBotCommands(locale: Locale): BotCommand[] {
 }
 
 export const ALL_REPORT_HOURS = Array.from({ length: 24 }, (_, i) => i);
-export const REPORT_HOURS = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
+export const REPORT_HOURS = [
+  6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22,
+];
 export const VALID_ROLES: string[] = Object.values(UserRole);
 export const VALID_STATUSES: string[] = Object.values(UserStatus);
 

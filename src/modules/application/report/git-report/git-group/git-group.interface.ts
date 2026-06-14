@@ -1,6 +1,7 @@
 import type {
   GitLabIssueState,
   GitLabMergeRequestState,
+  ParsedEventType,
 } from 'src/common/enums/gitlab.enum';
 
 //очищенное событие без лишних данных (аватары и тд)
@@ -52,6 +53,8 @@ export interface GroupedMergeRequest {
   sourceBranch: string;
   labels: string[];
   createdAt: string;
+  //дата последнего коммита до дня отчёта (null если ранее коммитов не было)
+  lastCommitAt: string | null;
   assignee: string | null;
   reviewers: string[];
   events: CleanEvent[];
@@ -83,6 +86,8 @@ export interface StandaloneMergeRequest {
   sourceBranch: string;
   labels: string[];
   createdAt: string;
+  //дата последнего коммита до дня отчёта (null если ранее коммитов не было)
+  lastCommitAt: string | null;
   assignee: string | null;
   reviewers: string[];
   events: CleanEvent[];
@@ -100,4 +105,11 @@ export interface GroupedDailyData {
   issues: GroupedIssue[];
   standaloneMergeRequests: StandaloneMergeRequest[];
   standalonePushes: StandalonePush[];
+}
+
+export interface ParsedEvent {
+  type: ParsedEventType;
+  projectId: number;
+  iid?: number | null;
+  branch?: string;
 }

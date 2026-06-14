@@ -4,39 +4,9 @@ import {
   ENGAGEMENT_THRESHOLDS,
   ENGAGEMENT_WEIGHTS,
 } from './constants/git-mapper.constants';
+import { EngagementLevel } from './git-mapper.enums';
+import { EngagementResult, EngagementSignals } from './git-mapper.interface';
 
-//степень вовлечённости пользователя в задачу
-export enum EngagementLevel {
-  //основной исполнитель/двигатель задачи
-  PRIMARY = 'primary',
-  //значимый соучастник (несколько коммитов/активное участие)
-  SECONDARY = 'secondary',
-  //незначительное участие (один коммит/пара комментариев)
-  MINOR = 'minor',
-  //только наблюдение
-  OBSERVER = 'observer',
-}
-
-//сырые сигналы участия для расчёта вовлечённости
-export interface EngagementSignals {
-  isAssignee: boolean;
-  isReviewer: boolean;
-  isIssueAuthor: boolean;
-  isMergeRequestAuthor: boolean;
-  mergedMergeRequest: boolean;
-  commitCount: number;
-  commentCount: number;
-  statusChangesCount: number;
-  escalatedPriority: boolean;
-}
-
-//результат расчёта вовлечённости
-export interface EngagementResult {
-  score: number;
-  level: EngagementLevel;
-}
-
-//считает балл вовлечённости и сводит его к уровню
 export function calculateEngagement(
   signals: EngagementSignals,
 ): EngagementResult {
@@ -64,7 +34,6 @@ export function calculateEngagement(
   return { score, level: resolveLevel(score) };
 }
 
-//переводит балл в уровень вовлечённости
 function resolveLevel(score: number): EngagementLevel {
   if (score >= ENGAGEMENT_THRESHOLDS.PRIMARY) return EngagementLevel.PRIMARY;
   if (score >= ENGAGEMENT_THRESHOLDS.SECONDARY) {

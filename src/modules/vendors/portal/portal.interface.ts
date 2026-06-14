@@ -1,7 +1,4 @@
-import type {
-  PortalAccessibilityType,
-  PortalImportanceType,
-} from './portal.type';
+import type { PortalAccessibility, PortalImportance } from './portal.enums';
 
 //пользователь Bitrix24
 export interface PortalUser {
@@ -25,13 +22,19 @@ export interface PortalResponse<T> {
 }
 
 //статус занятости пользователя для календаря
-export interface PortalAccessibility {
+export interface PortalAccessibilityRecord {
   ID: string;
   FROM_HR: boolean;
-  ACCESSIBILITY: PortalAccessibilityType;
-  IMPORTANCE: PortalImportanceType;
+  ACCESSIBILITY: PortalAccessibility;
+  IMPORTANCE: PortalImportance;
   DT_FROM: string;
   DT_TO: string;
   FROM: number;
   TO: number;
 }
+
+//ответ календаря: занятость, сгруппированная по ID пользователя
+export type PortalAccessibilityMap = Record<
+  string,
+  PortalAccessibilityRecord[]
+>;

@@ -9,7 +9,7 @@ import {
   GitLabNote,
   GitLabStateEvent,
   GitLabUser,
-} from './gitlab.types';
+} from './gitlab.interface';
 
 @Injectable()
 export class GitLabRepository {

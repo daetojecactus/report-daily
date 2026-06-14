@@ -12,7 +12,7 @@ import { ReportService } from 'src/modules/application/report/report.service';
 import { TelegramService } from 'src/modules/vendors/telegram/telegram.service';
 import { getLocale } from 'src/common/i18n/i18n';
 import { getErrorMessage } from 'src/common/helpers/error.helper';
-import type { ReportJobData, ReportJobResult } from './report-queue.types';
+import type { ReportJobData, ReportJobResult } from './report-queue.interface';
 
 @Processor(REPORT_QUEUE_NAME, {
   concurrency: REPORT_QUEUE_CONCURRENCY,

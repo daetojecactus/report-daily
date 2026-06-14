@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios, { AxiosInstance } from 'axios';
 import * as https from 'https';
-import type { ReportDailyBotEnvs } from '../../config/env';
+import type { ReportDailyBotEnvs } from '../../infrastructure/config/env';
 
 const DEFAULT_EVENTS_PER_PAGE = 100;
 

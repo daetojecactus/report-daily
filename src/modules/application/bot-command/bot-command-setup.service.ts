@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TelegramService } from 'src/modules/vendors/telegram/telegram.service';
-import type { ReportDailyBotEnvs } from 'src/modules/config/env';
+import type { ReportDailyBotEnvs } from 'src/modules/infrastructure/config/env';
 import { Language, getLocale } from 'src/common/i18n/i18n';
 import { getErrorMessage } from 'src/common/helpers/error.helper';
 import { UserService } from '../user/user.service';
@@ -9,12 +9,7 @@ import {
   getOwnerBotCommands,
   getUserBotCommands,
 } from './constants/bot-command.constants';
-
-//результат синхронизации команд по одному чату
-export interface CommandSyncResult {
-  telegramId: number;
-  ok: boolean;
-}
+import { BotCommandSyncResult } from './bot-command.interface';
 
 @Injectable()
 export class BotCommandSetupService {
@@ -29,10 +24,8 @@ export class BotCommandSetupService {
     this.ownerTelegramId = this.configService.get('OWNER_TELEGRAM_ID');
   }
 
-  //проставляет корректное меню команд всем: овнеру — команды овнера,
-  //остальным пользователям — пользовательские. порядок не важен, так как
-  //овнер всегда получает свой набор, даже если он есть в списке пользователей
-  async syncAllCommands(): Promise<CommandSyncResult[]> {
+  //проставляет корректное меню команд всем
+  async syncAllCommands(): Promise<BotCommandSyncResult[]> {
     const users = await this.userService.find({
       telegramId: { $exists: true },
     });
@@ -45,7 +38,7 @@ export class BotCommandSetupService {
       targets.set(user.telegramId, user.settings?.language ?? Language.RU);
     }
 
-    //овнер обязательно присутствует и перетирает пользовательский набор
+    //овнер перетирает пользовательский набор
     if (!targets.has(this.ownerTelegramId)) {
       const owner = await this.userService.findOne({
         telegramId: this.ownerTelegramId,
@@ -56,7 +49,7 @@ export class BotCommandSetupService {
       );
     }
 
-    const results: CommandSyncResult[] = [];
+    const results: BotCommandSyncResult[] = [];
     for (const [telegramId, language] of targets) {
       results.push(await this.applyCommands(telegramId, language));
     }
@@ -64,17 +57,17 @@ export class BotCommandSetupService {
     return results;
   }
 
-  //проставляет команды одному пользователю с учётом того, овнер он или нет
+  //проставляет команды одному пользователю, овнер он или нет
   async syncCommandsForTelegramId(
     telegramId: number,
     language?: Language,
-  ): Promise<CommandSyncResult> {
+  ): Promise<BotCommandSyncResult> {
     const resolvedLanguage =
       language ?? (await this.resolveLanguage(telegramId));
     return this.applyCommands(telegramId, resolvedLanguage);
   }
 
-  //безопасно (с логированием) синхронизирует команды всем — для авто-вызова
+  //синхронизирует команды всем
   async syncAllCommandsSafe(): Promise<void> {
     try {
       await this.syncAllCommands();
@@ -88,7 +81,7 @@ export class BotCommandSetupService {
   private async applyCommands(
     telegramId: number,
     language: Language,
-  ): Promise<CommandSyncResult> {
+  ): Promise<BotCommandSyncResult> {
     const locale = getLocale(language);
     const commands =
       telegramId === this.ownerTelegramId

@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from './user.schema';
 import { Settings } from './settings/settings.schema';
 import { UserMessages } from './constants/user.messages';
-import { UserStatus } from './user.interface';
+import { UserStatus } from './user.enums';
 import { Model, QueryFilter, UpdateQuery, QueryOptions } from 'mongoose';
 
 @Injectable()

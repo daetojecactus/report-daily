@@ -1,12 +1,10 @@
 import { Controller, Post } from '@nestjs/common';
 import { TelegramService } from 'src/modules/vendors/telegram/telegram.service';
-import {
-  getOwnerBotCommands,
-} from 'src/modules/application/bot-command/constants/bot-command.constants';
+import { getOwnerBotCommands } from 'src/modules/application/bot-command/constants/bot-command.constants';
 import { BotCommandSetupService } from 'src/modules/application/bot-command/bot-command-setup.service';
 import { ConfigService } from '@nestjs/config';
 import { UserService } from 'src/modules/application/user/user.service';
-import type { ReportDailyBotEnvs } from 'src/modules/config/env';
+import type { ReportDailyBotEnvs } from 'src/modules/infrastructure/config/env';
 import { Language, getLocale } from 'src/common/i18n/i18n';
 
 @Controller('report')

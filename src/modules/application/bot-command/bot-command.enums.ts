@@ -66,13 +66,3 @@ export enum BotCommand {
   CHANGE_REPORT_HOUR = '/change_report_hour',
   LANGUAGE = '/language',
 }
-
-export interface CommandResult {
-  text: string;
-  keyboard?: InlineKeyboardMarkup;
-}
-
-//избегаем циклических зависимостей через локальный интерфейс
-export interface InlineKeyboardMarkup {
-  inline_keyboard: Array<Array<{ text: string; callback_data: string }>>;
-}

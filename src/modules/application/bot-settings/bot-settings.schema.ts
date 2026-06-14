@@ -6,11 +6,9 @@ export class BotSettings {
   @Prop({ required: true, unique: true, default: 'default' })
   key!: string;
 
-  //активен ли бот сегодня
   @Prop({ default: true })
   isActive!: boolean;
 
-  //принудительная блокировка бота
   @Prop({ default: false })
   isForceBlocked!: boolean;
 }

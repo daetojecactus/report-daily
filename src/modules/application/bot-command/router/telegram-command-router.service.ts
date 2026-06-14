@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TelegramService } from 'src/modules/vendors/telegram/telegram.service';
 import { UserService } from 'src/modules/application/user/user.service';
+import { SchedulerService } from 'src/modules/application/scheduler/scheduler.service';
 import { BotCommandService } from 'src/modules/application/bot-command/bot-command.service';
 import { BotCommandSetupService } from 'src/modules/application/bot-command/bot-command-setup.service';
 import { UserCommandService } from 'src/modules/application/bot-command/user-command.service';
@@ -10,19 +11,22 @@ import {
   getUserBotCommands,
   TEST_REPORT_MARKER,
 } from 'src/modules/application/bot-command/constants/bot-command.constants';
+import { BotCommandMessages } from 'src/modules/application/bot-command/constants/bot-command.messages';
 import {
   USER_COMMANDS,
   USER_CALLBACK_PREFIXES,
 } from './constants/telegram-command-router.constants';
-import type { ReportDailyBotEnvs } from 'src/modules/config/env';
+import type { ReportDailyBotEnvs } from 'src/modules/infrastructure/config/env';
 import {
   BotCallbackAction,
   BotCommand,
   CallbackDataPrefix,
-  CommandResult,
   UserCallbackAction,
-} from 'src/modules/application/bot-command/bot-command.types';
+} from 'src/modules/application/bot-command/bot-command.enums';
+import type { CommandResult } from 'src/modules/application/bot-command/bot-command.interface';
 import { Language, getLocale } from 'src/common/i18n/i18n';
+import { formatDateToISO } from 'src/common/helpers/date.helper';
+import { getErrorMessage } from 'src/common/helpers/error.helper';
 import type { User } from 'src/modules/application/user/user.schema';
 
 @Injectable()
@@ -35,6 +39,7 @@ export class TelegramCommandRouter {
     private readonly botCommandService: BotCommandService,
     private readonly botCommandSetupService: BotCommandSetupService,
     private readonly userCommandService: UserCommandService,
+    private readonly schedulerService: SchedulerService,
     private readonly configService: ConfigService<ReportDailyBotEnvs, true>,
   ) {
     this.ownerTelegramId = this.configService.get('OWNER_TELEGRAM_ID');
@@ -266,6 +271,28 @@ export class TelegramCommandRouter {
         const locale = getLocale(lang);
         return { text: locale.admin.unknownCommand };
       }
+    }
+  }
+
+  //синхронная генерация и отправка отчёта по конкретному пользователю (send_user_report)
+  async executeTestReport(chatId: number, adminId: string): Promise<void> {
+    const date = formatDateToISO();
+
+    try {
+      await this.telegramService.sendMessageTo(
+        chatId,
+        `${BotCommandMessages.REPORT_GENERATING} ${adminId} (${date})...`,
+      );
+      await this.schedulerService.sendReportForUser(adminId, date);
+      await this.telegramService.sendMessageTo(
+        chatId,
+        `${BotCommandMessages.REPORT_SENT}: ${adminId} (${date})`,
+      );
+    } catch (error) {
+      await this.telegramService.sendMessageTo(
+        chatId,
+        `${BotCommandMessages.REPORT_ERROR}: ${getErrorMessage(error)}`,
+      );
     }
   }
 }

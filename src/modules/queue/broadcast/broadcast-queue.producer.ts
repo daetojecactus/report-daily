@@ -8,7 +8,7 @@ import {
   BROADCAST_QUEUE_BACKOFF_DELAY,
 } from './constants/broadcast-queue.constants';
 import { BroadcastQueueMessages } from './constants/broadcast-queue.messages';
-import type { BroadcastJobData } from './broadcast-queue.types';
+import type { BroadcastJobData } from './broadcast-queue.interface';
 
 @Injectable()
 export class BroadcastQueueProducer {
