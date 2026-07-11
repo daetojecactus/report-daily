@@ -9,3 +9,15 @@ export function shiftDate(date: Date, days: number): Date {
   result.setDate(result.getDate() + days);
   return result;
 }
+
+//последние N дат (ISO, по возрастанию: от старой к сегодняшней)
+export function buildRecentDates(
+  days: number,
+  from: Date = new Date(),
+): string[] {
+  const dates: string[] = [];
+  for (let offset = days - 1; offset >= 0; offset--) {
+    dates.push(formatDateToISO(shiftDate(from, -offset)));
+  }
+  return dates;
+}

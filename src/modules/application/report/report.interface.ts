@@ -7,6 +7,10 @@ export interface ReportLine {
   taskType: TaskType;
   //финальный текст: «Начал работу «Задача»» или AI-описание
   description: string;
+  //ссылка на задачу/мр в gitlab (для шаблонов со ссылками)
+  webUrl: string | null;
+  //приоритет (значение лейбла priority::*), null если не задан
+  priority: string | null;
 }
 
 //проект с задачами

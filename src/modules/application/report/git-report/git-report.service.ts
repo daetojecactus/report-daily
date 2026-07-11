@@ -121,6 +121,10 @@ export class GitReportService {
       status: issue.workResult.status,
       taskType: issue.workResult.taskType,
       labels: issue.labels,
+      //приоритет: сначала из задачи, если нет — из привязанной мр
+      priority:
+        this.resolvePriority(issue.labels) ??
+        this.resolvePriority(issue.mergeRequests[0]?.labels ?? []),
       aiContext: {
         commitMessages,
         userComments,
@@ -148,6 +152,7 @@ export class GitReportService {
       status: mr.workResult.status,
       taskType: mr.workResult.taskType,
       labels: mr.labels,
+      priority: this.resolvePriority(mr.labels),
       aiContext: {
         commitMessages,
         userComments,
@@ -167,12 +172,24 @@ export class GitReportService {
       status: push.workResult.status,
       taskType: push.workResult.taskType,
       labels: [],
+      priority: null,
       aiContext: {
         commitMessages: this.extractCommitMessages(push.events),
         userComments: [],
         mrTitle: null,
       },
     };
+  }
+
+  //извлекает приоритет из scoped-лейбла priority::* → "HIGH" (иначе null)
+  private resolvePriority(labels: string[]): string | null {
+    for (const label of labels) {
+      const [scope, ...rest] = label.split('::');
+      if (scope.trim().toLowerCase() === 'priority' && rest.length > 0) {
+        return rest.join('::').trim().toUpperCase();
+      }
+    }
+    return null;
   }
 
   //извлекает сообщения коммитов из событий с pushData

@@ -17,6 +17,9 @@ export class ReportDailyBotEnvs {
   GITLAB_API_URL!: string;
 
   @IsString()
+  GITLAB_URL!: string;
+
+  @IsString()
   GITLAB_API_TOKEN!: string;
 
   // Telegram

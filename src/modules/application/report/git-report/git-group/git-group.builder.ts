@@ -218,8 +218,9 @@ export class GitGroupBuilder {
           mrCommitsMap.get(mrKey) ?? [],
           date,
         ),
+        author: mr.author?.username ?? null,
         assignee: mr.assignee?.username ?? null,
-        reviewers: mr.reviewers?.map((reviewer) => reviewer.username) ?? [],
+        reviewers: this.resolveReviewers(mr, mrNotesMap.get(mrKey) ?? []),
         events: this.cleanEvents(eventsByMr.get(mrKey) ?? [], date),
         notes: this.cleanNotes(mrNotesMap.get(mrKey) ?? [], date),
         labelEvents: this.cleanLabelEvents(
@@ -262,8 +263,9 @@ export class GitGroupBuilder {
           mrCommitsMap.get(mrKey) ?? [],
           date,
         ),
+        author: mr.author?.username ?? null,
         assignee: mr.assignee?.username ?? null,
-        reviewers: mr.reviewers?.map((reviewer) => reviewer.username) ?? [],
+        reviewers: this.resolveReviewers(mr, mrNotesMap.get(mrKey) ?? []),
         events: this.cleanEvents(eventsByMr.get(mrKey) ?? [], date),
         notes: this.cleanNotes(mrNotesMap.get(mrKey) ?? [], date),
         labelEvents: this.cleanLabelEvents(
@@ -271,6 +273,39 @@ export class GitGroupBuilder {
           date,
         ),
       }));
+  }
+
+  //ревьюеры мр: текущие + исторические (кого когда-либо назначали ревьюером)
+  //история важна: пользователь мог отревьюить и быть снят с ревью до формирования отчёта
+  private resolveReviewers(
+    mr: GitLabMergeRequest,
+    notes: GitLabNote[],
+  ): string[] {
+    const current = mr.reviewers?.map((reviewer) => reviewer.username) ?? [];
+    const historical = this.extractHistoricalReviewers(notes);
+    return [...new Set([...current, ...historical])];
+  }
+
+  //извлекает из системных комментариев всех, кого просили провести ревью
+  //системный комментарий gitlab: "requested review from @user1 and @user2"
+  private extractHistoricalReviewers(notes: GitLabNote[]): string[] {
+    const reviewers: string[] = [];
+
+    for (const note of notes) {
+      if (!note.system || !note.body) continue;
+      if (!note.body.toLowerCase().startsWith('requested review from')) {
+        continue;
+      }
+
+      const mentions = note.body.match(/@([a-zA-Z0-9._-]+)/g);
+      if (!mentions) continue;
+
+      for (const mention of mentions) {
+        reviewers.push(mention.slice(1));
+      }
+    }
+
+    return reviewers;
   }
 
   //собирает пуши без привязки к мр (исключает main/master/develop)

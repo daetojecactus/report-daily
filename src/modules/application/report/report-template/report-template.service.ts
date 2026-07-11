@@ -11,10 +11,13 @@ export class ReportTemplateService {
     projects: ProjectReport[],
     template: ReportTemplate,
     language: Language,
+    gitlabUrl?: string,
   ): string {
     switch (template) {
       case ReportTemplate.QA:
         return this.formatQAText(projects, language);
+      case ReportTemplate.SA:
+        return this.formatSAText(projects, gitlabUrl);
       case ReportTemplate.STANDARD:
       default:
         return this.formatStandardText(projects);
@@ -33,7 +36,26 @@ export class ReportTemplateService {
       .join('\n\n');
   }
 
-  //QA шаблон: секции по типу работы, внутри — [PROJECT] описание
+  //шаблон SA (системный аналитик): как стандартный, но текст задачи — ссылка на неё
+  private formatSAText(projects: ProjectReport[], gitlabUrl?: string): string {
+    return projects
+      .map((project) => {
+        const lines = project.lines
+          .map((line) => {
+            const text = this.escapeHtml(line.description);
+            const url = this.toAbsoluteUrl(line.webUrl, gitlabUrl);
+            const body = url
+              ? `<a href="${this.escapeHtml(url)}">${text}</a>`
+              : text;
+            return `• ${body}`;
+          })
+          .join('\n');
+        return `${this.escapeHtml(project.projectName)}:\n${lines}`;
+      })
+      .join('\n\n');
+  }
+
+  //QA шаблон: секции по типу работы
   private formatQAText(projects: ProjectReport[], language: Language): string {
     const locale = getLocale(language);
 
@@ -53,7 +75,7 @@ export class ReportTemplateService {
       const items: string[] = [];
       allLines.forEach(({ projectName, line }, index) => {
         if (!used.has(index) && section.statuses.has(line.status)) {
-          items.push(`[${projectName.toUpperCase()}]\n${line.description}`);
+          items.push(this.formatQaItem(projectName, line));
           used.add(index);
         }
       });
@@ -66,7 +88,7 @@ export class ReportTemplateService {
     const other: string[] = [];
     allLines.forEach(({ projectName, line }, index) => {
       if (!used.has(index)) {
-        other.push(`[${projectName.toUpperCase()}]\n${line.description}`);
+        other.push(this.formatQaItem(projectName, line));
       }
     });
     if (other.length > 0) {
@@ -76,5 +98,32 @@ export class ReportTemplateService {
     return sections
       .map((section) => `${section.title}\n\n${section.items.join('\n\n')}`)
       .join('\n\n');
+  }
+
+  //строка QA: [PROJECT] - PRIORITY\nописание (приоритет опционален)
+  private formatQaItem(projectName: string, line: ReportLine): string {
+    const header = line.priority
+      ? `[${projectName.toUpperCase()}] - ${line.priority}`
+      : `[${projectName.toUpperCase()}]`;
+    return `${header}\n${line.description}`;
+  }
+
+  //приводит ссылку к абсолютной: web_url из gitlab уже абсолютный
+  private toAbsoluteUrl(
+    webUrl: string | null,
+    gitlabUrl?: string,
+  ): string | null {
+    if (!webUrl) return null;
+    if (/^https?:\/\//i.test(webUrl)) return webUrl;
+    if (!gitlabUrl) return null;
+    return `${gitlabUrl.replace(/\/+$/, '')}/${webUrl.replace(/^\/+/, '')}`;
+  }
+
+  //экранирует спецсимволы для parse_mode=HTML в telegram
+  private escapeHtml(text: string): string {
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
   }
 }

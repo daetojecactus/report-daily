@@ -4,12 +4,23 @@ import { ReportService } from '../report/report.service';
 import { TelegramService } from '../../vendors/telegram/telegram.service';
 import { ReportQueueProducer } from 'src/modules/queue/report/report-queue.producer';
 import { SchedulerMessages } from './constants/scheduler.messages';
-import { SCHEDULER_MAX_RETRIES } from './constants/scheduler.constants';
+import {
+  RECENT_REPORTS_DEFAULT_DAYS,
+  RECENT_REPORTS_MAX_DAYS,
+  SCHEDULER_MAX_RETRIES,
+} from './constants/scheduler.constants';
 import type { User } from '../user/user.schema';
-import type { BatchUserResult } from './scheduler.interface';
+import type {
+  BatchUserResult,
+  RecentReportsSummary,
+} from './scheduler.interface';
 import { UserMessages } from '../user/constants/user.messages';
+import { UserStatus } from '../user/user.enums';
 import { DefaultMessages } from 'src/common/constants/default.messages';
-import { formatDateToISO } from 'src/common/helpers/date.helper';
+import {
+  buildRecentDates,
+  formatDateToISO,
+} from 'src/common/helpers/date.helper';
 import { getErrorMessage } from 'src/common/helpers/error.helper';
 import { sleep } from 'src/common/helpers/sleep.helper';
 import { Language, getLocale } from 'src/common/i18n/i18n';
@@ -67,6 +78,40 @@ export class SchedulerService {
     }
 
     return this.processOneUser(user, date ?? formatDateToISO());
+  }
+
+  //ручная массовая рассылка: всем активным пользователям отчёты за последние N дней
+  async sendRecentReportsToAllUsers(
+    days?: number,
+  ): Promise<RecentReportsSummary> {
+    const normalizedDays = this.normalizeRecentDays(days);
+    const dates = buildRecentDates(normalizedDays);
+    const users = await this.userService.find({ status: UserStatus.ACTIVE });
+
+    const results: BatchUserResult[] = [];
+    //последовательно, чтобы не упереться в лимиты telegram/gitlab
+    for (const user of users) {
+      for (const date of dates) {
+        results.push(await this.processOneUser(user, date));
+      }
+    }
+
+    return {
+      days: normalizedDays,
+      dates,
+      users: users.length,
+      sent: results.length,
+      failed: results.filter((result) => !result.success).length,
+      results,
+    };
+  }
+
+  //нормализует запрошенное количество дней: дефолт и границы [1, RECENT_REPORTS_MAX_DAYS]
+  private normalizeRecentDays(days?: number): number {
+    if (days === undefined || Number.isNaN(days)) {
+      return RECENT_REPORTS_DEFAULT_DAYS;
+    }
+    return Math.min(Math.max(Math.trunc(days), 1), RECENT_REPORTS_MAX_DAYS);
   }
 
   //генерация + отправка для одного пользователя с retry (для ручных запросов)

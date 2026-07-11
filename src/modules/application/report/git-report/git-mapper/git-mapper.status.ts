@@ -7,18 +7,58 @@ import { TaskStatus } from 'src/common/enums/task.enum';
 export class GitMapperStatusResolver {
   //определение статуса по роли
   resolve(context: TaskContext): TaskStatus {
+    //стезя pm — свой процесс (планирование/приёмка), мердж кода для него нетипичен
+    if (context.isProjectManager()) {
+      return this.determineForPM(context);
+    }
+
+    //мердж — всегда финальное и наивысшее по приоритету действие.
+    //определяем его до ролевых веток, чтобы верно отличать свою работу от чужой
+    if (context.currentUserMergedMergeRequest()) {
+      return this.determineMergeStatus(context);
+    }
+
     //стезя qa
     if (context.isQualityAssurance()) {
       return this.determineForQA(context);
     }
 
-    //стезя pm
-    if (context.isProjectManager()) {
-      return this.determineForPM(context);
-    }
-
     //стезя developer и admin
     return this.determineForDeveloper(context);
+  }
+
+  //мердж мр — единая точка определения (приоритетнее любых других действий)
+  private determineMergeStatus(context: TaskContext): TaskStatus {
+    //мердж чужой работы: пользователь не исполнитель и не автор мр (ревьюер/мейнтейнер)
+    if (!context.isOwnMergeRequest()) {
+      //одобрил и сразу смерджил
+      if (context.currentUserApproved()) {
+        return TaskStatus.APPROVED_AND_MERGED;
+      }
+      return TaskStatus.MERGED_OTHERS_WORK;
+    }
+
+    //дальше — мердж своей работы
+
+    //отдельный мр без задачи (хотфикс): срочный баг → деплой на прод
+    if (context.isStandaloneMergeRequest() && context.isUrgentTask()) {
+      return TaskStatus.DEPLOYED_TO_PRODUCTION;
+    }
+
+    //отдельный мр без задачи + критический приоритет → хотфикс
+    if (context.isStandaloneMergeRequest() && context.isCriticalPriority()) {
+      return TaskStatus.HOTFIX_DEPLOYED;
+    }
+
+    //критический баг → деплой на прод
+    if (context.isCriticalPriority() && context.isBug()) {
+      return TaskStatus.DEPLOYED_TO_PRODUCTION;
+    }
+
+    //свой мердж по типу задачи
+    if (context.isBug()) return TaskStatus.FIXED_BUG;
+    if (context.isFeature()) return TaskStatus.IMPLEMENTED_FEATURE;
+    return TaskStatus.COMPLETED_BY_MERGE;
   }
 
   //определяем для qa
@@ -277,59 +317,8 @@ export class GitMapperStatusResolver {
   }
 
   //developer/admin как исполнитель
+  //мердж (свой/чужой) обрабатывается в determineMergeStatus до вызова этой ветки
   private determineForDeveloperAssignee(context: TaskContext): TaskStatus {
-    //только мр + критический баг → деплой на прод
-    if (
-      context.isStandaloneMergeRequest() &&
-      context.isUrgentTask() &&
-      context.currentUserMergedMergeRequest()
-    ) {
-      return TaskStatus.DEPLOYED_TO_PRODUCTION;
-    }
-
-    //только мр + критический приоритет + мердж → хотфикс
-    if (
-      context.isStandaloneMergeRequest() &&
-      context.currentUserMergedMergeRequest() &&
-      context.isCriticalPriority()
-    ) {
-      return TaskStatus.HOTFIX_DEPLOYED;
-    }
-
-    //только мр + мердж
-    if (
-      context.isStandaloneMergeRequest() &&
-      context.currentUserMergedMergeRequest()
-    ) {
-      return context.isBug()
-        ? TaskStatus.FIXED_BUG
-        : TaskStatus.COMPLETED_BY_MERGE;
-    }
-
-    //смерджил мр + критический приоритет + баг → деплой
-    if (
-      context.currentUserMergedMergeRequest() &&
-      context.isCriticalPriority() &&
-      context.isBug()
-    ) {
-      return TaskStatus.DEPLOYED_TO_PRODUCTION;
-    }
-
-    //смерджил мр + баг
-    if (context.currentUserMergedMergeRequest() && context.isBug()) {
-      return TaskStatus.FIXED_BUG;
-    }
-
-    //смерджил мр + фича
-    if (context.currentUserMergedMergeRequest() && context.isFeature()) {
-      return TaskStatus.IMPLEMENTED_FEATURE;
-    }
-
-    //смерджил мр
-    if (context.currentUserMergedMergeRequest()) {
-      return TaskStatus.COMPLETED_BY_MERGE;
-    }
-
     //задача закрыта с мерджем (но мерджил не я)
     if (context.isIssueClosedWithMerge() && context.isAssignee()) {
       return TaskStatus.COMPLETED_BY_MERGE;
@@ -509,15 +498,8 @@ export class GitMapperStatusResolver {
   }
 
   //developer/admin (reviewer)
+  //мердж обрабатывается в determineMergeStatus до вызова этой ветки
   private determineForDeveloperReviewer(context: TaskContext): TaskStatus {
-    //апрувнул и смерджил (комбо)
-    if (
-      context.currentUserApproved() &&
-      context.currentUserMergedMergeRequest()
-    ) {
-      return TaskStatus.APPROVED_AND_MERGED;
-    }
-
     //повторно проверил и одобрил (after_review + апрув)
     if (context.currentUserApproved() && context.isAfterReview()) {
       return TaskStatus.RE_REVIEWED_AND_APPROVED;
@@ -526,11 +508,6 @@ export class GitMapperStatusResolver {
     //апрув после правок
     if (context.currentUserApproved() && context.wasReturnedToDoing()) {
       return TaskStatus.APPROVED_FIXES;
-    }
-
-    //ревьюер смерджил чужую задачу (без апрува)
-    if (context.currentUserMergedMergeRequest()) {
-      return TaskStatus.MERGED_OTHERS_WORK;
     }
 
     //апрув
@@ -571,6 +548,7 @@ export class GitMapperStatusResolver {
   }
 
   //developer/admin (author)
+  //мердж обрабатывается в determineMergeStatus до вызова этой ветки
   private determineForDeveloperAuthor(context: TaskContext): TaskStatus {
     //принял результат (задача закрыта/смерджена)
     if (context.isIssueClosedWithMerge() || context.isIssueClosed()) {
@@ -580,11 +558,6 @@ export class GitMapperStatusResolver {
     //переоткрыл задачу
     if (context.currentUserReopenedIssue()) {
       return TaskStatus.REOPENED;
-    }
-
-    //смерджил чужую работу
-    if (context.currentUserMergedMergeRequest()) {
-      return TaskStatus.MERGED_OTHERS_WORK;
     }
 
     //создал тех. долг

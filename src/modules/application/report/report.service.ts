@@ -11,6 +11,8 @@ import { AiMessages } from '../ai/constants/ai.messages';
 import { getReportTaskAction } from 'src/common/helpers/get-report-task-action.helper';
 import { Language } from 'src/common/i18n/i18n';
 import { ReportTemplate, UserGender } from '../user/user.enums';
+import { ConfigService } from '@nestjs/config';
+import type { ReportDailyBotEnvs } from 'src/modules/infrastructure/config/env';
 
 @Injectable()
 export class ReportService {
@@ -21,6 +23,7 @@ export class ReportService {
     private readonly reportTemplateService: ReportTemplateService,
     private readonly userService: UserService,
     private readonly aiService: AiService,
+    private readonly configService: ConfigService<ReportDailyBotEnvs, true>,
   ) {}
 
   //генерирует итоговый отчет за день
@@ -58,15 +61,23 @@ export class ReportService {
         description:
           descriptions.get(task.taskKey) ??
           `${getReportTaskAction(task.status, user.gender, language)} «${task.title}»`,
+        webUrl: task.webUrl,
+        priority: task.priority,
       })),
     }));
 
     const template = user.settings.reportTemplate ?? ReportTemplate.STANDARD;
+    const gitlabUrl = this.configService.get('GITLAB_URL', { infer: true });
 
     return {
       date,
       projects,
-      text: this.reportTemplateService.formatText(projects, template, language),
+      text: this.reportTemplateService.formatText(
+        projects,
+        template,
+        language,
+        gitlabUrl,
+      ),
     };
   }
 

@@ -19,4 +19,5 @@ export enum UserGender {
 export enum ReportTemplate {
   STANDARD = 'Standard',
   QA = 'QA',
+  SA = 'SA',
 }

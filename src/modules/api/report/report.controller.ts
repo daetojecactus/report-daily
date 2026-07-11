@@ -1,9 +1,10 @@
-import { Controller, Post } from '@nestjs/common';
+import { Controller, Post, Query } from '@nestjs/common';
 import { TelegramService } from 'src/modules/vendors/telegram/telegram.service';
 import { getOwnerBotCommands } from 'src/modules/application/bot-command/constants/bot-command.constants';
 import { BotCommandSetupService } from 'src/modules/application/bot-command/bot-command-setup.service';
 import { ConfigService } from '@nestjs/config';
 import { UserService } from 'src/modules/application/user/user.service';
+import { SchedulerService } from 'src/modules/application/scheduler/scheduler.service';
 import type { ReportDailyBotEnvs } from 'src/modules/infrastructure/config/env';
 import { Language, getLocale } from 'src/common/i18n/i18n';
 
@@ -13,8 +14,18 @@ export class ReportController {
     private readonly telegramService: TelegramService,
     private readonly userService: UserService,
     private readonly botCommandSetupService: BotCommandSetupService,
+    private readonly schedulerService: SchedulerService,
     private readonly configService: ConfigService<ReportDailyBotEnvs, true>,
   ) {}
+
+  //тестовая рассылка: всем активным пользователям отчёты за последние N дней
+  @Post('send-recent')
+  async sendRecentReports(@Query('days') daysRaw?: string) {
+    const days = daysRaw !== undefined ? Number(daysRaw) : undefined;
+    const summary =
+      await this.schedulerService.sendRecentReportsToAllUsers(days);
+    return { ok: true, ...summary };
+  }
 
   //проставляет корректное меню команд всем пользователям и овнеру разом
   @Post('setup-commands')

@@ -49,6 +49,8 @@ export interface MappedDailyData {
 export interface TaskContextData {
   currentUserGlobalRole: UserRole;
   userRoleInTask: TaskRole;
+  //текущий пользователь — автор мр (открыл его); устойчивый признак своей работы
+  isMergeRequestAuthor: boolean;
   taskType: TaskType;
   taskDates: TaskDates;
   labels: TaskLabels;

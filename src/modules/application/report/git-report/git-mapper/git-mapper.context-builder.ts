@@ -31,6 +31,9 @@ export class GitMapperContextBuilder {
     const mergeRequest = issue.mergeRequests[0] ?? null;
     const mergeRequestNotes = mergeRequest?.notes ?? [];
     const mergeRequestEvents = mergeRequest?.events ?? [];
+    const currentUserApproved = mergeRequestEvents.some(
+      (event) => event.actionName === GitLabAction.APPROVED,
+    );
 
     return new TaskContext({
       currentUserGlobalRole,
@@ -39,7 +42,9 @@ export class GitMapperContextBuilder {
         mergeRequest?.reviewers ?? [],
         username,
         issue.events,
+        currentUserApproved,
       ),
+      isMergeRequestAuthor: mergeRequest?.author === username,
       taskType: this.resolveTaskType(issue.labels),
       taskDates: {
         issueCreatedAt: issue.createdAt,
@@ -85,9 +90,7 @@ export class GitMapperContextBuilder {
         mergeRequestCommitCount: this.countCommits(mergeRequestEvents),
       },
       approvals: {
-        currentUserApproved: mergeRequestEvents.some(
-          (event) => event.actionName === GitLabAction.APPROVED,
-        ),
+        currentUserApproved,
         otherApprovers: this.extractOtherApprovers(mergeRequestNotes, username),
       },
     });
@@ -100,6 +103,10 @@ export class GitMapperContextBuilder {
     currentUserGlobalRole: UserRole,
     reportDate: string,
   ): TaskContext {
+    const currentUserApproved = mergeRequest.events.some(
+      (event) => event.actionName === GitLabAction.APPROVED,
+    );
+
     return new TaskContext({
       currentUserGlobalRole,
       userRoleInTask: this.resolveTaskRole(
@@ -107,7 +114,9 @@ export class GitMapperContextBuilder {
         mergeRequest.reviewers,
         username,
         mergeRequest.events,
+        currentUserApproved,
       ),
+      isMergeRequestAuthor: mergeRequest.author === username,
       taskType: this.resolveTaskType(mergeRequest.labels),
       taskDates: {
         issueCreatedAt: null,
@@ -142,9 +151,7 @@ export class GitMapperContextBuilder {
         mergeRequestCommitCount: this.countCommits(mergeRequest.events),
       },
       approvals: {
-        currentUserApproved: mergeRequest.events.some(
-          (event) => event.actionName === GitLabAction.APPROVED,
-        ),
+        currentUserApproved,
         otherApprovers: this.extractOtherApprovers(
           mergeRequest.notes,
           username,
@@ -172,15 +179,22 @@ export class GitMapperContextBuilder {
   }
 
   //роль пользователя в задаче
-  //учитывает: assignee, reviewer, а также автор (создатель issue)
+  //учитывает: assignee, reviewer (в т.ч. по истории/апруву), а также автор (создатель issue)
   private resolveTaskRole(
     assignee: string | null,
     reviewers: string[],
     username: string,
     events: { actionName: string }[],
+    currentUserApproved: boolean,
   ): TaskRole {
     if (assignee === username) return TaskRole.ASSIGNEE;
-    if (reviewers.includes(username)) return TaskRole.REVIEWER;
+
+    //ревьюер: текущий/исторический список ревьюеров либо факт апрува от пользователя.
+    //апрув может поставить только назначенный ревьюер, поэтому это надёжный признак,
+    //даже если пользователя уже сняли с ревью к моменту формирования отчёта.
+    if (reviewers.includes(username) || currentUserApproved) {
+      return TaskRole.REVIEWER;
+    }
 
     //если пользователь создал задачу, но не assignee и не reviewer → автор
     const isIssueCreator = events.some(

@@ -55,7 +55,10 @@ export interface GroupedMergeRequest {
   createdAt: string;
   //дата последнего коммита до дня отчёта (null если ранее коммитов не было)
   lastCommitAt: string | null;
+  //автор мр (кто открыл) — устойчивый признак «своей» работы
+  author: string | null;
   assignee: string | null;
+  //ревьюеры: текущие + все, кто когда-либо был назначен ревьюером (по истории)
   reviewers: string[];
   events: CleanEvent[];
   notes: CleanNote[];
@@ -88,7 +91,10 @@ export interface StandaloneMergeRequest {
   createdAt: string;
   //дата последнего коммита до дня отчёта (null если ранее коммитов не было)
   lastCommitAt: string | null;
+  //автор мр (кто открыл) — устойчивый признак «своей» работы
+  author: string | null;
   assignee: string | null;
+  //ревьюеры: текущие + все, кто когда-либо был назначен ревьюером (по истории)
   reviewers: string[];
   events: CleanEvent[];
   notes: CleanNote[];

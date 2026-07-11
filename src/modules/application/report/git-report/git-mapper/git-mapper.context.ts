@@ -173,6 +173,17 @@ export class TaskContext {
     );
   }
 
+  //текущий пользователь — автор мр (открыл его в принципе, а не только в день отчёта)
+  isMergeRequestAuthor(): boolean {
+    return this.data.isMergeRequestAuthor;
+  }
+
+  //мр является «своим»: пользователь исполнитель либо автор мр.
+  //нужно чтобы отличать мердж своей работы от мерджа чужой (ревьюер/мейнтейнер)
+  isOwnMergeRequest(): boolean {
+    return this.isAssignee() || this.isMergeRequestAuthor();
+  }
+
   //есть рабочие события в мр за день (пуш, открытие), но не мердж
   hasActiveWorkOnMergeRequest(): boolean {
     return this.currentUserPushedCode() || this.currentUserOpenedMergeRequest();
@@ -371,7 +382,7 @@ export class TaskContext {
       isAssignee: this.isAssignee(),
       isReviewer: this.isReviewer(),
       isIssueAuthor: this.currentUserOpenedIssue(),
-      isMergeRequestAuthor: this.currentUserOpenedMergeRequest(),
+      isMergeRequestAuthor: this.isMergeRequestAuthor(),
       mergedMergeRequest: this.currentUserMergedMergeRequest(),
       commitCount: this.data.activityStream.mergeRequestCommitCount,
       commentCount:

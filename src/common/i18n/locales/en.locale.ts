@@ -295,6 +295,7 @@ export const en: Locale = {
     reportTemplate: {
       Standard: 'Standard',
       QA: 'QA',
+      SA: 'System Analyst',
     },
     gender: {
       Male: 'Male',

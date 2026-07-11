@@ -295,6 +295,7 @@ export const ru: Locale = {
     reportTemplate: {
       Standard: 'Стандартный',
       QA: 'QA',
+      SA: 'Системный аналитик',
     },
     gender: {
       Male: 'Мужской',
