@@ -61,9 +61,11 @@ Telegram-бот для автоматического формирования �
 ```
 src/
 ├── common/                     # Общие утилиты, enum'ы, хелперы, i18n
+│   ├── constants/              # Общие текстовые константы
 │   ├── enums/                  # TaskStatus (действия для отчёта), роли, метки
-│   ├── helpers/                # Даты, ошибки, маппинг действий в текст
-│   └── i18n/                   # Локали ru/en, типы, лейблы сущностей
+│   ├── helpers/                # Даты, лейблы, ошибки, маппинг действий в текст
+│   ├── i18n/                   # Локали ru/en, типы, лейблы сущностей
+│   └── interfaces/             # Общие контракты (AI-провайдер)
 ├── modules/
 │   ├── api/                    # Контроллеры (Telegram webhook, HTTP endpoints)
 │   │   ├── report/             # Регистрация команд бота через API
@@ -74,6 +76,7 @@ src/
 │   │   │   ├── add-user/       # Мастер добавления пользователя
 │   │   │   ├── broadcast/      # Мастер массовой рассылки
 │   │   │   ├── user-admin/     # Просмотр и изменение пользователей
+│   │   │   ├── router/         # Роутер команд и callback'ов Telegram
 │   │   │   └── keyboards/      # Сборка inline-клавиатур
 │   │   ├── bot-settings/       # Глобальные настройки бота
 │   │   ├── holiday-calendar/   # Производственный календарь
@@ -81,6 +84,7 @@ src/
 │   │   │   ├── git-report/     # Сбор и маппинг данных GitLab
 │   │   │   │   ├── git-group/  # Загрузка (fetcher), сборка (builder), парсинг событий
 │   │   │   │   └── git-mapper/ # Контекст (context-builder) + резолв статуса (status)
+│   │   │   ├── report-delivery/# Генерация и доставка отчёта одному получателю
 │   │   │   └── report-template/# Форматирование (Standard / QA / SA)
 │   │   ├── scheduler/          # Рассылка отчётов по расписанию
 │   │   └── user/               # Пользователи и их настройки
@@ -113,7 +117,7 @@ src/
 ## Как формируется отчёт
 
 1. **GitGroupService** — получает события GitLab (задачи, MR, push'и), группирует по задачам, выделяет отдельные MR и push'и.
-2. **GitMapperService** — определяет роль участника в задаче (исполнитель, ревьюер, автор, наблюдатель) и уровень вовлечённости, после чего подбирает корректный `TaskStatus` с учётом роли (Developer/QA/PM), типа задачи и меток.
+2. **GitMapperService** — определяет роль участника в задаче (исполнитель, ревьюер, автор, наблюдатель) и уровень вовлечённости, после чего подбирает корректный `TaskStatus` с учётом роли (Developer/QA/PM/SA), типа задачи и меток.
 3. **ReportService** — строит текст отчёта (с AI или без) и применяет выбранный шаблон.
 4. **TelegramService** — доставляет готовый отчёт пользователю.
 
@@ -290,7 +294,7 @@ curl -X POST http://localhost:3000/report/setup-user-commands
 | `POST` | `/telegram/webhook`            | Webhook Telegram Bot API                       |
 | `POST` | `/report/setup-commands`       | Синхронизация команд всем разом                |
 | `POST` | `/report/setup-owner-commands` | Регистрация команд владельца                   |
-| `POST` | `/report/setup-user-commands`  | Регистрация команд пользователей               |
+| `POST` | `/report/setup-user-commands`  | Алиас `setup-commands`                         |
 | `POST` | `/report/send-recent?days=N`   | Тестовая рассылка: всем активным пользователям |
 
 ---
@@ -299,19 +303,19 @@ curl -X POST http://localhost:3000/report/setup-user-commands
 
 ### User
 
-| Поле                      | Тип     | Описание                              |
-| ------------------------- | ------- | ------------------------------------- |
-| `adminId`                 | string  | GitLab username (уникальный)          |
-| `telegramId`              | number  | Telegram ID пользователя              |
-| `gitLabId`                | number  | GitLab ID пользователя                |
-| `portalId`                | number  | ID в Bitrix24 Portal                  |
-| `role`                    | enum    | Developer, QA, Project Manager, Admin |
-| `status`                  | enum    | Active, Blocked, Vacation             |
-| `gender`                  | enum    | Male, Female                          |
-| `settings.useAI`          | boolean | Использовать AI для отчётов           |
-| `settings.reportHour`     | number  | Час автоматической отправки (0–23)    |
-| `settings.reportTemplate` | enum    | Standard, QA, SA                      |
-| `settings.language`       | enum    | RU, EN                                |
+| Поле                      | Тип     | Описание                           |
+| ------------------------- | ------- | ---------------------------------- |
+| `adminId`                 | string  | GitLab username (уникальный)       |
+| `telegramId`              | number  | Telegram ID пользователя           |
+| `gitLabId`                | number  | GitLab ID пользователя             |
+| `portalId`                | number  | ID в Bitrix24 Portal               |
+| `role`                    | enum    | Developer, QA, PM, SA, Admin       |
+| `status`                  | enum    | Active, Blocked, Vacation          |
+| `gender`                  | enum    | Male, Female                       |
+| `settings.useAI`          | boolean | Использовать AI для отчётов        |
+| `settings.reportHour`     | number  | Час автоматической отправки (0–23) |
+| `settings.reportTemplate` | enum    | Standard, QA, SA                   |
+| `settings.language`       | enum    | RU, EN                             |
 
 ---
 
@@ -326,7 +330,7 @@ curl -X POST http://localhost:3000/report/setup-user-commands
 | `pnpm run start:prod`  | Запуск из собранного `dist/`  |
 | `pnpm run lint`        | Линтинг с авто-исправлением   |
 | `pnpm run format`      | Форматирование Prettier       |
-| `pnpm test`            | Запуск тестов                 |
+| `pnpm test`            | Запуск автотестов             |
 
 ---
 

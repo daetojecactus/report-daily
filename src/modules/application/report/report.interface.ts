@@ -1,15 +1,13 @@
 import type { TaskStatus, TaskType } from '../../../common/enums/task.enum';
+import type { Language } from '../../../common/i18n/i18n';
 
 //строка отчета — одна задача
 export interface ReportLine {
   title: string;
   status: TaskStatus;
   taskType: TaskType;
-  //финальный текст: «Начал работу «Задача»» или AI-описание
   description: string;
-  //ссылка на задачу/мр в gitlab (для шаблонов со ссылками)
   webUrl: string | null;
-  //приоритет (значение лейбла priority::*), null если не задан
   priority: string | null;
 }
 
@@ -24,4 +22,11 @@ export interface DailyReport {
   date: string;
   projects: ProjectReport[];
   text: string;
+}
+
+//минимум данных, нужный чтобы сгенерировать и доставить отчёт
+export interface ReportRecipient {
+  adminId: string;
+  telegramId: number;
+  language?: Language;
 }

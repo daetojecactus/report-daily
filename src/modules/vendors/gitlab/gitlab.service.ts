@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { GitLabRepository } from './gitlab.repository';
-import { formatDateToISO, shiftDate } from 'src/common/helpers/date.helper';
+import {
+  formatDateToISO,
+  parseLocalDate,
+  shiftDate,
+} from 'src/common/helpers/date.helper';
 import type {
   GitLabCommit,
   GitLabEvent,
@@ -29,13 +33,16 @@ export class GitLabService {
     return this.gitlabRepository.getEvents(params);
   }
 
-  //события за конкретную дату (after/before — исключающие)
+  //события за конкретную дату
+  //after/before в gitlab — исключающие границы по датам UTC, а день отчёта считается
+  //по локальной таймзоне, поэтому берём запас в сутки с каждой стороны.
+  //лишнее отсекается точным фильтром по локальному дню при сборке данных
   async getEventsForDate(userId: number, date: string): Promise<GitLabEvent[]> {
-    const target = new Date(date);
+    const target = parseLocalDate(date);
 
     return this.getEvents({
-      after: formatDateToISO(shiftDate(target, -1)),
-      before: formatDateToISO(shiftDate(target, 1)),
+      after: formatDateToISO(shiftDate(target, -2)),
+      before: formatDateToISO(shiftDate(target, 2)),
       userId,
     });
   }

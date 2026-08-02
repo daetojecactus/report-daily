@@ -8,6 +8,7 @@ import {
 import { BotCommandMessages } from './constants/bot-command.messages';
 import { UserCallbackAction } from './bot-command.enums';
 import { Language, getLocale } from 'src/common/i18n/i18n';
+import { resolveUserLanguage } from '../user/user.helper';
 import {
   getRoleLabel,
   getStatusLabel,
@@ -28,7 +29,7 @@ export class UserCommandService {
   ) {}
 
   async handleInfo(user: User): Promise<CommandResult> {
-    const lang = user.settings?.language ?? Language.RU;
+    const lang = resolveUserLanguage(user);
     const locale = getLocale(lang);
 
     const lines = [
@@ -46,7 +47,7 @@ export class UserCommandService {
   }
 
   async handleSendReport(user: User): Promise<CommandResult> {
-    const lang = user.settings?.language ?? Language.RU;
+    const lang = resolveUserLanguage(user);
     const locale = getLocale(lang);
 
     try {
@@ -68,7 +69,7 @@ export class UserCommandService {
   }
 
   async handleToggleAI(user: User): Promise<CommandResult> {
-    const lang = user.settings?.language ?? Language.RU;
+    const lang = resolveUserLanguage(user);
     const locale = getLocale(lang);
     const currentAI = user.settings?.useAI ?? false;
 
@@ -94,7 +95,7 @@ export class UserCommandService {
   }
 
   async handleChangeReportHour(user: User): Promise<CommandResult> {
-    const lang = user.settings?.language ?? Language.RU;
+    const lang = resolveUserLanguage(user);
     const locale = getLocale(lang);
     const currentHour = user.settings?.reportHour;
 
@@ -115,7 +116,7 @@ export class UserCommandService {
   }
 
   async handleLanguage(user: User): Promise<CommandResult> {
-    const lang = user.settings?.language ?? Language.RU;
+    const lang = resolveUserLanguage(user);
     const locale = getLocale(lang);
 
     const keyboard: InlineKeyboardMarkup = {
@@ -146,7 +147,7 @@ export class UserCommandService {
   }
 
   async handleHelp(user: User): Promise<CommandResult> {
-    const lang = user.settings?.language ?? Language.RU;
+    const lang = resolveUserLanguage(user);
     const locale = getLocale(lang);
 
     const commands = getUserBotCommands(locale);
@@ -166,7 +167,7 @@ export class UserCommandService {
     const user = await this.userService.findOne({ telegramId });
     if (!user) return null;
 
-    const lang = user.settings?.language ?? Language.RU;
+    const lang = resolveUserLanguage(user);
     const locale = getLocale(lang);
 
     if (data.startsWith(UserCallbackAction.TOGGLE_AI)) {

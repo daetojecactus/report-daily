@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { GitLabClient } from './gitlab.client';
+import { GITLAB_EVENTS_MAX_PAGES } from './constants/gitlab.constants';
 import {
   GitLabCommit,
   GitLabEvent,
@@ -29,24 +30,37 @@ export class GitLabRepository {
   }
 
   //получаем события из ленты активности пользователя
+  //страницы обходим до конца: у активного пользователя событий за окно больше одной страницы,
+  //а sort=desc обрезал бы как раз самые ранние из них
   async getEvents(params: {
     after: string;
     before?: string;
     userId?: number;
   }): Promise<GitLabEvent[]> {
     const { after, before, userId } = params;
-    const { data } = await this.gitlabClient.instance.get<GitLabEvent[]>(
-      userId ? `/users/${userId}/events` : '/events',
-      {
-        params: {
-          after,
-          ...(before && { before }),
-          per_page: 100,
-          sort: 'desc',
+    const url = userId ? `/users/${userId}/events` : '/events';
+    const perPage = this.gitlabClient.getEventsPerPage();
+    const events: GitLabEvent[] = [];
+
+    for (let page = 1; page <= GITLAB_EVENTS_MAX_PAGES; page++) {
+      const { data } = await this.gitlabClient.instance.get<GitLabEvent[]>(
+        url,
+        {
+          params: {
+            after,
+            ...(before && { before }),
+            per_page: perPage,
+            page,
+            sort: 'desc',
+          },
         },
-      },
-    );
-    return data;
+      );
+
+      events.push(...data);
+      if (data.length < perPage) break;
+    }
+
+    return events;
   }
 
   //получаем историю изменения лейблов в мр

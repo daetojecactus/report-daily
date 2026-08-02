@@ -14,6 +14,8 @@ export interface Locale {
   taskActions: Record<TaskStatus, GenderedText>;
 
   report: {
+    qaReturns: string;
+    qaTesting: string;
     qaReviewed: string;
     qaBugs: string;
     qaAutoTests: string;
@@ -33,6 +35,8 @@ export interface Locale {
     systemPrompt: string;
     genderMale: string;
     genderFemale: string;
+    //подсказка про роль автора отчёта: у ролей разный словарь
+    roleHints: Record<string, string>;
     labels: {
       task: string;
       action: string;

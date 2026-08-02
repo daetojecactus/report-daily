@@ -1,3 +1,5 @@
+import { QUEUE_FAILED_JOB_TTL_SECONDS } from '../../constants/queue.constants';
+
 export const REPORT_QUEUE_NAME = 'report';
 
 //максимум параллельных обработок (баланс между скоростью и нагрузкой на API)
@@ -12,5 +14,17 @@ export const REPORT_QUEUE_MAX_ATTEMPTS = 3;
 export const REPORT_QUEUE_BACKOFF_TYPE = 'exponential' as const;
 export const REPORT_QUEUE_BACKOFF_DELAY = 3000;
 
-//TTL: если задача не начала обработку за 5 минут — удалить
-export const REPORT_JOB_TIMEOUT_MS = 5 * 60 * 1000;
+//общие опции задачи отчёта: одинаковы для одиночной постановки и батча
+export const REPORT_JOB_OPTIONS = {
+  attempts: REPORT_QUEUE_MAX_ATTEMPTS,
+  backoff: {
+    type: REPORT_QUEUE_BACKOFF_TYPE,
+    delay: REPORT_QUEUE_BACKOFF_DELAY,
+  },
+  removeOnComplete: true,
+  removeOnFail: { age: QUEUE_FAILED_JOB_TTL_SECONDS },
+} as const;
+
+export function buildReportJobName(adminId: string): string {
+  return `report:${adminId}`;
+}

@@ -5,6 +5,7 @@ import { GitGroupBuilder } from './git-group.builder';
 import {
   collectPushBranches,
   extractUniqueKeys,
+  filterEventsByDate,
 } from './git-group.event-parser';
 
 //оркестратор: собирает и группирует все события пользователя за день
@@ -20,7 +21,13 @@ export class GitGroupService {
     userId: number,
     date: string,
   ): Promise<GroupedDailyData> {
-    const events = await this.fetcher.fetchEvents(userId, date);
+    //из gitlab события приходят с запасом в сутки по краям (границы дня там в UTC,
+    //а день отчёта считается по локальной таймзоне) — сразу сужаем до нужного дня,
+    //иначе задачи соседних дней попадут в отчёт без единого действия за день
+    const events = filterEventsByDate(
+      await this.fetcher.fetchEvents(userId, date),
+      date,
+    );
 
     const { issueKeys, mrKeys } = extractUniqueKeys(events);
 

@@ -10,7 +10,9 @@ import { UserMessages } from '../user/constants/user.messages';
 import { AiMessages } from '../ai/constants/ai.messages';
 import { getReportTaskAction } from 'src/common/helpers/get-report-task-action.helper';
 import { Language } from 'src/common/i18n/i18n';
+import { resolveUserLanguage } from '../user/user.helper';
 import { ReportTemplate, UserGender } from '../user/user.enums';
+import type { User } from '../user/user.schema';
 import { ConfigService } from '@nestjs/config';
 import type { ReportDailyBotEnvs } from 'src/modules/infrastructure/config/env';
 
@@ -33,7 +35,7 @@ export class ReportService {
       throw new NotFoundException(UserMessages.USER_NOT_FOUND);
     }
 
-    const language = user.settings?.language ?? Language.RU;
+    const language = resolveUserLanguage(user);
 
     //собираем данные из gitlab: группировка, маппинг, сбор контекста
     const gitReport = await this.gitReportService.generateDailyReport(
@@ -48,7 +50,7 @@ export class ReportService {
 
     //получаем описания: AI или fallback
     const descriptions = user.settings.useAI
-      ? await this.enhanceWithAI(allTasks, user.gender, language)
+      ? await this.enhanceWithAI(allTasks, user, language)
       : this.buildFallback(allTasks, user.gender, language);
 
     //собираем финальные проекты
@@ -84,9 +86,11 @@ export class ReportService {
   //пробует AI, при ошибке — fallback
   private async enhanceWithAI(
     tasks: ReportTaskItem[],
-    gender: UserGender,
+    user: Pick<User, 'gender' | 'role'>,
     language: Language,
   ): Promise<Map<string, string>> {
+    const { gender, role } = user;
+
     if (tasks.length === 0) {
       return this.buildFallback(tasks, gender, language);
     }
@@ -106,6 +110,7 @@ export class ReportService {
       return await this.aiService.enhanceTasks({
         tasks: contexts,
         gender,
+        role,
         language,
       });
     } catch (error) {

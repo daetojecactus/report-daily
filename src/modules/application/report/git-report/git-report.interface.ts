@@ -11,9 +11,7 @@ export interface ReportTaskItem {
   status: TaskStatus;
   taskType: TaskType;
   labels: string[];
-  //приоритет (значение лейбла priority::*): задача приоритетнее мр, иначе null
   priority: string | null;
-  //контекст для AI (коммиты и комменты)
   aiContext: ReportAIContext;
 }
 

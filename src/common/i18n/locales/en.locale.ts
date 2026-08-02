@@ -5,10 +5,6 @@ export const en: Locale = {
   taskActions: {
     //QA
     [TaskStatus.FOUND_BUG]: { male: 'Found a bug', female: 'Found a bug' },
-    [TaskStatus.CREATED_TASK]: {
-      male: 'Created a task',
-      female: 'Created a task',
-    },
     [TaskStatus.VERIFIED_FIX]: {
       male: 'Verified the fix',
       female: 'Verified the fix',
@@ -34,8 +30,8 @@ export const en: Locale = {
       female: 'Tested with comments',
     },
     [TaskStatus.APPROVED_AFTER_REWORK]: {
-      male: 'Approved after rework',
-      female: 'Approved after rework',
+      male: 'Confirmed the fix after rework',
+      female: 'Confirmed the fix after rework',
     },
     [TaskStatus.WROTE_TESTS]: {
       male: 'Wrote tests',
@@ -54,6 +50,40 @@ export const en: Locale = {
       female: 'Blocked release due to a bug',
     },
 
+    //QA (process driven by status::*/qa::*/test::* labels)
+    [TaskStatus.QA_AWAITING_TESTING]: {
+      male: 'Took the task into the testing queue',
+      female: 'Took the task into the testing queue',
+    },
+    [TaskStatus.QA_IN_PROGRESS]: {
+      male: 'Tested the task',
+      female: 'Tested the task',
+    },
+    [TaskStatus.QA_RETURNED_TO_DEV]: {
+      male: 'Returned the task to development',
+      female: 'Returned the task to development',
+    },
+    [TaskStatus.QA_INTERNAL_TASK]: {
+      male: 'Worked on an internal QA task',
+      female: 'Worked on an internal QA task',
+    },
+    [TaskStatus.QA_AUTOMATION_DEVELOPED]: {
+      male: 'Developed autotests',
+      female: 'Developed autotests',
+    },
+    [TaskStatus.QA_AUTOMATION_MAINTAINED]: {
+      male: 'Maintained autotests',
+      female: 'Maintained autotests',
+    },
+    [TaskStatus.QA_TEST_ENVIRONMENT_SETUP]: {
+      male: 'Set up the test environment',
+      female: 'Set up the test environment',
+    },
+    [TaskStatus.QA_E2E_COVERAGE_ADDED]: {
+      male: 'Developed E2E coverage',
+      female: 'Developed E2E coverage',
+    },
+
     //PM
     [TaskStatus.PLANNED_FEATURE]: {
       male: 'Planned a feature',
@@ -68,12 +98,8 @@ export const en: Locale = {
       female: 'Accepted the completed work',
     },
     [TaskStatus.PROVIDED_REQUIREMENTS]: {
-      male: 'Provided requirements',
-      female: 'Provided requirements',
-    },
-    [TaskStatus.REQUESTED_STATUS]: {
-      male: 'Requested task status',
-      female: 'Requested task status',
+      male: 'Clarified the requirements',
+      female: 'Clarified the requirements',
     },
     [TaskStatus.ESCALATED_PRIORITY]: {
       male: 'Escalated the priority',
@@ -86,6 +112,25 @@ export const en: Locale = {
     [TaskStatus.REVIEWED_AND_CLOSED]: {
       male: 'Reviewed and closed the task',
       female: 'Reviewed and closed the task',
+    },
+
+    [TaskStatus.PLANNED_FOR_SPRINT]: {
+      male: 'Added the task to the sprint plan',
+      female: 'Added the task to the sprint plan',
+    },
+
+    //Shared by Developer and PM/SA — how the task moved through QA
+    [TaskStatus.TASK_SENT_TO_QA]: {
+      male: 'Passed the task to QA',
+      female: 'Passed the task to QA',
+    },
+    [TaskStatus.TASK_IN_QA_TESTING]: {
+      male: 'Followed the task while it was in testing',
+      female: 'Followed the task while it was in testing',
+    },
+    [TaskStatus.TASK_RETURNED_FROM_QA]: {
+      male: 'Returned the task to development after testing',
+      female: 'Returned the task to development after testing',
     },
 
     //Developer (Assignee)
@@ -102,8 +147,8 @@ export const en: Locale = {
       female: 'Implemented a feature',
     },
     [TaskStatus.COMPLETED_BY_MERGE]: {
-      male: 'Completed the task via merge',
-      female: 'Completed the task via merge',
+      male: 'Completed the task with a merge',
+      female: 'Completed the task with a merge',
     },
     [TaskStatus.SENT_TO_REVIEW]: {
       male: 'Sent for code review',
@@ -114,8 +159,8 @@ export const en: Locale = {
       female: 'Passed code review',
     },
     [TaskStatus.NEED_INFORMATION]: {
-      male: 'Requested additional information',
-      female: 'Requested additional information',
+      male: 'Requested clarification',
+      female: 'Requested clarification',
     },
     [TaskStatus.PASSED_TO_FRONTEND]: {
       male: 'Passed to frontend',
@@ -146,12 +191,28 @@ export const en: Locale = {
       female: 'Resumed work on the task',
     },
     [TaskStatus.RESOLVED_REVIEW_COMMENTS]: {
-      male: 'Resolved reviewer comments',
-      female: 'Resolved reviewer comments',
+      male: 'Closed out the review comments',
+      female: 'Closed out the review comments',
     },
-    [TaskStatus.DEPLOYED_TO_PRODUCTION]: {
-      male: 'Deployed to production',
-      female: 'Deployed to production',
+    [TaskStatus.RESOLVING_REVIEW_COMMENTS]: {
+      male: 'Worked through the review comments',
+      female: 'Worked through the review comments',
+    },
+    [TaskStatus.DEV_FIXING_AFTER_QA]: {
+      male: 'Fixed issues reported by QA',
+      female: 'Fixed issues reported by QA',
+    },
+    [TaskStatus.DEV_RESUBMITTED_TO_QA]: {
+      male: 'Fixed the findings and sent the task back to testing',
+      female: 'Fixed the findings and sent the task back to testing',
+    },
+    [TaskStatus.DEV_PASSED_QA]: {
+      male: 'Passed QA testing',
+      female: 'Passed QA testing',
+    },
+    [TaskStatus.RESOLVED_MERGE_CONFLICTS]: {
+      male: 'Rebased the branch and resolved conflicts',
+      female: 'Rebased the branch and resolved conflicts',
     },
 
     //Developer (Reviewer)
@@ -176,12 +237,12 @@ export const en: Locale = {
       female: 'Left code review comments',
     },
     [TaskStatus.STARTED_REVIEW]: {
-      male: 'Started reviewing the merge request',
-      female: 'Started reviewing the merge request',
+      male: 'Picked up the merge request for review',
+      female: 'Picked up the merge request for review',
     },
     [TaskStatus.MERGED_OTHERS_WORK]: {
-      male: "Merged another developer's work",
-      female: "Merged another developer's work",
+      male: "Merged a teammate's task",
+      female: "Merged a teammate's task",
     },
     [TaskStatus.RE_REVIEWED_AND_APPROVED]: {
       male: 'Re-reviewed and approved',
@@ -194,8 +255,8 @@ export const en: Locale = {
       female: 'Logged technical debt',
     },
     [TaskStatus.FOUND_BUG_DURING_WORK]: {
-      male: 'Found a bug during development',
-      female: 'Found a bug during development',
+      male: 'Found a bug while working on the task',
+      female: 'Found a bug while working on the task',
     },
     [TaskStatus.ACCEPTED_RESULT]: {
       male: 'Accepted the result',
@@ -204,20 +265,20 @@ export const en: Locale = {
 
     //Secondary involvement (by engagement level)
     [TaskStatus.CONTRIBUTED_CODE]: {
-      male: 'Contributed to development',
-      female: 'Contributed to development',
+      male: 'Contributed to the task',
+      female: 'Contributed to the task',
     },
     [TaskStatus.HELPED_WITH_TASK]: {
       male: 'Helped with the task',
       female: 'Helped with the task',
     },
     [TaskStatus.ASSISTED_REVIEW]: {
-      male: 'Assisted with the review',
-      female: 'Assisted with the review',
+      male: 'Helped with the review',
+      female: 'Helped with the review',
     },
     [TaskStatus.PAIRED_ON_TASK]: {
-      male: 'Collaborated on the task',
-      female: 'Collaborated on the task',
+      male: 'Worked on the task together with the team',
+      female: 'Worked on the task together with the team',
     },
     [TaskStatus.HELPED_RESOLVE_BUG]: {
       male: 'Helped fix the bug',
@@ -229,6 +290,10 @@ export const en: Locale = {
     },
 
     //General
+    [TaskStatus.CREATED]: {
+      male: 'Created a task',
+      female: 'Created a task',
+    },
     [TaskStatus.COMMENTED]: {
       male: 'Left a comment',
       female: 'Left a comment',
@@ -245,18 +310,6 @@ export const en: Locale = {
       male: 'Continued work',
       female: 'Continued work',
     },
-    [TaskStatus.CREATED]: {
-      male: 'Created a task',
-      female: 'Created a task',
-    },
-    [TaskStatus.CREATED_PROJECT]: {
-      male: 'Created a project',
-      female: 'Created a project',
-    },
-    [TaskStatus.CREATED_REPO]: {
-      male: 'Created a repository',
-      female: 'Created a repository',
-    },
     [TaskStatus.REOPENED]: {
       male: 'Reopened the task',
       female: 'Reopened the task',
@@ -265,6 +318,10 @@ export const en: Locale = {
       male: 'Closed the task without merge',
       female: 'Closed the task without merge',
     },
+    [TaskStatus.PUT_ON_HOLD]: {
+      male: 'Put the task on hold',
+      female: 'Put the task on hold',
+    },
     [TaskStatus.UNKNOWN]: {
       male: 'Worked on the task',
       female: 'Worked on the task',
@@ -272,6 +329,8 @@ export const en: Locale = {
   },
 
   report: {
+    qaReturns: 'Returned to development',
+    qaTesting: 'Testing',
     qaReviewed: 'MR / Reviewed tasks',
     qaBugs: 'Bugs',
     qaAutoTests: 'Autotests / POM / Coverage',
@@ -289,7 +348,8 @@ export const en: Locale = {
     userRole: {
       Developer: 'Developer',
       QA: 'QA',
-      'Project Manager': 'Project Manager',
+      PM: 'Project Manager',
+      SA: 'System Analyst',
       Admin: 'Admin',
     },
     reportTemplate: {
@@ -346,6 +406,15 @@ ERRORS (DO NOT DO THIS):
 `,
     genderMale: 'Write in first person, past tense.',
     genderFemale: 'Write in first person, past tense.',
+    roleHints: {
+      Developer:
+        'AUTHOR ROLE: developer. Use engineering language: implementation, fixes, refactoring, review, merge. Technical details from commits are welcome.',
+      QA: 'AUTHOR ROLE: QA engineer. Use testing language: verification, reproduction, regression, coverage, autotests. Do not describe code implementation — only what was tested or automated.',
+      PM: 'AUTHOR ROLE: project manager. Use process language: scoping, priorities, alignment, acceptance, task status. Avoid technical details.',
+      SA: 'AUTHOR ROLE: system analyst. Use analysis language: requirements, research, solution description, clarifying the spec. Do not describe code implementation.',
+      Admin:
+        'AUTHOR ROLE: developer with admin rights. Use engineering language: implementation, fixes, review, merge.',
+    },
     labels: {
       task: 'Task',
       action: 'Action',

@@ -51,8 +51,17 @@ export class TelegramPollingService implements OnModuleInit, OnModuleDestroy {
         });
 
         for (const update of updates) {
-          await this.processUpdate(update);
+          //offset двигаем до обработки: иначе упавший апдейт будет
+          //бесконечно возвращаться из getUpdates и блокировать очередь
           this.offset = update.update_id + 1;
+
+          try {
+            await this.processUpdate(update);
+          } catch (error) {
+            this.logger.error(
+              `${TelegramPollingMessages.UPDATE_FAILED}: ${update.update_id}: ${getErrorMessage(error)}`,
+            );
+          }
         }
       } catch (error) {
         this.logger.error(

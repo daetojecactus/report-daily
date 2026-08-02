@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { TelegramClient } from './telegram.client';
 import { ParseMode } from './telegram.enums';
+import {
+  TELEGRAM_DEFAULT_POLL_TIMEOUT,
+  TELEGRAM_ERROR_BODY_LIMIT,
+  TELEGRAM_REQUEST_TIMEOUT_MS,
+} from './constants/telegram.constants';
 import type {
   TelegramResponse,
   TelegramApiResponse,
@@ -101,21 +106,25 @@ export class TelegramRepository {
   }
 
   //получает обновления через long polling
+  //таймаут запроса должен превышать таймаут удержания соединения телегой, иначе оборвём сами себя
   async getUpdates(params: {
     offset?: number;
     timeout?: number;
   }): Promise<TelegramApiResponse<TelegramUpdate[]>> {
-    const { offset, timeout = 30 } = params;
-    return this.callApi<TelegramUpdate[]>('getUpdates', {
-      timeout,
-      ...(offset ? { offset } : {}),
-    });
+    const { offset, timeout = TELEGRAM_DEFAULT_POLL_TIMEOUT } = params;
+
+    return this.callApi<TelegramUpdate[]>(
+      'getUpdates',
+      { timeout, ...(offset ? { offset } : {}) },
+      timeout * 1000 + TELEGRAM_REQUEST_TIMEOUT_MS,
+    );
   }
 
   //общий метод вызова Telegram Bot API
   private async callApi<T = boolean>(
     method: string,
     body: Record<string, unknown>,
+    timeoutMs = TELEGRAM_REQUEST_TIMEOUT_MS,
   ): Promise<TelegramApiResponse<T>> {
     const response = await fetch(
       `${this.telegramClient.getBaseUrl()}/${method}`,
@@ -123,9 +132,21 @@ export class TelegramRepository {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
+        signal: AbortSignal.timeout(timeoutMs),
       },
     );
 
-    return (await response.json()) as TelegramApiResponse<T>;
+    //на 5xx и при заглушках прокси телега отвечает не json — читаем как текст,
+    //иначе response.json() падает с невнятной ошибкой парсинга
+    const raw = await response.text();
+
+    try {
+      return JSON.parse(raw) as TelegramApiResponse<T>;
+    } catch {
+      return {
+        ok: false,
+        description: `HTTP ${response.status}: ${raw.slice(0, TELEGRAM_ERROR_BODY_LIMIT)}`,
+      } as TelegramApiResponse<T>;
+    }
   }
 }

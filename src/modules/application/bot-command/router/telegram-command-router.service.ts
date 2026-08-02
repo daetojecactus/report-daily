@@ -28,6 +28,7 @@ import { Language, getLocale } from 'src/common/i18n/i18n';
 import { formatDateToISO } from 'src/common/helpers/date.helper';
 import { getErrorMessage } from 'src/common/helpers/error.helper';
 import type { User } from 'src/modules/application/user/user.schema';
+import { resolveUserLanguage } from 'src/modules/application/user/user.helper';
 
 @Injectable()
 export class TelegramCommandRouter {
@@ -57,7 +58,7 @@ export class TelegramCommandRouter {
     const owner = await this.userService.findOne({
       telegramId: this.ownerTelegramId,
     });
-    return owner?.settings?.language ?? Language.RU;
+    return owner ? resolveUserLanguage(owner) : Language.RU;
   }
 
   async handleCallbackQuery(
@@ -87,11 +88,7 @@ export class TelegramCommandRouter {
           }
         }
       } else {
-        const locale = getLocale(Language.RU);
-        await this.telegramService.sendMessageTo(
-          chatId,
-          locale.commands.notRegistered,
-        );
+        await this.sendNotRegistered(chatId);
       }
       return null;
     }
@@ -136,7 +133,7 @@ export class TelegramCommandRouter {
     if (text?.toLowerCase().startsWith(BotCommand.START)) {
       const user = await this.userService.findOne({ telegramId });
       if (user) {
-        const lang = user.settings?.language ?? Language.RU;
+        const lang = resolveUserLanguage(user);
         const locale = getLocale(lang);
         //гарантируем актуальное меню команд при первом входе пользователя
         await this.botCommandSetupService.syncCommandsForTelegramId(
@@ -173,11 +170,7 @@ export class TelegramCommandRouter {
     if (command && USER_COMMANDS.has(command)) {
       const user = await this.userService.findOne({ telegramId });
       if (!user) {
-        const locale = getLocale(Language.RU);
-        await this.telegramService.sendMessageTo(
-          chatId,
-          locale.commands.notRegistered,
-        );
+        await this.sendNotRegistered(chatId);
         return null;
       }
 
@@ -197,11 +190,7 @@ export class TelegramCommandRouter {
       } else {
         const user = await this.userService.findOne({ telegramId });
         if (!user) {
-          const locale = getLocale(Language.RU);
-          await this.telegramService.sendMessageTo(
-            chatId,
-            locale.commands.notRegistered,
-          );
+          await this.sendNotRegistered(chatId);
           return null;
         }
         const result = await this.userCommandService.handleHelp(user);
@@ -239,6 +228,15 @@ export class TelegramCommandRouter {
     return null;
   }
 
+  //язык неизвестен: пользователя нет в базе, поэтому отвечаем на языке по умолчанию
+  private async sendNotRegistered(chatId: number): Promise<void> {
+    const locale = getLocale(Language.RU);
+    await this.telegramService.sendMessageTo(
+      chatId,
+      locale.commands.notRegistered,
+    );
+  }
+
   async sendResult(chatId: number, result: CommandResult): Promise<void> {
     if (result.keyboard) {
       await this.telegramService.sendMessageWithKeyboard(
@@ -267,7 +265,7 @@ export class TelegramCommandRouter {
       case BotCommand.LANGUAGE:
         return this.userCommandService.handleLanguage(user);
       default: {
-        const lang = user.settings?.language ?? Language.RU;
+        const lang = resolveUserLanguage(user);
         const locale = getLocale(lang);
         return { text: locale.admin.unknownCommand };
       }

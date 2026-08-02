@@ -11,11 +11,13 @@ import { GitReportService } from './git-report/git-report.service';
 import { VendorModule } from 'src/modules/vendors/vendor.module';
 import { ReportTemplateService } from './report-template/report-template.service';
 import { GitGroupService } from './git-report/git-group/git-group.service';
+import { ReportDeliveryService } from './report-delivery/report-delivery.service';
 
 @Module({
   imports: [AiModule, UserModule, VendorModule],
   providers: [
     ReportService,
+    ReportDeliveryService,
     ReportTemplateService,
     GitReportService,
     GitGroupService,
@@ -25,6 +27,6 @@ import { GitGroupService } from './git-report/git-group/git-group.service';
     GitMapperContextBuilder,
     GitMapperStatusResolver,
   ],
-  exports: [ReportService],
+  exports: [ReportService, ReportDeliveryService],
 })
 export class ReportModule {}

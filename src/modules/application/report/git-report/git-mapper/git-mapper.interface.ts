@@ -4,14 +4,16 @@ import type {
   StandaloneMergeRequest,
   StandalonePush,
 } from '../git-group/git-group.interface';
-import { UserRole } from 'src/modules/application/user/user.enums';
-import { EngagementLevel, TaskRole } from './git-mapper.enums';
-import {
+import type { UserRole } from 'src/modules/application/user/user.enums';
+import type { EngagementLevel, TaskRole } from './git-mapper.enums';
+import type {
   LabelPriority,
+  LabelQa,
   LabelStatus,
+  LabelTest,
   LabelType,
 } from 'src/common/enums/label.enum';
-import {
+import type {
   GitLabAction,
   GitLabIssueState,
   GitLabMergeRequestState,
@@ -60,7 +62,6 @@ export interface TaskContextData {
 
 //временные метки жизненного цикла задачи
 export interface TaskDates {
-  issueCreatedAt: string | null;
   mergeRequestCreatedAt: string | null;
   //дата последнего коммита до дня отчёта (null если ранее коммитов не было)
   mergeRequestLastCommitAt: string | null;
@@ -75,18 +76,35 @@ export interface TaskLabels {
   previousStatus: LabelStatus | null;
   statusLabelsSetByCurrentUser: LabelStatus[];
   priorityChangedByCurrentUser: boolean;
+  //статус-лейблы, висящие на задаче сейчас (в отличие от currentStatus — только переходы за день)
+  activeStatuses: LabelStatus[];
+  //лейблы скоупа qa::* — активные на задаче либо выставленные в день отчёта
+  qaFlags: LabelQa[];
+  qaFlagsSetByCurrentUser: LabelQa[];
+  //лейблы скоупа test::*
+  testFlags: LabelTest[];
+  //ветка отстаёт от целевой; resolved = лейбл сняли в день отчёта
+  needsRebase: boolean;
+  needsRebaseResolved: boolean;
 }
 
 //поток активности пользователя
 export interface ActivityStream {
   issueState: GitLabIssueState | null;
   mergeRequestState: GitLabMergeRequestState | null;
+  //закрытие/мердж случились именно в день отчёта, а не когда-то раньше
+  issueClosedOnReportDate: boolean;
+  mergeRequestMergedOnReportDate: boolean;
   issueActions: GitLabAction[];
   mergeRequestActions: GitLabAction[];
   issueCommentsFromCurrentUser: number;
   mergeRequestCommentsFromCurrentUser: number;
   mergeRequestCommentsFromOthers: number;
   mergeRequestCommitCount: number;
+  commitTitles: string[];
+  //треды ревью в мр: сколько всего и сколько ещё открыто
+  reviewThreadCount: number;
+  unresolvedReviewThreadCount: number;
 }
 
 //данные об апрувах

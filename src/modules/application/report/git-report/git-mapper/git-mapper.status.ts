@@ -7,8 +7,18 @@ import { TaskStatus } from 'src/common/enums/task.enum';
 export class GitMapperStatusResolver {
   //определение статуса по роли
   resolve(context: TaskContext): TaskStatus {
-    //стезя pm — свой процесс (планирование/приёмка), мердж кода для него нетипичен
-    if (context.isProjectManager()) {
+    //задача отложена — итог дня по ней для любой роли,
+    //кроме случаев когда её всё же довели до закрытия или мерджа
+    if (
+      context.currentUserPutOnHold() &&
+      !context.currentUserClosedIssue() &&
+      !context.currentUserMergedMergeRequest()
+    ) {
+      return TaskStatus.PUT_ON_HOLD;
+    }
+
+    //стезя pm и системного аналитика — процесс (планирование/приёмка), мердж кода нетипичен
+    if (context.isNonEngineeringRole()) {
       return this.determineForPM(context);
     }
 
@@ -40,19 +50,26 @@ export class GitMapperStatusResolver {
 
     //дальше — мердж своей работы
 
-    //отдельный мр без задачи (хотфикс): срочный баг → деплой на прод
-    if (context.isStandaloneMergeRequest() && context.isUrgentTask()) {
-      return TaskStatus.DEPLOYED_TO_PRODUCTION;
+    //мердж тестового кода: e2e-покрытие и внутренние qa-задачи важнее типа задачи.
+    //пуш мог быть раньше дня мерджа, поэтому здесь он не обязателен
+    if (
+      context.needsE2ECoverage() &&
+      (context.isQualityAssurance() || context.hasTestRelatedCommits())
+    ) {
+      return TaskStatus.QA_E2E_COVERAGE_ADDED;
+    }
+    if (context.isQaInternalTask()) {
+      return this.determineQaInternalWork(context, true);
     }
 
-    //отдельный мр без задачи + критический приоритет → хотфикс
-    if (context.isStandaloneMergeRequest() && context.isCriticalPriority()) {
+    //хотфикс: явный лейбл type::hotfix либо срочный мердж отдельного мр без задачи.
+    //факт деплоя из gitlab не виден — мы знаем только про мердж, поэтому про прод не заявляем
+    if (
+      context.isHotfix() ||
+      (context.isStandaloneMergeRequest() &&
+        (context.isCriticalPriority() || context.isUrgentTask()))
+    ) {
       return TaskStatus.HOTFIX_DEPLOYED;
-    }
-
-    //критический баг → деплой на прод
-    if (context.isCriticalPriority() && context.isBug()) {
-      return TaskStatus.DEPLOYED_TO_PRODUCTION;
     }
 
     //свой мердж по типу задачи
@@ -63,6 +80,26 @@ export class GitMapperStatusResolver {
 
   //определяем для qa
   private determineForQA(context: TaskContext): TaskStatus {
+    //внутренняя задача qa (type::qa) — автоматизация и инфраструктура, а не мануальный тест
+    if (context.isQaInternalTask()) {
+      return this.determineQaInternalWork(context);
+    }
+
+    //разработка e2e-покрытия (test::e2e required / type::e2e)
+    if (context.isE2ECoverageWork()) {
+      return TaskStatus.QA_E2E_COVERAGE_ADDED;
+    }
+
+    //забраковал и вернул в разработку — терминальный итог дня по задаче
+    if (context.currentUserReturnedTaskToDevelopment()) {
+      return TaskStatus.QA_RETURNED_TO_DEV;
+    }
+
+    //подтвердил успешное прохождение тестирования (status::QA passed)
+    if (context.currentUserMarkedQaPassed()) {
+      return TaskStatus.TESTED_AND_APPROVED;
+    }
+
     //qa как ревьюер
     if (context.isReviewer()) {
       return this.determineForQAReviewer(context);
@@ -72,10 +109,44 @@ export class GitMapperStatusResolver {
     return this.determineForQAWorker(context);
   }
 
-  //qa как ревьюер
-  private determineForQAReviewer(context: TaskContext): TaskStatus {
+  //внутренняя работа qa: автотесты, поддержка покрытия, тестовое окружение
+  //hasCodeWork передаётся отдельно: при мердже своего мр код написан, даже если пуш был раньше
+  private determineQaInternalWork(
+    context: TaskContext,
+    hasCodeWork: boolean = context.currentUserPushedCode(),
+  ): TaskStatus {
+    //e2e-покрытие для задачи
+    if (context.needsE2ECoverage() && hasCodeWork) {
+      return TaskStatus.QA_E2E_COVERAGE_ADDED;
+    }
+
+    //починка и актуализация существующих тестов (упавшие тесты, рефакторинг на POM)
+    if (hasCodeWork && (context.isMaintenance() || context.isBug())) {
+      return TaskStatus.QA_AUTOMATION_MAINTAINED;
+    }
+
+    //разработка новых автотестов
+    if (hasCodeWork) {
+      return TaskStatus.QA_AUTOMATION_DEVELOPED;
+    }
+
+    //отдал автотесты на ревью
+    if (context.currentUserSentToReview()) {
+      return TaskStatus.SENT_TO_REVIEW;
+    }
+
+    //работа без кода над окружением/инструментарием
+    if (context.isMaintenance()) {
+      return TaskStatus.QA_TEST_ENVIRONMENT_SETUP;
+    }
+
+    return TaskStatus.QA_INTERNAL_TASK;
+  }
+
+  //общее начало обеих qa-веток: жизненный цикл самой задачи
+  private resolveQaIssueLifecycle(context: TaskContext): TaskStatus | null {
     //закрыл задачу и принял исправление
-    if (context.currentUserClosedIssue() || context.isIssueClosed()) {
+    if (context.isIssueClosedToday()) {
       return TaskStatus.VERIFIED_FIX;
     }
 
@@ -88,6 +159,38 @@ export class GitMapperStatusResolver {
     if (context.currentUserReopenedIssue()) {
       return TaskStatus.REOPENED;
     }
+
+    return null;
+  }
+
+  //общий хвост обеих qa-веток: слабые сигналы, когда явных действий не нашлось
+  private resolveQaFallback(context: TaskContext): TaskStatus | null {
+    //уточнил детали бага
+    if (
+      context.currentUserCommentedOnIssue() &&
+      (context.isDoing() || context.isNeedInformation()) &&
+      context.isBug()
+    ) {
+      return TaskStatus.CLARIFIED_BUG;
+    }
+
+    //прокомментировал задачу
+    if (context.currentUserCommentedAnywhere()) {
+      return TaskStatus.COMMENTED;
+    }
+
+    //задача передана на тестирование, но работа по ней ещё не началась
+    if (context.isReadyForQa()) {
+      return TaskStatus.QA_AWAITING_TESTING;
+    }
+
+    return null;
+  }
+
+  //qa как ревьюер
+  private determineForQAReviewer(context: TaskContext): TaskStatus {
+    const lifecycle = this.resolveQaIssueLifecycle(context);
+    if (lifecycle) return lifecycle;
 
     //заблокировал релиз — эскалация критического бага при тестировании
     if (
@@ -113,6 +216,11 @@ export class GitMapperStatusResolver {
       return TaskStatus.RETURNED_FOR_REVISION;
     }
 
+    //взял задачу на тестирование (status::QA in progress)
+    if (context.currentUserStartedQaTesting()) {
+      return TaskStatus.QA_IN_PROGRESS;
+    }
+
     //начал тестирование
     if (context.currentUserSentToTesting()) {
       return TaskStatus.STARTED_TESTING;
@@ -127,23 +235,18 @@ export class GitMapperStatusResolver {
       return TaskStatus.TESTED_WITH_COMMENTS;
     }
 
-    //уточнил детали бага
-    if (
-      context.currentUserCommentedOnIssue() &&
-      (context.isDoing() || context.isNeedInformation()) &&
-      context.isBug()
-    ) {
-      return TaskStatus.CLARIFIED_BUG;
-    }
-
     //оставил комментарий к мр
     if (context.currentUserCommentedOnMergeRequest()) {
       return TaskStatus.REVIEW_COMMENT;
     }
 
-    //прокомментировал задачу
-    if (context.currentUserCommentedAnywhere()) {
-      return TaskStatus.COMMENTED;
+    const fallback = this.resolveQaFallback(context);
+    if (fallback) return fallback;
+
+    //статус review у команды означает «ожидает проверки либо тестирования»:
+    //для тестировщика, назначенного проверяющим, это его проверка, а не код-ревью
+    if (context.isInReviewPhase()) {
+      return TaskStatus.QA_IN_PROGRESS;
     }
 
     return TaskStatus.UNKNOWN;
@@ -151,20 +254,8 @@ export class GitMapperStatusResolver {
 
   //qa не ревьюер
   private determineForQAWorker(context: TaskContext): TaskStatus {
-    //закрыл задачу и принял исправление
-    if (context.currentUserClosedIssue() || context.isIssueClosed()) {
-      return TaskStatus.VERIFIED_FIX;
-    }
-
-    //переоткрыл баг
-    if (context.currentUserReopenedIssue() && context.isBug()) {
-      return TaskStatus.REOPENED_BUG;
-    }
-
-    //переоткрыл задачу
-    if (context.currentUserReopenedIssue()) {
-      return TaskStatus.REOPENED;
-    }
+    const lifecycle = this.resolveQaIssueLifecycle(context);
+    if (lifecycle) return lifecycle;
 
     //нашел регрессию — создал баг, пока задача в тестировании
     if (
@@ -182,7 +273,7 @@ export class GitMapperStatusResolver {
 
     //создал задачу
     if (context.currentUserOpenedIssue()) {
-      return TaskStatus.CREATED_TASK;
+      return TaskStatus.CREATED;
     }
 
     //заблокировал релиз — эскалация критического бага
@@ -222,36 +313,27 @@ export class GitMapperStatusResolver {
       return TaskStatus.WROTE_CODE;
     }
 
-    //уточнил детали бага
-    if (
-      context.currentUserCommentedOnIssue() &&
-      (context.isDoing() || context.isNeedInformation()) &&
-      context.isBug()
-    ) {
-      return TaskStatus.CLARIFIED_BUG;
+    //взял задачу на тестирование (status::QA in progress)
+    if (context.currentUserStartedQaTesting()) {
+      return TaskStatus.QA_IN_PROGRESS;
     }
 
-    //прокомментировал задачу
-    if (context.currentUserCommentedAnywhere()) {
-      return TaskStatus.COMMENTED;
-    }
-
-    //дальше как разработчик (мр, статусы, fallback)
-    return this.determineForDeveloperAssignee(context);
+    return (
+      this.resolveQaFallback(context) ??
+      //дальше как разработчик (мр, статусы, fallback)
+      this.determineForDeveloperAssignee(context)
+    );
   }
 
   //pm
   private determineForPM(context: TaskContext): TaskStatus {
     //проверил и закрыл фичу
-    if (
-      (context.currentUserClosedIssue() || context.isIssueClosed()) &&
-      context.isFeature()
-    ) {
+    if (context.isIssueClosedToday() && context.isFeature()) {
       return TaskStatus.REVIEWED_AND_CLOSED;
     }
 
     //закрыл задачу
-    if (context.currentUserClosedIssue() || context.isIssueClosed()) {
+    if (context.isIssueClosedToday()) {
       return TaskStatus.ACCEPTED_WORK;
     }
 
@@ -280,6 +362,21 @@ export class GitMapperStatusResolver {
       return TaskStatus.ESCALATED_PRIORITY;
     }
 
+    //сам передал задачу на тестирование
+    if (context.currentUserMarkedReadyForQa()) {
+      return TaskStatus.TASK_SENT_TO_QA;
+    }
+
+    //сам вернул задачу в разработку по итогам тестирования
+    if (context.currentUserReturnedTaskToDevelopment()) {
+      return TaskStatus.TASK_RETURNED_FROM_QA;
+    }
+
+    //взял задачу в план спринта
+    if (context.currentUserPlannedTask()) {
+      return TaskStatus.PLANNED_FOR_SPRINT;
+    }
+
     //назначил задачу в работу
     if (context.currentUserReturnedToDoing() || context.isDoing()) {
       if (context.currentUserCommentedAnywhere()) {
@@ -292,6 +389,19 @@ export class GitMapperStatusResolver {
       return TaskStatus.PROVIDED_REQUIREMENTS;
     }
 
+    //дальше — контекст задачи, а не действие самого pm:
+    //эти статусы отражают, на каком этапе задача, если своих действий по ней не было
+
+    //задача вернулась с тестирования в разработку
+    if (context.isReturnedFromQa()) {
+      return TaskStatus.TASK_RETURNED_FROM_QA;
+    }
+
+    //задача в контуре тестирования: ждёт, проверяется или уже проверена
+    if (context.isInQaFlow()) {
+      return TaskStatus.TASK_IN_QA_TESTING;
+    }
+
     //прокомментировал задачу
     if (context.currentUserCommentedAnywhere()) {
       return TaskStatus.COMMENTED;
@@ -302,6 +412,16 @@ export class GitMapperStatusResolver {
 
   //developer/admin
   private determineForDeveloper(context: TaskContext): TaskStatus {
+    //внутренняя qa-задача (type::qa): пишет автотесты, а не продуктовый код
+    if (context.isQaInternalTask() && context.currentUserPushedCode()) {
+      return this.determineQaInternalWork(context);
+    }
+
+    //разработка e2e-покрытия по задаче с test::e2e required
+    if (context.isE2ECoverageWork()) {
+      return TaskStatus.QA_E2E_COVERAGE_ADDED;
+    }
+
     //ревьюер проверяет чужой код
     if (context.isReviewer()) {
       return this.determineForDeveloperReviewer(context);
@@ -334,6 +454,26 @@ export class GitMapperStatusResolver {
       return TaskStatus.REOPENED;
     }
 
+    //тестирование пройдено успешно именно сегодня — заметный итог дня
+    if (context.isQaPassedToday()) {
+      return TaskStatus.DEV_PASSED_QA;
+    }
+
+    //исправил замечания qa и вернул задачу на тестирование
+    if (context.isReturnedFromQa() && context.currentUserMarkedReadyForQa()) {
+      return TaskStatus.DEV_RESUBMITTED_TO_QA;
+    }
+
+    //передал задачу на тестирование
+    if (context.currentUserMarkedReadyForQa()) {
+      return TaskStatus.TASK_SENT_TO_QA;
+    }
+
+    //правит замечания после возврата с тестирования
+    if (context.isReturnedFromQa() && context.currentUserPushedCode()) {
+      return TaskStatus.DEV_FIXING_AFTER_QA;
+    }
+
     //отдал на ревью
     if (context.currentUserSentToReview()) {
       return TaskStatus.SENT_TO_REVIEW;
@@ -354,13 +494,20 @@ export class GitMapperStatusResolver {
       return TaskStatus.PASSED_TO_FRONTEND;
     }
 
-    //устранил замечания ревьюера (пуш + диалог в мр)
-    if (
-      context.currentUserPushedCode() &&
-      context.hasReviewDialog() &&
-      context.isAssignee()
-    ) {
-      return TaskStatus.RESOLVED_REVIEW_COMMENTS;
+    //работа по замечаниям ревью.
+    //треды в мр — это именно замечания: обычный комментарий в gitlab не резолвится
+    if (context.currentUserPushedCode() && context.isAssignee()) {
+      if (context.hasReviewThreads()) {
+        return context.hasUnresolvedReviewThreads()
+          ? TaskStatus.RESOLVING_REVIEW_COMMENTS
+          : TaskStatus.RESOLVED_REVIEW_COMMENTS;
+      }
+
+      //тредов нет: переписка считается работой по ревью, только если задача на ревью,
+      //иначе это просто обсуждение и оно разбирается ниже
+      if (context.hasReviewDialog() && context.isInReviewPhase()) {
+        return TaskStatus.RESOLVING_REVIEW_COMMENTS;
+      }
     }
 
     //вторичный участник: внёс код в чужую задачу, но не её основной исполнитель
@@ -383,6 +530,20 @@ export class GitMapperStatusResolver {
     //пуш в статусе after_review
     if (context.currentUserPushedCode() && context.isAfterReview()) {
       return TaskStatus.CORRECTED_AFTER_REVIEW;
+    }
+
+    //обновил ветку после конфликтов (лейбл needs-rebase сняли, а код запушен)
+    if (context.currentUserResolvedRebase()) {
+      return TaskStatus.RESOLVED_MERGE_CONFLICTS;
+    }
+
+    //покрыл задачу юнит-тестами (test::unit + коммиты с тестами)
+    if (
+      context.currentUserPushedCode() &&
+      context.isUnitTestRequired() &&
+      context.hasTestRelatedCommits()
+    ) {
+      return TaskStatus.WROTE_TESTS;
     }
 
     //рефакторинг — maintenance + пуш
@@ -427,11 +588,6 @@ export class GitMapperStatusResolver {
       return TaskStatus.CREATED;
     }
 
-    //создал проект
-    if (context.currentUserCreatedProject()) {
-      return TaskStatus.CREATED_PROJECT;
-    }
-
     //комментировал, но нет активной работы с кодом
     if (
       context.isAssignee() &&
@@ -439,6 +595,31 @@ export class GitMapperStatusResolver {
       !context.hasActiveWorkOnMergeRequest()
     ) {
       return TaskStatus.COMMENTED;
+    }
+
+    //задача вернулась с тестирования и остаётся на исполнителе
+    if (context.isAssignee() && context.isReturnedFromQa()) {
+      return TaskStatus.DEV_FIXING_AFTER_QA;
+    }
+
+    //тестирование по задаче уже пройдено, активной работы за день не было
+    if (context.isAssignee() && context.isQaPassed()) {
+      return TaskStatus.DEV_PASSED_QA;
+    }
+
+    //задача ждёт тестирования: лейбл мог выставить не сам исполнитель
+    if (context.isAssignee() && context.isReadyForQa()) {
+      return TaskStatus.TASK_SENT_TO_QA;
+    }
+
+    //задача на тестировании у qa
+    if (context.isAssignee() && context.isQaInProgress()) {
+      return TaskStatus.TASK_IN_QA_TESTING;
+    }
+
+    //задача отложена (лейбл выставил не сам исполнитель)
+    if (context.isAssignee() && context.isOnHold()) {
+      return TaskStatus.PUT_ON_HOLD;
     }
 
     //задача в doing
@@ -472,7 +653,7 @@ export class GitMapperStatusResolver {
     if (
       context.isObserver() &&
       context.currentUserCommentedAnywhere() &&
-      (context.isIssueClosed() || context.isMergeRequestMerged())
+      (context.isIssueClosedToday() || context.isMergeRequestMergedToday())
     ) {
       return TaskStatus.PARTICIPATED_IN_CLOSURE;
     }
@@ -551,7 +732,7 @@ export class GitMapperStatusResolver {
   //мердж обрабатывается в determineMergeStatus до вызова этой ветки
   private determineForDeveloperAuthor(context: TaskContext): TaskStatus {
     //принял результат (задача закрыта/смерджена)
-    if (context.isIssueClosedWithMerge() || context.isIssueClosed()) {
+    if (context.isIssueClosedToday()) {
       return TaskStatus.ACCEPTED_RESULT;
     }
 

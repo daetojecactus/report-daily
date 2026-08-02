@@ -1,11 +1,15 @@
 import {
   ENGAGEMENT_COMMENT_CAP,
   ENGAGEMENT_COMMIT_CAP,
+  ENGAGEMENT_STATUS_CHANGE_CAP,
   ENGAGEMENT_THRESHOLDS,
   ENGAGEMENT_WEIGHTS,
 } from './constants/git-mapper.constants';
 import { EngagementLevel } from './git-mapper.enums';
-import { EngagementResult, EngagementSignals } from './git-mapper.interface';
+import type {
+  EngagementResult,
+  EngagementSignals,
+} from './git-mapper.interface';
 
 export function calculateEngagement(
   signals: EngagementSignals,
@@ -29,7 +33,9 @@ export function calculateEngagement(
   score +=
     Math.min(signals.commentCount, ENGAGEMENT_COMMENT_CAP) *
     ENGAGEMENT_WEIGHTS.PER_COMMENT;
-  score += signals.statusChangesCount * ENGAGEMENT_WEIGHTS.PER_STATUS_CHANGE;
+  score +=
+    Math.min(signals.statusChangesCount, ENGAGEMENT_STATUS_CHANGE_CAP) *
+    ENGAGEMENT_WEIGHTS.PER_STATUS_CHANGE;
 
   return { score, level: resolveLevel(score) };
 }

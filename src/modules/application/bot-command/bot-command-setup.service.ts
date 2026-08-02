@@ -5,6 +5,7 @@ import type { ReportDailyBotEnvs } from 'src/modules/infrastructure/config/env';
 import { Language, getLocale } from 'src/common/i18n/i18n';
 import { getErrorMessage } from 'src/common/helpers/error.helper';
 import { UserService } from '../user/user.service';
+import { resolveUserLanguage } from '../user/user.helper';
 import {
   getOwnerBotCommands,
   getUserBotCommands,
@@ -35,7 +36,7 @@ export class BotCommandSetupService {
     //сначала пользователи
     for (const user of users) {
       if (!user.telegramId) continue;
-      targets.set(user.telegramId, user.settings?.language ?? Language.RU);
+      targets.set(user.telegramId, resolveUserLanguage(user));
     }
 
     //овнер перетирает пользовательский набор
@@ -45,7 +46,7 @@ export class BotCommandSetupService {
       });
       targets.set(
         this.ownerTelegramId,
-        owner?.settings?.language ?? Language.RU,
+        owner ? resolveUserLanguage(owner) : Language.RU,
       );
     }
 
@@ -101,6 +102,6 @@ export class BotCommandSetupService {
 
   private async resolveLanguage(telegramId: number): Promise<Language> {
     const user = await this.userService.findOne({ telegramId });
-    return user?.settings?.language ?? Language.RU;
+    return user ? resolveUserLanguage(user) : Language.RU;
   }
 }

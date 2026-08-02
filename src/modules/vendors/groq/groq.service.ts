@@ -1,15 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { GroqRepository } from './groq.repository';
-import type { AiProvider } from '../../../common/interfaces/ai-provider.interface';
+import { BaseAiProvider } from '../../../common/interfaces/ai-provider.interface';
 
 @Injectable()
-export class GroqService implements AiProvider {
+export class GroqService extends BaseAiProvider {
   readonly name = 'Groq';
 
-  constructor(private readonly repository: GroqRepository) {}
-
-  async generate(prompt: string, systemPrompt?: string): Promise<string> {
-    const text = await this.repository.generate(prompt, systemPrompt);
-    return text.trim();
+  constructor(repository: GroqRepository) {
+    super(repository);
   }
 }

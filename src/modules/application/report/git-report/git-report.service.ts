@@ -9,6 +9,7 @@ import {
   ReportTaskItem,
 } from './git-report.interface';
 import {
+  MappedDailyData,
   MappedIssue,
   MappedMergeRequest,
   MappedPush,
@@ -16,6 +17,8 @@ import {
 import { CleanEvent, CleanNote } from './git-group/git-group.interface';
 import { DefaultMessages } from 'src/common/constants/default.messages';
 import { UserRole } from '../../user/user.enums';
+import { LabelScope, LabelType } from 'src/common/enums/label.enum';
+import { hasLabelValue, parseLabels } from 'src/common/helpers/label.helper';
 
 @Injectable()
 export class GitReportService {
@@ -57,12 +60,14 @@ export class GitReportService {
 
     //задачи (issues)
     for (const issue of mapped.issues) {
+      if (this.isExcludedFromReport(issue.labels)) continue;
       const item = this.buildIssueReportItem(issue, username);
       this.addToProjectMap(projectsMap, issue.projectId, item);
     }
 
     //standalone мр (хотфиксы и тд)
     for (const mr of mapped.standaloneMergeRequests) {
+      if (this.isExcludedFromReport(mr.labels)) continue;
       const item = this.buildMergeRequestReportItem(mr, username);
       this.addToProjectMap(projectsMap, mr.projectId, item);
     }
@@ -121,15 +126,10 @@ export class GitReportService {
       status: issue.workResult.status,
       taskType: issue.workResult.taskType,
       labels: issue.labels,
-      //приоритет: сначала из задачи, если нет — из привязанной мр
       priority:
         this.resolvePriority(issue.labels) ??
         this.resolvePriority(issue.mergeRequests[0]?.labels ?? []),
-      aiContext: {
-        commitMessages,
-        userComments,
-        mrTitle,
-      },
+      aiContext: { commitMessages, userComments, mrTitle },
     };
   }
 
@@ -181,6 +181,15 @@ export class GitReportService {
     };
   }
 
+  //задача помечена лейблом type::ignore — команда не хочет видеть её в отчёте
+  private isExcludedFromReport(labels: string[]): boolean {
+    return hasLabelValue(
+      parseLabels(labels),
+      LabelScope.TYPE,
+      LabelType.IGNORE,
+    );
+  }
+
   //извлекает приоритет из scoped-лейбла priority::* → "HIGH" (иначе null)
   private resolvePriority(labels: string[]): string | null {
     for (const label of labels) {
@@ -211,11 +220,7 @@ export class GitReportService {
   }
 
   //собирает все уникальные projectId из маппинга
-  private collectProjectIds(mapped: {
-    issues: MappedIssue[];
-    standaloneMergeRequests: MappedMergeRequest[];
-    standalonePushes: MappedPush[];
-  }): number[] {
+  private collectProjectIds(mapped: MappedDailyData): number[] {
     const ids = new Set<number>();
     mapped.issues.forEach((issue) => ids.add(issue.projectId));
     mapped.standaloneMergeRequests.forEach((mergeRequest) =>

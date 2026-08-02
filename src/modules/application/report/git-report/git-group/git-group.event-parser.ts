@@ -6,7 +6,21 @@ import {
   ParsedEventType,
 } from 'src/common/enums/gitlab.enum';
 import { GIT_REPORT_BRANCH_ISSUE_PATTERN } from '../constants/git-report.constants';
-import { ParsedEvent } from './git-group.interface';
+import { getLocalDayRange } from 'src/common/helpers/date.helper';
+import type { ParsedEvent } from './git-group.interface';
+
+//оставляет только события за локальный день отчёта
+export function filterEventsByDate(
+  events: GitLabEvent[],
+  date: string,
+): GitLabEvent[] {
+  const { start, end } = getLocalDayRange(date);
+
+  return events.filter((event) => {
+    const createdAt = new Date(event.created_at);
+    return createdAt >= start && createdAt <= end;
+  });
+}
 
 //формирует уникальный ключ из projectId и iid
 export function toKey(projectId: number, iid: number): string {

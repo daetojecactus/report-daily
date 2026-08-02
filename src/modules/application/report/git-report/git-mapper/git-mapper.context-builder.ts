@@ -12,11 +12,23 @@ import { TaskType } from 'src/common/enums/task.enum';
 import {
   LabelType,
   LabelPriority,
+  LabelQa,
+  LabelScope,
   LabelStatus,
+  LabelTest,
 } from 'src/common/enums/label.enum';
 import { GitLabAction } from 'src/common/enums/gitlab.enum';
 import { TaskRole } from './git-mapper.enums';
 import { UserRole } from 'src/modules/application/user/user.enums';
+import {
+  collectLabelValues,
+  isInScope,
+  isNeedsRebaseLabel,
+  parseLabel,
+  parseLabels,
+} from 'src/common/helpers/label.helper';
+import type { ParsedLabel } from 'src/common/helpers/label.helper';
+import type { TaskLabels } from './git-mapper.interface';
 
 //сборка TaskContext из сырых сгруппированных данных GitLab
 @Injectable()
@@ -47,28 +59,17 @@ export class GitMapperContextBuilder {
       isMergeRequestAuthor: mergeRequest?.author === username,
       taskType: this.resolveTaskType(issue.labels),
       taskDates: {
-        issueCreatedAt: issue.createdAt,
         mergeRequestCreatedAt: mergeRequest?.createdAt ?? null,
         mergeRequestLastCommitAt: mergeRequest?.lastCommitAt ?? null,
         reportDate,
       },
-      labels: {
-        priorities: this.parseLabelPriorities(issue.labels),
-        types: this.parseLabelTypes(issue.labels),
-        currentStatus: this.resolveCurrentStatusLabel(issue.labelEvents),
-        previousStatus: this.resolvePreviousStatusLabel(issue.labelEvents),
-        statusLabelsSetByCurrentUser: this.resolveStatusLabelsSetByUser(
-          issue.labelEvents,
-          username,
-        ),
-        priorityChangedByCurrentUser: this.hasPriorityEscalation(
-          issue.labelEvents,
-          username,
-        ),
-      },
+      labels: this.buildTaskLabels(issue.labels, issue.labelEvents, username),
       activityStream: {
         issueState: issue.state,
         mergeRequestState: mergeRequest?.state ?? null,
+        issueClosedOnReportDate: issue.closedOnReportDate,
+        mergeRequestMergedOnReportDate:
+          mergeRequest?.mergedOnReportDate ?? false,
         issueActions: issue.events.map(
           (event) => event.actionName as GitLabAction,
         ),
@@ -88,6 +89,10 @@ export class GitMapperContextBuilder {
           username,
         ),
         mergeRequestCommitCount: this.countCommits(mergeRequestEvents),
+        commitTitles: this.extractCommitTitles(mergeRequestEvents),
+        reviewThreadCount: mergeRequest?.reviewThreads.total ?? 0,
+        unresolvedReviewThreadCount:
+          mergeRequest?.reviewThreads.unresolved ?? 0,
       },
       approvals: {
         currentUserApproved,
@@ -119,22 +124,20 @@ export class GitMapperContextBuilder {
       isMergeRequestAuthor: mergeRequest.author === username,
       taskType: this.resolveTaskType(mergeRequest.labels),
       taskDates: {
-        issueCreatedAt: null,
         mergeRequestCreatedAt: mergeRequest.createdAt,
         mergeRequestLastCommitAt: mergeRequest.lastCommitAt,
         reportDate,
       },
-      labels: {
-        priorities: this.parseLabelPriorities(mergeRequest.labels),
-        types: this.parseLabelTypes(mergeRequest.labels),
-        currentStatus: null,
-        previousStatus: null,
-        statusLabelsSetByCurrentUser: [],
-        priorityChangedByCurrentUser: false,
-      },
+      labels: this.buildTaskLabels(
+        mergeRequest.labels,
+        mergeRequest.labelEvents,
+        username,
+      ),
       activityStream: {
         issueState: null,
         mergeRequestState: mergeRequest.state,
+        issueClosedOnReportDate: false,
+        mergeRequestMergedOnReportDate: mergeRequest.mergedOnReportDate,
         issueActions: [],
         mergeRequestActions: mergeRequest.events.map(
           (event) => event.actionName as GitLabAction,
@@ -149,6 +152,9 @@ export class GitMapperContextBuilder {
           username,
         ),
         mergeRequestCommitCount: this.countCommits(mergeRequest.events),
+        commitTitles: this.extractCommitTitles(mergeRequest.events),
+        reviewThreadCount: mergeRequest.reviewThreads.total,
+        unresolvedReviewThreadCount: mergeRequest.reviewThreads.unresolved,
       },
       approvals: {
         currentUserApproved,
@@ -171,10 +177,13 @@ export class GitMapperContextBuilder {
 
   //тип задачи по лейблам
   private resolveTaskType(labels: string[]): TaskType {
-    const values = this.extractLabelValues(labels);
-    if (values.includes(LabelType.BUG)) return TaskType.BUG;
-    if (values.includes(LabelType.FEATURE)) return TaskType.FEATURE;
-    if (values.includes(LabelType.MAINTENANCE)) return TaskType.CHORE;
+    const types = this.parseLabelTypes(labels);
+    if (types.includes(LabelType.HOTFIX)) return TaskType.HOTFIX;
+    if (types.includes(LabelType.BUG)) return TaskType.BUG;
+    if (types.includes(LabelType.FEATURE)) return TaskType.FEATURE;
+    if (types.includes(LabelType.MAINTENANCE)) return TaskType.CHORE;
+    if (types.includes(LabelType.EPIC)) return TaskType.EPIC;
+    if (types.includes(LabelType.QA)) return TaskType.QA_INTERNAL;
     return TaskType.UNKNOWN;
   }
 
@@ -207,81 +216,168 @@ export class GitMapperContextBuilder {
     return TaskRole.OBSERVER;
   }
 
+  //разбор всех лейблов задачи: типы, приоритеты, статусы и точечные qa/test-лейблы
+  private buildTaskLabels(
+    labels: string[],
+    labelEvents: CleanLabelEvent[],
+    username: string,
+  ): TaskLabels {
+    const activeLabels = parseLabels(labels);
+
+    return {
+      priorities: this.parseLabelPriorities(labels),
+      types: this.parseLabelTypes(labels),
+      currentStatus: this.resolveCurrentStatusLabel(labelEvents),
+      previousStatus: this.resolvePreviousStatusLabel(labelEvents),
+      statusLabelsSetByCurrentUser: this.resolveLabelsSetByUser(
+        labelEvents,
+        username,
+        LabelScope.STATUS,
+        Object.values(LabelStatus),
+      ),
+      priorityChangedByCurrentUser: this.hasPriorityEscalation(
+        labelEvents,
+        username,
+      ),
+      activeStatuses: collectLabelValues(
+        activeLabels,
+        LabelScope.STATUS,
+        Object.values(LabelStatus),
+      ),
+      qaFlags: this.resolveActiveOrAddedLabels(
+        activeLabels,
+        labelEvents,
+        LabelScope.QA,
+        Object.values(LabelQa),
+      ),
+      qaFlagsSetByCurrentUser: this.resolveLabelsSetByUser(
+        labelEvents,
+        username,
+        LabelScope.QA,
+        Object.values(LabelQa),
+      ),
+      testFlags: this.resolveActiveOrAddedLabels(
+        activeLabels,
+        labelEvents,
+        LabelScope.TEST,
+        Object.values(LabelTest),
+      ),
+      needsRebase: activeLabels.some(isNeedsRebaseLabel),
+      needsRebaseResolved: labelEvents.some(
+        (event) =>
+          event.action === 'remove' &&
+          isNeedsRebaseLabel(parseLabel(event.labelName)),
+      ),
+    };
+  }
+
   //лейблы приоритета из сырых лейблов
   private parseLabelPriorities(labels: string[]): LabelPriority[] {
-    const values = this.extractLabelValues(labels);
-    return Object.values(LabelPriority).filter((priority) =>
-      values.includes(priority),
+    return collectLabelValues(
+      parseLabels(labels),
+      LabelScope.PRIORITY,
+      Object.values(LabelPriority),
     );
   }
 
   //лейблы типа из сырых лейблов
   private parseLabelTypes(labels: string[]): LabelType[] {
-    const values = this.extractLabelValues(labels);
-    return Object.values(LabelType).filter((type) => values.includes(type));
+    return collectLabelValues(
+      parseLabels(labels),
+      LabelScope.TYPE,
+      Object.values(LabelType),
+    );
   }
 
   //последний актуальный статус-лейбл
   private resolveCurrentStatusLabel(
     labelEvents: CleanLabelEvent[],
   ): LabelStatus | null {
-    const statusLabelValues = Object.values(LabelStatus) as string[];
-
-    const lastStatusEvent = [...labelEvents]
-      .filter(
-        (event) =>
-          event.action === 'add' &&
-          statusLabelValues.includes(this.extractLabelValue(event.labelName)),
-      )
-      .sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-      )[0];
-
-    return lastStatusEvent
-      ? (this.extractLabelValue(lastStatusEvent.labelName) as LabelStatus)
-      : null;
+    return this.sortStatusAdditions(labelEvents)[0] ?? null;
   }
 
   //предпоследний статус-лейбл (для определения перехода, например review → doing)
   private resolvePreviousStatusLabel(
     labelEvents: CleanLabelEvent[],
   ): LabelStatus | null {
-    const statusLabelValues = Object.values(LabelStatus) as string[];
+    return this.sortStatusAdditions(labelEvents)[1] ?? null;
+  }
 
-    const sortedStatusEvents = [...labelEvents]
+  //статус-лейблы, выставленные за день, от свежих к старым
+  private sortStatusAdditions(labelEvents: CleanLabelEvent[]): LabelStatus[] {
+    return [...labelEvents]
       .filter(
         (event) =>
           event.action === 'add' &&
-          statusLabelValues.includes(this.extractLabelValue(event.labelName)),
+          this.matchLabelValue(
+            event.labelName,
+            LabelScope.STATUS,
+            Object.values(LabelStatus),
+          ) !== null,
       )
       .sort(
         (a, b) =>
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      )
+      .map(
+        (event) =>
+          this.matchLabelValue(
+            event.labelName,
+            LabelScope.STATUS,
+            Object.values(LabelStatus),
+          )!,
       );
-
-    //второй по хронологии (предыдущий)
-    const previousEvent = sortedStatusEvents[1];
-    return previousEvent
-      ? (this.extractLabelValue(previousEvent.labelName) as LabelStatus)
-      : null;
   }
 
-  //все статус-лейблы, поставленные конкретным пользователем
-  private resolveStatusLabelsSetByUser(
+  //лейблы нужного скоупа, выставленные конкретным пользователем
+  private resolveLabelsSetByUser<T extends string>(
     labelEvents: CleanLabelEvent[],
     username: string,
-  ): LabelStatus[] {
-    const statusLabelValues = Object.values(LabelStatus) as string[];
+    scope: LabelScope,
+    allowedValues: readonly T[],
+  ): T[] {
+    const values: T[] = [];
 
-    return labelEvents
-      .filter(
-        (event) =>
-          event.action === 'add' &&
-          event.username === username &&
-          statusLabelValues.includes(this.extractLabelValue(event.labelName)),
+    for (const event of labelEvents) {
+      if (event.action !== 'add' || event.username !== username) continue;
+
+      const value = this.matchLabelValue(event.labelName, scope, allowedValues);
+      if (value) values.push(value);
+    }
+
+    return values;
+  }
+
+  //лейблы, висящие на задаче сейчас либо навешенные в день отчёта
+  //снятый в тот же день лейбл всё равно отражает работу за день, поэтому учитываем оба источника
+  private resolveActiveOrAddedLabels<T extends string>(
+    activeLabels: ParsedLabel[],
+    labelEvents: CleanLabelEvent[],
+    scope: LabelScope,
+    allowedValues: readonly T[],
+  ): T[] {
+    const addedToday = labelEvents
+      .filter((event) => event.action === 'add')
+      .map((event) =>
+        this.matchLabelValue(event.labelName, scope, allowedValues),
       )
-      .map((event) => this.extractLabelValue(event.labelName) as LabelStatus);
+      .filter((value): value is T => value !== null);
+
+    const active = collectLabelValues(activeLabels, scope, allowedValues);
+
+    return [...new Set([...active, ...addedToday])];
+  }
+
+  //значение лейбла, если он принадлежит скоупу и входит в список допустимых
+  private matchLabelValue<T extends string>(
+    labelName: string,
+    scope: LabelScope,
+    allowedValues: readonly T[],
+  ): T | null {
+    const parsed = parseLabel(labelName);
+    if (!isInScope(parsed, scope)) return null;
+
+    return allowedValues.find((value) => value === parsed.value) ?? null;
   }
 
   //проверяет, повысил ли пользователь приоритет до critical
@@ -293,7 +389,9 @@ export class GitMapperContextBuilder {
       (event) =>
         event.action === 'add' &&
         event.username === username &&
-        this.extractLabelValue(event.labelName) === LabelPriority.CRITICAL,
+        this.matchLabelValue(event.labelName, LabelScope.PRIORITY, [
+          LabelPriority.CRITICAL,
+        ]) !== null,
     );
   }
 
@@ -319,6 +417,13 @@ export class GitMapperContextBuilder {
     );
   }
 
+  //заголовки коммитов из push-событий
+  private extractCommitTitles(events: CleanEvent[]): string[] {
+    return events
+      .map((event) => event.pushData?.commitTitle)
+      .filter((title): title is string => Boolean(title));
+  }
+
   //usernames пользователей, которые апрувнули (кроме текущего)
   private extractOtherApprovers(
     notes: CleanNote[],
@@ -334,16 +439,5 @@ export class GitMapperContextBuilder {
       .map((note) => note.authorUsername);
 
     return [...new Set(approvers)];
-  }
-
-  //извлекает значение из scoped лейбла (status::doing → doing)
-  private extractLabelValue(label: string): string {
-    const parts = label.toLowerCase().split('::');
-    return parts[parts.length - 1];
-  }
-
-  //извлекает значения из всех лейблов
-  private extractLabelValues(labels: string[]): string[] {
-    return labels.map((label) => this.extractLabelValue(label));
   }
 }

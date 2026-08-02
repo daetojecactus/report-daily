@@ -8,9 +8,7 @@ import {
   REPORT_QUEUE_RATE_DURATION,
 } from './constants/report-queue.constants';
 import { ReportQueueMessages } from './constants/report-queue.messages';
-import { ReportService } from 'src/modules/application/report/report.service';
-import { TelegramService } from 'src/modules/vendors/telegram/telegram.service';
-import { getLocale } from 'src/common/i18n/i18n';
+import { ReportDeliveryService } from 'src/modules/application/report/report-delivery/report-delivery.service';
 import { getErrorMessage } from 'src/common/helpers/error.helper';
 import type { ReportJobData, ReportJobResult } from './report-queue.interface';
 
@@ -24,10 +22,7 @@ import type { ReportJobData, ReportJobResult } from './report-queue.interface';
 export class ReportQueueProcessor extends WorkerHost {
   private readonly logger = new Logger(ReportQueueProcessor.name);
 
-  constructor(
-    private readonly reportService: ReportService,
-    private readonly telegramService: TelegramService,
-  ) {
+  constructor(private readonly reportDeliveryService: ReportDeliveryService) {
     super();
   }
 
@@ -39,19 +34,10 @@ export class ReportQueueProcessor extends WorkerHost {
     );
 
     try {
-      const report = await this.reportService.generateReport(adminId, date);
-
-      if (!report.text || report.projects.length === 0) {
-        this.logger.warn(`${ReportQueueMessages.JOB_EMPTY_REPORT}: ${adminId}`);
-        const locale = getLocale(language);
-        await this.telegramService.sendMessageTo(
-          telegramId,
-          locale.report.noActivity,
-        );
-        return { adminId, telegramId, success: true };
-      }
-
-      await this.telegramService.sendMessageTo(telegramId, report.text);
+      await this.reportDeliveryService.deliver(
+        { adminId, telegramId, language },
+        date,
+      );
 
       this.logger.log(`${ReportQueueMessages.JOB_COMPLETED}: ${adminId}`);
 

@@ -8,7 +8,12 @@ import {
   GitLabNote,
   GitLabStateEvent,
 } from 'src/modules/vendors/gitlab/gitlab.interface';
-import { MainBranch, ParsedEventType } from 'src/common/enums/gitlab.enum';
+import {
+  GitLabIssueState,
+  GitLabMergeRequestState,
+  MainBranch,
+  ParsedEventType,
+} from 'src/common/enums/gitlab.enum';
 import {
   CleanEvent,
   CleanLabelEvent,
@@ -16,10 +21,12 @@ import {
   GroupedDailyData,
   GroupedIssue,
   GroupedMergeRequest,
+  ReviewThreads,
   StandaloneMergeRequest,
   StandalonePush,
 } from './git-group.interface';
 import { detectEventType, toKey } from './git-group.event-parser';
+import { getLocalDayRange } from 'src/common/helpers/date.helper';
 
 //сборка сгруппированных данных: распределение событий и формирование задач/мр/пушей
 @Injectable()
@@ -159,6 +166,11 @@ export class GitGroupBuilder {
         issueStateEventsMap.get(issueKey) ?? [],
         date,
       ) as GroupedIssue['state'],
+      closedOnReportDate: this.hasStateChangeOnDate(
+        issueStateEventsMap.get(issueKey) ?? [],
+        date,
+        GitLabIssueState.CLOSED,
+      ),
       webUrl: issue.web_url,
       labels: issue.labels,
       createdAt: issue.created_at,
@@ -210,6 +222,11 @@ export class GitGroupBuilder {
           mrStateEventsMap.get(mrKey) ?? [],
           date,
         ) as GroupedMergeRequest['state'],
+        mergedOnReportDate: this.hasStateChangeOnDate(
+          mrStateEventsMap.get(mrKey) ?? [],
+          date,
+          GitLabMergeRequestState.MERGED,
+        ),
         webUrl: mr.web_url,
         sourceBranch: mr.source_branch,
         labels: mr.labels,
@@ -227,6 +244,7 @@ export class GitGroupBuilder {
           mrLabelEventsMap.get(mrKey) ?? [],
           date,
         ),
+        reviewThreads: this.resolveReviewThreads(mrNotesMap.get(mrKey) ?? []),
       });
     }
 
@@ -255,6 +273,11 @@ export class GitGroupBuilder {
           mrStateEventsMap.get(mrKey) ?? [],
           date,
         ) as StandaloneMergeRequest['state'],
+        mergedOnReportDate: this.hasStateChangeOnDate(
+          mrStateEventsMap.get(mrKey) ?? [],
+          date,
+          GitLabMergeRequestState.MERGED,
+        ),
         webUrl: mr.web_url,
         sourceBranch: mr.source_branch,
         labels: mr.labels,
@@ -272,6 +295,7 @@ export class GitGroupBuilder {
           mrLabelEventsMap.get(mrKey) ?? [],
           date,
         ),
+        reviewThreads: this.resolveReviewThreads(mrNotesMap.get(mrKey) ?? []),
       }));
   }
 
@@ -340,9 +364,20 @@ export class GitGroupBuilder {
       });
   }
 
+  //треды ревью считаем по всем загруженным комментариям, а не только за день отчёта:
+  //замечание могло прийти вчера, а закрыть его могли сегодня
+  private resolveReviewThreads(notes: GitLabNote[]): ReviewThreads {
+    const resolvable = notes.filter((note) => note.resolvable);
+
+    return {
+      total: resolvable.length,
+      unresolved: resolvable.filter((note) => note.resolved === false).length,
+    };
+  }
+
   //очищает события от лишних данных и фильтрует за указанный день
   private cleanEvents(events: GitLabEvent[], date: string): CleanEvent[] {
-    const { start, end } = this.getDayRange(date);
+    const { start, end } = getLocalDayRange(date);
 
     return events
       .filter((event) => {
@@ -371,7 +406,7 @@ export class GitGroupBuilder {
 
   //очищает комментарии и фильтрует за указанный день
   private cleanNotes(notes: GitLabNote[], date: string): CleanNote[] {
-    const { start, end } = this.getDayRange(date);
+    const { start, end } = getLocalDayRange(date);
 
     return notes
       .filter((note) => {
@@ -396,7 +431,7 @@ export class GitGroupBuilder {
     labelEvents: GitLabLabelEvent[],
     date: string,
   ): CleanLabelEvent[] {
-    const { start, end } = this.getDayRange(date);
+    const { start, end } = getLocalDayRange(date);
 
     return labelEvents
       .filter((event) => {
@@ -410,6 +445,21 @@ export class GitGroupBuilder {
         createdAt: event.created_at,
         username: event.user.username,
       }));
+  }
+
+  //состояние сменилось на указанное именно в день отчёта
+  //нужно чтобы отличать «закрыл сегодня» от «задача давно закрыта, а я просто оставил коммент»
+  private hasStateChangeOnDate(
+    stateEvents: GitLabStateEvent[],
+    date: string,
+    state: string,
+  ): boolean {
+    const { start, end } = getLocalDayRange(date);
+
+    return stateEvents.some((event) => {
+      const changedAt = new Date(event.created_at);
+      return event.state === state && changedAt >= start && changedAt <= end;
+    });
   }
 
   /**
@@ -427,7 +477,7 @@ export class GitGroupBuilder {
       return currentState;
     }
 
-    const { end } = this.getDayRange(date);
+    const { end } = getLocalDayRange(date);
 
     const eventsBeforeDate = stateEvents
       .filter((event) => new Date(event.created_at) <= end)
@@ -445,22 +495,13 @@ export class GitGroupBuilder {
     return lastState === 'reopened' ? 'opened' : lastState;
   }
 
-  //вычисляет границы дня (начало и конец) из строковой даты
-  private getDayRange(date: string): { start: Date; end: Date } {
-    const start = new Date(date);
-    start.setHours(0, 0, 0, 0);
-    const end = new Date(date);
-    end.setHours(23, 59, 59, 999);
-    return { start, end };
-  }
-
   //дата последнего коммита строго до начала дня отчёта
   //нужна для определения возобновления работы (разрыв между коммитами)
   private resolveLastCommitBeforeDate(
     commits: GitLabCommit[],
     date: string,
   ): string | null {
-    const { start } = this.getDayRange(date);
+    const { start } = getLocalDayRange(date);
 
     const previousCommitTimes = commits
       .map((commit) => commit.committed_date ?? commit.created_at)

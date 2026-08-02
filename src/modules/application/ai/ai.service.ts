@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { TaskType } from '../../../common/enums/task.enum';
 import { UserGender } from '../user/user.enums';
+import type { UserRole } from '../user/user.enums';
 import type { AITaskContext, AIEnhanceRequest } from './ai.interface';
 import { AiMessages } from './constants/ai.messages';
 import { GeminiService } from '../../vendors/gemini/gemini.service';
@@ -25,7 +26,7 @@ export class AiService {
 
   //обогащает задачи через AI, при ошибке пробует следующий провайдер
   async enhanceTasks(request: AIEnhanceRequest): Promise<Map<string, string>> {
-    const { tasks, gender, language } = request;
+    const { tasks, gender, role, language } = request;
 
     if (tasks.length === 0) {
       return this.fallbackAll(tasks);
@@ -33,7 +34,7 @@ export class AiService {
 
     const locale = getLocale(language);
     const prompt = this.buildPrompt(tasks, gender, locale);
-    const systemPrompt = locale.ai.systemPrompt;
+    const systemPrompt = this.buildSystemPrompt(role, locale);
 
     for (const provider of this.providers) {
       try {
@@ -50,6 +51,17 @@ export class AiService {
 
     this.logger.warn(AiMessages.AI_ALL_PROVIDERS_FAILED);
     return this.fallbackAll(tasks);
+  }
+
+  //общий системный промпт + врезка под роль автора: у разработчика, QA и аналитика разный словарь
+  private buildSystemPrompt(
+    role: UserRole,
+    locale: ReturnType<typeof getLocale>,
+  ): string {
+    const roleHint = locale.ai.roleHints[role];
+    return roleHint
+      ? `${locale.ai.systemPrompt}\n${roleHint}`
+      : locale.ai.systemPrompt;
   }
 
   //собирает пользовательский промпт из контекстов задач

@@ -44,11 +44,22 @@ export interface CleanLabelEvent {
   username: string;
 }
 
+//статистика тредов ревью по мр за всё время, а не только за день отчёта:
+//треды могли быть заведены раньше, а закрыты сегодня
+export interface ReviewThreads {
+  //сколько всего резолвабельных тредов в мр
+  total: number;
+  //сколько из них ещё не закрыто
+  unresolved: number;
+}
+
 export interface GroupedMergeRequest {
   projectId: number;
   iid: number;
   title: string;
   state: GitLabMergeRequestState;
+  //мр смерджен именно в день отчёта, а не когда-то раньше
+  mergedOnReportDate: boolean;
   webUrl: string;
   sourceBranch: string;
   labels: string[];
@@ -63,6 +74,7 @@ export interface GroupedMergeRequest {
   events: CleanEvent[];
   notes: CleanNote[];
   labelEvents: CleanLabelEvent[];
+  reviewThreads: ReviewThreads;
 }
 
 export interface GroupedIssue {
@@ -70,6 +82,8 @@ export interface GroupedIssue {
   iid: number;
   title: string;
   state: GitLabIssueState;
+  //задача закрыта именно в день отчёта, а не когда-то раньше
+  closedOnReportDate: boolean;
   webUrl: string;
   labels: string[];
   createdAt: string;
@@ -85,6 +99,8 @@ export interface StandaloneMergeRequest {
   iid: number;
   title: string;
   state: GitLabMergeRequestState;
+  //мр смерджен именно в день отчёта, а не когда-то раньше
+  mergedOnReportDate: boolean;
   webUrl: string;
   sourceBranch: string;
   labels: string[];
@@ -99,6 +115,7 @@ export interface StandaloneMergeRequest {
   events: CleanEvent[];
   notes: CleanNote[];
   labelEvents: CleanLabelEvent[];
+  reviewThreads: ReviewThreads;
 }
 
 export interface StandalonePush {

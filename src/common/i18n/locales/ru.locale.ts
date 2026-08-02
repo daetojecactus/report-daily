@@ -5,13 +5,9 @@ export const ru: Locale = {
   taskActions: {
     //QA
     [TaskStatus.FOUND_BUG]: { male: 'Обнаружил баг', female: 'Обнаружила баг' },
-    [TaskStatus.CREATED_TASK]: {
-      male: 'Создал задачу',
-      female: 'Создала задачу',
-    },
     [TaskStatus.VERIFIED_FIX]: {
-      male: 'Принял исправление',
-      female: 'Приняла исправление',
+      male: 'Проверил исправление',
+      female: 'Проверила исправление',
     },
     [TaskStatus.RETURNED_FOR_REVISION]: {
       male: 'Вернул на доработку',
@@ -34,8 +30,8 @@ export const ru: Locale = {
       female: 'Провела тестирование, оставила замечания',
     },
     [TaskStatus.APPROVED_AFTER_REWORK]: {
-      male: 'Принял после доработки',
-      female: 'Приняла после доработки',
+      male: 'Подтвердил корректность после доработки',
+      female: 'Подтвердила корректность после доработки',
     },
     [TaskStatus.WROTE_TESTS]: {
       male: 'Написал тесты',
@@ -54,6 +50,40 @@ export const ru: Locale = {
       female: 'Заблокировала релиз из-за бага',
     },
 
+    //QA (процесс по лейблам status::*/qa::*/test::*)
+    [TaskStatus.QA_AWAITING_TESTING]: {
+      male: 'Принял задачу в очередь на тестирование',
+      female: 'Приняла задачу в очередь на тестирование',
+    },
+    [TaskStatus.QA_IN_PROGRESS]: {
+      male: 'Проверял задачу',
+      female: 'Проверяла задачу',
+    },
+    [TaskStatus.QA_RETURNED_TO_DEV]: {
+      male: 'Вернул задачу в разработку',
+      female: 'Вернула задачу в разработку',
+    },
+    [TaskStatus.QA_INTERNAL_TASK]: {
+      male: 'Работал над внутренней QA-задачей',
+      female: 'Работала над внутренней QA-задачей',
+    },
+    [TaskStatus.QA_AUTOMATION_DEVELOPED]: {
+      male: 'Разрабатывал автотесты',
+      female: 'Разрабатывала автотесты',
+    },
+    [TaskStatus.QA_AUTOMATION_MAINTAINED]: {
+      male: 'Актуализировал автотесты',
+      female: 'Актуализировала автотесты',
+    },
+    [TaskStatus.QA_TEST_ENVIRONMENT_SETUP]: {
+      male: 'Настраивал тестовое окружение',
+      female: 'Настраивала тестовое окружение',
+    },
+    [TaskStatus.QA_E2E_COVERAGE_ADDED]: {
+      male: 'Разработал E2E-покрытие',
+      female: 'Разработала E2E-покрытие',
+    },
+
     //PM
     [TaskStatus.PLANNED_FEATURE]: {
       male: 'Запланировал фичу',
@@ -68,12 +98,8 @@ export const ru: Locale = {
       female: 'Приняла выполненную работу',
     },
     [TaskStatus.PROVIDED_REQUIREMENTS]: {
-      male: 'Предоставил требования',
-      female: 'Предоставила требования',
-    },
-    [TaskStatus.REQUESTED_STATUS]: {
-      male: 'Запросил статус задачи',
-      female: 'Запросила статус задачи',
+      male: 'Уточнил требования',
+      female: 'Уточнила требования',
     },
     [TaskStatus.ESCALATED_PRIORITY]: {
       male: 'Повысил приоритет',
@@ -86,6 +112,25 @@ export const ru: Locale = {
     [TaskStatus.REVIEWED_AND_CLOSED]: {
       male: 'Проверил и закрыл задачу',
       female: 'Проверила и закрыла задачу',
+    },
+
+    [TaskStatus.PLANNED_FOR_SPRINT]: {
+      male: 'Взял задачу в план спринта',
+      female: 'Взяла задачу в план спринта',
+    },
+
+    //Общее для Developer и PM/SA — прохождение задачи через QA
+    [TaskStatus.TASK_SENT_TO_QA]: {
+      male: 'Передал задачу на тестирование',
+      female: 'Передала задачу на тестирование',
+    },
+    [TaskStatus.TASK_IN_QA_TESTING]: {
+      male: 'Сопровождал задачу на тестировании',
+      female: 'Сопровождала задачу на тестировании',
+    },
+    [TaskStatus.TASK_RETURNED_FROM_QA]: {
+      male: 'Вернул задачу в разработку после тестирования',
+      female: 'Вернула задачу в разработку после тестирования',
     },
 
     //Developer (Assignee)
@@ -102,8 +147,8 @@ export const ru: Locale = {
       female: 'Реализовала фичу',
     },
     [TaskStatus.COMPLETED_BY_MERGE]: {
-      male: 'Закрыл задачу мерджем',
-      female: 'Закрыла задачу мерджем',
+      male: 'Завершил задачу мерджем',
+      female: 'Завершила задачу мерджем',
     },
     [TaskStatus.SENT_TO_REVIEW]: {
       male: 'Отправил на ревью',
@@ -114,8 +159,8 @@ export const ru: Locale = {
       female: 'Успешно прошла ревью',
     },
     [TaskStatus.NEED_INFORMATION]: {
-      male: 'Запросил дополнительную информацию',
-      female: 'Запросила дополнительную информацию',
+      male: 'Запросил уточнения по задаче',
+      female: 'Запросила уточнения по задаче',
     },
     [TaskStatus.PASSED_TO_FRONTEND]: {
       male: 'Передал на фронтенд',
@@ -146,12 +191,28 @@ export const ru: Locale = {
       female: 'Возобновила работу над задачей',
     },
     [TaskStatus.RESOLVED_REVIEW_COMMENTS]: {
-      male: 'Устранил замечания ревьюера',
-      female: 'Устранила замечания ревьюера',
+      male: 'Закрыл замечания по ревью',
+      female: 'Закрыла замечания по ревью',
     },
-    [TaskStatus.DEPLOYED_TO_PRODUCTION]: {
-      male: 'Задеплоил на продакшен',
-      female: 'Задеплоила на продакшен',
+    [TaskStatus.RESOLVING_REVIEW_COMMENTS]: {
+      male: 'Исправлял замечания по ревью',
+      female: 'Исправляла замечания по ревью',
+    },
+    [TaskStatus.DEV_FIXING_AFTER_QA]: {
+      male: 'Исправлял замечания после тестирования',
+      female: 'Исправляла замечания после тестирования',
+    },
+    [TaskStatus.DEV_RESUBMITTED_TO_QA]: {
+      male: 'Исправил замечания и вернул задачу на тестирование',
+      female: 'Исправила замечания и вернула задачу на тестирование',
+    },
+    [TaskStatus.DEV_PASSED_QA]: {
+      male: 'Успешно прошёл тестирование',
+      female: 'Успешно прошла тестирование',
+    },
+    [TaskStatus.RESOLVED_MERGE_CONFLICTS]: {
+      male: 'Обновил ветку и разрешил конфликты',
+      female: 'Обновила ветку и разрешила конфликты',
     },
 
     //Developer (Reviewer)
@@ -176,12 +237,12 @@ export const ru: Locale = {
       female: 'Оставила замечания по коду',
     },
     [TaskStatus.STARTED_REVIEW]: {
-      male: 'Взял мердж-реквест в ревью',
-      female: 'Взяла мердж-реквест в ревью',
+      male: 'Взял мердж-реквест на ревью',
+      female: 'Взяла мердж-реквест на ревью',
     },
     [TaskStatus.MERGED_OTHERS_WORK]: {
-      male: 'Выполнил мердж чужой задачи',
-      female: 'Выполнила мердж чужой задачи',
+      male: 'Смерджил задачу коллеги',
+      female: 'Смерджила задачу коллеги',
     },
     [TaskStatus.RE_REVIEWED_AND_APPROVED]: {
       male: 'Повторно проверил и одобрил',
@@ -194,8 +255,8 @@ export const ru: Locale = {
       female: 'Зафиксировала технический долг',
     },
     [TaskStatus.FOUND_BUG_DURING_WORK]: {
-      male: 'Обнаружил ошибку в процессе работы',
-      female: 'Обнаружила ошибку в процессе работы',
+      male: 'Обнаружил ошибку в ходе работы',
+      female: 'Обнаружила ошибку в ходе работы',
     },
     [TaskStatus.ACCEPTED_RESULT]: {
       male: 'Принял результат',
@@ -204,20 +265,20 @@ export const ru: Locale = {
 
     //Вторичное участие (по степени вовлечённости)
     [TaskStatus.CONTRIBUTED_CODE]: {
-      male: 'Поучаствовал в разработке',
-      female: 'Поучаствовала в разработке',
+      male: 'Внёс вклад в разработку задачи',
+      female: 'Внесла вклад в разработку задачи',
     },
     [TaskStatus.HELPED_WITH_TASK]: {
       male: 'Помог с задачей',
       female: 'Помогла с задачей',
     },
     [TaskStatus.ASSISTED_REVIEW]: {
-      male: 'Поучаствовал в ревью',
-      female: 'Поучаствовала в ревью',
+      male: 'Помог с ревью',
+      female: 'Помогла с ревью',
     },
     [TaskStatus.PAIRED_ON_TASK]: {
-      male: 'Поработал над задачей в паре',
-      female: 'Поработала над задачей в паре',
+      male: 'Работал над задачей совместно с коллегами',
+      female: 'Работала над задачей совместно с коллегами',
     },
     [TaskStatus.HELPED_RESOLVE_BUG]: {
       male: 'Помог с исправлением бага',
@@ -229,6 +290,10 @@ export const ru: Locale = {
     },
 
     //Общие
+    [TaskStatus.CREATED]: {
+      male: 'Создал задачу',
+      female: 'Создала задачу',
+    },
     [TaskStatus.COMMENTED]: {
       male: 'Оставил комментарий',
       female: 'Оставила комментарий',
@@ -245,18 +310,6 @@ export const ru: Locale = {
       male: 'Продолжил работу',
       female: 'Продолжила работу',
     },
-    [TaskStatus.CREATED]: {
-      male: 'Создал задачу',
-      female: 'Создала задачу',
-    },
-    [TaskStatus.CREATED_PROJECT]: {
-      male: 'Создал проект',
-      female: 'Создала проект',
-    },
-    [TaskStatus.CREATED_REPO]: {
-      male: 'Создал репозиторий',
-      female: 'Создала репозиторий',
-    },
     [TaskStatus.REOPENED]: {
       male: 'Переоткрыл задачу',
       female: 'Переоткрыла задачу',
@@ -265,6 +318,10 @@ export const ru: Locale = {
       male: 'Закрыл задачу без мерджа',
       female: 'Закрыла задачу без мерджа',
     },
+    [TaskStatus.PUT_ON_HOLD]: {
+      male: 'Отложил задачу',
+      female: 'Отложила задачу',
+    },
     [TaskStatus.UNKNOWN]: {
       male: 'Работал над задачей',
       female: 'Работала над задачей',
@@ -272,6 +329,8 @@ export const ru: Locale = {
   },
 
   report: {
+    qaReturns: 'Возвраты в разработку',
+    qaTesting: 'Тестирование',
     qaReviewed: 'MR / задачи проверены',
     qaBugs: 'Баги',
     qaAutoTests: 'Автотесты / POM / покрытие',
@@ -289,7 +348,8 @@ export const ru: Locale = {
     userRole: {
       Developer: 'Разработчик',
       QA: 'QA',
-      'Project Manager': 'Проектный менеджер',
+      PM: 'Проектный менеджер',
+      SA: 'Системный аналитик',
       Admin: 'Администратор',
     },
     reportTemplate: {
@@ -348,6 +408,15 @@ export const ru: Locale = {
       'Пиши от лица МУЖЧИНЫ (мужской род): "Продолжил", "Добавил", "Исправил"',
     genderFemale:
       'Пиши от лица ЖЕНЩИНЫ (женский род): "Продолжила", "Добавила", "Исправила"',
+    roleHints: {
+      Developer:
+        'РОЛЬ АВТОРА: разработчик. Пиши на языке разработки: реализация, правки, рефакторинг, ревью, мердж. Технические детали из коммитов уместны.',
+      QA: 'РОЛЬ АВТОРА: тестировщик (QA). Пиши на языке тестирования: проверка, воспроизведение, регресс, покрытие, автотесты. Не описывай реализацию кода — только то, что проверялось или автоматизировалось.',
+      PM: 'РОЛЬ АВТОРА: проектный менеджер. Пиши на языке процесса: постановка, приоритеты, согласование, приёмка, статус задачи. Не углубляйся в технические детали.',
+      SA: 'РОЛЬ АВТОРА: системный аналитик. Пиши на языке аналитики: требования, проработка, описание решения, уточнение постановки. Не описывай реализацию кода.',
+      Admin:
+        'РОЛЬ АВТОРА: разработчик с админскими правами. Пиши на языке разработки: реализация, правки, ревью, мердж.',
+    },
     labels: {
       task: 'Задача',
       action: 'Действие',
