@@ -1,4 +1,3 @@
 export enum DefaultMessages {
-  DEFAULT_PROJECT = 'Project',
-  DEFAULT_UNKNOWN_ERROR = 'Unknown error',
+  APP_INIT_ERROR = 'Error on init app',
 }

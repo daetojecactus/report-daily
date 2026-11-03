@@ -1,19 +1,19 @@
 import { Module } from '@nestjs/common';
-import { ApiModule } from './api/api.module';
-import { ApplicationModule } from './application/application.module';
-import { InfrastructureModule } from './infrastructure/infrastructure.module';
-import { QueueModule } from './queue/queue.module';
-import { TaskModule } from './tasks/task.module';
-import { VendorModule } from './vendors/vendor.module';
+import { HealthModule } from 'src/modules/api/health/health.module';
+import { BullRootModule } from 'src/modules/infrastructure/bull-root/bull-root.module';
+import { AppConfigModule } from 'src/modules/infrastructure/config/config.module';
+import { DatabaseModule } from 'src/modules/infrastructure/database/database.module';
+import { LoggerModule } from 'src/modules/infrastructure/logger/logger.module';
+import { RedisModule } from 'src/modules/infrastructure/redis/redis.module';
 
 @Module({
   imports: [
-    InfrastructureModule,
-    ApiModule,
-    ApplicationModule,
-    QueueModule,
-    TaskModule,
-    VendorModule,
+    AppConfigModule,
+    LoggerModule,
+    DatabaseModule,
+    RedisModule,
+    BullRootModule,
+    HealthModule,
   ],
 })
 export class AppModule {}

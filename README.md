@@ -1,350 +1,40 @@
-# Report Daily Bot
+# Report Daily
 
-Telegram-бот для автоматического формирования ежедневных отчётов о проделанной работе. Собирает активность из **GitLab** (коммиты, merge request'ы, задачи), определяет роль и вклад участника, при необходимости улучшает формулировки через **AI** (OpenRouter / Gemini / Groq с автоматическим fallback) и доставляет готовый отчёт в Telegram.
+Self-hosted bot that turns GitLab activity into daily work reports in Telegram. Slack support is planned.
 
----
+Version 2 is under development. The previous version lives in the [`v1`](https://github.com/daetojecactus/report-daily/tree/v1) branch.
 
-## Содержание
+## Development
 
-- [Возможности](#возможности)
-- [Технологии](#технологии)
-- [Архитектура](#архитектура)
-- [Как формируется отчёт](#как-формируется-отчёт)
-- [Команды бота](#команды-бота)
-- [Шаблоны отчётов](#шаблоны-отчётов)
-- [Переменные окружения](#переменные-окружения)
-- [Быстрый старт](#быстрый-старт)
-- [Запуск в Docker](#запуск-в-docker)
-- [Регистрация команд в Telegram](#регистрация-команд-в-telegram)
-- [HTTP API](#http-api)
-- [Модель данных](#модель-данных)
-- [Скрипты](#скрипты)
-
----
-
-## Возможности
-
-- **Отчёты по расписанию** — ежечасный cron определяет, кому пора отправить отчёт, и ставит задачу в очередь BullMQ.
-- **Отчёты по запросу** — пользователь может запросить отчёт в любой момент командой `/send_report`.
-- **Точное определение вклада** — для каждой задачи вычисляется роль участника (автор, ревьюер, исполнитель, наблюдатель) и уровень вовлечённости, на основе чего подбирается корректная формулировка действия.
-- **Улучшение текста через AI** — описания задач при включённом AI улучшаются через OpenRouter / Gemini / Groq с автоматическим переключением между провайдерами при сбое.
-- **Шаблоны отчётов** — `Standard` (группировка по проектам), `QA` (группировка по типу активности с приоритетом задачи) и `SA` (как Standard, но текст обёрнут в ссылку на задачу/MR).
-- **Локализация** — русский и английский (i18n) с переключением на пользователя; локализуются команды, статусы, роли и шаблоны.
-- **Управление пользователями** — добавление, блокировка, изменение ролей и настроек через команды в Telegram.
-- **Учёт пола и роли** — формулировки действий согласуются с полом и ролью пользователя.
-- **Производственный календарь** — автоматическое определение выходных и праздников (парсится из внешнего источника).
-- **Массовая рассылка** — команда `/broadcast` отправляет сообщение всем активным пользователям через отдельную очередь с rate-limit.
-- **Два транспорта** — long polling для разработки и webhook для продакшена.
-
----
-
-## Технологии
-
-| Компонент        | Технология                              |
-| ---------------- | --------------------------------------- |
-| Фреймворк        | NestJS 11                               |
-| Язык             | TypeScript 5.9                          |
-| База данных      | MongoDB (Mongoose 9)                    |
-| Очереди          | Redis + BullMQ 5                        |
-| Telegram         | Bot API (собственный axios-клиент)      |
-| AI               | OpenRouter (OpenAI SDK) + Gemini + Groq |
-| GitLab           | GitLab REST API v4                      |
-| Планировщик      | @nestjs/schedule (cron)                 |
-| Runtime          | Node.js 24+                             |
-| Менеджер пакетов | pnpm 10                                 |
-| Контейнеризация  | Docker (multi-stage) + docker-compose   |
-
----
-
-## Архитектура
-
-```
-src/
-├── common/                     # Общие утилиты, enum'ы, хелперы, i18n
-│   ├── constants/              # Общие текстовые константы
-│   ├── enums/                  # TaskStatus (действия для отчёта), роли, метки
-│   ├── helpers/                # Даты, лейблы, ошибки, маппинг действий в текст
-│   ├── i18n/                   # Локали ru/en, типы, лейблы сущностей
-│   └── interfaces/             # Общие контракты (AI-провайдер)
-├── modules/
-│   ├── api/                    # Контроллеры (Telegram webhook, HTTP endpoints)
-│   │   ├── report/             # Регистрация команд бота через API
-│   │   └── telegram/           # Webhook-контроллер + polling + роутер команд
-│   ├── application/            # Бизнес-логика
-│   │   ├── ai/                 # AI-провайдеры с fallback
-│   │   ├── bot-command/        # Обработка команд (фасад + под-сервисы по зонам)
-│   │   │   ├── add-user/       # Мастер добавления пользователя
-│   │   │   ├── broadcast/      # Мастер массовой рассылки
-│   │   │   ├── user-admin/     # Просмотр и изменение пользователей
-│   │   │   ├── router/         # Роутер команд и callback'ов Telegram
-│   │   │   └── keyboards/      # Сборка inline-клавиатур
-│   │   ├── bot-settings/       # Глобальные настройки бота
-│   │   ├── holiday-calendar/   # Производственный календарь
-│   │   ├── report/             # Генерация отчёта
-│   │   │   ├── git-report/     # Сбор и маппинг данных GitLab
-│   │   │   │   ├── git-group/  # Загрузка (fetcher), сборка (builder), парсинг событий
-│   │   │   │   └── git-mapper/ # Контекст (context-builder) + резолв статуса (status)
-│   │   │   ├── report-delivery/# Генерация и доставка отчёта одному получателю
-│   │   │   └── report-template/# Форматирование (Standard / QA / SA)
-│   │   ├── scheduler/          # Рассылка отчётов по расписанию
-│   │   └── user/               # Пользователи и их настройки
-│   ├── infrastructure/         # Глобальная инфраструктура (импортируется один раз)
-│   │   ├── config/             # Валидация окружения + конфиг-модуль
-│   │   ├── database/           # Подключение к MongoDB
-│   │   ├── queue/              # Корневое подключение BullMQ (Redis)
-│   │   └── scheduler/          # Корневое подключение @nestjs/schedule
-│   ├── queue/                  # BullMQ — очереди отчётов и рассылки
-│   ├── tasks/                  # Cron-задачи (синк календаря, рассылка)
-│   └── vendors/                # Внешние интеграции (Telegram, GitLab, AI, Portal)
-└── main.ts
-```
-
-### Инфраструктурный модуль
-
-`InfrastructureModule` помечен как `@Global()` и собирает всё, что подключается один раз на всё приложение: конфиг с типизацией окружения, подключение к MongoDB, корневое подключение BullMQ (Redis) и `ScheduleModule`. За счёт глобальности модули `queue` и `tasks` содержат только прикладную логику очередей и cron-задач, без инфраструктурных подключений.
-
-### Очереди (BullMQ)
-
-Массовая доставка отчётов и рассылок идёт через Redis-очереди:
-
-- **Параллелизм**: несколько воркеров одновременно.
-- **Rate limit**: ограничение сообщений в секунду (требование Telegram API).
-- **Повторы**: несколько попыток с экспоненциальной задержкой.
-- **Очистка**: успешные задачи удаляются, упавшие хранятся для диагностики.
-
----
-
-## Как формируется отчёт
-
-1. **GitGroupService** — получает события GitLab (задачи, MR, push'и), группирует по задачам, выделяет отдельные MR и push'и.
-2. **GitMapperService** — определяет роль участника в задаче (исполнитель, ревьюер, автор, наблюдатель) и уровень вовлечённости, после чего подбирает корректный `TaskStatus` с учётом роли (Developer/QA/PM/SA), типа задачи и меток.
-3. **ReportService** — строит текст отчёта (с AI или без) и применяет выбранный шаблон.
-4. **TelegramService** — доставляет готовый отчёт пользователю.
-
-Если активности за день нет, пользователю отправляется локализованное сообщение об отсутствии активности.
-
----
-
-## Команды бота
-
-### Команды пользователя
-
-| Команда               | Описание                            |
-| --------------------- | ----------------------------------- |
-| `/info`               | Показать текущие настройки          |
-| `/send_report`        | Получить отчёт за сегодня           |
-| `/toggle_ai`          | Включить / выключить AI             |
-| `/change_report_hour` | Изменить час автоматического отчёта |
-| `/language`           | Сменить язык (RU / EN)              |
-| `/help`               | Список доступных команд             |
-
-### Команды владельца (админа)
-
-| Команда             | Описание                                 |
-| ------------------- | ---------------------------------------- |
-| `/add_user`         | Добавить пользователя (пошаговый мастер) |
-| `/update_user`      | Изменить настройки пользователя          |
-| `/block_user`       | Заблокировать пользователя               |
-| `/unblock_user`     | Разблокировать пользователя              |
-| `/user_info`        | Подробная информация о пользователе      |
-| `/list_users`       | Список всех пользователей                |
-| `/send_user_report` | Отправить отчёт конкретному пользователю |
-| `/broadcast`        | Массовая рассылка сообщения всем         |
-| `/help`             | Список доступных команд                  |
-
----
-
-## Шаблоны отчётов
-
-- **Standard** — действия сгруппированы по проектам, каждая строка — отдельное действие.
-- **QA** — действия сгруппированы по типу активности (ревью, баги, тесты и прочее), удобно для QA-ролей. В заголовке проекта выводится приоритет задачи.
-- **SA** (системный аналитик) — как `Standard`, но текст каждой строки обёрнут в ссылку на соответствующую задачу/MR в GitLab.
-
-Шаблон выбирается на пользователя (`/update_user` → шаблон) и подставляется при генерации отчёта.
-
----
-
-## Переменные окружения
-
-> **Важно:** файл окружения находится по пути `src/.env` (а не в корне проекта). Для запуска в Docker `docker-compose.yml` ожидает `.env` рядом с собой — при необходимости создайте копию в корне.
-
-```env
-# App
-PORT=3000
-TZ=Asia/Aqtau
-
-# GitLab
-GITLAB_API_URL=https://gitlab.example.com/api/v4
-GITLAB_API_TOKEN=your_gitlab_private_token
-GITLAB_URL=https://gitlab.example.com/
-
-# Telegram
-TELEGRAM_BOT_TOKEN=123456:ABC-DEF...
-TELEGRAM_BOT_SECRET_TOKEN=your_webhook_secret    # опционально, для webhook-режима
-TELEGRAM_ID=123456789                             # опционально
-OWNER_TELEGRAM_ID=123456789                       # Telegram ID владельца (админа)
-TELEGRAM_TRANSPORT=polling                        # polling | webhook
-
-# AI — OpenRouter
-OPENROUTER_API_URL=https://openrouter.ai/api/v1
-OPENROUTER_API_KEY=sk-or-...
-OPENROUTER_MODEL=google/gemini-2.0-flash-001
-
-# AI — Gemini
-GEMINI_API_KEY=...
-GEMINI_MODEL=gemini-2.0-flash
-
-# AI — Groq (fallback)
-GROQ_API_KEY=gsk_...
-GROQ_MODEL=llama-3.3-70b-versatile
-
-# Portal (Bitrix24)
-PORTAL_WEBHOOK_URL=https://your-portal.bitrix24.kz/rest/.../...
-
-# Production Calendar
-PRODUCTION_CALENDAR_BASE_URL=https://production-calendar.example.com
-
-# Database
-MONGODB_URI=mongodb://localhost:27017/report-daily-bot
-
-# Redis
-REDIS_HOST=localhost
-REDIS_PORT=6379
-```
-
-Все переменные валидируются при старте (`src/modules/infrastructure/config/env.ts`). Если обязательная переменная не задана, приложение не запустится и выведет список ошибок.
-
----
-
-## Быстрый старт
-
-### Требования
-
-- Node.js 24+
-- pnpm 10+
-- MongoDB
-- Redis (можно поднять через Docker)
-- Заполненный файл `src/.env`
-
-### Локальный запуск
+Requirements: Node.js 26, pnpm 12, Docker.
 
 ```bash
-# 1. Установить зависимости
 pnpm install
-
-# 2. Поднять Redis (если ещё не запущен)
-docker run -d --name report-daily-bot-redis -p 6379:6379 \
-  redis:7-alpine redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy noeviction
-
-# 3. Убедиться, что заполнен src/.env и доступна MongoDB
-
-# 4. Запустить в режиме разработки (hot reload)
-pnpm run start:dev
+cp .env.example .env
+docker compose -f compose.dev.yaml up -d
+pnpm db:migrate
+pnpm watch
 ```
 
-Сборка и запуск production-версии:
+The application serves `GET /health/live` and `GET /health/ready` on port 3000.
 
-```bash
-pnpm run build
-pnpm run start:prod
-```
+| Command | What it does |
+| --- | --- |
+| `pnpm watch` | Build, run and restart on changes |
+| `pnpm db:generate --name <name>` | Create a migration from schema changes |
+| `pnpm db:migrate` | Apply migrations |
+| `pnpm lint`, `pnpm typecheck` | Static checks |
+| `pnpm test`, `pnpm test:int` | Unit and integration tests, integration tests need Docker |
 
----
+## Environment variables
 
-## Запуск в Docker
+| Variable | Required | Default | Description |
+| --- | --- | --- | --- |
+| `DATABASE_URL` | yes | | PostgreSQL connection URL |
+| `REDIS_URL` | yes | | Redis connection URL |
+| `LOG_LEVEL` | no | `info` | `fatal`, `error`, `warn`, `info`, `debug`, `trace` or `silent` |
+| `PORT` | no | `3000` | Port of the health endpoints |
 
-> Требуется Docker Compose V2 (`docker compose`).
+## License
 
-```bash
-# .env должен лежать рядом с docker-compose.yml (в корне)
-docker compose up -d
-```
-
-Поднимаются два контейнера:
-
-- `report-daily-bot` — приложение (порт из `PORT`, по умолчанию 3000)
-- `report-daily-bot-redis` — Redis 7 (порт из `REDIS_PORT`, по умолчанию 6379)
-
-Проверить, что Redis отвечает:
-
-```bash
-docker exec report-daily-bot-redis redis-cli ping
-# PONG
-```
-
----
-
-## Регистрация команд в Telegram
-
-После первого запуска зарегистрируйте команды (меню «/») в Telegram:
-
-```bash
-curl -X POST http://localhost:3000/report/setup-owner-commands
-curl -X POST http://localhost:3000/report/setup-user-commands
-```
-
-Команды также синхронизируются автоматически: при добавлении/изменении пользователей и когда пользователь впервые открывает бота командой `/start`.
-
----
-
-## HTTP API
-
-| Метод  | Endpoint                       | Описание                                       |
-| ------ | ------------------------------ | ---------------------------------------------- |
-| `POST` | `/telegram/webhook`            | Webhook Telegram Bot API                       |
-| `POST` | `/report/setup-commands`       | Синхронизация команд всем разом                |
-| `POST` | `/report/setup-owner-commands` | Регистрация команд владельца                   |
-| `POST` | `/report/setup-user-commands`  | Алиас `setup-commands`                         |
-| `POST` | `/report/send-recent?days=N`   | Тестовая рассылка: всем активным пользователям |
-
----
-
-## Модель данных
-
-### User
-
-| Поле                      | Тип     | Описание                           |
-| ------------------------- | ------- | ---------------------------------- |
-| `adminId`                 | string  | GitLab username (уникальный)       |
-| `telegramId`              | number  | Telegram ID пользователя           |
-| `gitLabId`                | number  | GitLab ID пользователя             |
-| `portalId`                | number  | ID в Bitrix24 Portal               |
-| `role`                    | enum    | Developer, QA, PM, SA, Admin       |
-| `status`                  | enum    | Active, Blocked, Vacation          |
-| `gender`                  | enum    | Male, Female                       |
-| `settings.useAI`          | boolean | Использовать AI для отчётов        |
-| `settings.reportHour`     | number  | Час автоматической отправки (0–23) |
-| `settings.reportTemplate` | enum    | Standard, QA, SA                   |
-| `settings.language`       | enum    | RU, EN                             |
-
----
-
-## Скрипты
-
-| Скрипт                 | Описание                      |
-| ---------------------- | ----------------------------- |
-| `pnpm run start:dev`   | Режим разработки с hot reload |
-| `pnpm run build`       | Сборка проекта                |
-| `pnpm run start`       | Запуск приложения             |
-| `pnpm run start:debug` | Запуск с отладчиком           |
-| `pnpm run start:prod`  | Запуск из собранного `dist/`  |
-| `pnpm run lint`        | Линтинг с авто-исправлением   |
-| `pnpm run format`      | Форматирование Prettier       |
-| `pnpm test`            | Запуск автотестов             |
-
----
-
-## Как это работает (кратко)
-
-1. **Владелец** добавляет пользователя через `/add_user`, указав GitLab username, Telegram ID, роль и час отчёта.
-2. Бот автоматически определяет `gitLabId` и `portalId` по username.
-3. Каждый час cron проверяет, кому пора отправить отчёт.
-4. Для каждого такого пользователя создаётся задача в очереди BullMQ.
-5. Консьюмер генерирует отчёт (GitLab → определение вклада → AI) и отправляет его в Telegram.
-6. Пользователь может в любой момент запросить отчёт вручную через `/send_report`.
-
----
-
-## Лицензия
-
-Private
+[Apache-2.0](LICENSE)
