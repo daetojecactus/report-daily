@@ -31,3 +31,8 @@ coverage/
 
 # Ghost comments (VS Code extension)
 .ghost-comments.json
+
+# Working notes (kept outside git)
+/docs/
+/CLAUDE.md
+/TASKS.md
