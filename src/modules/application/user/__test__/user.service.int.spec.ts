@@ -131,6 +131,13 @@ describe('User module', () => {
       ).toBeNull();
     });
 
+    it('finds a user by the GitLab id', async () => {
+      const user = await insertUser();
+
+      expect(await userService.findByGitlabId(user.gitlabUserId)).toEqual(user);
+      expect(await userService.findByGitlabId(nextId++)).toBeNull();
+    });
+
     it('counts users and pages them by name', async () => {
       const before = await userService.count();
       await insertUser();

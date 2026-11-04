@@ -77,6 +77,7 @@ export const en: Locale = {
     previous: '‹ Back',
     next: 'Next ›',
     search: 'Search',
+    add: 'Add',
     menu: 'Menu',
     backToList: 'To the list',
     searchPrompt: 'Enter a name or a GitLab username.',
@@ -95,5 +96,23 @@ export const en: Locale = {
       reachable: 'connected',
       unreachable: 'unreachable, the bot is blocked',
     },
+  },
+  employeeAdd: {
+    prompt: "Enter the employee's name or username in GitLab.",
+    gitlabUnavailable:
+      'GitLab is unavailable right now. Try again a bit later: just send the query again.',
+    noMatches: 'Nobody found in GitLab. Try another name or username.',
+    pick: (query) => `**GitLab:** ${query}\nChoose the employee.`,
+    role: (name) => `**${name}**\nChoose the role.`,
+    gender: (name) => `**${name}**\nChoose the gender.`,
+    alreadyAdded: (name) => `**${name}** is already an employee.`,
+    added: (name) => `Employee added: **${name}**.`,
+    activityHidden:
+      'GitLab shows no events of this employee: the profile is private or there was no activity yet. If the profile is private, ask to make it public.',
+    activityUnknown: "Could not check the employee's activity in GitLab.",
+    pending: 'No channel is bound yet, so reports are not sent.',
+    openCard: 'Open the card',
+    cancel: 'Cancel',
+    cancelled: 'Adding cancelled.',
   },
 };

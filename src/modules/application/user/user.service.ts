@@ -39,6 +39,10 @@ export class UserService {
     return this.findOne(eq(users.id, id));
   }
 
+  findByGitlabId(gitlabUserId: number) {
+    return this.findOne(eq(users.gitlabUserId, gitlabUserId));
+  }
+
   findPage(limit: number, offset: number) {
     return this.userRepository.findPage(undefined, limit, offset);
   }

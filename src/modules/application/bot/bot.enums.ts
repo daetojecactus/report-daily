@@ -15,4 +15,5 @@ export enum BotAccess {
 export enum BotNamespace {
   ADMIN = 'adm',
   EMPLOYEES = 'emp',
+  EMPLOYEE_ADD = 'add',
 }

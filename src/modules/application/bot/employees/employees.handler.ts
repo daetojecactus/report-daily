@@ -23,6 +23,7 @@ import {
   EMPLOYEES_SEARCH_LIMIT,
   EMPLOYEES_USERNAME_PREFIX,
 } from './constants/employees.constants';
+import { EmployeeAddAction } from '../employee-add/employee-add.enums';
 import { EmployeesAction, EmployeesStep } from './employees.enums';
 
 @Injectable()
@@ -101,6 +102,12 @@ export class EmployeesHandler implements BotHandler {
             {
               text: locale.employees.search,
               data: this.toData(EmployeesAction.SEARCH),
+            },
+            {
+              text: locale.employees.add,
+              data: [BotNamespace.EMPLOYEE_ADD, EmployeeAddAction.START].join(
+                BOT_BUTTON_DATA_SEPARATOR,
+              ),
             },
             { text: locale.employees.menu, data: ADMIN_MENU_DATA },
           ],

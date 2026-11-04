@@ -23,6 +23,7 @@ import {
   fakeBotApi,
   privateMessage,
 } from 'test/setup/fake-bot-api';
+import { fakeGitLab } from 'test/setup/fake-gitlab';
 import { createTestApp } from 'test/setup/test-app';
 
 let nextTelegramId = 200_000_000;
@@ -334,6 +335,78 @@ describe('Telegram bot', () => {
       reply_markup: {
         inline_keyboard: [[{ text: 'Employees', callback_data: 'emp:list:0' }]],
       },
+    });
+  });
+
+  it('adds an employee from GitLab through /admin', async () => {
+    const gitlabUserId = nextTelegramId++;
+    const tag = `Petrova${gitlabUserId}`;
+    const ownerChat = String(TEST_OWNER_TELEGRAM_ID);
+    await fakeGitLab.addUser({
+      id: gitlabUserId,
+      username: tag.toLowerCase(),
+      name: `Olga ${tag}`,
+      state: 'active',
+      avatar_url: 'https://gitlab.example.com/avatar.png',
+      web_url: `https://gitlab.example.com/${tag.toLowerCase()}`,
+      hasActivity: false,
+    });
+    const step = (messageId: number) =>
+      fakeBotApi.waitForRequest(
+        'editMessageText',
+        (body) => body.message_id === messageId,
+      );
+
+    await fakeBotApi.pushUpdate(
+      buttonPress(TEST_OWNER_TELEGRAM_ID, 'add:start', 601),
+    );
+    expect((await step(601)).text).toBe(en.employeeAdd.prompt);
+
+    await fakeBotApi.pushUpdate(privateMessage(TEST_OWNER_TELEGRAM_ID, tag));
+    const matches = await fakeBotApi.waitForRequest(
+      'sendMessage',
+      (body) =>
+        body.chat_id === ownerChat &&
+        String(body.text).startsWith(`<b>GitLab:</b> ${tag}`),
+    );
+    expect(matches.reply_markup).toEqual({
+      inline_keyboard: [
+        [
+          {
+            text: `Olga ${tag} · @${tag.toLowerCase()}`,
+            callback_data: `add:pick:${gitlabUserId}`,
+          },
+        ],
+        [{ text: 'Cancel', callback_data: 'add:cancel' }],
+      ],
+    });
+
+    await fakeBotApi.pushUpdate(
+      buttonPress(TEST_OWNER_TELEGRAM_ID, `add:pick:${gitlabUserId}`, 602),
+    );
+    expect((await step(602)).text).toContain('Choose the role.');
+    await fakeBotApi.pushUpdate(
+      buttonPress(TEST_OWNER_TELEGRAM_ID, 'add:role:qa', 603),
+    );
+    expect((await step(603)).text).toContain('Choose the gender.');
+    await fakeBotApi.pushUpdate(
+      buttonPress(TEST_OWNER_TELEGRAM_ID, 'add:gender:female', 604),
+    );
+
+    const added = await step(604);
+    expect(added.text).toContain(`Employee added: <b>Olga ${tag}</b>.`);
+    expect(added.text).toContain(en.employeeAdd.activityHidden);
+    const [stored] = await db
+      .select()
+      .from(users)
+      .where(eq(users.gitlabUserId, gitlabUserId));
+    expect(stored).toMatchObject({
+      gitlabUsername: tag.toLowerCase(),
+      displayName: `Olga ${tag}`,
+      role: JobRole.QA,
+      gender: Gender.FEMALE,
+      status: UserStatus.PENDING,
+      language: null,
     });
   });
 });

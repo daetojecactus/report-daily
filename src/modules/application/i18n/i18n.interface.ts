@@ -45,6 +45,7 @@ export interface Locale {
     previous: string;
     next: string;
     search: string;
+    add: string;
     menu: string;
     backToList: string;
     searchPrompt: string;
@@ -63,5 +64,21 @@ export interface Locale {
       reachable: string;
       unreachable: string;
     };
+  };
+  employeeAdd: {
+    prompt: string;
+    gitlabUnavailable: string;
+    noMatches: string;
+    pick: (query: string) => string;
+    role: (name: string) => string;
+    gender: (name: string) => string;
+    alreadyAdded: (name: string) => string;
+    added: (name: string) => string;
+    activityHidden: string;
+    activityUnknown: string;
+    pending: string;
+    openCard: string;
+    cancel: string;
+    cancelled: string;
   };
 }
