@@ -116,6 +116,26 @@ export const en: Locale = {
     cancel: 'Cancel',
     cancelled: 'Adding cancelled.',
   },
+  employeeManage: {
+    changeRole: 'Change role',
+    block: 'Block',
+    unblock: 'Unblock',
+    delete: 'Delete',
+    confirm: 'Yes, delete',
+    cancel: 'Cancel',
+    chooseRole: (name, role) =>
+      `**${name}**\nNow: ${role}. Choose the new role.`,
+    roleChanged: (name, role) => `Role changed: **${name}** — ${role}.`,
+    blocked: (name) =>
+      `Employee blocked: **${name}**. The bot no longer answers them or sends reports.`,
+    unblocked: (name) => `Employee unblocked: **${name}**.`,
+    confirmDelete: (name) =>
+      `Delete the employee **${name}**? Their channels and reports are deleted with them.`,
+    deleted: (name) => `Employee deleted: **${name}**.`,
+    self: 'You cannot block or delete yourself.',
+    ownerOnly:
+      'Only an owner can block or delete an employee with permissions.',
+  },
   employeeBind: {
     prompt: (channel, name) =>
       `**${name}**\nChoose the employee in ${channel} or enter their ${channel} ID. The bot shows the ID to a person who writes to it without access.`,

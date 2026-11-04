@@ -11,8 +11,11 @@ import type { UserService } from 'src/modules/application/user/user.service';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { AccessService } from '../access/access.service';
 import { BotAccess } from '../bot.enums';
+import type { User } from 'src/modules/application/user/user.interface';
 import type { BotActor, BotSectionAccess } from '../bot.interface';
 import { createEmployee, OWNER_ID } from './bot.fixture';
+
+const ADMIN_ID = '019a4d2e-7c1b-7f3a-9c2d-000000000077';
 
 function createService(found: ReturnType<typeof createEmployee> | null = null) {
   const userService = {
@@ -85,6 +88,49 @@ describe('AccessService', () => {
       allowed,
     );
   });
+
+  it.each<[string, Partial<BotActor>, Partial<User>, boolean]>([
+    [
+      'an admin by an owner',
+      { isOwner: true },
+      { permissions: [Permission.USERS] },
+      true,
+    ],
+    [
+      'an employee by an admin',
+      {
+        user: createEmployee({ id: ADMIN_ID, permissions: [Permission.USERS] })
+          .user,
+      },
+      {},
+      true,
+    ],
+    [
+      'an admin by another admin',
+      {
+        user: createEmployee({ id: ADMIN_ID, permissions: [Permission.USERS] })
+          .user,
+      },
+      { permissions: [Permission.LABELS] },
+      false,
+    ],
+    ['yourself as an admin', { user: createEmployee().user }, {}, false],
+    [
+      'your own employee record as an owner',
+      { isOwner: true, user: createEmployee().user },
+      {},
+      false,
+    ],
+  ])(
+    'decides whether %s can be managed',
+    (_name, subject, target, canManage) => {
+      const { service } = createService();
+
+      expect(
+        service.canManage(actor(subject), createEmployee(target).user),
+      ).toBe(canManage);
+    },
+  );
 
   it('resolves an owner from the environment', async () => {
     const { service } = createService();

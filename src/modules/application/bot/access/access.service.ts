@@ -4,6 +4,7 @@ import { Channel } from 'src/common/enums/channel.enums';
 import { UserStatus } from 'src/modules/application/user/user.enums';
 import type { ChatEvent } from 'src/common/interfaces/chat-channel.interface';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
+import type { User } from 'src/modules/application/user/user.interface';
 import { UserService } from 'src/modules/application/user/user.service';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { BotAccess } from '../bot.enums';
@@ -51,6 +52,13 @@ export class AccessService {
 
   isKnown(actor: BotActor) {
     return actor.isOwner || actor.user !== null;
+  }
+
+  canManage(actor: BotActor, target: User) {
+    if (actor.user?.id === target.id) {
+      return false;
+    }
+    return actor.isOwner || target.permissions.length === 0;
   }
 
   isAllowed(actor: BotActor, access: BotSectionAccess) {

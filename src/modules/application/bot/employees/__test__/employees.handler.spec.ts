@@ -1,3 +1,4 @@
+import type { ConfigService } from '@nestjs/config';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Channel, ChatInputType } from 'src/common/enums/channel.enums';
 import type { ChatInput } from 'src/common/interfaces/chat-channel.interface';
@@ -12,7 +13,9 @@ import {
 } from 'src/modules/application/user/user.enums';
 import type { User } from 'src/modules/application/user/user.interface';
 import type { UserService } from 'src/modules/application/user/user.service';
-import type { BotDialog } from '../../bot.interface';
+import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
+import { AccessService } from '../../access/access.service';
+import type { BotActor, BotDialog } from '../../bot.interface';
 import { createEmployee } from '../../__test__/bot.fixture';
 import { EmployeesHandler } from '../employees.handler';
 
@@ -49,9 +52,18 @@ describe('EmployeesHandler', () => {
   const handler = new EmployeesHandler(
     userService as unknown as UserService,
     channelService as unknown as ChannelService,
+    new AccessService(
+      { get: () => [] } as unknown as ConfigService<AppEnvs, true>,
+      {} as UserService,
+      new I18nService(),
+    ),
   );
 
-  function open(input: ChatInput, dialog: BotDialog | null = null) {
+  function open(
+    input: ChatInput,
+    dialog: BotDialog | null = null,
+    actor: Partial<BotActor> = {},
+  ) {
     return handler.handle({
       actor: {
         channel: Channel.TELEGRAM,
@@ -60,6 +72,7 @@ describe('EmployeesHandler', () => {
         language: Language.EN,
         isOwner: true,
         user: null,
+        ...actor,
       },
       locale,
       input,
@@ -168,7 +181,14 @@ describe('EmployeesHandler', () => {
         'Telegram: unreachable, the bot is blocked',
         'Permissions: Employees, Labels',
       ].join('\n'),
-      buttons: [[{ text: 'To the list', data: 'emp:list:2' }]],
+      buttons: [
+        [{ text: 'Change role', data: `mng:role:${user.id}` }],
+        [
+          { text: 'Block', data: `mng:block:${user.id}` },
+          { text: 'Delete', data: `mng:delete:${user.id}` },
+        ],
+        [{ text: 'To the list', data: 'emp:list:2' }],
+      ],
     });
   });
 
@@ -189,9 +209,48 @@ describe('EmployeesHandler', () => {
 
     const { screen } = await open(button(`emp:card:${user.id}:3`));
 
+    expect(screen.buttons?.[0]).toEqual([
+      { text: 'Bind Telegram', data: `bind:start:${user.id}` },
+    ]);
+  });
+
+  it('offers to unblock a blocked employee', async () => {
+    const user = employee(1, { status: UserStatus.BLOCKED });
+    userService.findById.mockResolvedValue(user);
+    channelService.findByUser.mockResolvedValue([createEmployee().channel]);
+
+    const { screen } = await open(button(`emp:card:${user.id}:0`));
+
+    expect(screen.buttons?.[1]).toEqual([
+      { text: 'Unblock', data: `mng:unblock:${user.id}` },
+      { text: 'Delete', data: `mng:delete:${user.id}` },
+    ]);
+  });
+
+  it.each<[string, Partial<User>, (user: User) => Partial<BotActor>]>([
+    [
+      'an admin with permissions to another admin',
+      { permissions: [Permission.LABELS] },
+      () => ({
+        isOwner: false,
+        user: employee(9, { permissions: [Permission.USERS] }),
+      }),
+    ],
+    ['an admin to themselves', {}, (user) => ({ isOwner: false, user })],
+  ])('hides block and delete from %s', async (_name, values, toActor) => {
+    const user = employee(1, values);
+    userService.findById.mockResolvedValue(user);
+    channelService.findByUser.mockResolvedValue([createEmployee().channel]);
+
+    const { screen } = await open(
+      button(`emp:card:${user.id}:0`),
+      null,
+      toActor(user),
+    );
+
     expect(screen.buttons).toEqual([
-      [{ text: 'Bind Telegram', data: `bind:start:${user.id}` }],
-      [{ text: 'To the list', data: 'emp:list:3' }],
+      [{ text: 'Change role', data: `mng:role:${user.id}` }],
+      [{ text: 'To the list', data: 'emp:list:0' }],
     ]);
   });
 

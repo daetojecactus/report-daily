@@ -253,6 +253,53 @@ describe('User module', () => {
     });
   });
 
+  describe('employee management', () => {
+    it('changes the role', async () => {
+      const user = await insertUser({ role: JobRole.QA });
+
+      await userService.changeRole(user.id, JobRole.DEVOPS);
+
+      expect((await findUser(user.id)).role).toBe(JobRole.DEVOPS);
+    });
+
+    it('blocks and unblocks a user with a channel as active', async () => {
+      const user = await insertUser({ status: UserStatus.ACTIVE });
+      await insertChannel(user.id);
+
+      await userService.block(user.id);
+      expect((await findUser(user.id)).status).toBe(UserStatus.BLOCKED);
+
+      await userService.unblock(user.id);
+      expect((await findUser(user.id)).status).toBe(UserStatus.ACTIVE);
+    });
+
+    it('unblocks a user without channels as pending', async () => {
+      const user = await insertUser({ status: UserStatus.BLOCKED });
+
+      await userService.unblock(user.id);
+
+      expect((await findUser(user.id)).status).toBe(UserStatus.PENDING);
+    });
+
+    it('does not unblock a user who is not blocked', async () => {
+      const user = await insertUser({ status: UserStatus.ON_LEAVE });
+
+      expect(await userService.unblock(user.id)).toBeNull();
+      expect((await findUser(user.id)).status).toBe(UserStatus.ON_LEAVE);
+    });
+
+    it('deletes a user with the channels', async () => {
+      const user = await insertUser();
+      await insertChannel(user.id);
+
+      expect(await userService.deleteById(user.id)).toMatchObject({
+        id: user.id,
+      });
+      expect(await userService.findById(user.id)).toBeNull();
+      expect(await channelService.findByUser(user.id)).toEqual([]);
+    });
+  });
+
   describe('channel binding', () => {
     it('binds a channel and activates a pending user', async () => {
       const user = await insertUser({ status: UserStatus.PENDING });

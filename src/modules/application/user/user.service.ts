@@ -5,7 +5,7 @@ import type { Channel } from 'src/common/enums/channel.enums';
 import type { Language } from 'src/modules/application/i18n/i18n.enums';
 import { ChannelService } from './channel/channel.service';
 import { USER_LIKE_SPECIAL_CHARACTERS } from './constants/user.constants';
-import { UserStatus } from './user.enums';
+import { type JobRole, UserStatus } from './user.enums';
 import type { UserInsert, UserWithChannel } from './user.interface';
 import { UserRepository } from './user.repository';
 import { users } from './user.schema';
@@ -67,6 +67,28 @@ export class UserService {
 
   findOneByChannel(channel: Channel, externalId: string) {
     return this.userRepository.findOneByChannel(channel, externalId);
+  }
+
+  changeRole(id: string, role: JobRole) {
+    return this.updateOne(eq(users.id, id), { role });
+  }
+
+  block(id: string) {
+    return this.updateOne(eq(users.id, id), { status: UserStatus.BLOCKED });
+  }
+
+  async unblock(id: string) {
+    const channels = await this.channelService.findByUser(id);
+    return this.updateOne(
+      and(eq(users.id, id), eq(users.status, UserStatus.BLOCKED))!,
+      {
+        status: channels.length > 0 ? UserStatus.ACTIVE : UserStatus.PENDING,
+      },
+    );
+  }
+
+  deleteById(id: string) {
+    return this.deleteOne(eq(users.id, id));
   }
 
   @Transactional()

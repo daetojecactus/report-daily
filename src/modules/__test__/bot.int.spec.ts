@@ -502,4 +502,46 @@ describe('Telegram bot', () => {
       .where(eq(userChannels.userId, user.id));
     expect(channel.externalId).toBe(String(pickedId));
   });
+
+  it('blocks, unblocks and deletes an employee from the card', async () => {
+    const { user, telegramId } = await createEmployee({
+      displayName: `Managed${nextTelegramId}`,
+    });
+    const press = async (data: string, messageId: number) => {
+      await fakeBotApi.pushUpdate(
+        buttonPress(TEST_OWNER_TELEGRAM_ID, data, messageId),
+      );
+      return fakeBotApi.waitForRequest(
+        'editMessageText',
+        (body) => body.message_id === messageId,
+      );
+    };
+
+    expect((await press(`mng:block:${user.id}`, 901)).text).toContain(
+      'Employee blocked',
+    );
+    await fakeBotApi.pushUpdate(privateMessage(telegramId, '/start'));
+    expect((await replyTo(telegramId)).text).toContain(
+      `<code>${telegramId}</code>`,
+    );
+
+    expect((await press(`mng:unblock:${user.id}`, 902)).text).toContain(
+      'Employee unblocked',
+    );
+    const [unblocked] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, user.id));
+    expect(unblocked.status).toBe(UserStatus.ACTIVE);
+
+    expect((await press(`mng:delete:${user.id}`, 903)).text).toContain(
+      'Delete the employee',
+    );
+    expect((await press(`mng:confirm:${user.id}`, 904)).text).toContain(
+      'Employee deleted',
+    );
+    expect(await db.select().from(users).where(eq(users.id, user.id))).toEqual(
+      [],
+    );
+  });
 });
