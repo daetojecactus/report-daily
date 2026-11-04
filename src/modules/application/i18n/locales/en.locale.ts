@@ -122,6 +122,20 @@ export const en: Locale = {
     },
     on: 'yes',
     off: 'no',
+    gender: 'Gender',
+    chooseGender:
+      'Choose your gender: reports in Russian use it in the wording.',
+    leave: 'Vacation',
+    noLeave: 'no',
+    leaveUntil: (date) => `until ${date}`,
+    leaveNoEndDate: 'no end date',
+    leavePrompt: (leave) =>
+      `Send the last day of your vacation: \`DD.MM\`, \`DD.MM.YYYY\` or \`YYYY-MM-DD\`. Until that day inclusive, no reports are sent. Vacation now: ${leave}.`,
+    leaveInvalid: 'Unknown date. Example: `15.11` or `15.11.2026`.',
+    leaveOutOfRange:
+      'The last day of the vacation must be between today and one year ahead.',
+    noEndDate: 'No end date',
+    endLeave: 'End the vacation',
   },
   employees: {
     title: (count) => `**Employees** · ${count}`,

@@ -70,6 +70,17 @@ export interface Locale {
     notifyEmpty: LocaleSwitch;
     on: string;
     off: string;
+    gender: string;
+    chooseGender: string;
+    leave: string;
+    noLeave: string;
+    leaveUntil: (date: string) => string;
+    leaveNoEndDate: string;
+    leavePrompt: (leave: string) => string;
+    leaveInvalid: string;
+    leaveOutOfRange: string;
+    noEndDate: string;
+    endLeave: string;
   };
   employees: {
     title: (count: number) => string;

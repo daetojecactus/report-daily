@@ -326,7 +326,7 @@ describe('User module', () => {
       });
     });
 
-    it('stores the switches and the preset', async () => {
+    it('stores the switches, the preset and the gender', async () => {
       const user = await insertUser();
       expect(user).toMatchObject({
         aiEnabled: true,
@@ -340,12 +340,14 @@ describe('User module', () => {
         aiDataOptOut: true,
         notifyEmpty: false,
         preset: ReportPreset.QA,
+        gender: Gender.MALE,
       });
       expect(await findUser(user.id)).toMatchObject({
         aiEnabled: false,
         aiDataOptOut: true,
         notifyEmpty: false,
         preset: ReportPreset.QA,
+        gender: Gender.MALE,
       });
 
       await userService.updateSettings(user.id, { preset: null });
@@ -353,6 +355,42 @@ describe('User module', () => {
         aiEnabled: false,
         preset: null,
       });
+    });
+  });
+
+  describe('leave', () => {
+    it('starts, changes and ends a vacation', async () => {
+      const user = await insertUser({ status: UserStatus.ACTIVE });
+
+      expect(await userService.startLeave(user.id, '2026-11-15')).toMatchObject(
+        {
+          status: UserStatus.ON_LEAVE,
+          onLeaveUntil: '2026-11-15',
+        },
+      );
+      expect(await userService.startLeave(user.id, null)).toMatchObject({
+        status: UserStatus.ON_LEAVE,
+        onLeaveUntil: null,
+      });
+      expect(await userService.endLeave(user.id)).toMatchObject({
+        status: UserStatus.ACTIVE,
+        onLeaveUntil: null,
+      });
+      expect(await userService.endLeave(user.id)).toBeNull();
+    });
+
+    it('leaves a blocked or pending employee as is', async () => {
+      const blocked = await insertUser({ status: UserStatus.BLOCKED });
+      const pending = await insertUser({ status: UserStatus.PENDING });
+
+      expect(await userService.startLeave(blocked.id, null)).toBeNull();
+      expect(await userService.startLeave(pending.id, null)).toBeNull();
+      expect(await userService.endLeave(blocked.id)).toBeNull();
+      expect(await findUser(blocked.id)).toMatchObject({
+        status: UserStatus.BLOCKED,
+        onLeaveUntil: null,
+      });
+      expect((await findUser(pending.id)).status).toBe(UserStatus.PENDING);
     });
   });
 

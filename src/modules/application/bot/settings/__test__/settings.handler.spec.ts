@@ -1,5 +1,5 @@
 import type { ConfigService } from '@nestjs/config';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Channel, ChatInputType } from 'src/common/enums/channel.enums';
 import type { ChatInput } from 'src/common/interfaces/chat-channel.interface';
 import { Language } from 'src/modules/application/i18n/i18n.enums';
@@ -7,7 +7,11 @@ import { I18nService } from 'src/modules/application/i18n/i18n.service';
 import { ReportPreset } from 'src/modules/application/report/report.enums';
 import type { UserChannel } from 'src/modules/application/user/channel/channel.interface';
 import type { ChannelService } from 'src/modules/application/user/channel/channel.service';
-import { JobRole } from 'src/modules/application/user/user.enums';
+import {
+  Gender,
+  JobRole,
+  UserStatus,
+} from 'src/modules/application/user/user.enums';
 import type {
   User,
   UserSettingsUpdate,
@@ -25,6 +29,13 @@ const ru = i18nService.getLocale(Language.RU);
 const FOUND = createEmployee();
 const USER = FOUND.user;
 const TIME_ZONE_DIALOG: BotDialog = { namespace: 'set', step: 'tz', data: {} };
+const LEAVE_DIALOG: BotDialog = { namespace: 'set', step: 'leave', data: {} };
+const NOW = new Date('2026-11-04T10:00:00Z');
+const ON_LEAVE = {
+  ...USER,
+  status: UserStatus.ON_LEAVE,
+  onLeaveUntil: '2026-11-15',
+};
 const MENU_BUTTONS = [
   [
     { text: 'Language', data: 'set:lang' },
@@ -33,6 +44,10 @@ const MENU_BUTTONS = [
   [
     { text: 'Time zone', data: 'set:tz' },
     { text: 'Report preset', data: 'set:preset' },
+  ],
+  [
+    { text: 'Gender', data: 'set:gender' },
+    { text: 'Vacation', data: 'set:leave' },
   ],
   [{ text: 'AI: yes', data: 'set:ai:off' }],
   [{ text: 'Data in AI: yes', data: 'set:aidata:off' }],
@@ -47,6 +62,9 @@ describe('SettingsHandler', () => {
   const userService = {
     updateSettings:
       vi.fn<(id: string, update: UserSettingsUpdate) => Promise<User | null>>(),
+    startLeave:
+      vi.fn<(id: string, until: string | null) => Promise<User | null>>(),
+    endLeave: vi.fn<(id: string) => Promise<User | null>>(),
   };
   const channelService = {
     findByUser: vi.fn<(userId: string) => Promise<UserChannel[]>>(),
@@ -82,7 +100,13 @@ describe('SettingsHandler', () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(NOW);
     channelService.findByUser.mockResolvedValue([FOUND.channel]);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('shows the current settings on /settings', async () => {
@@ -96,6 +120,8 @@ describe('SettingsHandler', () => {
           'Report time: 18:00',
           'Time zone: `Asia/Almaty`, default',
           'Report preset: by role (Standard)',
+          'Gender: male',
+          'Vacation: no',
           '',
           '**AI** — improve the wording of report lines with AI',
           '**Data in AI** — send the titles of my commits and excerpts of my comments to AI',
@@ -229,7 +255,7 @@ describe('SettingsHandler', () => {
       { ...USER, aiEnabled: false, aiDataOptOut: true, notifyEmpty: false },
     );
 
-    expect(screen.buttons?.slice(2)).toEqual([
+    expect(screen.buttons?.slice(3)).toEqual([
       [{ text: 'AI: no', data: 'set:ai:on' }],
       [{ text: 'Data in AI: no', data: 'set:aidata:on' }],
       [{ text: 'Empty day: no', data: 'set:empty:on' }],
@@ -306,6 +332,122 @@ describe('SettingsHandler', () => {
     expect(screen.text).toContain('Report preset: by role (Standard)');
   });
 
+  it('offers the genders', async () => {
+    expect(await open(button('set:gender'))).toEqual({
+      screen: {
+        text: en.settings.chooseGender,
+        buttons: [
+          [
+            { text: 'male', data: 'set:gender:male' },
+            { text: 'female', data: 'set:gender:female' },
+          ],
+          [{ text: 'Back', data: 'set:menu' }],
+        ],
+      },
+      dialog: null,
+    });
+  });
+
+  it('saves the gender', async () => {
+    userService.updateSettings.mockResolvedValue({
+      ...USER,
+      gender: Gender.FEMALE,
+    });
+
+    const { screen } = await open(button('set:gender:female'));
+
+    expect(userService.updateSettings).toHaveBeenCalledWith(USER.id, {
+      gender: Gender.FEMALE,
+    });
+    expect(screen.text).toContain('Gender: female');
+  });
+
+  it('asks for the last day of a vacation in a dialog', async () => {
+    expect(await open(button('set:leave'))).toEqual({
+      screen: {
+        text: en.settings.leavePrompt('no'),
+        buttons: [
+          [{ text: 'No end date', data: 'set:leave:nodate' }],
+          [{ text: 'Back', data: 'set:menu' }],
+        ],
+      },
+      dialog: LEAVE_DIALOG,
+    });
+  });
+
+  it('offers to end the vacation while on it', async () => {
+    const { screen } = await open(button('set:leave'), null, ON_LEAVE);
+
+    expect(screen.text).toBe(
+      en.settings.leavePrompt('until November 15, 2026'),
+    );
+    expect(screen.buttons?.[0]).toEqual([
+      { text: 'End the vacation', data: 'set:leave:end' },
+    ]);
+  });
+
+  it.each([
+    ['15.11', '2026-11-15'],
+    ['04.11.2026', '2026-11-04'],
+    ['2027-11-04', '2027-11-04'],
+  ])('starts a vacation until %j', async (text, until) => {
+    userService.startLeave.mockResolvedValue({
+      ...ON_LEAVE,
+      onLeaveUntil: until,
+    });
+
+    const reply = await open({ type: ChatInputType.TEXT, text }, LEAVE_DIALOG);
+
+    expect(userService.startLeave).toHaveBeenCalledWith(USER.id, until);
+    expect(reply.screen.text).toContain('Vacation: until ');
+    expect(reply.dialog).toBeNull();
+  });
+
+  it.each([
+    ['next week', en.settings.leaveInvalid],
+    ['31.02.2027', en.settings.leaveInvalid],
+    ['03.11.2026', en.settings.leaveOutOfRange],
+    ['2027-11-05', en.settings.leaveOutOfRange],
+  ])('asks again for %j', async (text, answer) => {
+    const reply = await open({ type: ChatInputType.TEXT, text }, LEAVE_DIALOG);
+
+    expect(userService.startLeave).not.toHaveBeenCalled();
+    expect(reply.screen.text).toBe(answer);
+    expect(reply.dialog).toEqual(LEAVE_DIALOG);
+  });
+
+  it('counts today in the time zone of the employee', async () => {
+    vi.setSystemTime(new Date('2026-11-04T20:00:00Z'));
+    const input: ChatInput = { type: ChatInputType.TEXT, text: '04.11.2026' };
+
+    expect((await open(input, LEAVE_DIALOG)).screen.text).toBe(
+      en.settings.leaveOutOfRange,
+    );
+    await open(input, LEAVE_DIALOG, { ...USER, timezone: 'Europe/London' });
+    expect(userService.startLeave).toHaveBeenCalledWith(USER.id, '2026-11-04');
+  });
+
+  it('starts a vacation without an end date', async () => {
+    userService.startLeave.mockResolvedValue({
+      ...ON_LEAVE,
+      onLeaveUntil: null,
+    });
+
+    const { screen } = await open(button('set:leave:nodate'));
+
+    expect(userService.startLeave).toHaveBeenCalledWith(USER.id, null);
+    expect(screen.text).toContain('Vacation: no end date');
+  });
+
+  it('ends the vacation', async () => {
+    userService.endLeave.mockResolvedValue(USER);
+
+    const { screen } = await open(button('set:leave:end'), null, ON_LEAVE);
+
+    expect(userService.endLeave).toHaveBeenCalledWith(USER.id);
+    expect(screen.text).toContain('Vacation: no');
+  });
+
   it.each([
     'set:time:24',
     'set:time:09:10',
@@ -315,6 +457,8 @@ describe('SettingsHandler', () => {
     'set:ai',
     'set:aidata:yes',
     'set:empty:on:off',
+    'set:gender:other',
+    'set:leave:later',
     'set:other',
   ])('answers the outdated button %s', async (data) => {
     expect((await open(button(data))).screen).toEqual({

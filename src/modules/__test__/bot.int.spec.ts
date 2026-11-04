@@ -3,6 +3,7 @@ import { eq } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { Channel } from 'src/common/enums/channel.enums';
+import { addDays, toLocalDate } from 'src/common/utils/date.util';
 import {
   Gender,
   JobRole,
@@ -664,8 +665,8 @@ describe('Telegram bot', () => {
     const switched = await press(telegramId, 'set:ai:off', 1201);
     expect(
       (switched.reply_markup as { inline_keyboard: unknown[][] })
-        .inline_keyboard[2],
-    ).toEqual([{ text: 'AI: no', callback_data: 'set:ai:on' }]);
+        .inline_keyboard,
+    ).toContainEqual([{ text: 'AI: no', callback_data: 'set:ai:on' }]);
     await press(telegramId, 'set:aidata:off', 1202);
     await press(telegramId, 'set:empty:off', 1203);
     expect((await press(telegramId, 'set:preset', 1204)).text).toContain(
@@ -681,6 +682,43 @@ describe('Telegram bot', () => {
       aiDataOptOut: true,
       notifyEmpty: false,
       preset: ReportPreset.ANALYST,
+    });
+  });
+
+  it('lets an employee set the gender, go on vacation and come back', async () => {
+    const { user, telegramId } = await createEmployee();
+    const until = addDays(toLocalDate(new Date(), 'Asia/Almaty'), 7);
+    const findStored = async () => {
+      const [stored] = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, user.id));
+      return stored;
+    };
+
+    expect((await press(telegramId, 'set:gender:female', 1301)).text).toContain(
+      'Gender: female',
+    );
+    await press(telegramId, 'set:leave', 1302);
+    await fakeBotApi.pushUpdate(privateMessage(telegramId, until));
+    await fakeBotApi.waitForRequest(
+      'sendMessage',
+      (body) =>
+        body.chat_id === String(telegramId) &&
+        String(body.text).includes('Vacation: until '),
+    );
+    expect(await findStored()).toMatchObject({
+      gender: Gender.FEMALE,
+      status: UserStatus.ON_LEAVE,
+      onLeaveUntil: until,
+    });
+
+    expect((await press(telegramId, 'set:leave:end', 1303)).text).toContain(
+      'Vacation: no',
+    );
+    expect(await findStored()).toMatchObject({
+      status: UserStatus.ACTIVE,
+      onLeaveUntil: null,
     });
   });
 });

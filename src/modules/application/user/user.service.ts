@@ -5,6 +5,7 @@ import {
   arrayContains,
   eq,
   ilike,
+  inArray,
   isNull,
   not,
   or,
@@ -103,6 +104,23 @@ export class UserService {
       {
         status: channels.length > 0 ? UserStatus.ACTIVE : UserStatus.PENDING,
       },
+    );
+  }
+
+  startLeave(id: string, until: string | null) {
+    return this.updateOne(
+      and(
+        eq(users.id, id),
+        inArray(users.status, [UserStatus.ACTIVE, UserStatus.ON_LEAVE]),
+      )!,
+      { status: UserStatus.ON_LEAVE, onLeaveUntil: until },
+    );
+  }
+
+  endLeave(id: string) {
+    return this.updateOne(
+      and(eq(users.id, id), eq(users.status, UserStatus.ON_LEAVE))!,
+      { status: UserStatus.ACTIVE, onLeaveUntil: null },
     );
   }
 

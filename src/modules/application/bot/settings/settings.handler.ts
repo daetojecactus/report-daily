@@ -2,6 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ChatInputType } from 'src/common/enums/channel.enums';
 import type { ScreenButton } from 'src/common/interfaces/chat-channel.interface';
+import {
+  addDays,
+  formatDate,
+  parseDate,
+  toLocalDate,
+} from 'src/common/utils/date.util';
 import { toTimeZone } from 'src/common/utils/time-zone.util';
 import { Language } from 'src/modules/application/i18n/i18n.enums';
 import type { Locale } from 'src/modules/application/i18n/i18n.interface';
@@ -9,6 +15,7 @@ import { I18nService } from 'src/modules/application/i18n/i18n.service';
 import { REPORT_ROLE_PRESETS } from 'src/modules/application/report/constants/report.constants';
 import { ReportPreset } from 'src/modules/application/report/report.enums';
 import { ChannelService } from 'src/modules/application/user/channel/channel.service';
+import { Gender, UserStatus } from 'src/modules/application/user/user.enums';
 import type {
   User,
   UserSettingsUpdate,
@@ -25,6 +32,7 @@ import {
   SETTINGS_DEFAULT_TIME_ZONE,
   SETTINGS_HOURS,
   SETTINGS_HOURS_PER_ROW,
+  SETTINGS_LEAVE_MAX_DAYS,
   SETTINGS_MINUTES,
   SETTINGS_OFF,
   SETTINGS_ON,
@@ -32,7 +40,7 @@ import {
   SETTINGS_TIME_LENGTH,
   SETTINGS_TIME_SEPARATOR,
 } from './constants/settings.constants';
-import { SettingsAction, SettingsStep } from './settings.enums';
+import { SettingsAction, SettingsLeave, SettingsStep } from './settings.enums';
 
 @Injectable()
 @BotSection({
@@ -67,9 +75,14 @@ export class SettingsHandler implements BotHandler {
       return this.showMenu(locale, user, actor.language);
     }
     if (input.type === ChatInputType.TEXT) {
-      return dialog?.step === SettingsStep.TIME_ZONE
-        ? this.saveTimeZone(locale, user, actor.language, input.text)
-        : { screen: { text: locale.bot.unknownInput } };
+      switch (dialog?.step) {
+        case SettingsStep.TIME_ZONE:
+          return this.saveTimeZone(locale, user, actor.language, input.text);
+        case SettingsStep.LEAVE:
+          return this.saveLeave(locale, user, actor.language, input.text);
+        default:
+          return { screen: { text: locale.bot.unknownInput } };
+      }
     }
     if (input.type !== ChatInputType.BUTTON) {
       return { screen: { text: locale.bot.unknownInput } };
@@ -118,6 +131,21 @@ export class SettingsHandler implements BotHandler {
         return this.save(locale, user, actor.language, {
           notifyEmpty: button.data.isOn,
         });
+      case SettingsAction.GENDER:
+        return button.data.gender
+          ? this.save(locale, user, actor.language, {
+              gender: button.data.gender,
+            })
+          : this.askGender(locale);
+      case SettingsAction.LEAVE:
+        switch (button.data.leave) {
+          case SettingsLeave.NO_END_DATE:
+            return this.startLeave(locale, user, actor.language, null);
+          case SettingsLeave.END:
+            return this.endLeave(locale, user, actor.language);
+          default:
+            return this.askLeave(locale, user, actor.language);
+        }
     }
   }
 
@@ -144,6 +172,8 @@ export class SettingsHandler implements BotHandler {
           `${settings.reportTime}: ${user.reportTime.slice(0, SETTINGS_TIME_LENGTH)}`,
           `${settings.timeZone}: ${this.describeTimeZone(locale, user)}`,
           `${settings.preset}: ${this.describePreset(locale, user)}`,
+          `${settings.gender}: ${locale.genders[user.gender]}`,
+          `${settings.leave}: ${this.describeLeave(locale, user, language)}`,
           '',
           ...switches.map(
             ({ text }) => `**${text.name}** — ${text.description}`,
@@ -168,6 +198,16 @@ export class SettingsHandler implements BotHandler {
             {
               text: settings.preset,
               data: this.toData(SettingsAction.PRESET),
+            },
+          ],
+          [
+            {
+              text: settings.gender,
+              data: this.toData(SettingsAction.GENDER),
+            },
+            {
+              text: settings.leave,
+              data: this.toData(SettingsAction.LEAVE),
             },
           ],
           ...switches.map(({ action, text, isOn }) => [
@@ -339,6 +379,112 @@ export class SettingsHandler implements BotHandler {
     };
   }
 
+  private askGender(locale: Locale): BotReply {
+    return {
+      screen: {
+        text: locale.settings.chooseGender,
+        buttons: [
+          Object.values(Gender).map((gender) => ({
+            text: locale.genders[gender],
+            data: this.toData(SettingsAction.GENDER, gender),
+          })),
+          [this.toBackButton(locale, SettingsAction.MENU)],
+        ],
+      },
+      dialog: null,
+    };
+  }
+
+  private askLeave(
+    locale: Locale,
+    user: User,
+    language: Language,
+    text = locale.settings.leavePrompt(
+      this.describeLeave(locale, user, language),
+    ),
+  ): BotReply {
+    const { settings } = locale;
+    const endButtons =
+      user.status === UserStatus.ON_LEAVE
+        ? [
+            [
+              {
+                text: settings.endLeave,
+                data: this.toData(SettingsAction.LEAVE, SettingsLeave.END),
+              },
+            ],
+          ]
+        : [];
+    return {
+      screen: {
+        text,
+        buttons: [
+          ...endButtons,
+          [
+            {
+              text: settings.noEndDate,
+              data: this.toData(
+                SettingsAction.LEAVE,
+                SettingsLeave.NO_END_DATE,
+              ),
+            },
+          ],
+          [this.toBackButton(locale, SettingsAction.MENU)],
+        ],
+      },
+      dialog: {
+        namespace: BotNamespace.SETTINGS,
+        step: SettingsStep.LEAVE,
+        data: {},
+      },
+    };
+  }
+
+  private saveLeave(
+    locale: Locale,
+    user: User,
+    language: Language,
+    text: string,
+  ) {
+    const today = toLocalDate(
+      new Date(),
+      user.timezone ?? this.defaultTimeZone,
+    );
+    const until = parseDate(text, today);
+    if (!until) {
+      return this.askLeave(
+        locale,
+        user,
+        language,
+        locale.settings.leaveInvalid,
+      );
+    }
+    if (until < today || until > addDays(today, SETTINGS_LEAVE_MAX_DAYS)) {
+      return this.askLeave(
+        locale,
+        user,
+        language,
+        locale.settings.leaveOutOfRange,
+      );
+    }
+    return this.startLeave(locale, user, language, until);
+  }
+
+  private async startLeave(
+    locale: Locale,
+    user: User,
+    language: Language,
+    until: string | null,
+  ) {
+    const updated = (await this.userService.startLeave(user.id, until)) ?? user;
+    return this.showMenu(locale, updated, language);
+  }
+
+  private async endLeave(locale: Locale, user: User, language: Language) {
+    const updated = (await this.userService.endLeave(user.id)) ?? user;
+    return this.showMenu(locale, updated, language);
+  }
+
   private async save(
     locale: Locale,
     user: User,
@@ -360,6 +506,16 @@ export class SettingsHandler implements BotHandler {
     return user.preset
       ? locale.presets[user.preset]
       : locale.settings.presetByRole(this.describeRolePreset(locale, user));
+  }
+
+  private describeLeave(locale: Locale, user: User, language: Language) {
+    const { settings } = locale;
+    if (user.status !== UserStatus.ON_LEAVE) {
+      return settings.noLeave;
+    }
+    return user.onLeaveUntil
+      ? settings.leaveUntil(formatDate(user.onLeaveUntil, language))
+      : settings.leaveNoEndDate;
   }
 
   private describeRolePreset(locale: Locale, user: User) {
