@@ -182,6 +182,19 @@ describe('EmployeesHandler', () => {
     expect(screen.text).not.toContain('Permissions');
   });
 
+  it('offers to bind the channel of the admin when it is missing', async () => {
+    const user = employee(1);
+    userService.findById.mockResolvedValue(user);
+    channelService.findByUser.mockResolvedValue([]);
+
+    const { screen } = await open(button(`emp:card:${user.id}:3`));
+
+    expect(screen.buttons).toEqual([
+      [{ text: 'Bind Telegram', data: `bind:start:${user.id}` }],
+      [{ text: 'To the list', data: 'emp:list:3' }],
+    ]);
+  });
+
   it('reports a deleted employee', async () => {
     userService.findById.mockResolvedValue(null);
 

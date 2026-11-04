@@ -46,6 +46,7 @@ export interface Locale {
     next: string;
     search: string;
     add: string;
+    bind: (channel: string) => string;
     menu: string;
     backToList: string;
     searchPrompt: string;
@@ -78,6 +79,16 @@ export interface Locale {
     activityUnknown: string;
     pending: string;
     openCard: string;
+    cancel: string;
+    cancelled: string;
+  };
+  employeeBind: {
+    prompt: (channel: string, name: string) => string;
+    invalid: (channel: string) => string;
+    taken: (name: string) => string;
+    alreadyBound: (channel: string) => string;
+    bound: (channel: string, name: string) => string;
+    hint: string;
     cancel: string;
     cancelled: string;
   };

@@ -16,4 +16,5 @@ export enum BotNamespace {
   ADMIN = 'adm',
   EMPLOYEES = 'emp',
   EMPLOYEE_ADD = 'add',
+  EMPLOYEE_BIND = 'bind',
 }

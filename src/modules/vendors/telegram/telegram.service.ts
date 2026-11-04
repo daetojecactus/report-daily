@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { TELEGRAM_USER_ID_PATTERN } from 'src/common/constants/telegram.constants';
 import { Channel, ChatInputType } from 'src/common/enums/channel.enums';
 import { ChatUnreachableError } from 'src/common/errors/chat-unreachable.error';
 import type {
@@ -41,6 +42,10 @@ export class TelegramService implements ChatChannel {
     private readonly telegramClient: TelegramClient,
     private readonly telegramRenderer: TelegramRenderer,
   ) {}
+
+  isUserId(value: string) {
+    return TELEGRAM_USER_ID_PATTERN.test(value);
+  }
 
   getUpdates(offset: number, signal: AbortSignal) {
     return this.telegramClient.call<TelegramUpdate[]>(

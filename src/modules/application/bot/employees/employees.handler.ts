@@ -13,7 +13,12 @@ import { UserService } from 'src/modules/application/user/user.service';
 import { ADMIN_MENU_DATA } from '../admin/constants/admin.constants';
 import { BotSection } from '../bot.decorator';
 import { BotNamespace } from '../bot.enums';
-import type { BotContext, BotHandler, BotReply } from '../bot.interface';
+import type {
+  BotActor,
+  BotContext,
+  BotHandler,
+  BotReply,
+} from '../bot.interface';
 import { BOT_BUTTON_DATA_SEPARATOR } from '../constants/bot.constants';
 import {
   EMPLOYEES_BUTTON_SCHEMA,
@@ -24,6 +29,7 @@ import {
   EMPLOYEES_USERNAME_PREFIX,
 } from './constants/employees.constants';
 import { EmployeeAddAction } from '../employee-add/employee-add.enums';
+import { EmployeeBindAction } from '../employee-bind/employee-bind.enums';
 import { EmployeesAction, EmployeesStep } from './employees.enums';
 
 @Injectable()
@@ -34,7 +40,12 @@ export class EmployeesHandler implements BotHandler {
     private readonly channelService: ChannelService,
   ) {}
 
-  async handle({ input, dialog, locale }: BotContext): Promise<BotReply> {
+  async handle({
+    actor,
+    input,
+    dialog,
+    locale,
+  }: BotContext): Promise<BotReply> {
     if (
       input.type === ChatInputType.TEXT &&
       dialog?.step === EmployeesStep.SEARCH
@@ -55,7 +66,7 @@ export class EmployeesHandler implements BotHandler {
       case EmployeesAction.LIST:
         return this.showList(locale, button.data.page);
       case EmployeesAction.CARD:
-        return this.showCard(locale, button.data.id, button.data.page);
+        return this.showCard(actor, locale, button.data.id, button.data.page);
       case EmployeesAction.SEARCH:
         return this.askQuery(locale);
     }
@@ -118,6 +129,7 @@ export class EmployeesHandler implements BotHandler {
   }
 
   private async showCard(
+    actor: BotActor,
     locale: Locale,
     id: string,
     page: number,
@@ -163,7 +175,26 @@ export class EmployeesHandler implements BotHandler {
       );
     }
 
-    return { screen: { text: lines.join('\n'), buttons: back }, dialog: null };
+    const actions = channels.some(
+      (channel) => channel.channel === actor.channel,
+    )
+      ? []
+      : [
+          [
+            {
+              text: locale.employees.bind(locale.channels[actor.channel]),
+              data: [
+                BotNamespace.EMPLOYEE_BIND,
+                EmployeeBindAction.START,
+                user.id,
+              ].join(BOT_BUTTON_DATA_SEPARATOR),
+            },
+          ],
+        ];
+    return {
+      screen: { text: lines.join('\n'), buttons: [...actions, ...back] },
+      dialog: null,
+    };
   }
 
   private askQuery(locale: Locale): BotReply {

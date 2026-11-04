@@ -30,6 +30,7 @@ import {
   EMPLOYEES_QUERY_MAX_LENGTH,
   EMPLOYEES_USERNAME_PREFIX,
 } from '../employees/constants/employees.constants';
+import { EmployeeBindAction } from '../employee-bind/employee-bind.enums';
 import { EmployeesAction } from '../employees/employees.enums';
 import {
   EMPLOYEE_ADD_BUTTON_SCHEMA,
@@ -242,6 +243,16 @@ export class EmployeeAddHandler implements BotHandler {
       screen: {
         text: lines.join('\n\n'),
         buttons: [
+          [
+            {
+              text: locale.employees.bind(locale.channels[actor.channel]),
+              data: [
+                BotNamespace.EMPLOYEE_BIND,
+                EmployeeBindAction.START,
+                user.id,
+              ].join(BOT_BUTTON_DATA_SEPARATOR),
+            },
+          ],
           [this.toCardButton(locale, user.id)],
           [this.toListButton(locale)],
         ],

@@ -238,6 +238,7 @@ describe('EmployeeAddHandler', () => {
           locale.employeeAdd.pending,
         ].join('\n\n'),
         buttons: [
+          [{ text: 'Bind Telegram', data: `bind:start:${created.id}` }],
           [{ text: 'Open the card', data: `emp:card:${created.id}:0` }],
           [{ text: 'To the list', data: 'emp:list:0' }],
         ],
