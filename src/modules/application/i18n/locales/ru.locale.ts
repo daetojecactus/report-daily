@@ -76,6 +76,7 @@ export const ru: Locale = {
     previous: '‹ Назад',
     next: 'Дальше ›',
     search: 'Найти',
+    add: 'Добавить',
     menu: 'Меню',
     backToList: 'К списку',
     searchPrompt: 'Введите имя или username в GitLab.',
@@ -94,5 +95,24 @@ export const ru: Locale = {
       reachable: 'подключён',
       unreachable: 'недоступен, бот заблокирован',
     },
+  },
+  employeeAdd: {
+    prompt: 'Введите имя или username сотрудника в GitLab.',
+    gitlabUnavailable:
+      'GitLab сейчас недоступен. Попробуйте чуть позже: просто отправьте запрос ещё раз.',
+    noMatches:
+      'В GitLab никого не нашлось. Попробуйте другое имя или username.',
+    pick: (query) => `**GitLab:** ${query}\nВыберите сотрудника.`,
+    role: (name) => `**${name}**\nВыберите роль.`,
+    gender: (name) => `**${name}**\nВыберите пол.`,
+    alreadyAdded: (name) => `**${name}** уже есть среди сотрудников.`,
+    added: (name) => `Сотрудник добавлен: **${name}**.`,
+    activityHidden:
+      'GitLab не показывает событий этого сотрудника: профиль закрыт или активности ещё не было. Если профиль закрыт, попросите сделать его публичным.',
+    activityUnknown: 'Не удалось проверить активность сотрудника в GitLab.',
+    pending: 'Канал ещё не привязан, поэтому отчёты пока не отправляются.',
+    openCard: 'Открыть карточку',
+    cancel: 'Отмена',
+    cancelled: 'Добавление отменено.',
   },
 };

@@ -95,6 +95,7 @@ describe('EmployeesHandler', () => {
       [{ text: 'Next ›', data: 'emp:list:1' }],
       [
         { text: 'Search', data: 'emp:search' },
+        { text: 'Add', data: 'add:start' },
         { text: 'Menu', data: 'adm:menu' },
       ],
     ]);
@@ -125,6 +126,7 @@ describe('EmployeesHandler', () => {
       buttons: [
         [
           { text: 'Search', data: 'emp:search' },
+          { text: 'Add', data: 'add:start' },
           { text: 'Menu', data: 'adm:menu' },
         ],
       ],
