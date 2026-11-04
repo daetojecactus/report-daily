@@ -1,0 +1,7 @@
+export enum BotMessages {
+  DUPLICATE_COMMAND = 'Bot command is handled by two sections',
+  DUPLICATE_NAMESPACE = 'Bot namespace is used by two sections',
+  CHANNEL_NOT_REGISTERED = 'Chat channel is not registered',
+  CHANNEL_UNREACHABLE = 'Chat channel is unreachable',
+  MENU_SYNC_FAILED = 'Bot command menu sync failed',
+}

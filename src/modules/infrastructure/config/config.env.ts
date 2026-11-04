@@ -1,12 +1,21 @@
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
+  ArrayNotEmpty,
+  IsArray,
   IsEnum,
   IsInt,
   IsNotEmpty,
   IsPositive,
   IsString,
+  IsUrl,
+  Matches,
 } from 'class-validator';
-import { APP_DEFAULT_PORT } from './constants/config.constants';
+import {
+  APP_DEFAULT_PORT,
+  ENV_LIST_SEPARATOR,
+  TELEGRAM_DEFAULT_API_URL,
+  TELEGRAM_USER_ID_PATTERN,
+} from './constants/config.constants';
 import { LogLevel } from './config.enums';
 
 export class AppEnvs {
@@ -25,4 +34,28 @@ export class AppEnvs {
   @IsInt()
   @IsPositive()
   PORT: number = APP_DEFAULT_PORT;
+
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string'
+      ? value
+          .split(ENV_LIST_SEPARATOR)
+          .map((id) => id.trim())
+          .filter(Boolean)
+      : value,
+  )
+  @IsArray()
+  @ArrayNotEmpty()
+  @Matches(TELEGRAM_USER_ID_PATTERN, { each: true })
+  OWNER_TELEGRAM_IDS!: string[];
+
+  @IsString()
+  @IsNotEmpty()
+  TELEGRAM_BOT_TOKEN!: string;
+
+  @IsUrl({
+    protocols: ['http', 'https'],
+    require_protocol: true,
+    require_tld: false,
+  })
+  TELEGRAM_API_URL: string = TELEGRAM_DEFAULT_API_URL;
 }

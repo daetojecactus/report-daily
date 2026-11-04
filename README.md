@@ -16,7 +16,7 @@ pnpm db:migrate
 pnpm watch
 ```
 
-The application serves `GET /health/live` and `GET /health/ready` on port 3000.
+Fill in `OWNER_TELEGRAM_IDS` and `TELEGRAM_BOT_TOKEN` in `.env` first: use a separate test bot for development. The bot polls Telegram itself and needs no public address. The application serves `GET /health/live` and `GET /health/ready` on port 3000.
 
 | Command | What it does |
 | --- | --- |
@@ -32,6 +32,9 @@ The application serves `GET /health/live` and `GET /health/ready` on port 3000.
 | --- | --- | --- | --- |
 | `DATABASE_URL` | yes | | PostgreSQL connection URL |
 | `REDIS_URL` | yes | | Redis connection URL |
+| `OWNER_TELEGRAM_IDS` | yes | | Telegram user IDs of the owners, comma-separated. Owners have every permission |
+| `TELEGRAM_BOT_TOKEN` | yes | | Bot token from @BotFather |
+| `TELEGRAM_API_URL` | no | `https://api.telegram.org` | Bot API server, for example a self-hosted `telegram-bot-api` |
 | `LOG_LEVEL` | no | `info` | `fatal`, `error`, `warn`, `info`, `debug`, `trace` or `silent` |
 | `PORT` | no | `3000` | Port of the health endpoints |
 

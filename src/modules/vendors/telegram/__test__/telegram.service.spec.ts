@@ -1,0 +1,511 @@
+import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
+import { Channel, ChatInputType } from 'src/common/enums/channel.enums';
+import { ChatUnreachableError } from 'src/common/errors/chat-unreachable.error';
+import { Language } from 'src/modules/application/i18n/i18n.enums';
+import type {
+  ChatCommand,
+  ChatEvent,
+  ChatInput,
+  Screen,
+} from 'src/common/interfaces/chat-channel.interface';
+import type { TelegramClient } from '../telegram.client';
+import {
+  TelegramRejectedError,
+  TelegramRetryableError,
+} from '../telegram.error';
+import { TelegramFormatter } from '../telegram.formatter';
+import type {
+  TelegramCallbackQuery,
+  TelegramMessage,
+  TelegramUpdate,
+  TelegramUser,
+} from '../telegram.interface';
+import { TelegramRenderer } from '../telegram.renderer';
+import { TelegramService } from '../telegram.service';
+
+const USER_ID = 300_000_001;
+const CHAT_ID = '300000001';
+const GROUP_CHAT_ID = -300_000_002;
+const MESSAGE_ID = 300_000_003;
+const UPDATE_ID = 300_000_004;
+const CALLBACK_ID = 'callback-300000001';
+
+const SCREEN: Screen = {
+  text: '**Menu** for <you> & me',
+  buttons: [
+    [
+      { text: 'Yes', data: 'menu:yes' },
+      { text: 'No', data: 'menu:no' },
+    ],
+    [{ text: 'Back', data: 'menu:back' }],
+  ],
+};
+
+const RENDERED_SCREEN = {
+  text: '<b>Menu</b> for &lt;you&gt; &amp; me',
+  parse_mode: 'HTML',
+  link_preview_options: { is_disabled: true },
+  reply_markup: {
+    inline_keyboard: [
+      [
+        { text: 'Yes', callback_data: 'menu:yes' },
+        { text: 'No', callback_data: 'menu:no' },
+      ],
+      [{ text: 'Back', callback_data: 'menu:back' }],
+    ],
+  },
+};
+
+const COMMANDS: ChatCommand[] = [
+  { command: 'start', description: 'Start' },
+  { command: 'help', description: 'Help' },
+];
+
+const NOT_MODIFIED_DESCRIPTION = [
+  'Bad Request: message is not modified:',
+  'specified new message content and reply markup are exactly the same',
+  'as a current content and reply markup of the message',
+].join(' ');
+
+const QUERY_TOO_OLD_DESCRIPTION = [
+  'Bad Request: query is too old and response timeout expired',
+  'or query ID is invalid',
+].join(' ');
+
+const BLOCKED_DESCRIPTION = 'Forbidden: bot was blocked by the user';
+
+function rejected(code: number, description: string) {
+  return new TelegramRejectedError(
+    `Telegram API error: ${code} ${description}`,
+    code,
+    description,
+  );
+}
+
+const RETRYABLE_ERROR = new TelegramRetryableError(
+  'Telegram API error: 429 Too Many Requests',
+  3,
+);
+
+const UNAUTHORIZED_ERROR = rejected(401, 'Unauthorized');
+
+const UNKNOWN_ERROR = new Error('Unexpected failure');
+
+function sender(values: Partial<TelegramUser> = {}): TelegramUser {
+  return {
+    id: USER_ID,
+    is_bot: false,
+    first_name: 'Test',
+    language_code: 'ru',
+    ...values,
+  };
+}
+
+function messageUpdate(values: Partial<TelegramMessage> = {}): TelegramUpdate {
+  return {
+    update_id: UPDATE_ID,
+    message: {
+      message_id: MESSAGE_ID,
+      from: sender(),
+      chat: { id: USER_ID, type: 'private' },
+      ...values,
+    },
+  };
+}
+
+function commandUpdate(text: string) {
+  const [command] = text.split(' ');
+  return messageUpdate({
+    text,
+    entities: [{ type: 'bot_command', offset: 0, length: command.length }],
+  });
+}
+
+function buttonUpdate(
+  values: Partial<TelegramCallbackQuery> = {},
+): TelegramUpdate {
+  return {
+    update_id: UPDATE_ID,
+    callback_query: {
+      id: CALLBACK_ID,
+      from: sender(),
+      message: {
+        message_id: MESSAGE_ID,
+        chat: { id: USER_ID, type: 'private' },
+      },
+      data: 'menu:open',
+      ...values,
+    },
+  };
+}
+
+function chatEvent(input: ChatInput): ChatEvent {
+  return {
+    channel: Channel.TELEGRAM,
+    userId: '300000001',
+    chatId: '300000001',
+    languageCode: 'ru',
+    input,
+  };
+}
+
+function sentMessage(messageId: number): TelegramMessage {
+  return { message_id: messageId, chat: { id: USER_ID, type: 'private' } };
+}
+
+describe('TelegramService', () => {
+  let call: Mock<TelegramClient['call']>;
+  let service: TelegramService;
+
+  beforeEach(() => {
+    call = vi.fn<TelegramClient['call']>();
+    service = new TelegramService(
+      { call } as unknown as TelegramClient,
+      new TelegramRenderer(new TelegramFormatter()),
+    );
+  });
+
+  describe('toChatEvent', () => {
+    it('maps a private command', () => {
+      expect(service.toChatEvent(commandUpdate('/start'))).toEqual(
+        chatEvent({ type: ChatInputType.COMMAND, command: 'start' }),
+      );
+    });
+
+    it('maps a command with a bot mention and arguments', () => {
+      expect(service.toChatEvent(commandUpdate('/Help@SomeBot extra'))).toEqual(
+        chatEvent({ type: ChatInputType.COMMAND, command: 'help' }),
+      );
+    });
+
+    it('maps plain text', () => {
+      expect(
+        service.toChatEvent(messageUpdate({ text: 'Ivan Petrov' })),
+      ).toEqual(chatEvent({ type: ChatInputType.TEXT, text: 'Ivan Petrov' }));
+    });
+
+    it('maps a command after other text as text', () => {
+      const update = messageUpdate({
+        text: 'see /help',
+        entities: [{ type: 'bot_command', offset: 4, length: 5 }],
+      });
+
+      expect(service.toChatEvent(update)).toEqual(
+        chatEvent({ type: ChatInputType.TEXT, text: 'see /help' }),
+      );
+    });
+
+    it('maps a message without text as unsupported', () => {
+      expect(service.toChatEvent(messageUpdate())).toEqual(
+        chatEvent({ type: ChatInputType.UNSUPPORTED }),
+      );
+    });
+
+    it('maps a button press', () => {
+      expect(service.toChatEvent(buttonUpdate())).toEqual(
+        chatEvent({
+          type: ChatInputType.BUTTON,
+          data: 'menu:open',
+          messageId: '300000003',
+          callbackId: CALLBACK_ID,
+        }),
+      );
+    });
+
+    it('maps a missing language code to null', () => {
+      const from = sender({ language_code: undefined });
+
+      expect(
+        service.toChatEvent(messageUpdate({ text: 'hi', from })),
+      ).toMatchObject({ languageCode: null });
+      expect(service.toChatEvent(buttonUpdate({ from }))).toMatchObject({
+        languageCode: null,
+      });
+    });
+
+    it('takes the user from the sender and the chat from the message', () => {
+      const from = sender({ id: 300_000_005 });
+      const chat = { id: 300_000_006, type: 'private' };
+      const ids = { userId: '300000005', chatId: '300000006' };
+
+      expect(
+        service.toChatEvent(messageUpdate({ text: 'hi', from, chat })),
+      ).toMatchObject(ids);
+      expect(
+        service.toChatEvent(
+          buttonUpdate({ from, message: { message_id: MESSAGE_ID, chat } }),
+        ),
+      ).toMatchObject(ids);
+    });
+
+    it.each([
+      {
+        name: 'a group message',
+        update: messageUpdate({
+          text: 'hi',
+          chat: { id: GROUP_CHAT_ID, type: 'group' },
+        }),
+      },
+      {
+        name: 'a message from a bot',
+        update: messageUpdate({ text: 'hi', from: sender({ is_bot: true }) }),
+      },
+      {
+        name: 'a message without a sender',
+        update: messageUpdate({ text: 'hi', from: undefined }),
+      },
+      {
+        name: 'a button without data',
+        update: buttonUpdate({ data: undefined }),
+      },
+      {
+        name: 'a button without a message',
+        update: buttonUpdate({ message: undefined }),
+      },
+      {
+        name: 'a button in a group',
+        update: buttonUpdate({
+          message: {
+            message_id: MESSAGE_ID,
+            chat: { id: GROUP_CHAT_ID, type: 'supergroup' },
+          },
+        }),
+      },
+      {
+        name: 'a button from a bot',
+        update: buttonUpdate({ from: sender({ is_bot: true }) }),
+      },
+      { name: 'another update type', update: { update_id: UPDATE_ID } },
+    ])('ignores $name', ({ update }) => {
+      expect(service.toChatEvent(update)).toBeNull();
+    });
+  });
+
+  describe('sendScreen', () => {
+    it('sends an HTML message with a keyboard and returns its id', async () => {
+      call.mockResolvedValueOnce(sentMessage(300_000_007));
+
+      await expect(service.sendScreen(CHAT_ID, SCREEN)).resolves.toBe(
+        '300000007',
+      );
+      expect(call).toHaveBeenCalledExactlyOnceWith('sendMessage', {
+        chat_id: CHAT_ID,
+        ...RENDERED_SCREEN,
+      });
+    });
+
+    it.each([
+      { name: 'without buttons', buttons: undefined },
+      { name: 'with empty buttons', buttons: [] },
+    ])('sends no keyboard $name', async ({ buttons }) => {
+      call.mockResolvedValueOnce(sentMessage(300_000_007));
+
+      await service.sendScreen(CHAT_ID, { text: 'Hi', buttons });
+
+      const [[method, params]] = call.mock.calls;
+      expect(method).toBe('sendMessage');
+      expect(params).toEqual({
+        chat_id: CHAT_ID,
+        text: 'Hi',
+        parse_mode: 'HTML',
+        link_preview_options: { is_disabled: true },
+      });
+      expect(params).not.toHaveProperty('reply_markup');
+    });
+
+    it('throws ChatUnreachableError when the bot is blocked', async () => {
+      call.mockRejectedValueOnce(rejected(403, BLOCKED_DESCRIPTION));
+
+      await expect(service.sendScreen(CHAT_ID, SCREEN)).rejects.toThrow(
+        ChatUnreachableError,
+      );
+    });
+
+    it.each([
+      {
+        name: 'a bad request',
+        error: rejected(400, "Bad Request: can't parse entities"),
+      },
+      { name: 'a retryable error', error: RETRYABLE_ERROR },
+      { name: 'an unknown error', error: UNKNOWN_ERROR },
+    ])('propagates $name', async ({ error }) => {
+      call.mockRejectedValueOnce(error);
+
+      await expect(service.sendScreen(CHAT_ID, SCREEN)).rejects.toBe(error);
+    });
+  });
+
+  describe('editScreen', () => {
+    it('edits the message by its numeric id', async () => {
+      call.mockResolvedValueOnce(sentMessage(MESSAGE_ID));
+
+      await expect(
+        service.editScreen(CHAT_ID, '300000003', SCREEN),
+      ).resolves.toBeUndefined();
+      expect(call).toHaveBeenCalledExactlyOnceWith('editMessageText', {
+        chat_id: CHAT_ID,
+        message_id: 300_000_003,
+        ...RENDERED_SCREEN,
+      });
+    });
+
+    it('ignores an unchanged message', async () => {
+      call.mockRejectedValueOnce(rejected(400, NOT_MODIFIED_DESCRIPTION));
+
+      await expect(
+        service.editScreen(CHAT_ID, '300000003', SCREEN),
+      ).resolves.toBeUndefined();
+      expect(call).toHaveBeenCalledOnce();
+    });
+
+    it('sends a new message when the message cannot be edited', async () => {
+      call
+        .mockRejectedValueOnce(
+          rejected(400, 'Bad Request: message to edit not found'),
+        )
+        .mockResolvedValueOnce(sentMessage(300_000_008));
+
+      await expect(
+        service.editScreen(CHAT_ID, '300000003', SCREEN),
+      ).resolves.toBeUndefined();
+      expect(call).toHaveBeenCalledTimes(2);
+      expect(call).toHaveBeenLastCalledWith('sendMessage', {
+        chat_id: CHAT_ID,
+        ...RENDERED_SCREEN,
+      });
+    });
+
+    it('throws ChatUnreachableError when the bot is blocked', async () => {
+      call.mockRejectedValueOnce(rejected(403, BLOCKED_DESCRIPTION));
+
+      await expect(
+        service.editScreen(CHAT_ID, '300000003', SCREEN),
+      ).rejects.toThrow(ChatUnreachableError);
+      expect(call).toHaveBeenCalledOnce();
+    });
+
+    it('throws ChatUnreachableError when the fallback is blocked', async () => {
+      call
+        .mockRejectedValueOnce(
+          rejected(400, "Bad Request: message can't be edited"),
+        )
+        .mockRejectedValueOnce(rejected(403, BLOCKED_DESCRIPTION));
+
+      await expect(
+        service.editScreen(CHAT_ID, '300000003', SCREEN),
+      ).rejects.toThrow(ChatUnreachableError);
+    });
+
+    it.each([
+      { name: 'a retryable error', error: RETRYABLE_ERROR },
+      { name: 'a rejected error with another code', error: UNAUTHORIZED_ERROR },
+      { name: 'an unknown error', error: UNKNOWN_ERROR },
+    ])('propagates $name without sending', async ({ error }) => {
+      call.mockRejectedValueOnce(error);
+
+      await expect(
+        service.editScreen(CHAT_ID, '300000003', SCREEN),
+      ).rejects.toBe(error);
+      expect(call).toHaveBeenCalledOnce();
+    });
+  });
+
+  describe('answerButton', () => {
+    it('answers the callback query', async () => {
+      call.mockResolvedValueOnce(true);
+
+      await service.answerButton(CALLBACK_ID);
+
+      expect(call).toHaveBeenCalledExactlyOnceWith('answerCallbackQuery', {
+        callback_query_id: CALLBACK_ID,
+      });
+    });
+
+    it('ignores a bad request', async () => {
+      call.mockRejectedValueOnce(rejected(400, QUERY_TOO_OLD_DESCRIPTION));
+
+      await expect(service.answerButton(CALLBACK_ID)).resolves.toBeUndefined();
+    });
+
+    it.each([
+      { name: 'a retryable error', error: RETRYABLE_ERROR },
+      { name: 'a forbidden error', error: rejected(403, BLOCKED_DESCRIPTION) },
+      { name: 'a rejected error with another code', error: UNAUTHORIZED_ERROR },
+      { name: 'an unknown error', error: UNKNOWN_ERROR },
+    ])('rethrows $name', async ({ error }) => {
+      call.mockRejectedValueOnce(error);
+
+      await expect(service.answerButton(CALLBACK_ID)).rejects.toBe(error);
+    });
+  });
+
+  describe('commands', () => {
+    beforeEach(() => {
+      call.mockResolvedValue(true);
+    });
+
+    it('sets default commands for private chats in a language', async () => {
+      await service.setDefaultCommands(COMMANDS, Language.RU);
+
+      expect(call).toHaveBeenCalledExactlyOnceWith('setMyCommands', {
+        commands: COMMANDS,
+        scope: { type: 'all_private_chats' },
+        language_code: 'ru',
+      });
+    });
+
+    it('sets default commands without a language code', async () => {
+      await service.setDefaultCommands(COMMANDS, null);
+
+      const [[method, params]] = call.mock.calls;
+      expect(method).toBe('setMyCommands');
+      expect(params).toEqual({
+        commands: COMMANDS,
+        scope: { type: 'all_private_chats' },
+      });
+      expect(params).not.toHaveProperty('language_code');
+    });
+
+    it('sets commands for one chat', async () => {
+      await service.setChatCommands(CHAT_ID, COMMANDS);
+
+      const [[method, params]] = call.mock.calls;
+      expect(method).toBe('setMyCommands');
+      expect(params).toEqual({
+        commands: COMMANDS,
+        scope: { type: 'chat', chat_id: CHAT_ID },
+      });
+      expect(params).not.toHaveProperty('language_code');
+    });
+  });
+
+  describe('updates', () => {
+    it('long polls for messages and button presses', async () => {
+      const updates = [commandUpdate('/start'), buttonUpdate()];
+      const { signal } = new AbortController();
+      call.mockResolvedValueOnce(updates);
+
+      await expect(service.getUpdates(300_000_009, signal)).resolves.toBe(
+        updates,
+      );
+
+      const [[method, params, options]] = call.mock.calls;
+      expect(method).toBe('getUpdates');
+      expect(params).toEqual({
+        offset: 300_000_009,
+        timeout: 25,
+        allowed_updates: ['message', 'callback_query'],
+      });
+      expect(options?.signal).toBe(signal);
+      expect(options?.timeoutMs).toBeGreaterThan(25_000);
+    });
+
+    it('deletes the webhook', async () => {
+      call.mockResolvedValueOnce(true);
+
+      await service.deleteWebhook();
+
+      expect(call).toHaveBeenCalledExactlyOnceWith('deleteWebhook', {});
+    });
+  });
+});
