@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { getErrorMessage } from 'src/common/utils/error.util';
 import { DatabaseService } from 'src/modules/infrastructure/database/database.service';
 import { RedisService } from 'src/modules/infrastructure/redis/redis.service';
 import { SystemMessages } from './constants/system.messages';
@@ -44,9 +45,7 @@ export class SystemService {
       await ping();
       return DependencyStatus.CONNECTED;
     } catch (error) {
-      this.logger.warn(
-        `${failureMessage}: ${error instanceof Error ? error.message : String(error)}`,
-      );
+      this.logger.warn(`${failureMessage}: ${getErrorMessage(error)}`);
       return DependencyStatus.DISCONNECTED;
     }
   }

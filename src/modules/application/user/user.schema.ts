@@ -1,0 +1,74 @@
+import { sql } from 'drizzle-orm';
+import {
+  boolean,
+  check,
+  date,
+  integer,
+  pgEnum,
+  pgTable,
+  text,
+  time,
+  unique,
+} from 'drizzle-orm/pg-core';
+import { Language } from '../i18n/i18n.enums';
+import { ReportPreset } from '../report/report.enums';
+import { Gender, JobRole, Permission, UserStatus } from './user.enums';
+import {
+  createdAt,
+  primaryId,
+  updatedAt,
+} from '../../infrastructure/database/database.columns';
+import {
+  USER_DEFAULT_REPORT_TIME,
+  USER_DISPLAY_NAME_MAX_LENGTH,
+  USER_REPORT_TIME_STEP_MINUTES,
+} from './constants/user.constants';
+
+export const jobRole = pgEnum('job_role', JobRole);
+
+export const gender = pgEnum('gender', Gender);
+
+export const userStatus = pgEnum('user_status', UserStatus);
+
+export const permission = pgEnum('permission', Permission);
+
+export const language = pgEnum('language', Language);
+
+export const reportPreset = pgEnum('report_preset', ReportPreset);
+
+export const users = pgTable(
+  'users',
+  {
+    id: primaryId(),
+    gitlabUserId: integer().notNull(),
+    gitlabUsername: text().notNull(),
+    displayName: text().notNull(),
+    role: jobRole().notNull(),
+    gender: gender().notNull(),
+    status: userStatus().notNull().default(UserStatus.PENDING),
+    onLeaveUntil: date({ mode: 'string' }),
+    language: language(),
+    timezone: text(),
+    reportTime: time({ precision: 0 })
+      .notNull()
+      .default(USER_DEFAULT_REPORT_TIME),
+    aiEnabled: boolean().notNull().default(true),
+    aiDataOptOut: boolean().notNull().default(false),
+    notifyEmpty: boolean().notNull().default(true),
+    preset: reportPreset(),
+    permissions: permission().array().notNull().default([]),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (table) => [
+    unique('users_gitlab_user_id_unique').on(table.gitlabUserId),
+    check(
+      'users_display_name_length',
+      sql`char_length(${table.displayName}) between 1 and ${sql.raw(String(USER_DISPLAY_NAME_MAX_LENGTH))}`,
+    ),
+    check(
+      'users_report_time_step',
+      sql`extract(minute from ${table.reportTime})::integer % ${sql.raw(String(USER_REPORT_TIME_STEP_MINUTES))} = 0`,
+    ),
+  ],
+);

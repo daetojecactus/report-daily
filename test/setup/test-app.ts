@@ -1,3 +1,4 @@
+import type { DynamicModule, Type } from '@nestjs/common';
 import {
   FastifyAdapter,
   type NestFastifyApplication,
@@ -5,9 +6,11 @@ import {
 import { Test } from '@nestjs/testing';
 import { AppModule } from 'src/modules/app.module';
 
-export async function createTestApp(): Promise<NestFastifyApplication> {
+export async function createTestApp(
+  imports: (Type<unknown> | DynamicModule)[] = [],
+): Promise<NestFastifyApplication> {
   const moduleRef = await Test.createTestingModule({
-    imports: [AppModule],
+    imports: [AppModule, ...imports],
   }).compile();
   const app = moduleRef.createNestApplication<NestFastifyApplication>(
     new FastifyAdapter(),

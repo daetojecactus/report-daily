@@ -1,0 +1,68 @@
+import type { TelegramParseMode, TelegramScopeType } from './telegram.enums';
+
+export interface TelegramCallOptions {
+  timeoutMs?: number;
+  signal?: AbortSignal;
+}
+
+export interface TelegramResponse<T> {
+  ok: boolean;
+  result?: T;
+  error_code?: number;
+  description?: string;
+  parameters?: { retry_after?: number };
+}
+
+export interface TelegramUser {
+  id: number;
+  is_bot: boolean;
+  first_name: string;
+  language_code?: string;
+}
+
+export interface TelegramChat {
+  id: number;
+  type: string;
+}
+
+export interface TelegramMessageEntity {
+  type: string;
+  offset: number;
+  length: number;
+}
+
+export interface TelegramMessage {
+  message_id: number;
+  from?: TelegramUser;
+  chat: TelegramChat;
+  text?: string;
+  entities?: TelegramMessageEntity[];
+}
+
+export interface TelegramCallbackQuery {
+  id: string;
+  from: TelegramUser;
+  message?: TelegramMessage;
+  data?: string;
+}
+
+export interface TelegramUpdate {
+  update_id: number;
+  message?: TelegramMessage;
+  callback_query?: TelegramCallbackQuery;
+}
+
+export interface TelegramInlineKeyboardMarkup {
+  inline_keyboard: { text: string; callback_data: string }[][];
+}
+
+export interface TelegramMessageContent {
+  text: string;
+  parse_mode: TelegramParseMode;
+  link_preview_options: { is_disabled: boolean };
+  reply_markup?: TelegramInlineKeyboardMarkup;
+}
+
+export type TelegramCommandScope =
+  | { type: TelegramScopeType.ALL_PRIVATE_CHATS }
+  | { type: TelegramScopeType.CHAT; chat_id: string };
