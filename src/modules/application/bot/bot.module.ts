@@ -13,6 +13,7 @@ import { BOT_CHANNELS } from './constants/bot.constants';
 import { DialogService } from './dialog/dialog.service';
 import { EmployeeAddHandler } from './employee-add/employee-add.handler';
 import { EmployeeBindHandler } from './employee-bind/employee-bind.handler';
+import { EmployeeManageHandler } from './employee-manage/employee-manage.handler';
 import { EmployeesHandler } from './employees/employees.handler';
 import { CancelHandler } from './handlers/cancel.handler';
 import { HelpHandler } from './handlers/help.handler';
@@ -41,6 +42,7 @@ import { RouterService } from './router/router.service';
     EmployeesHandler,
     EmployeeAddHandler,
     EmployeeBindHandler,
+    EmployeeManageHandler,
     {
       provide: BOT_CHANNELS,
       useFactory: (telegramService: TelegramService): ChatChannel[] => [

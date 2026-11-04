@@ -29,7 +29,9 @@ import {
   EMPLOYEES_USERNAME_PREFIX,
 } from './constants/employees.constants';
 import { EmployeeAddAction } from '../employee-add/employee-add.enums';
+import { AccessService } from '../access/access.service';
 import { EmployeeBindAction } from '../employee-bind/employee-bind.enums';
+import { EmployeeManageAction } from '../employee-manage/employee-manage.enums';
 import { EmployeesAction, EmployeesStep } from './employees.enums';
 
 @Injectable()
@@ -38,6 +40,7 @@ export class EmployeesHandler implements BotHandler {
   constructor(
     private readonly userService: UserService,
     private readonly channelService: ChannelService,
+    private readonly accessService: AccessService,
   ) {}
 
   async handle({
@@ -175,22 +178,54 @@ export class EmployeesHandler implements BotHandler {
       );
     }
 
-    const actions = channels.some(
-      (channel) => channel.channel === actor.channel,
-    )
-      ? []
-      : [
-          [
-            {
-              text: locale.employees.bind(locale.channels[actor.channel]),
-              data: [
-                BotNamespace.EMPLOYEE_BIND,
-                EmployeeBindAction.START,
-                user.id,
-              ].join(BOT_BUTTON_DATA_SEPARATOR),
-            },
-          ],
-        ];
+    const actions: ScreenButton[][] = [];
+    if (!channels.some((channel) => channel.channel === actor.channel)) {
+      actions.push([
+        {
+          text: locale.employees.bind(locale.channels[actor.channel]),
+          data: this.toSectionData(
+            BotNamespace.EMPLOYEE_BIND,
+            EmployeeBindAction.START,
+            user.id,
+          ),
+        },
+      ]);
+    }
+    actions.push([
+      {
+        text: locale.employeeManage.changeRole,
+        data: this.toSectionData(
+          BotNamespace.EMPLOYEE_MANAGE,
+          EmployeeManageAction.ROLE,
+          user.id,
+        ),
+      },
+    ]);
+    if (this.accessService.canManage(actor, user)) {
+      const isBlocked = user.status === UserStatus.BLOCKED;
+      actions.push([
+        {
+          text: isBlocked
+            ? locale.employeeManage.unblock
+            : locale.employeeManage.block,
+          data: this.toSectionData(
+            BotNamespace.EMPLOYEE_MANAGE,
+            isBlocked
+              ? EmployeeManageAction.UNBLOCK
+              : EmployeeManageAction.BLOCK,
+            user.id,
+          ),
+        },
+        {
+          text: locale.employeeManage.delete,
+          data: this.toSectionData(
+            BotNamespace.EMPLOYEE_MANAGE,
+            EmployeeManageAction.DELETE,
+            user.id,
+          ),
+        },
+      ]);
+    }
     return {
       screen: { text: lines.join('\n'), buttons: [...actions, ...back] },
       dialog: null,
@@ -267,6 +302,10 @@ export class EmployeesHandler implements BotHandler {
       text: parts.join(EMPLOYEES_ITEM_SEPARATOR),
       data: this.toData(EmployeesAction.CARD, user.id, page),
     };
+  }
+
+  private toSectionData(namespace: BotNamespace, ...parts: string[]) {
+    return [namespace, ...parts].join(BOT_BUTTON_DATA_SEPARATOR);
   }
 
   private toData(...parts: (string | number)[]) {

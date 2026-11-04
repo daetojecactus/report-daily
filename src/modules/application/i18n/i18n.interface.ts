@@ -82,6 +82,22 @@ export interface Locale {
     cancel: string;
     cancelled: string;
   };
+  employeeManage: {
+    changeRole: string;
+    block: string;
+    unblock: string;
+    delete: string;
+    confirm: string;
+    cancel: string;
+    chooseRole: (name: string, role: string) => string;
+    roleChanged: (name: string, role: string) => string;
+    blocked: (name: string) => string;
+    unblocked: (name: string) => string;
+    confirmDelete: (name: string) => string;
+    deleted: (name: string) => string;
+    self: string;
+    ownerOnly: string;
+  };
   employeeBind: {
     prompt: (channel: string, name: string) => string;
     pick: (channel: string) => string;
