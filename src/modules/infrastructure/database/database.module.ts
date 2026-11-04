@@ -1,16 +1,34 @@
-import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
-import { ConfigService } from '@nestjs/config';
+import { ClsPluginTransactional } from '@nestjs-cls/transactional';
+import { TransactionalAdapterDrizzleOrm } from '@nestjs-cls/transactional-adapter-drizzle-orm';
+import { Global, Module } from '@nestjs/common';
+import { ClsModule } from 'nestjs-cls';
+import { DATABASE_INSTANCE } from './constants/database.constants';
+import { DatabaseClient } from './database.client';
+import { DatabaseService } from './database.service';
 
+@Global()
 @Module({
   imports: [
-    MongooseModule.forRootAsync({
-      useFactory: (configService: ConfigService) => ({
-        uri: configService.get<string>('MONGODB_URI'),
-      }),
-      inject: [ConfigService],
+    ClsModule.forRoot({
+      global: true,
+      plugins: [
+        new ClsPluginTransactional({
+          adapter: new TransactionalAdapterDrizzleOrm({
+            drizzleInstanceToken: DATABASE_INSTANCE,
+          }),
+        }),
+      ],
     }),
   ],
-  exports: [MongooseModule],
+  providers: [
+    DatabaseClient,
+    {
+      provide: DATABASE_INSTANCE,
+      inject: [DatabaseClient],
+      useFactory: (databaseClient: DatabaseClient) => databaseClient.instance,
+    },
+    DatabaseService,
+  ],
+  exports: [DATABASE_INSTANCE, DatabaseService],
 })
 export class DatabaseModule {}
