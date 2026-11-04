@@ -301,6 +301,31 @@ describe('User module', () => {
     });
   });
 
+  describe('settings', () => {
+    it('updates only the given settings and clears with null', async () => {
+      const user = await insertUser({
+        language: Language.EN,
+        timezone: 'Europe/Moscow',
+      });
+
+      await userService.updateSettings(user.id, { reportTime: '09:45' });
+      expect(await findUser(user.id)).toMatchObject({
+        language: Language.EN,
+        reportTime: '09:45:00',
+        timezone: 'Europe/Moscow',
+      });
+
+      await userService.updateSettings(user.id, {
+        language: Language.RU,
+        timezone: null,
+      });
+      expect(await findUser(user.id)).toMatchObject({
+        language: Language.RU,
+        timezone: null,
+      });
+    });
+  });
+
   describe('permissions', () => {
     it('grants a permission once', async () => {
       const user = await insertUser();

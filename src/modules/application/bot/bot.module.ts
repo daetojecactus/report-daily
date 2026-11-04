@@ -21,6 +21,7 @@ import { HelpHandler } from './handlers/help.handler';
 import { StartHandler } from './handlers/start.handler';
 import { MenuService } from './menu/menu.service';
 import { RouterService } from './router/router.service';
+import { SettingsHandler } from './settings/settings.handler';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { RouterService } from './router/router.service';
     EmployeeBindHandler,
     EmployeeManageHandler,
     EmployeePermissionsHandler,
+    SettingsHandler,
     {
       provide: BOT_CHANNELS,
       useFactory: (telegramService: TelegramService): ChatChannel[] => [

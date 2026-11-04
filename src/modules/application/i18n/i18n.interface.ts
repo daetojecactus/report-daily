@@ -1,5 +1,6 @@
 import type { Channel } from 'src/common/enums/channel.enums';
 import type { BotCommand } from 'src/modules/application/bot/bot.enums';
+import type { Language } from './i18n.enums';
 import type {
   Gender,
   JobRole,
@@ -9,6 +10,7 @@ import type {
 
 export interface Locale {
   channels: Record<Channel, string>;
+  languages: Record<Language, string>;
   commands: Record<BotCommand, string>;
   roles: Record<JobRole, string>;
   genders: Record<Gender, string>;
@@ -37,6 +39,20 @@ export interface Locale {
   admin: {
     title: string;
     noSections: string;
+  };
+  settings: {
+    title: string;
+    language: string;
+    reportTime: string;
+    timeZone: string;
+    defaultTimeZone: (zone: string) => string;
+    useDefault: (zone: string) => string;
+    back: string;
+    chooseLanguage: string;
+    chooseHour: (zone: string) => string;
+    chooseMinute: string;
+    timeZonePrompt: (zone: string) => string;
+    timeZoneInvalid: string;
   };
   employees: {
     title: (count: number) => string;

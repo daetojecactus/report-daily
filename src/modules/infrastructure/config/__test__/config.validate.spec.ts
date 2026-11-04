@@ -10,6 +10,7 @@ import { validateEnv } from '../config.validate';
 const ENV = {
   DATABASE_URL: 'postgres://report_daily:secret@localhost:5433/report_daily',
   REDIS_URL: 'redis://localhost:6380',
+  APP_TIMEZONE: 'Asia/Almaty',
   OWNER_TELEGRAM_IDS: '111',
   TELEGRAM_BOT_TOKEN: '123456:secret-token',
   GITLAB_URL: 'https://gitlab.example.com',
@@ -58,10 +59,17 @@ describe('validateEnv', () => {
     expect(message).toContain(ConfigMessages.ENV_VALIDATION_FAILED);
     expect(message).toContain('DATABASE_URL');
     expect(message).toContain('REDIS_URL');
+    expect(message).toContain('APP_TIMEZONE');
     expect(message).toContain('OWNER_TELEGRAM_IDS');
     expect(message).toContain('TELEGRAM_BOT_TOKEN');
     expect(message).toContain('GITLAB_URL');
     expect(message).toContain('GITLAB_TOKEN');
+  });
+
+  it.each(['Mars/Base', '+05:00'])('rejects the time zone %s', (value) => {
+    expect(getValidationMessage({ ...ENV, APP_TIMEZONE: value })).toContain(
+      'APP_TIMEZONE',
+    );
   });
 
   it('rejects an empty owner list', () => {
