@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { and, eq, type SQL } from 'drizzle-orm';
+import { and, asc, eq, type SQL } from 'drizzle-orm';
 import type { Channel } from 'src/common/enums/channel.enums';
 import { DatabaseService } from 'src/modules/infrastructure/database/database.service';
 import { userChannels } from './channel/channel.schema';
@@ -46,6 +46,20 @@ export class UserRepository {
       .where(filter)
       .returning();
     return user ?? null;
+  }
+
+  findPage(filter: SQL | undefined, limit: number, offset: number) {
+    return this.databaseService.db
+      .select()
+      .from(users)
+      .where(filter)
+      .orderBy(asc(users.displayName), asc(users.id))
+      .limit(limit)
+      .offset(offset);
+  }
+
+  count(filter?: SQL) {
+    return this.databaseService.db.$count(users, filter);
   }
 
   async findOneByChannel(

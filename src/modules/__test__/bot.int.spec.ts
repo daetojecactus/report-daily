@@ -6,6 +6,7 @@ import { Channel } from 'src/common/enums/channel.enums';
 import {
   Gender,
   JobRole,
+  Permission,
   UserStatus,
 } from 'src/modules/application/user/user.enums';
 import { Language } from 'src/modules/application/i18n/i18n.enums';
@@ -239,5 +240,100 @@ describe('Telegram bot', () => {
       },
       { timeout: 10_000 },
     );
+  });
+
+  it('shows employees to an owner through /admin', async () => {
+    const tag = `Zinaida${nextTelegramId}`;
+    const { user } = await createEmployee({ displayName: `${tag} Admin` });
+    const ownerChat = String(TEST_OWNER_TELEGRAM_ID);
+
+    await fakeBotApi.pushUpdate(
+      privateMessage(TEST_OWNER_TELEGRAM_ID, '/admin'),
+    );
+    expect(
+      await fakeBotApi.waitForRequest(
+        'sendMessage',
+        (body) =>
+          body.chat_id === ownerChat && body.text === '<b>Management</b>',
+      ),
+    ).toMatchObject({
+      reply_markup: {
+        inline_keyboard: [[{ text: 'Employees', callback_data: 'emp:list:0' }]],
+      },
+    });
+
+    await fakeBotApi.pushUpdate(
+      buttonPress(TEST_OWNER_TELEGRAM_ID, 'emp:list:0', 501),
+    );
+    const list = await fakeBotApi.waitForRequest(
+      'editMessageText',
+      (body) => body.message_id === 501,
+    );
+    expect(list.text).toMatch(/^<b>Employees<\/b> · \d+/);
+
+    await fakeBotApi.pushUpdate(
+      buttonPress(TEST_OWNER_TELEGRAM_ID, 'emp:search', 502),
+    );
+    expect(
+      await fakeBotApi.waitForRequest(
+        'editMessageText',
+        (body) => body.message_id === 502,
+      ),
+    ).toMatchObject({ text: en.employees.searchPrompt });
+
+    await fakeBotApi.pushUpdate(
+      privateMessage(TEST_OWNER_TELEGRAM_ID, tag.toLowerCase()),
+    );
+    const results = await fakeBotApi.waitForRequest(
+      'sendMessage',
+      (body) =>
+        body.chat_id === ownerChat &&
+        String(body.text).includes(tag.toLowerCase()),
+    );
+    expect(results.reply_markup).toMatchObject({
+      inline_keyboard: [
+        [
+          {
+            text: `${tag} Admin · Developer`,
+            callback_data: `emp:card:${user.id}:0`,
+          },
+        ],
+        expect.anything(),
+      ],
+    });
+
+    await fakeBotApi.pushUpdate(
+      buttonPress(TEST_OWNER_TELEGRAM_ID, `emp:card:${user.id}:0`, 503),
+    );
+    const card = await fakeBotApi.waitForRequest(
+      'editMessageText',
+      (body) => body.message_id === 503,
+    );
+    expect(card.text).toContain(`<b>${tag} Admin</b>`);
+    expect(card.text).toContain('Role: Developer');
+    expect(card.text).toContain('Telegram: connected');
+  });
+
+  it('forbids /admin to an employee without permissions', async () => {
+    const { telegramId } = await createEmployee();
+
+    await fakeBotApi.pushUpdate(privateMessage(telegramId, '/admin'));
+
+    expect((await replyTo(telegramId)).text).toBe(en.bot.forbidden);
+  });
+
+  it('opens /admin for an admin with the users permission', async () => {
+    const { telegramId } = await createEmployee({
+      permissions: [Permission.USERS],
+    });
+
+    await fakeBotApi.pushUpdate(privateMessage(telegramId, '/admin'));
+
+    expect(await replyTo(telegramId)).toMatchObject({
+      text: '<b>Management</b>',
+      reply_markup: {
+        inline_keyboard: [[{ text: 'Employees', callback_data: 'emp:list:0' }]],
+      },
+    });
   });
 });

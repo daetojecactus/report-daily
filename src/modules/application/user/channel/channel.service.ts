@@ -29,6 +29,10 @@ export class ChannelService {
     return this.channelRepository.deleteOne(filter);
   }
 
+  findByUser(userId: string) {
+    return this.find(eq(userChannels.userId, userId));
+  }
+
   updateReachable(channel: Channel, externalId: string, reachable: boolean) {
     return this.updateOne(
       and(

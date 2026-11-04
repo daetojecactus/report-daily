@@ -122,6 +122,57 @@ describe('User module', () => {
       expect(await userService.deleteOne(eq(users.id, user.id))).toBeNull();
     });
 
+    it('finds a user by id', async () => {
+      const user = await insertUser();
+
+      expect(await userService.findById(user.id)).toEqual(user);
+      expect(
+        await userService.findById('019a4d2e-7c1b-7f3a-9c2d-000000000000'),
+      ).toBeNull();
+    });
+
+    it('counts users and pages them by name', async () => {
+      const before = await userService.count();
+      await insertUser();
+      await insertUser();
+
+      expect(await userService.count()).toBe(before + 2);
+      expect(await userService.findPage(1, 0)).toHaveLength(1);
+      expect(await userService.findPage(10, before + 1)).toHaveLength(1);
+    });
+
+    it('searches by name and username without case and in name order', async () => {
+      const tag = `Tag${nextId}`;
+      const second = await insertUser({ displayName: `${tag} Boris` });
+      const first = await insertUser({ displayName: `${tag} Anna` });
+      const byUsername = await insertUser({
+        displayName: 'Viktor',
+        gitlabUsername: `${tag.toLowerCase()}_viktor`,
+      });
+
+      expect(
+        (await userService.search(tag.toUpperCase(), 10)).map(
+          (user) => user.id,
+        ),
+      ).toEqual([first.id, second.id, byUsername.id]);
+      expect(await userService.search(tag, 2)).toHaveLength(2);
+    });
+
+    it('treats % and _ in a query as plain characters', async () => {
+      const tag = `Lit${nextId}`;
+      const underscore = await insertUser({ displayName: `${tag} a_b` });
+      await insertUser({ displayName: `${tag} axb` });
+      const percent = await insertUser({ displayName: `${tag} 50%` });
+      await insertUser({ displayName: `${tag} 500` });
+
+      expect(
+        (await userService.search(`${tag} a_b`, 10)).map((user) => user.id),
+      ).toEqual([underscore.id]);
+      expect(
+        (await userService.search(`${tag} 50%`, 10)).map((user) => user.id),
+      ).toEqual([percent.id]);
+    });
+
     it('finds a user with the channel by a telegram id', async () => {
       const user = await insertUser();
       const channel = await insertChannel(user.id);
@@ -222,6 +273,13 @@ describe('User module', () => {
       expect(
         await channelService.find(eq(userChannels.userId, user.id)),
       ).toEqual([]);
+    });
+
+    it('finds the channels of a user', async () => {
+      const user = await insertUser();
+      const channel = await insertChannel(user.id);
+
+      expect(await channelService.findByUser(user.id)).toEqual([channel]);
     });
 
     it('flips the reachable flag and returns the channel', async () => {

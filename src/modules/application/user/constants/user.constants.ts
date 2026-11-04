@@ -3,3 +3,5 @@ export const USER_DEFAULT_REPORT_TIME = '18:00';
 export const USER_REPORT_TIME_STEP_MINUTES = 15;
 
 export const USER_DISPLAY_NAME_MAX_LENGTH = 255;
+
+export const USER_LIKE_SPECIAL_CHARACTERS = /[\\%_]/g;
