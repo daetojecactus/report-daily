@@ -45,12 +45,22 @@ export class EmployeeBindHandler implements BotHandler {
     dialog,
     locale,
   }: BotContext): Promise<BotReply> {
-    if (input.type === ChatInputType.TEXT) {
+    if (
+      input.type === ChatInputType.TEXT ||
+      input.type === ChatInputType.PICKED_USER
+    ) {
       const draft = EMPLOYEE_BIND_DRAFT_SCHEMA.safeParse(dialog?.data);
       if (dialog?.step !== EmployeeBindStep.ID || !draft.success) {
         return { screen: { text: locale.bot.expired }, dialog: null };
       }
-      return this.bind(actor, locale, draft.data.userId, input.text);
+      return this.bind(
+        actor,
+        locale,
+        draft.data.userId,
+        input.type === ChatInputType.TEXT
+          ? input.text.trim()
+          : input.externalId,
+      );
     }
     if (input.type !== ChatInputType.BUTTON) {
       return { screen: { text: locale.bot.unknownInput } };
@@ -64,7 +74,9 @@ export class EmployeeBindHandler implements BotHandler {
     }
     switch (button.data.action) {
       case EmployeeBindAction.START:
-        return this.askId(actor, locale, button.data.userId);
+        return this.askId(actor, locale, button.data.userId, false);
+      case EmployeeBindAction.PICK:
+        return this.askId(actor, locale, button.data.userId, true);
       case EmployeeBindAction.CANCEL:
         return {
           screen: {
@@ -80,20 +92,35 @@ export class EmployeeBindHandler implements BotHandler {
     actor: BotActor,
     locale: Locale,
     userId: string,
+    isPicker: boolean,
   ): Promise<BotReply> {
     const { user, isBound } = await this.findTarget(actor, userId);
     if (!user || isBound) {
       return this.refuse(actor, locale, user);
     }
 
+    const channelName = locale.channels[actor.channel];
     return {
-      screen: {
-        text: locale.employeeBind.prompt(
-          locale.channels[actor.channel],
-          escapeMarkdown(user.displayName),
-        ),
-        buttons: [[this.toCancelButton(locale, userId)]],
-      },
+      screen: isPicker
+        ? {
+            text: locale.employeeBind.pickPrompt,
+            userPicker: { text: locale.employeeBind.pickButton },
+          }
+        : {
+            text: locale.employeeBind.prompt(
+              channelName,
+              escapeMarkdown(user.displayName),
+            ),
+            buttons: [
+              [
+                {
+                  text: locale.employeeBind.pick(channelName),
+                  data: this.toBindData(EmployeeBindAction.PICK, userId),
+                },
+              ],
+              [this.toCancelButton(locale, userId)],
+            ],
+          },
       dialog: {
         namespace: BotNamespace.EMPLOYEE_BIND,
         step: EmployeeBindStep.ID,
@@ -106,10 +133,9 @@ export class EmployeeBindHandler implements BotHandler {
     actor: BotActor,
     locale: Locale,
     userId: string,
-    text: string,
+    externalId: string,
   ): Promise<BotReply> {
     const channelName = locale.channels[actor.channel];
-    const externalId = text.trim();
     if (!this.getChannel(actor).isUserId(externalId)) {
       return this.askAgain(
         locale,
@@ -215,12 +241,14 @@ export class EmployeeBindHandler implements BotHandler {
   private toCancelButton(locale: Locale, userId: string) {
     return {
       text: locale.employeeBind.cancel,
-      data: [
-        BotNamespace.EMPLOYEE_BIND,
-        EmployeeBindAction.CANCEL,
-        userId,
-      ].join(BOT_BUTTON_DATA_SEPARATOR),
+      data: this.toBindData(EmployeeBindAction.CANCEL, userId),
     };
+  }
+
+  private toBindData(action: EmployeeBindAction, userId: string) {
+    return [BotNamespace.EMPLOYEE_BIND, action, userId].join(
+      BOT_BUTTON_DATA_SEPARATOR,
+    );
   }
 
   private toCardButton(locale: Locale, userId: string) {

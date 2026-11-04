@@ -21,6 +21,7 @@ import { TEST_OWNER_TELEGRAM_ID } from 'test/setup/env';
 import {
   buttonPress,
   fakeBotApi,
+  pickedUser,
   privateMessage,
 } from 'test/setup/fake-bot-api';
 import { fakeGitLab } from 'test/setup/fake-gitlab';
@@ -452,5 +453,53 @@ describe('Telegram bot', () => {
     expect((await replyTo(employeeId)).text).toBe(
       ru.start.employee(user.displayName),
     );
+  });
+
+  it('binds an employee picked in Telegram', async () => {
+    const { user } = await createEmployee({
+      displayName: `Picked${nextTelegramId}`,
+      status: UserStatus.PENDING,
+    });
+    await db.delete(userChannels).where(eq(userChannels.userId, user.id));
+    const pickedId = nextTelegramId++;
+    const ownerChat = String(TEST_OWNER_TELEGRAM_ID);
+
+    await fakeBotApi.pushUpdate(
+      buttonPress(TEST_OWNER_TELEGRAM_ID, `bind:pick:${user.id}`, 801),
+    );
+    expect(
+      await fakeBotApi.waitForRequest(
+        'sendMessage',
+        (body) =>
+          body.chat_id === ownerChat &&
+          String(body.text).startsWith('Press &quot;Choose the employee&quot;'),
+      ),
+    ).toMatchObject({
+      reply_markup: {
+        keyboard: [
+          [
+            {
+              text: en.employeeBind.pickButton,
+              request_users: { request_id: 1, user_is_bot: false },
+            },
+          ],
+        ],
+        one_time_keyboard: true,
+      },
+    });
+
+    await fakeBotApi.pushUpdate(pickedUser(TEST_OWNER_TELEGRAM_ID, pickedId));
+    await fakeBotApi.waitForRequest(
+      'sendMessage',
+      (body) =>
+        body.chat_id === ownerChat &&
+        String(body.text).includes(`<b>${user.displayName}</b>`) &&
+        String(body.text).startsWith('Telegram bound:'),
+    );
+    const [channel] = await db
+      .select()
+      .from(userChannels)
+      .where(eq(userChannels.userId, user.id));
+    expect(channel.externalId).toBe(String(pickedId));
   });
 });

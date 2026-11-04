@@ -98,6 +98,7 @@ export class BotService {
       case ChatInputType.BUTTON:
         return this.routerService.findByButton(input.data);
       case ChatInputType.TEXT:
+      case ChatInputType.PICKED_USER:
         return dialog
           ? this.routerService.findByNamespace(dialog.namespace)
           : null;

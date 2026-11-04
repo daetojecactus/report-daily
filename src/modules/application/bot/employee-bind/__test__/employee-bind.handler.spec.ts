@@ -95,14 +95,41 @@ describe('EmployeeBindHandler', () => {
     channelService.findByUser.mockResolvedValue([]);
   });
 
-  it('asks for the Telegram ID of the employee', async () => {
+  it('offers to choose the employee in Telegram or to enter the ID', async () => {
     expect(await open(button(`bind:start:${USER.id}`))).toEqual({
       screen: {
         text: locale.employeeBind.prompt('Telegram', 'Anna \\*S\\*'),
-        buttons: [[CANCEL]],
+        buttons: [
+          [{ text: 'Choose in Telegram', data: `bind:pick:${USER.id}` }],
+          [CANCEL],
+        ],
       },
       dialog: ID_DIALOG,
     });
+  });
+
+  it('shows the Telegram user picker', async () => {
+    expect(await open(button(`bind:pick:${USER.id}`))).toEqual({
+      screen: {
+        text: locale.employeeBind.pickPrompt,
+        userPicker: { text: locale.employeeBind.pickButton },
+      },
+      dialog: ID_DIALOG,
+    });
+  });
+
+  it('binds the picked user', async () => {
+    const reply = await open(
+      { type: ChatInputType.PICKED_USER, externalId: '777000222' },
+      ID_DIALOG,
+    );
+
+    expect(userService.bindChannel).toHaveBeenCalledWith(
+      USER.id,
+      Channel.TELEGRAM,
+      '777000222',
+    );
+    expect(reply.dialog).toBeNull();
   });
 
   it('binds a valid ID and activates the employee', async () => {
