@@ -6,9 +6,11 @@ import { UserModule } from 'src/modules/application/user/user.module';
 import { TelegramModule } from 'src/modules/vendors/telegram/telegram.module';
 import { TelegramService } from 'src/modules/vendors/telegram/telegram.service';
 import { AccessService } from './access/access.service';
+import { AdminHandler } from './admin/admin.handler';
 import { BotService } from './bot.service';
 import { BOT_CHANNELS } from './constants/bot.constants';
 import { DialogService } from './dialog/dialog.service';
+import { EmployeesHandler } from './employees/employees.handler';
 import { CancelHandler } from './handlers/cancel.handler';
 import { HelpHandler } from './handlers/help.handler';
 import { StartHandler } from './handlers/start.handler';
@@ -26,6 +28,8 @@ import { RouterService } from './router/router.service';
     StartHandler,
     HelpHandler,
     CancelHandler,
+    AdminHandler,
+    EmployeesHandler,
     {
       provide: BOT_CHANNELS,
       useFactory: (telegramService: TelegramService): ChatChannel[] => [

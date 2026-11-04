@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { and, eq, isNull, type SQL } from 'drizzle-orm';
+import { and, eq, ilike, isNull, or, type SQL } from 'drizzle-orm';
 import type { Channel } from 'src/common/enums/channel.enums';
 import type { Language } from 'src/modules/application/i18n/i18n.enums';
 import { ChannelService } from './channel/channel.service';
+import { USER_LIKE_SPECIAL_CHARACTERS } from './constants/user.constants';
 import type { UserInsert, UserWithChannel } from './user.interface';
 import { UserRepository } from './user.repository';
 import { users } from './user.schema';
@@ -32,6 +33,30 @@ export class UserService {
 
   deleteOne(filter: SQL) {
     return this.userRepository.deleteOne(filter);
+  }
+
+  findById(id: string) {
+    return this.findOne(eq(users.id, id));
+  }
+
+  findPage(limit: number, offset: number) {
+    return this.userRepository.findPage(undefined, limit, offset);
+  }
+
+  count() {
+    return this.userRepository.count();
+  }
+
+  search(query: string, limit: number) {
+    const pattern = `%${query.replace(USER_LIKE_SPECIAL_CHARACTERS, '\\$&')}%`;
+    return this.userRepository.findPage(
+      or(
+        ilike(users.displayName, pattern),
+        ilike(users.gitlabUsername, pattern),
+      ),
+      limit,
+      0,
+    );
   }
 
   findOneByChannel(channel: Channel, externalId: string) {

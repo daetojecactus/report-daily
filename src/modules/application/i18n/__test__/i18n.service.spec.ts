@@ -7,6 +7,13 @@ const i18nService = new I18nService();
 
 const LANGUAGES = Object.values(Language);
 
+const NAMES = [
+  'channels.',
+  'roles.qa',
+  'roles.devops',
+  'employees.card.gitlab',
+];
+
 function collectEntries(value: unknown, path = ''): [string, unknown][] {
   if (typeof value !== 'object' || value === null) {
     return [[path, value]];
@@ -58,7 +65,8 @@ describe('I18nService', () => {
     const russian = new Map(renderTexts(Language.RU));
     const same = renderTexts(Language.EN).filter(
       ([path, text]) =>
-        !path.startsWith('channels.') && russian.get(path) === text,
+        !NAMES.some((name) => path.startsWith(name)) &&
+        russian.get(path) === text,
     );
 
     expect(same).toEqual([]);
