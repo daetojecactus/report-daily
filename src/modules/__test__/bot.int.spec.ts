@@ -12,6 +12,7 @@ import {
 import { Language } from 'src/modules/application/i18n/i18n.enums';
 import { en } from 'src/modules/application/i18n/locales/en.locale';
 import { ru } from 'src/modules/application/i18n/locales/ru.locale';
+import { ReportPreset } from 'src/modules/application/report/report.enums';
 import { userChannels } from 'src/modules/application/user/channel/channel.schema';
 import type { UserInsert } from 'src/modules/application/user/user.interface';
 import { users } from 'src/modules/application/user/user.schema';
@@ -74,6 +75,14 @@ describe('Telegram bot', () => {
     return fakeBotApi.waitForRequest(
       'sendMessage',
       (body) => body.chat_id === String(telegramId),
+    );
+  }
+
+  async function press(telegramId: number, data: string, messageId: number) {
+    await fakeBotApi.pushUpdate(buttonPress(telegramId, data, messageId));
+    return fakeBotApi.waitForRequest(
+      'editMessageText',
+      (body) => body.message_id === messageId,
     );
   }
 
@@ -608,18 +617,11 @@ describe('Telegram bot', () => {
   it('lets an employee change the language, report time and time zone', async () => {
     const { user, telegramId } = await createEmployee();
     const chatId = String(telegramId);
-    const press = async (data: string, messageId: number) => {
-      await fakeBotApi.pushUpdate(buttonPress(telegramId, data, messageId));
-      return fakeBotApi.waitForRequest(
-        'editMessageText',
-        (body) => body.message_id === messageId,
-      );
-    };
 
     await fakeBotApi.pushUpdate(privateMessage(telegramId, '/settings'));
     expect((await replyTo(telegramId)).text).toContain('<b>My settings</b>');
 
-    expect((await press('set:lang:ru', 1101)).text).toContain(
+    expect((await press(telegramId, 'set:lang:ru', 1101)).text).toContain(
       '<b>Мои настройки</b>',
     );
     const menu = await fakeBotApi.waitForRequest(
@@ -631,10 +633,10 @@ describe('Telegram bot', () => {
       description: ru.commands.settings,
     });
 
-    expect((await press('set:time:09:30', 1102)).text).toContain(
+    expect((await press(telegramId, 'set:time:09:30', 1102)).text).toContain(
       'Время отчёта: 09:30',
     );
-    await press('set:tz', 1103);
+    await press(telegramId, 'set:tz', 1103);
     await fakeBotApi.pushUpdate(privateMessage(telegramId, 'europe/moscow'));
     await fakeBotApi.waitForRequest(
       'sendMessage',
@@ -648,6 +650,37 @@ describe('Telegram bot', () => {
       language: Language.RU,
       reportTime: '09:30:00',
       timezone: 'Europe/Moscow',
+    });
+  });
+
+  it('lets an employee switch AI, data in AI and the empty day and choose a preset', async () => {
+    const { user, telegramId } = await createEmployee({ role: JobRole.QA });
+
+    await fakeBotApi.pushUpdate(privateMessage(telegramId, '/settings'));
+    expect((await replyTo(telegramId)).text).toContain(
+      'Report preset: by role (QA)',
+    );
+
+    const switched = await press(telegramId, 'set:ai:off', 1201);
+    expect(
+      (switched.reply_markup as { inline_keyboard: unknown[][] })
+        .inline_keyboard[2],
+    ).toEqual([{ text: 'AI: no', callback_data: 'set:ai:on' }]);
+    await press(telegramId, 'set:aidata:off', 1202);
+    await press(telegramId, 'set:empty:off', 1203);
+    expect((await press(telegramId, 'set:preset', 1204)).text).toContain(
+      'Choose the report preset. Now: by role (QA).',
+    );
+    expect(
+      (await press(telegramId, 'set:preset:analyst', 1205)).text,
+    ).toContain('Report preset: Analyst');
+
+    const [stored] = await db.select().from(users).where(eq(users.id, user.id));
+    expect(stored).toMatchObject({
+      aiEnabled: false,
+      aiDataOptOut: true,
+      notifyEmpty: false,
+      preset: ReportPreset.ANALYST,
     });
   });
 });

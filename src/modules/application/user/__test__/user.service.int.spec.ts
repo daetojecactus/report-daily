@@ -10,6 +10,7 @@ import {
   UserStatus,
 } from 'src/modules/application/user/user.enums';
 import { Language } from 'src/modules/application/i18n/i18n.enums';
+import { ReportPreset } from 'src/modules/application/report/report.enums';
 import { DATABASE_INSTANCE } from 'src/modules/infrastructure/database/constants/database.constants';
 import { createTestApp } from 'test/setup/test-app';
 import type { UserChannelInsert } from '../channel/channel.interface';
@@ -322,6 +323,35 @@ describe('User module', () => {
       expect(await findUser(user.id)).toMatchObject({
         language: Language.RU,
         timezone: null,
+      });
+    });
+
+    it('stores the switches and the preset', async () => {
+      const user = await insertUser();
+      expect(user).toMatchObject({
+        aiEnabled: true,
+        aiDataOptOut: false,
+        notifyEmpty: true,
+        preset: null,
+      });
+
+      await userService.updateSettings(user.id, {
+        aiEnabled: false,
+        aiDataOptOut: true,
+        notifyEmpty: false,
+        preset: ReportPreset.QA,
+      });
+      expect(await findUser(user.id)).toMatchObject({
+        aiEnabled: false,
+        aiDataOptOut: true,
+        notifyEmpty: false,
+        preset: ReportPreset.QA,
+      });
+
+      await userService.updateSettings(user.id, { preset: null });
+      expect(await findUser(user.id)).toMatchObject({
+        aiEnabled: false,
+        preset: null,
       });
     });
   });

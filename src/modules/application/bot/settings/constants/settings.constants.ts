@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { Language } from 'src/modules/application/i18n/i18n.enums';
+import { ReportPreset } from 'src/modules/application/report/report.enums';
 import { USER_REPORT_TIME_STEP_MINUTES } from 'src/modules/application/user/constants/user.constants';
 import { BotNamespace } from '../../bot.enums';
 import { SettingsAction } from '../settings.enums';
@@ -12,6 +13,12 @@ export const SETTINGS_TIME_SEPARATOR = ':';
 
 export const SETTINGS_DEFAULT_TIME_ZONE = 'default';
 
+export const SETTINGS_ROLE_PRESET = 'role';
+
+export const SETTINGS_ON = 'on';
+
+export const SETTINGS_OFF = 'off';
+
 export const SETTINGS_HOURS = Array.from({ length: 24 }, (_, hour) =>
   String(hour).padStart(2, '0'),
 );
@@ -22,6 +29,10 @@ export const SETTINGS_MINUTES = Array.from(
 );
 
 const NAMESPACE_SCHEMA = z.literal(BotNamespace.SETTINGS);
+
+const SWITCH_SCHEMA = z
+  .enum([SETTINGS_ON, SETTINGS_OFF])
+  .transform((value) => value === SETTINGS_ON);
 
 const HOUR_SCHEMA = z.string().refine((hour) => SETTINGS_HOURS.includes(hour));
 
@@ -67,4 +78,32 @@ export const SETTINGS_BUTTON_SCHEMA = z.union([
       z.literal(SETTINGS_DEFAULT_TIME_ZONE),
     ])
     .transform(([, action]) => ({ action, isDefault: true })),
+  z
+    .tuple([NAMESPACE_SCHEMA, z.literal(SettingsAction.PRESET)])
+    .transform(([, action]) => ({ action, isChoice: false, preset: null })),
+  z
+    .tuple([
+      NAMESPACE_SCHEMA,
+      z.literal(SettingsAction.PRESET),
+      z.literal(SETTINGS_ROLE_PRESET),
+    ])
+    .transform(([, action]) => ({ action, isChoice: true, preset: null })),
+  z
+    .tuple([
+      NAMESPACE_SCHEMA,
+      z.literal(SettingsAction.PRESET),
+      z.enum(ReportPreset),
+    ])
+    .transform(([, action, preset]) => ({ action, isChoice: true, preset })),
+  z
+    .tuple([
+      NAMESPACE_SCHEMA,
+      z.enum([
+        SettingsAction.AI,
+        SettingsAction.AI_DATA,
+        SettingsAction.NOTIFY_EMPTY,
+      ]),
+      SWITCH_SCHEMA,
+    ])
+    .transform(([, action, isOn]) => ({ action, isOn })),
 ]);

@@ -1,5 +1,6 @@
 import type { Channel } from 'src/common/enums/channel.enums';
 import type { BotCommand } from 'src/modules/application/bot/bot.enums';
+import type { ReportPreset } from 'src/modules/application/report/report.enums';
 import type { Language } from './i18n.enums';
 import type {
   Gender,
@@ -8,9 +9,15 @@ import type {
   UserStatus,
 } from 'src/modules/application/user/user.enums';
 
+export interface LocaleSwitch {
+  name: string;
+  description: string;
+}
+
 export interface Locale {
   channels: Record<Channel, string>;
   languages: Record<Language, string>;
+  presets: Record<ReportPreset, string>;
   commands: Record<BotCommand, string>;
   roles: Record<JobRole, string>;
   genders: Record<Gender, string>;
@@ -53,6 +60,16 @@ export interface Locale {
     chooseMinute: string;
     timeZonePrompt: (zone: string) => string;
     timeZoneInvalid: string;
+    preset: string;
+    presetByRole: (preset: string) => string;
+    choosePreset: (preset: string) => string;
+    byRole: (preset: string) => string;
+    presetDescriptions: Record<ReportPreset, string>;
+    ai: LocaleSwitch;
+    aiData: LocaleSwitch;
+    notifyEmpty: LocaleSwitch;
+    on: string;
+    off: string;
   };
   employees: {
     title: (count: number) => string;

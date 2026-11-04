@@ -4,8 +4,10 @@ import { Channel, ChatInputType } from 'src/common/enums/channel.enums';
 import type { ChatInput } from 'src/common/interfaces/chat-channel.interface';
 import { Language } from 'src/modules/application/i18n/i18n.enums';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
+import { ReportPreset } from 'src/modules/application/report/report.enums';
 import type { UserChannel } from 'src/modules/application/user/channel/channel.interface';
 import type { ChannelService } from 'src/modules/application/user/channel/channel.service';
+import { JobRole } from 'src/modules/application/user/user.enums';
 import type {
   User,
   UserSettingsUpdate,
@@ -24,9 +26,17 @@ const FOUND = createEmployee();
 const USER = FOUND.user;
 const TIME_ZONE_DIALOG: BotDialog = { namespace: 'set', step: 'tz', data: {} };
 const MENU_BUTTONS = [
-  [{ text: 'Language', data: 'set:lang' }],
-  [{ text: 'Report time', data: 'set:time' }],
-  [{ text: 'Time zone', data: 'set:tz' }],
+  [
+    { text: 'Language', data: 'set:lang' },
+    { text: 'Report time', data: 'set:time' },
+  ],
+  [
+    { text: 'Time zone', data: 'set:tz' },
+    { text: 'Report preset', data: 'set:preset' },
+  ],
+  [{ text: 'AI: yes', data: 'set:ai:off' }],
+  [{ text: 'Data in AI: yes', data: 'set:aidata:off' }],
+  [{ text: 'Empty day: yes', data: 'set:empty:off' }],
 ];
 
 function button(data: string): ChatInput {
@@ -85,6 +95,11 @@ describe('SettingsHandler', () => {
           'Language: English',
           'Report time: 18:00',
           'Time zone: `Asia/Almaty`, default',
+          'Report preset: by role (Standard)',
+          '',
+          '**AI** — improve the wording of report lines with AI',
+          '**Data in AI** — send the titles of my commits and excerpts of my comments to AI',
+          '**Empty day** — send a message when a day had no activity',
         ].join('\n'),
         buttons: MENU_BUTTONS,
       },
@@ -207,11 +222,99 @@ describe('SettingsHandler', () => {
     });
   });
 
+  it('shows the switched off values with the buttons to switch them on', async () => {
+    const { screen } = await open(
+      { type: ChatInputType.COMMAND, command: 'settings' },
+      null,
+      { ...USER, aiEnabled: false, aiDataOptOut: true, notifyEmpty: false },
+    );
+
+    expect(screen.buttons?.slice(2)).toEqual([
+      [{ text: 'AI: no', data: 'set:ai:on' }],
+      [{ text: 'Data in AI: no', data: 'set:aidata:on' }],
+      [{ text: 'Empty day: no', data: 'set:empty:on' }],
+    ]);
+  });
+
+  it.each<[string, UserSettingsUpdate]>([
+    ['set:ai:off', { aiEnabled: false }],
+    ['set:ai:on', { aiEnabled: true }],
+    ['set:aidata:off', { aiDataOptOut: true }],
+    ['set:aidata:on', { aiDataOptOut: false }],
+    ['set:empty:off', { notifyEmpty: false }],
+    ['set:empty:on', { notifyEmpty: true }],
+  ])('stores the switch %s', async (data, update) => {
+    userService.updateSettings.mockResolvedValue({ ...USER, ...update });
+
+    const { screen } = await open(button(data));
+
+    expect(userService.updateSettings).toHaveBeenCalledWith(USER.id, update);
+    expect(screen.text.split('\n')[0]).toBe(en.settings.title);
+  });
+
+  it('offers the presets with the default of the role', async () => {
+    expect(
+      await open(button('set:preset'), null, { ...USER, role: JobRole.QA }),
+    ).toEqual({
+      screen: {
+        text: [
+          'Choose the report preset. Now: by role (QA).',
+          '',
+          '**Standard** — lines grouped by projects',
+          '**QA** — sections: returns, testing, verified, bugs, autotests, other',
+          '**Analyst** — like standard, but every line links to the issue or MR',
+        ].join('\n'),
+        buttons: [
+          [{ text: 'By role (QA)', data: 'set:preset:role' }],
+          [
+            { text: 'Standard', data: 'set:preset:standard' },
+            { text: 'QA', data: 'set:preset:qa' },
+            { text: 'Analyst', data: 'set:preset:analyst' },
+          ],
+          [{ text: 'Back', data: 'set:menu' }],
+        ],
+      },
+      dialog: null,
+    });
+  });
+
+  it('saves a chosen preset', async () => {
+    userService.updateSettings.mockResolvedValue({
+      ...USER,
+      preset: ReportPreset.ANALYST,
+    });
+
+    const { screen } = await open(button('set:preset:analyst'));
+
+    expect(userService.updateSettings).toHaveBeenCalledWith(USER.id, {
+      preset: ReportPreset.ANALYST,
+    });
+    expect(screen.text).toContain('Report preset: Analyst\n');
+  });
+
+  it('returns to the preset of the role', async () => {
+    userService.updateSettings.mockResolvedValue(USER);
+
+    const { screen } = await open(button('set:preset:role'), null, {
+      ...USER,
+      preset: ReportPreset.QA,
+    });
+
+    expect(userService.updateSettings).toHaveBeenCalledWith(USER.id, {
+      preset: null,
+    });
+    expect(screen.text).toContain('Report preset: by role (Standard)');
+  });
+
   it.each([
     'set:time:24',
     'set:time:09:10',
     'set:lang:de',
     'set:tz:moscow',
+    'set:preset:custom',
+    'set:ai',
+    'set:aidata:yes',
+    'set:empty:on:off',
     'set:other',
   ])('answers the outdated button %s', async (data) => {
     expect((await open(button(data))).screen).toEqual({
