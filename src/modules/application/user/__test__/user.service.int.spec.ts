@@ -83,6 +83,45 @@ describe('User module', () => {
   }
 
   describe('UserService', () => {
+    it('creates, finds, updates and deletes a user', async () => {
+      const gitlabUserId = nextId++;
+      const created = await userService.create({
+        gitlabUserId,
+        gitlabUsername: `user${gitlabUserId}`,
+        displayName: 'Petr',
+        role: JobRole.DEVELOPER,
+        gender: Gender.MALE,
+      });
+
+      expect(await userService.findOne(eq(users.id, created.id))).toEqual(
+        created,
+      );
+      expect(
+        await userService.find(eq(users.gitlabUserId, gitlabUserId)),
+      ).toEqual([created]);
+      expect(
+        await userService.updateOne(eq(users.id, created.id), {
+          role: JobRole.DEVOPS,
+        }),
+      ).toMatchObject({ id: created.id, role: JobRole.DEVOPS });
+      expect(
+        await userService.deleteOne(eq(users.id, created.id)),
+      ).toMatchObject({ id: created.id });
+      expect(await userService.findOne(eq(users.id, created.id))).toBeNull();
+    });
+
+    it('returns null when nothing matches an update or a delete', async () => {
+      const user = await insertUser();
+      await userService.deleteOne(eq(users.id, user.id));
+
+      expect(
+        await userService.updateOne(eq(users.id, user.id), {
+          role: JobRole.DEVOPS,
+        }),
+      ).toBeNull();
+      expect(await userService.deleteOne(eq(users.id, user.id))).toBeNull();
+    });
+
     it('finds a user with the channel by a telegram id', async () => {
       const user = await insertUser();
       const channel = await insertChannel(user.id);
@@ -157,6 +196,34 @@ describe('User module', () => {
   });
 
   describe('ChannelService', () => {
+    it('creates, finds, updates and deletes a channel', async () => {
+      const user = await insertUser();
+      const created = await channelService.create({
+        userId: user.id,
+        channel: Channel.TELEGRAM,
+        externalId: String(nextId++),
+      });
+
+      expect(created.reachable).toBe(true);
+      expect(
+        await channelService.findOne(eq(userChannels.id, created.id)),
+      ).toEqual(created);
+      expect(
+        await channelService.find(eq(userChannels.userId, user.id)),
+      ).toEqual([created]);
+      expect(
+        await channelService.updateOne(eq(userChannels.id, created.id), {
+          reachable: false,
+        }),
+      ).toMatchObject({ id: created.id, reachable: false });
+      expect(
+        await channelService.deleteOne(eq(userChannels.id, created.id)),
+      ).toMatchObject({ id: created.id });
+      expect(
+        await channelService.find(eq(userChannels.userId, user.id)),
+      ).toEqual([]);
+    });
+
     it('flips the reachable flag and returns the channel', async () => {
       const user = await insertUser();
       const channel = await insertChannel(user.id);

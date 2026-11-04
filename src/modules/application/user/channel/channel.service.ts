@@ -9,8 +9,24 @@ import { userChannels } from './channel.schema';
 export class ChannelService {
   constructor(private readonly channelRepository: ChannelRepository) {}
 
+  find(filter?: SQL) {
+    return this.channelRepository.find(filter);
+  }
+
+  findOne(filter: SQL) {
+    return this.channelRepository.findOne(filter);
+  }
+
+  create(values: UserChannelInsert) {
+    return this.channelRepository.create(values);
+  }
+
   updateOne(filter: SQL, values: Partial<UserChannelInsert>) {
     return this.channelRepository.updateOne(filter, values);
+  }
+
+  deleteOne(filter: SQL) {
+    return this.channelRepository.deleteOne(filter);
   }
 
   updateReachable(channel: Channel, externalId: string, reachable: boolean) {

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { getFailureReason } from 'src/common/utils/error.util';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import {
   TELEGRAM_REQUEST_TIMEOUT_MS,
@@ -67,7 +68,7 @@ export class TelegramClient {
       });
     } catch (error) {
       throw new TelegramRetryableError(
-        `${TelegramMessages.REQUEST_FAILED}: ${method}: ${this.describeFailure(error)}`,
+        `${TelegramMessages.REQUEST_FAILED}: ${method}: ${getFailureReason(error)}`,
       );
     }
   }
@@ -77,23 +78,8 @@ export class TelegramClient {
       return (await response.json()) as TelegramResponse<T>;
     } catch (error) {
       throw new TelegramRetryableError(
-        `${TelegramMessages.INVALID_RESPONSE}: ${method}: ${response.status} ${this.describeFailure(error)}`,
+        `${TelegramMessages.INVALID_RESPONSE}: ${method}: ${response.status} ${getFailureReason(error)}`,
       );
     }
-  }
-
-  private describeFailure(error: unknown) {
-    if (!(error instanceof Error)) {
-      return typeof error;
-    }
-    const { cause } = error;
-    if (
-      cause instanceof Error &&
-      'code' in cause &&
-      typeof cause.code === 'string'
-    ) {
-      return cause.code;
-    }
-    return error.name;
   }
 }

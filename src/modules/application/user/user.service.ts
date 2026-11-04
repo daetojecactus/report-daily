@@ -14,8 +14,24 @@ export class UserService {
     private readonly channelService: ChannelService,
   ) {}
 
+  find(filter?: SQL) {
+    return this.userRepository.find(filter);
+  }
+
+  findOne(filter: SQL) {
+    return this.userRepository.findOne(filter);
+  }
+
+  create(values: UserInsert) {
+    return this.userRepository.create(values);
+  }
+
   updateOne(filter: SQL, values: Partial<UserInsert>) {
     return this.userRepository.updateOne(filter, values);
+  }
+
+  deleteOne(filter: SQL) {
+    return this.userRepository.deleteOne(filter);
   }
 
   findOneByChannel(channel: Channel, externalId: string) {

@@ -12,6 +12,8 @@ const ENV = {
   REDIS_URL: 'redis://localhost:6380',
   OWNER_TELEGRAM_IDS: '111',
   TELEGRAM_BOT_TOKEN: '123456:secret-token',
+  GITLAB_URL: 'https://gitlab.example.com',
+  GITLAB_TOKEN: 'secret-gitlab-token',
 };
 
 function getValidationMessage(config: Record<string, unknown>) {
@@ -58,6 +60,8 @@ describe('validateEnv', () => {
     expect(message).toContain('REDIS_URL');
     expect(message).toContain('OWNER_TELEGRAM_IDS');
     expect(message).toContain('TELEGRAM_BOT_TOKEN');
+    expect(message).toContain('GITLAB_URL');
+    expect(message).toContain('GITLAB_TOKEN');
   });
 
   it('rejects an empty owner list', () => {
@@ -73,12 +77,14 @@ describe('validateEnv', () => {
       PORT: '-1',
       OWNER_TELEGRAM_IDS: '111,secret-owner',
       TELEGRAM_API_URL: 'ftp://secret-host',
+      GITLAB_URL: 'secret-gitlab-host',
     });
 
     expect(message).toContain('LOG_LEVEL');
     expect(message).toContain('PORT');
     expect(message).toContain('OWNER_TELEGRAM_IDS');
     expect(message).toContain('TELEGRAM_API_URL');
+    expect(message).toContain('GITLAB_URL');
     expect(message).not.toContain('secret');
   });
 });

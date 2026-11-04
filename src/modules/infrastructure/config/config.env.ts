@@ -58,4 +58,15 @@ export class AppEnvs {
     require_tld: false,
   })
   TELEGRAM_API_URL: string = TELEGRAM_DEFAULT_API_URL;
+
+  @IsUrl({
+    protocols: ['http', 'https'],
+    require_protocol: true,
+    require_tld: false,
+  })
+  GITLAB_URL!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  GITLAB_TOKEN!: string;
 }
