@@ -21,6 +21,7 @@ import {
 } from '../constants/bot.constants';
 import { BotMessages } from '../constants/bot.messages';
 import { EmployeesAction } from '../employees/employees.enums';
+import { MenuService } from '../menu/menu.service';
 import {
   EMPLOYEE_BIND_BUTTON_SCHEMA,
   EMPLOYEE_BIND_DRAFT_SCHEMA,
@@ -36,6 +37,7 @@ export class EmployeeBindHandler implements BotHandler {
   constructor(
     private readonly userService: UserService,
     private readonly channelService: ChannelService,
+    private readonly menuService: MenuService,
     @Inject(BOT_CHANNELS) private readonly channels: ChatChannel[],
   ) {}
 
@@ -159,7 +161,12 @@ export class EmployeeBindHandler implements BotHandler {
       return this.refuse(actor, locale, user);
     }
 
-    await this.userService.bindChannel(user.id, actor.channel, externalId);
+    const channel = await this.userService.bindChannel(
+      user.id,
+      actor.channel,
+      externalId,
+    );
+    await this.menuService.syncEmployee(user, [channel]);
     this.logger.log(
       { userId: user.id, actorId: actor.user?.id ?? BotAccess.OWNER },
       EmployeeBindMessages.CHANNEL_BOUND,

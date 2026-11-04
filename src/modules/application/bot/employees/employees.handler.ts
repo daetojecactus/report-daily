@@ -32,6 +32,7 @@ import { EmployeeAddAction } from '../employee-add/employee-add.enums';
 import { AccessService } from '../access/access.service';
 import { EmployeeBindAction } from '../employee-bind/employee-bind.enums';
 import { EmployeeManageAction } from '../employee-manage/employee-manage.enums';
+import { EmployeePermissionsAction } from '../employee-permissions/employee-permissions.enums';
 import { EmployeesAction, EmployeesStep } from './employees.enums';
 
 @Injectable()
@@ -201,6 +202,18 @@ export class EmployeesHandler implements BotHandler {
         ),
       },
     ]);
+    if (actor.isOwner) {
+      actions.push([
+        {
+          text: locale.employeePermissions.open,
+          data: this.toSectionData(
+            BotNamespace.EMPLOYEE_PERMISSIONS,
+            EmployeePermissionsAction.OPEN,
+            user.id,
+          ),
+        },
+      ]);
+    }
     if (this.accessService.canManage(actor, user)) {
       const isBlocked = user.status === UserStatus.BLOCKED;
       actions.push([

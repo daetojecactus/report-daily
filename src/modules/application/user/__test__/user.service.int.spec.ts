@@ -6,6 +6,7 @@ import { Channel } from 'src/common/enums/channel.enums';
 import {
   Gender,
   JobRole,
+  Permission,
   UserStatus,
 } from 'src/modules/application/user/user.enums';
 import { Language } from 'src/modules/application/i18n/i18n.enums';
@@ -297,6 +298,41 @@ describe('User module', () => {
       });
       expect(await userService.findById(user.id)).toBeNull();
       expect(await channelService.findByUser(user.id)).toEqual([]);
+    });
+  });
+
+  describe('permissions', () => {
+    it('grants a permission once', async () => {
+      const user = await insertUser();
+
+      expect(
+        await userService.grantPermission(user.id, Permission.LABELS),
+      ).toMatchObject({ permissions: [Permission.LABELS] });
+      expect(
+        await userService.grantPermission(user.id, Permission.LABELS),
+      ).toBeNull();
+      await Promise.all([
+        userService.grantPermission(user.id, Permission.USERS),
+        userService.grantPermission(user.id, Permission.USERS),
+      ]);
+
+      expect((await findUser(user.id)).permissions).toEqual([
+        Permission.LABELS,
+        Permission.USERS,
+      ]);
+    });
+
+    it('revokes a permission it has', async () => {
+      const user = await insertUser({
+        permissions: [Permission.USERS, Permission.SETTINGS],
+      });
+
+      expect(
+        await userService.revokePermission(user.id, Permission.USERS),
+      ).toMatchObject({ permissions: [Permission.SETTINGS] });
+      expect(
+        await userService.revokePermission(user.id, Permission.USERS),
+      ).toBeNull();
     });
   });
 

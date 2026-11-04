@@ -136,6 +136,19 @@ export const en: Locale = {
     ownerOnly:
       'Only an owner can block or delete an employee with permissions.',
   },
+  employeePermissions: {
+    open: 'Permissions',
+    title: (name) =>
+      `**${name}**\nPermissions in the bot. Tap one to grant or revoke it.`,
+    descriptions: {
+      [Permission.USERS]: 'add, change, block and delete employees',
+      [Permission.LABELS]: 'set up GitLab labels',
+      [Permission.BROADCAST]: 'send a broadcast to all employees',
+      [Permission.SETTINGS]: 'report pause, AI, calendar, system status',
+    },
+    granted: 'yes',
+    revoked: 'no',
+  },
   employeeBind: {
     prompt: (channel, name) =>
       `**${name}**\nChoose the employee in ${channel} or enter their ${channel} ID. The bot shows the ID to a person who writes to it without access.`,

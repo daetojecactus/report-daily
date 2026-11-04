@@ -136,6 +136,20 @@ export const ru: Locale = {
     ownerOnly:
       'Сотрудника с правами может заблокировать или удалить только владелец.',
   },
+  employeePermissions: {
+    open: 'Права',
+    title: (name) =>
+      `**${name}**\nПрава в боте. Нажмите на право, чтобы выдать или снять его.`,
+    descriptions: {
+      [Permission.USERS]:
+        'добавлять, менять, блокировать и удалять сотрудников',
+      [Permission.LABELS]: 'настраивать лейблы GitLab',
+      [Permission.BROADCAST]: 'делать рассылку всем сотрудникам',
+      [Permission.SETTINGS]: 'пауза отчётов, AI, календарь, состояние системы',
+    },
+    granted: 'есть',
+    revoked: 'нет',
+  },
   employeeBind: {
     prompt: (channel, name) =>
       `**${name}**\nВыберите сотрудника в ${channel} или введите его ${channel} ID. ID бот показывает человеку, который пишет боту без доступа.`,
