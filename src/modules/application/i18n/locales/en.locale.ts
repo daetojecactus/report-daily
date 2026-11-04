@@ -1,5 +1,6 @@
 import { Channel } from 'src/common/enums/channel.enums';
 import { BotCommand } from 'src/modules/application/bot/bot.enums';
+import { ReportPreset } from 'src/modules/application/report/report.enums';
 import {
   Gender,
   JobRole,
@@ -17,6 +18,11 @@ export const en: Locale = {
   languages: {
     [Language.RU]: 'Русский',
     [Language.EN]: 'English',
+  },
+  presets: {
+    [ReportPreset.STANDARD]: 'Standard',
+    [ReportPreset.QA]: 'QA',
+    [ReportPreset.ANALYST]: 'Analyst',
   },
   commands: {
     [BotCommand.START]: 'Start the bot',
@@ -90,6 +96,32 @@ export const en: Locale = {
     timeZonePrompt: (zone) =>
       `Send the time zone as an IANA name, for example \`Europe/Moscow\` or \`Asia/Almaty\`. Now: ${zone}.`,
     timeZoneInvalid: 'Unknown time zone. Example: `Europe/Moscow`.',
+    preset: 'Report preset',
+    presetByRole: (preset) => `by role (${preset})`,
+    choosePreset: (preset) => `Choose the report preset. Now: ${preset}.`,
+    byRole: (preset) => `By role (${preset})`,
+    presetDescriptions: {
+      [ReportPreset.STANDARD]: 'lines grouped by projects',
+      [ReportPreset.QA]:
+        'sections: returns, testing, verified, bugs, autotests, other',
+      [ReportPreset.ANALYST]:
+        'like standard, but every line links to the issue or MR',
+    },
+    ai: {
+      name: 'AI',
+      description: 'improve the wording of report lines with AI',
+    },
+    aiData: {
+      name: 'Data in AI',
+      description:
+        'send the titles of my commits and excerpts of my comments to AI',
+    },
+    notifyEmpty: {
+      name: 'Empty day',
+      description: 'send a message when a day had no activity',
+    },
+    on: 'yes',
+    off: 'no',
   },
   employees: {
     title: (count) => `**Employees** · ${count}`,

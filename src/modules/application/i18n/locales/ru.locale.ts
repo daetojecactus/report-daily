@@ -1,5 +1,6 @@
 import { Channel } from 'src/common/enums/channel.enums';
 import { BotCommand } from 'src/modules/application/bot/bot.enums';
+import { ReportPreset } from 'src/modules/application/report/report.enums';
 import {
   Gender,
   JobRole,
@@ -17,6 +18,11 @@ export const ru: Locale = {
   languages: {
     [Language.RU]: 'Русский',
     [Language.EN]: 'English',
+  },
+  presets: {
+    [ReportPreset.STANDARD]: 'Стандартный',
+    [ReportPreset.QA]: 'QA',
+    [ReportPreset.ANALYST]: 'Аналитик',
   },
   commands: {
     [BotCommand.START]: 'Начать работу с ботом',
@@ -89,6 +95,32 @@ export const ru: Locale = {
     timeZonePrompt: (zone) =>
       `Отправьте часовой пояс в формате IANA, например \`Europe/Moscow\` или \`Asia/Almaty\`. Сейчас: ${zone}.`,
     timeZoneInvalid: 'Не знаю такого часового пояса. Пример: `Europe/Moscow`.',
+    preset: 'Пресет отчёта',
+    presetByRole: (preset) => `по роли (${preset})`,
+    choosePreset: (preset) => `Выберите пресет отчёта. Сейчас: ${preset}.`,
+    byRole: (preset) => `По роли (${preset})`,
+    presetDescriptions: {
+      [ReportPreset.STANDARD]: 'строки сгруппированы по проектам',
+      [ReportPreset.QA]:
+        'разделы: возвраты, тестирование, проверено, баги, автотесты, прочее',
+      [ReportPreset.ANALYST]:
+        'как стандартный, но каждая строка ссылается на задачу или MR',
+    },
+    ai: {
+      name: 'AI',
+      description: 'улучшать формулировки строк отчёта через AI',
+    },
+    aiData: {
+      name: 'Данные в AI',
+      description:
+        'отправлять в AI заголовки моих коммитов и выдержки из моих комментариев',
+    },
+    notifyEmpty: {
+      name: 'Пустой день',
+      description: 'присылать сообщение, если за день не было активности',
+    },
+    on: 'да',
+    off: 'нет',
   },
   employees: {
     title: (count) => `**Сотрудники** · ${count}`,
