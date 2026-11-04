@@ -16,7 +16,7 @@ pnpm db:migrate
 pnpm watch
 ```
 
-Fill in `OWNER_TELEGRAM_IDS` and `TELEGRAM_BOT_TOKEN` in `.env` first: use a separate test bot for development. The bot polls Telegram itself and needs no public address. The application serves `GET /health/live` and `GET /health/ready` on port 3000.
+Fill in `OWNER_TELEGRAM_IDS`, `TELEGRAM_BOT_TOKEN`, `GITLAB_URL` and `GITLAB_TOKEN` in `.env` first: use a separate test bot for development. The bot polls Telegram itself and needs no public address. The application serves `GET /health/live` and `GET /health/ready` on port 3000.
 
 | Command | What it does |
 | --- | --- |
@@ -35,6 +35,8 @@ Fill in `OWNER_TELEGRAM_IDS` and `TELEGRAM_BOT_TOKEN` in `.env` first: use a sep
 | `OWNER_TELEGRAM_IDS` | yes | | Telegram user IDs of the owners, comma-separated. Owners have every permission |
 | `TELEGRAM_BOT_TOKEN` | yes | | Bot token from @BotFather |
 | `TELEGRAM_API_URL` | no | `https://api.telegram.org` | Bot API server, for example a self-hosted `telegram-bot-api` |
+| `GITLAB_URL` | yes | | GitLab address without `/api/v4`, for example `https://gitlab.example.com` |
+| `GITLAB_TOKEN` | yes | | Token of a GitLab service account with the `read_api` and `read_user` scopes |
 | `LOG_LEVEL` | no | `info` | `fatal`, `error`, `warn`, `info`, `debug`, `trace` or `silent` |
 | `PORT` | no | `3000` | Port of the health endpoints |
 

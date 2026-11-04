@@ -8,10 +8,39 @@ import { userChannels } from './channel.schema';
 export class ChannelRepository {
   constructor(private readonly databaseService: DatabaseService) {}
 
+  find(filter?: SQL) {
+    return this.databaseService.db.select().from(userChannels).where(filter);
+  }
+
+  async findOne(filter: SQL) {
+    const [channel] = await this.databaseService.db
+      .select()
+      .from(userChannels)
+      .where(filter)
+      .limit(1);
+    return channel ?? null;
+  }
+
+  async create(values: UserChannelInsert) {
+    const [channel] = await this.databaseService.db
+      .insert(userChannels)
+      .values(values)
+      .returning();
+    return channel;
+  }
+
   async updateOne(filter: SQL, values: Partial<UserChannelInsert>) {
     const [channel] = await this.databaseService.db
       .update(userChannels)
       .set(values)
+      .where(filter)
+      .returning();
+    return channel ?? null;
+  }
+
+  async deleteOne(filter: SQL) {
+    const [channel] = await this.databaseService.db
+      .delete(userChannels)
       .where(filter)
       .returning();
     return channel ?? null;
