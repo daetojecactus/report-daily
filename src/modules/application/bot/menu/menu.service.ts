@@ -13,6 +13,8 @@ import type {
 import { getErrorMessage } from 'src/common/utils/error.util';
 import { DEFAULT_LANGUAGE } from 'src/modules/application/i18n/constants/i18n.constants';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
+import type { UserChannel } from 'src/modules/application/user/channel/channel.interface';
+import type { User } from 'src/modules/application/user/user.interface';
 import { AccessService } from '../access/access.service';
 import { BOT_CHANNELS } from '../constants/bot.constants';
 import { BotMessages } from '../constants/bot.messages';
@@ -42,6 +44,12 @@ export class MenuService implements OnApplicationBootstrap {
         .filter(({ access }) => this.accessService.isAllowed(actor, access)),
       locale,
     );
+  }
+
+  async syncEmployee(user: User | null, channels: UserChannel[]) {
+    for (const channel of channels) {
+      await this.syncChat(this.accessService.toActor(user, channel));
+    }
   }
 
   async syncChat(actor: BotActor) {

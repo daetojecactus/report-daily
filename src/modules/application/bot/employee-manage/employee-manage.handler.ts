@@ -5,6 +5,7 @@ import { escapeMarkdown } from 'src/common/utils/markdown.util';
 import type { Locale } from 'src/modules/application/i18n/i18n.interface';
 import { JobRole, Permission } from 'src/modules/application/user/user.enums';
 import type { User } from 'src/modules/application/user/user.interface';
+import { ChannelService } from 'src/modules/application/user/channel/channel.service';
 import { UserService } from 'src/modules/application/user/user.service';
 import { AccessService } from '../access/access.service';
 import { BotSection } from '../bot.decorator';
@@ -17,6 +18,7 @@ import type {
 } from '../bot.interface';
 import { BOT_BUTTON_DATA_SEPARATOR } from '../constants/bot.constants';
 import { EmployeesAction } from '../employees/employees.enums';
+import { MenuService } from '../menu/menu.service';
 import { EMPLOYEE_MANAGE_BUTTON_SCHEMA } from './constants/employee-manage.constants';
 import { EmployeeManageMessages } from './constants/employee-manage.messages';
 import { EmployeeManageAction } from './employee-manage.enums';
@@ -31,7 +33,9 @@ export class EmployeeManageHandler implements BotHandler {
 
   constructor(
     private readonly userService: UserService,
+    private readonly channelService: ChannelService,
     private readonly accessService: AccessService,
+    private readonly menuService: MenuService,
   ) {}
 
   async handle({ actor, input, locale }: BotContext): Promise<BotReply> {
@@ -82,11 +86,11 @@ export class EmployeeManageHandler implements BotHandler {
     const name = escapeMarkdown(user.displayName);
     switch (action) {
       case EmployeeManageAction.BLOCK:
-        await this.userService.block(user.id);
+        await this.syncMenu(await this.userService.block(user.id));
         this.log(actor, user, EmployeeManageMessages.BLOCKED);
         return this.done(locale, user, locale.employeeManage.blocked(name));
       case EmployeeManageAction.UNBLOCK:
-        await this.userService.unblock(user.id);
+        await this.syncMenu(await this.userService.unblock(user.id));
         this.log(actor, user, EmployeeManageMessages.UNBLOCKED);
         return this.done(locale, user, locale.employeeManage.unblocked(name));
       case EmployeeManageAction.DELETE:
@@ -102,12 +106,24 @@ export class EmployeeManageHandler implements BotHandler {
             },
           ],
         ]);
-      case EmployeeManageAction.CONFIRM_DELETE:
+      case EmployeeManageAction.CONFIRM_DELETE: {
+        const channels = await this.channelService.findByUser(user.id);
         await this.userService.deleteById(user.id);
+        await this.menuService.syncEmployee(null, channels);
         this.log(actor, user, EmployeeManageMessages.DELETED);
         return this.reply(locale.employeeManage.deleted(name), [
           [this.toListButton(locale)],
         ]);
+      }
+    }
+  }
+
+  private async syncMenu(user: User | null) {
+    if (user) {
+      await this.menuService.syncEmployee(
+        user,
+        await this.channelService.findByUser(user.id),
+      );
     }
   }
 

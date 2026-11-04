@@ -3,7 +3,7 @@ import { and, asc, eq, type SQL } from 'drizzle-orm';
 import type { Channel } from 'src/common/enums/channel.enums';
 import { DatabaseService } from 'src/modules/infrastructure/database/database.service';
 import { userChannels } from './channel/channel.schema';
-import type { UserInsert, UserWithChannel } from './user.interface';
+import type { UserInsert, UserUpdate, UserWithChannel } from './user.interface';
 import { users } from './user.schema';
 
 @Injectable()
@@ -31,7 +31,7 @@ export class UserRepository {
     return user;
   }
 
-  async updateOne(filter: SQL, values: Partial<UserInsert>) {
+  async updateOne(filter: SQL, values: UserUpdate) {
     const [user] = await this.databaseService.db
       .update(users)
       .set(values)

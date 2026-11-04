@@ -544,4 +544,64 @@ describe('Telegram bot', () => {
       [],
     );
   });
+
+  it('lets an owner grant and revoke permissions with the menu following', async () => {
+    const { user, telegramId } = await createEmployee({
+      displayName: `Rights${nextTelegramId}`,
+    });
+    const chatId = String(telegramId);
+
+    await fakeBotApi.pushUpdate(
+      buttonPress(TEST_OWNER_TELEGRAM_ID, `perm:grant:${user.id}:users`, 1001),
+    );
+    expect(
+      (
+        await fakeBotApi.waitForRequest(
+          'editMessageText',
+          (body) => body.message_id === 1001,
+        )
+      ).text,
+    ).toContain('Permissions in the bot');
+    const menu = await fakeBotApi.waitForRequest(
+      'setMyCommands',
+      (body) => (body.scope as { chat_id?: string }).chat_id === chatId,
+    );
+    expect(
+      (menu.commands as { command: string }[]).map((item) => item.command),
+    ).toEqual(['start', 'admin', 'help', 'cancel']);
+
+    await fakeBotApi.pushUpdate(privateMessage(telegramId, '/admin'));
+    expect((await replyTo(telegramId)).text).toBe('<b>Management</b>');
+
+    await fakeBotApi.pushUpdate(
+      buttonPress(TEST_OWNER_TELEGRAM_ID, `perm:revoke:${user.id}:users`, 1002),
+    );
+    await fakeBotApi.waitForRequest(
+      'editMessageText',
+      (body) => body.message_id === 1002,
+    );
+    await fakeBotApi.pushUpdate(privateMessage(telegramId, '/admin'));
+    await fakeBotApi.waitForRequest(
+      'sendMessage',
+      (body) => body.chat_id === chatId && body.text === en.bot.forbidden,
+    );
+  });
+
+  it('keeps permissions for owners only', async () => {
+    const { telegramId } = await createEmployee({
+      permissions: [Permission.USERS],
+    });
+    const { user } = await createEmployee();
+
+    await fakeBotApi.pushUpdate(
+      buttonPress(telegramId, `perm:open:${user.id}`, 1003),
+    );
+
+    expect(
+      await fakeBotApi.waitForRequest(
+        'editMessageText',
+        (body) => body.message_id === 1003,
+      ),
+    ).toMatchObject({ text: en.bot.forbidden });
+  });
 });

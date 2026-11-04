@@ -6,16 +6,21 @@ import type { ChatInput } from 'src/common/interfaces/chat-channel.interface';
 import { Language } from 'src/modules/application/i18n/i18n.enums';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
 import { JobRole, Permission } from 'src/modules/application/user/user.enums';
+import type { UserChannel } from 'src/modules/application/user/channel/channel.interface';
+import type { ChannelService } from 'src/modules/application/user/channel/channel.service';
 import type { User } from 'src/modules/application/user/user.interface';
 import type { UserService } from 'src/modules/application/user/user.service';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { AccessService } from '../../access/access.service';
 import type { BotActor } from '../../bot.interface';
+import type { MenuService } from '../../menu/menu.service';
 import { createEmployee } from '../../__test__/bot.fixture';
 import { EmployeeManageHandler } from '../employee-manage.handler';
 
 const locale = new I18nService().getLocale(Language.EN);
-const USER = createEmployee({ displayName: 'Anna *S*' }).user;
+const FOUND = createEmployee({ displayName: 'Anna *S*' });
+const USER = FOUND.user;
+const CHANNEL = FOUND.channel;
 const CARD = { text: 'Open the card', data: `emp:card:${USER.id}:0` };
 const LIST = { text: 'To the list', data: 'emp:list:0' };
 
@@ -31,13 +36,19 @@ describe('EmployeeManageHandler', () => {
     unblock: vi.fn(),
     deleteById: vi.fn(),
   };
+  const channelService = {
+    findByUser: vi.fn<(userId: string) => Promise<UserChannel[]>>(),
+  };
+  const menuService = { syncEmployee: vi.fn() };
   const handler = new EmployeeManageHandler(
     userService as unknown as UserService,
+    channelService as unknown as ChannelService,
     new AccessService(
       { get: () => [] } as unknown as ConfigService<AppEnvs, true>,
       {} as UserService,
       new I18nService(),
     ),
+    menuService as unknown as MenuService,
   );
 
   function open(data: string, actor: Partial<BotActor> = {}) {
@@ -64,6 +75,7 @@ describe('EmployeeManageHandler', () => {
   beforeEach(() => {
     vi.resetAllMocks();
     userService.findById.mockResolvedValue(USER);
+    channelService.findByUser.mockResolvedValue([CHANNEL]);
   });
 
   it('offers the other roles', async () => {
@@ -99,13 +111,16 @@ describe('EmployeeManageHandler', () => {
     });
   });
 
-  it.each<[string, keyof typeof userService, string]>([
+  it.each<[string, 'block' | 'unblock', string]>([
     ['block', 'block', 'Employee blocked: **Anna \\*S\\***.'],
     ['unblock', 'unblock', 'Employee unblocked: **Anna \\*S\\***.'],
   ])('can %s an employee', async (action, method, text) => {
+    userService[method].mockResolvedValue(USER);
+
     const reply = await open(`mng:${action}:${USER.id}`);
 
     expect(userService[method]).toHaveBeenCalledWith(USER.id);
+    expect(menuService.syncEmployee).toHaveBeenCalledWith(USER, [CHANNEL]);
     expect(reply.screen.text).toContain(text);
     expect(reply.screen.buttons).toEqual([[CARD], [LIST]]);
   });
@@ -129,6 +144,7 @@ describe('EmployeeManageHandler', () => {
     const reply = await open(`mng:confirm:${USER.id}`);
 
     expect(userService.deleteById).toHaveBeenCalledWith(USER.id);
+    expect(menuService.syncEmployee).toHaveBeenCalledWith(null, [CHANNEL]);
     expect(reply.screen).toEqual({
       text: 'Employee deleted: **Anna \\*S\\***.',
       buttons: [[LIST]],

@@ -98,6 +98,13 @@ export interface Locale {
     self: string;
     ownerOnly: string;
   };
+  employeePermissions: {
+    open: string;
+    title: (name: string) => string;
+    descriptions: Record<Permission, string>;
+    granted: string;
+    revoked: string;
+  };
   employeeBind: {
     prompt: (channel: string, name: string) => string;
     pick: (channel: string) => string;

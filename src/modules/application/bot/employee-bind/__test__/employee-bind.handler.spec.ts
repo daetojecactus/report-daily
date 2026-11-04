@@ -15,6 +15,7 @@ import type {
 } from 'src/modules/application/user/user.interface';
 import type { UserService } from 'src/modules/application/user/user.service';
 import type { BotDialog } from '../../bot.interface';
+import type { MenuService } from '../../menu/menu.service';
 import { createEmployee } from '../../__test__/bot.fixture';
 import { EmployeeBindHandler } from '../employee-bind.handler';
 
@@ -62,9 +63,11 @@ describe('EmployeeBindHandler', () => {
     channel: Channel.TELEGRAM,
     isUserId: (value: string) => /^\d+$/.test(value),
   };
+  const menuService = { syncEmployee: vi.fn() };
   const handler = new EmployeeBindHandler(
     userService as unknown as UserService,
     channelService as unknown as ChannelService,
+    menuService as unknown as MenuService,
     [telegram as unknown as ChatChannel],
   );
 
@@ -90,6 +93,7 @@ describe('EmployeeBindHandler', () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
+    userService.bindChannel.mockResolvedValue(found.channel);
     userService.findById.mockResolvedValue(USER);
     userService.findOneByChannel.mockResolvedValue(null);
     channelService.findByUser.mockResolvedValue([]);
@@ -140,6 +144,9 @@ describe('EmployeeBindHandler', () => {
       Channel.TELEGRAM,
       '777000111',
     );
+    expect(menuService.syncEmployee).toHaveBeenCalledWith(USER, [
+      found.channel,
+    ]);
     expect(reply).toEqual({
       screen: {
         text: [

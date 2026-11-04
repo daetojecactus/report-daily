@@ -183,6 +183,7 @@ describe('EmployeesHandler', () => {
       ].join('\n'),
       buttons: [
         [{ text: 'Change role', data: `mng:role:${user.id}` }],
+        [{ text: 'Permissions', data: `perm:open:${user.id}` }],
         [
           { text: 'Block', data: `mng:block:${user.id}` },
           { text: 'Delete', data: `mng:delete:${user.id}` },
@@ -221,7 +222,7 @@ describe('EmployeesHandler', () => {
 
     const { screen } = await open(button(`emp:card:${user.id}:0`));
 
-    expect(screen.buttons?.[1]).toEqual([
+    expect(screen.buttons?.[2]).toEqual([
       { text: 'Unblock', data: `mng:unblock:${user.id}` },
       { text: 'Delete', data: `mng:delete:${user.id}` },
     ]);

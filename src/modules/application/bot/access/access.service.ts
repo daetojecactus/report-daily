@@ -4,6 +4,8 @@ import { Channel } from 'src/common/enums/channel.enums';
 import { UserStatus } from 'src/modules/application/user/user.enums';
 import type { ChatEvent } from 'src/common/interfaces/chat-channel.interface';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
+import { DEFAULT_LANGUAGE } from 'src/modules/application/i18n/constants/i18n.constants';
+import type { UserChannel } from 'src/modules/application/user/channel/channel.interface';
 import type { User } from 'src/modules/application/user/user.interface';
 import { UserService } from 'src/modules/application/user/user.service';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
@@ -47,6 +49,17 @@ export class AccessService {
       language,
       isOwner: this.owners[event.channel].includes(event.userId),
       user: isActive ? found.user : null,
+    };
+  }
+
+  toActor(user: User | null, channel: UserChannel): BotActor {
+    return {
+      channel: channel.channel,
+      externalId: channel.externalId,
+      chatId: channel.externalId,
+      language: user?.language ?? DEFAULT_LANGUAGE,
+      isOwner: this.owners[channel.channel].includes(channel.externalId),
+      user: user && user.status !== UserStatus.BLOCKED ? user : null,
     };
   }
 
