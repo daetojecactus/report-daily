@@ -6,6 +6,7 @@ import {
   Permission,
   UserStatus,
 } from 'src/modules/application/user/user.enums';
+import { Language } from '../i18n.enums';
 import type { Locale } from '../i18n.interface';
 
 export const en: Locale = {
@@ -13,8 +14,13 @@ export const en: Locale = {
     [Channel.TELEGRAM]: 'Telegram',
     [Channel.SLACK]: 'Slack',
   },
+  languages: {
+    [Language.RU]: 'Русский',
+    [Language.EN]: 'English',
+  },
   commands: {
     [BotCommand.START]: 'Start the bot',
+    [BotCommand.SETTINGS]: 'My settings',
     [BotCommand.ADMIN]: 'Manage the bot',
     [BotCommand.HELP]: 'List of commands',
     [BotCommand.CANCEL]: 'Cancel the current action',
@@ -69,6 +75,21 @@ export const en: Locale = {
   admin: {
     title: '**Management**',
     noSections: 'Nothing here for your permissions yet.',
+  },
+  settings: {
+    title: '**My settings**',
+    language: 'Language',
+    reportTime: 'Report time',
+    timeZone: 'Time zone',
+    defaultTimeZone: (zone) => `${zone}, default`,
+    useDefault: (zone) => `Default: ${zone}`,
+    back: 'Back',
+    chooseLanguage: 'Choose the language of the bot and reports.',
+    chooseHour: (zone) => `Choose the report hour in the ${zone} time zone.`,
+    chooseMinute: 'Choose the minutes.',
+    timeZonePrompt: (zone) =>
+      `Send the time zone as an IANA name, for example \`Europe/Moscow\` or \`Asia/Almaty\`. Now: ${zone}.`,
+    timeZoneInvalid: 'Unknown time zone. Example: `Europe/Moscow`.',
   },
   employees: {
     title: (count) => `**Employees** · ${count}`,

@@ -9,6 +9,7 @@ const LANGUAGES = Object.values(Language);
 
 const NAMES = [
   'channels.',
+  'languages.',
   'roles.qa',
   'roles.devops',
   'employees.card.gitlab',

@@ -568,7 +568,7 @@ describe('Telegram bot', () => {
     );
     expect(
       (menu.commands as { command: string }[]).map((item) => item.command),
-    ).toEqual(['start', 'admin', 'help', 'cancel']);
+    ).toEqual(['start', 'settings', 'admin', 'help', 'cancel']);
 
     await fakeBotApi.pushUpdate(privateMessage(telegramId, '/admin'));
     expect((await replyTo(telegramId)).text).toBe('<b>Management</b>');
@@ -603,5 +603,51 @@ describe('Telegram bot', () => {
         (body) => body.message_id === 1003,
       ),
     ).toMatchObject({ text: en.bot.forbidden });
+  });
+
+  it('lets an employee change the language, report time and time zone', async () => {
+    const { user, telegramId } = await createEmployee();
+    const chatId = String(telegramId);
+    const press = async (data: string, messageId: number) => {
+      await fakeBotApi.pushUpdate(buttonPress(telegramId, data, messageId));
+      return fakeBotApi.waitForRequest(
+        'editMessageText',
+        (body) => body.message_id === messageId,
+      );
+    };
+
+    await fakeBotApi.pushUpdate(privateMessage(telegramId, '/settings'));
+    expect((await replyTo(telegramId)).text).toContain('<b>My settings</b>');
+
+    expect((await press('set:lang:ru', 1101)).text).toContain(
+      '<b>Мои настройки</b>',
+    );
+    const menu = await fakeBotApi.waitForRequest(
+      'setMyCommands',
+      (body) => (body.scope as { chat_id?: string }).chat_id === chatId,
+    );
+    expect(menu.commands).toContainEqual({
+      command: 'settings',
+      description: ru.commands.settings,
+    });
+
+    expect((await press('set:time:09:30', 1102)).text).toContain(
+      'Время отчёта: 09:30',
+    );
+    await press('set:tz', 1103);
+    await fakeBotApi.pushUpdate(privateMessage(telegramId, 'europe/moscow'));
+    await fakeBotApi.waitForRequest(
+      'sendMessage',
+      (body) =>
+        body.chat_id === chatId &&
+        String(body.text).includes('<code>Europe/Moscow</code>'),
+    );
+
+    const [stored] = await db.select().from(users).where(eq(users.id, user.id));
+    expect(stored).toMatchObject({
+      language: Language.RU,
+      reportTime: '09:30:00',
+      timezone: 'Europe/Moscow',
+    });
   });
 });

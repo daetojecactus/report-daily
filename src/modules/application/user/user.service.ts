@@ -16,7 +16,12 @@ import type { Language } from 'src/modules/application/i18n/i18n.enums';
 import { ChannelService } from './channel/channel.service';
 import { USER_LIKE_SPECIAL_CHARACTERS } from './constants/user.constants';
 import { type JobRole, type Permission, UserStatus } from './user.enums';
-import type { UserInsert, UserUpdate, UserWithChannel } from './user.interface';
+import type {
+  UserInsert,
+  UserSettingsUpdate,
+  UserUpdate,
+  UserWithChannel,
+} from './user.interface';
 import { UserRepository } from './user.repository';
 import { users } from './user.schema';
 
@@ -77,6 +82,10 @@ export class UserService {
 
   findOneByChannel(channel: Channel, externalId: string) {
     return this.userRepository.findOneByChannel(channel, externalId);
+  }
+
+  updateSettings(id: string, update: UserSettingsUpdate) {
+    return this.updateOne(eq(users.id, id), update);
   }
 
   changeRole(id: string, role: JobRole) {

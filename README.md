@@ -32,6 +32,7 @@ Fill in `OWNER_TELEGRAM_IDS`, `TELEGRAM_BOT_TOKEN`, `GITLAB_URL` and `GITLAB_TOK
 | --- | --- | --- | --- |
 | `DATABASE_URL` | yes | | PostgreSQL connection URL |
 | `REDIS_URL` | yes | | Redis connection URL |
+| `APP_TIMEZONE` | yes | | Default time zone of employees, an IANA name such as `Asia/Almaty` |
 | `OWNER_TELEGRAM_IDS` | yes | | Telegram user IDs of the owners, comma-separated. Owners have every permission |
 | `TELEGRAM_BOT_TOKEN` | yes | | Bot token from @BotFather |
 | `TELEGRAM_API_URL` | no | `https://api.telegram.org` | Bot API server, for example a self-hosted `telegram-bot-api` |

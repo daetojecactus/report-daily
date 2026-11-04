@@ -7,6 +7,7 @@ import {
   IsNotEmpty,
   IsPositive,
   IsString,
+  IsTimeZone,
   IsUrl,
   Matches,
 } from 'class-validator';
@@ -16,6 +17,7 @@ import {
   TELEGRAM_DEFAULT_API_URL,
 } from './constants/config.constants';
 import { TELEGRAM_USER_ID_PATTERN } from 'src/common/constants/telegram.constants';
+import { TIME_ZONE_NAME_PATTERN } from 'src/common/constants/time.constants';
 import { LogLevel } from './config.enums';
 
 export class AppEnvs {
@@ -34,6 +36,10 @@ export class AppEnvs {
   @IsInt()
   @IsPositive()
   PORT: number = APP_DEFAULT_PORT;
+
+  @IsTimeZone()
+  @Matches(TIME_ZONE_NAME_PATTERN)
+  APP_TIMEZONE!: string;
 
   @Transform(({ value }: { value: unknown }) =>
     typeof value === 'string'

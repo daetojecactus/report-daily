@@ -6,6 +6,7 @@ import {
   Permission,
   UserStatus,
 } from 'src/modules/application/user/user.enums';
+import { Language } from '../i18n.enums';
 import type { Locale } from '../i18n.interface';
 
 export const ru: Locale = {
@@ -13,8 +14,13 @@ export const ru: Locale = {
     [Channel.TELEGRAM]: 'Telegram',
     [Channel.SLACK]: 'Slack',
   },
+  languages: {
+    [Language.RU]: 'Русский',
+    [Language.EN]: 'English',
+  },
   commands: {
     [BotCommand.START]: 'Начать работу с ботом',
+    [BotCommand.SETTINGS]: 'Мои настройки',
     [BotCommand.ADMIN]: 'Управление ботом',
     [BotCommand.HELP]: 'Список команд',
     [BotCommand.CANCEL]: 'Прервать текущее действие',
@@ -68,6 +74,21 @@ export const ru: Locale = {
   admin: {
     title: '**Управление**',
     noSections: 'Для ваших прав здесь пока ничего нет.',
+  },
+  settings: {
+    title: '**Мои настройки**',
+    language: 'Язык',
+    reportTime: 'Время отчёта',
+    timeZone: 'Часовой пояс',
+    defaultTimeZone: (zone) => `${zone}, по умолчанию`,
+    useDefault: (zone) => `По умолчанию: ${zone}`,
+    back: 'Назад',
+    chooseLanguage: 'Выберите язык бота и отчётов.',
+    chooseHour: (zone) => `Выберите час отчёта по часовому поясу ${zone}.`,
+    chooseMinute: 'Выберите минуты.',
+    timeZonePrompt: (zone) =>
+      `Отправьте часовой пояс в формате IANA, например \`Europe/Moscow\` или \`Asia/Almaty\`. Сейчас: ${zone}.`,
+    timeZoneInvalid: 'Не знаю такого часового пояса. Пример: `Europe/Moscow`.',
   },
   employees: {
     title: (count) => `**Сотрудники** · ${count}`,

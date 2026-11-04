@@ -1,5 +1,6 @@
 export enum BotCommand {
   START = 'start',
+  SETTINGS = 'settings',
   ADMIN = 'admin',
   HELP = 'help',
   CANCEL = 'cancel',
@@ -19,4 +20,5 @@ export enum BotNamespace {
   EMPLOYEE_BIND = 'bind',
   EMPLOYEE_MANAGE = 'mng',
   EMPLOYEE_PERMISSIONS = 'perm',
+  SETTINGS = 'set',
 }
