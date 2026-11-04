@@ -253,6 +253,55 @@ describe('User module', () => {
     });
   });
 
+  describe('channel binding', () => {
+    it('binds a channel and activates a pending user', async () => {
+      const user = await insertUser({ status: UserStatus.PENDING });
+      const externalId = String(nextId++);
+
+      const channel = await userService.bindChannel(
+        user.id,
+        Channel.TELEGRAM,
+        externalId,
+      );
+
+      expect(channel).toMatchObject({
+        userId: user.id,
+        channel: Channel.TELEGRAM,
+        externalId,
+        reachable: true,
+      });
+      expect((await findUser(user.id)).status).toBe(UserStatus.ACTIVE);
+    });
+
+    it.each([UserStatus.ON_LEAVE, UserStatus.BLOCKED])(
+      'keeps the %s status',
+      async (status) => {
+        const user = await insertUser({ status });
+
+        await userService.bindChannel(
+          user.id,
+          Channel.TELEGRAM,
+          String(nextId++),
+        );
+
+        expect((await findUser(user.id)).status).toBe(status);
+      },
+    );
+
+    it('changes nothing when the account is already bound', async () => {
+      const owner = await insertUser({ status: UserStatus.ACTIVE });
+      const taken = await insertChannel(owner.id);
+      const user = await insertUser({ status: UserStatus.PENDING });
+
+      await expect(
+        userService.bindChannel(user.id, Channel.TELEGRAM, taken.externalId),
+      ).rejects.toThrow();
+
+      expect((await findUser(user.id)).status).toBe(UserStatus.PENDING);
+      expect(await channelService.findByUser(user.id)).toEqual([]);
+    });
+  });
+
   describe('ChannelService', () => {
     it('creates, finds, updates and deletes a channel', async () => {
       const user = await insertUser();

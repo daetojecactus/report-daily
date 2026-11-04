@@ -409,4 +409,48 @@ describe('Telegram bot', () => {
       language: null,
     });
   });
+
+  it('binds the Telegram of an added employee who then gets access', async () => {
+    const { user } = await createEmployee({
+      displayName: `Pending${nextTelegramId}`,
+      status: UserStatus.PENDING,
+      language: null,
+    });
+    await db.delete(userChannels).where(eq(userChannels.userId, user.id));
+    const employeeId = nextTelegramId++;
+    const ownerChat = String(TEST_OWNER_TELEGRAM_ID);
+
+    await fakeBotApi.pushUpdate(
+      buttonPress(TEST_OWNER_TELEGRAM_ID, `bind:start:${user.id}`, 701),
+    );
+    expect(
+      (
+        await fakeBotApi.waitForRequest(
+          'editMessageText',
+          (body) => body.message_id === 701,
+        )
+      ).text,
+    ).toContain('Telegram ID');
+
+    await fakeBotApi.pushUpdate(
+      privateMessage(TEST_OWNER_TELEGRAM_ID, String(employeeId)),
+    );
+    expect(
+      await fakeBotApi.waitForRequest(
+        'sendMessage',
+        (body) =>
+          body.chat_id === ownerChat &&
+          String(body.text).startsWith('Telegram bound:'),
+      ),
+    ).toMatchObject({
+      text: expect.stringContaining(`<b>Pending`) as unknown,
+    });
+    const [stored] = await db.select().from(users).where(eq(users.id, user.id));
+    expect(stored.status).toBe(UserStatus.ACTIVE);
+
+    await fakeBotApi.pushUpdate(privateMessage(employeeId, '/start', 'ru'));
+    expect((await replyTo(employeeId)).text).toBe(
+      ru.start.employee(user.displayName),
+    );
+  });
 });

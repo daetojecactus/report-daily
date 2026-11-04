@@ -1,9 +1,11 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import { and, eq, ilike, isNull, or, type SQL } from 'drizzle-orm';
 import type { Channel } from 'src/common/enums/channel.enums';
 import type { Language } from 'src/modules/application/i18n/i18n.enums';
 import { ChannelService } from './channel/channel.service';
 import { USER_LIKE_SPECIAL_CHARACTERS } from './constants/user.constants';
+import { UserStatus } from './user.enums';
 import type { UserInsert, UserWithChannel } from './user.interface';
 import { UserRepository } from './user.repository';
 import { users } from './user.schema';
@@ -65,6 +67,20 @@ export class UserService {
 
   findOneByChannel(channel: Channel, externalId: string) {
     return this.userRepository.findOneByChannel(channel, externalId);
+  }
+
+  @Transactional()
+  async bindChannel(userId: string, channel: Channel, externalId: string) {
+    const created = await this.channelService.create({
+      userId,
+      channel,
+      externalId,
+    });
+    await this.updateOne(
+      and(eq(users.id, userId), eq(users.status, UserStatus.PENDING))!,
+      { status: UserStatus.ACTIVE },
+    );
+    return created;
   }
 
   async recordContact({ user, channel }: UserWithChannel, language: Language) {

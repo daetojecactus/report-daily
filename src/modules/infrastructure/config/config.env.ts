@@ -14,8 +14,8 @@ import {
   APP_DEFAULT_PORT,
   ENV_LIST_SEPARATOR,
   TELEGRAM_DEFAULT_API_URL,
-  TELEGRAM_USER_ID_PATTERN,
 } from './constants/config.constants';
+import { TELEGRAM_USER_ID_PATTERN } from 'src/common/constants/telegram.constants';
 import { LogLevel } from './config.enums';
 
 export class AppEnvs {

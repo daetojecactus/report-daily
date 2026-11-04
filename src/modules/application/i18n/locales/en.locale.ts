@@ -78,6 +78,7 @@ export const en: Locale = {
     next: 'Next ›',
     search: 'Search',
     add: 'Add',
+    bind: (channel) => `Bind ${channel}`,
     menu: 'Menu',
     backToList: 'To the list',
     searchPrompt: 'Enter a name or a GitLab username.',
@@ -114,5 +115,18 @@ export const en: Locale = {
     openCard: 'Open the card',
     cancel: 'Cancel',
     cancelled: 'Adding cancelled.',
+  },
+  employeeBind: {
+    prompt: (channel, name) =>
+      `**${name}**\nEnter the employee's ${channel} ID. The bot shows it to a person who writes to it without access.`,
+    invalid: (channel) =>
+      `This does not look like a ${channel} ID. Enter the number the bot showed the employee.`,
+    taken: (name) =>
+      `This account is already bound to **${name}**. Enter another ID.`,
+    alreadyBound: (channel) => `The employee already has ${channel} bound.`,
+    bound: (channel, name) => `${channel} bound: **${name}**.`,
+    hint: 'If the employee has not written to the bot yet, ask them to open it and press Start.',
+    cancel: 'Cancel',
+    cancelled: 'Binding cancelled.',
   },
 };

@@ -165,6 +165,17 @@ describe('TelegramService', () => {
     );
   });
 
+  it.each([
+    ['123456789', true],
+    ['1', true],
+    ['0123', false],
+    ['-100123', false],
+    ['@anna', false],
+    ['12345678901234567', false],
+  ])('checks that %s is a Telegram user id', (value, isUserId) => {
+    expect(service.isUserId(value)).toBe(isUserId);
+  });
+
   describe('toChatEvent', () => {
     it('maps a private command', () => {
       expect(service.toChatEvent(commandUpdate('/start'))).toEqual(

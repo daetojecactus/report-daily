@@ -77,6 +77,7 @@ export const ru: Locale = {
     next: 'Дальше ›',
     search: 'Найти',
     add: 'Добавить',
+    bind: (channel) => `Привязать ${channel}`,
     menu: 'Меню',
     backToList: 'К списку',
     searchPrompt: 'Введите имя или username в GitLab.',
@@ -114,5 +115,18 @@ export const ru: Locale = {
     openCard: 'Открыть карточку',
     cancel: 'Отмена',
     cancelled: 'Добавление отменено.',
+  },
+  employeeBind: {
+    prompt: (channel, name) =>
+      `**${name}**\nВведите ${channel} ID сотрудника. Бот показывает его человеку, который пишет боту без доступа.`,
+    invalid: (channel) =>
+      `Это не похоже на ${channel} ID. Введите число, которое бот показал сотруднику.`,
+    taken: (name) =>
+      `Этот аккаунт уже привязан к сотруднику **${name}**. Введите другой ID.`,
+    alreadyBound: (channel) => `У сотрудника уже привязан ${channel}.`,
+    bound: (channel, name) => `${channel} привязан: **${name}**.`,
+    hint: 'Если сотрудник ещё не писал боту, попросите его открыть бота и нажать Start.',
+    cancel: 'Отмена',
+    cancelled: 'Привязка отменена.',
   },
 };
