@@ -5,9 +5,14 @@ export interface ScreenButton {
   data: string;
 }
 
+export interface ScreenUserPicker {
+  text: string;
+}
+
 export interface Screen {
   text: string;
   buttons?: ScreenButton[][];
+  userPicker?: ScreenUserPicker;
 }
 
 export interface ChatCommand {
@@ -24,6 +29,7 @@ export type ChatInput =
       messageId: string;
       callbackId: string;
     }
+  | { type: ChatInputType.PICKED_USER; externalId: string }
   | { type: ChatInputType.UNSUPPORTED };
 
 export interface ChatEvent {

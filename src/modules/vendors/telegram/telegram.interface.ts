@@ -31,12 +31,18 @@ export interface TelegramMessageEntity {
   length: number;
 }
 
+export interface TelegramUsersShared {
+  request_id: number;
+  users: { user_id: number }[];
+}
+
 export interface TelegramMessage {
   message_id: number;
   from?: TelegramUser;
   chat: TelegramChat;
   text?: string;
   entities?: TelegramMessageEntity[];
+  users_shared?: TelegramUsersShared;
 }
 
 export interface TelegramCallbackQuery {
@@ -56,11 +62,27 @@ export interface TelegramInlineKeyboardMarkup {
   inline_keyboard: { text: string; callback_data: string }[][];
 }
 
+export interface TelegramReplyKeyboardMarkup {
+  keyboard: {
+    text: string;
+    request_users: { request_id: number; user_is_bot: boolean };
+  }[][];
+  resize_keyboard: boolean;
+  one_time_keyboard: boolean;
+}
+
+export interface TelegramReplyKeyboardRemove {
+  remove_keyboard: boolean;
+}
+
 export interface TelegramMessageContent {
   text: string;
   parse_mode: TelegramParseMode;
   link_preview_options: { is_disabled: boolean };
-  reply_markup?: TelegramInlineKeyboardMarkup;
+  reply_markup?:
+    | TelegramInlineKeyboardMarkup
+    | TelegramReplyKeyboardMarkup
+    | TelegramReplyKeyboardRemove;
 }
 
 export type TelegramCommandScope =

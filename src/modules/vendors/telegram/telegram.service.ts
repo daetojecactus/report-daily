@@ -80,17 +80,21 @@ export class TelegramService implements ChatChannel {
   async sendScreen(chatId: string, screen: Screen) {
     const message = await this.callChat<TelegramMessage>(
       TelegramMethod.SEND_MESSAGE,
-      { chat_id: chatId, ...this.telegramRenderer.render(screen) },
+      { chat_id: chatId, ...this.telegramRenderer.renderMessage(screen) },
     );
     return String(message.message_id);
   }
 
   async editScreen(chatId: string, messageId: string, screen: Screen) {
+    if (screen.userPicker) {
+      await this.sendScreen(chatId, screen);
+      return;
+    }
     try {
       await this.callChat(TelegramMethod.EDIT_MESSAGE_TEXT, {
         chat_id: chatId,
         message_id: Number(messageId),
-        ...this.telegramRenderer.render(screen),
+        ...this.telegramRenderer.renderEdit(screen),
       });
     } catch (error) {
       if (!this.isBadRequest(error)) {
@@ -191,7 +195,18 @@ export class TelegramService implements ChatChannel {
     });
   }
 
-  private toInput({ text, entities }: TelegramMessage): ChatInput {
+  private toInput({
+    text,
+    entities,
+    users_shared,
+  }: TelegramMessage): ChatInput {
+    const picked = users_shared?.users[0];
+    if (picked) {
+      return {
+        type: ChatInputType.PICKED_USER,
+        externalId: String(picked.user_id),
+      };
+    }
     const command = entities?.find(
       (entity) =>
         entity.type === TELEGRAM_COMMAND_ENTITY && entity.offset === 0,

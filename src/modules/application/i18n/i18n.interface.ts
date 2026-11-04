@@ -84,6 +84,9 @@ export interface Locale {
   };
   employeeBind: {
     prompt: (channel: string, name: string) => string;
+    pick: (channel: string) => string;
+    pickPrompt: string;
+    pickButton: string;
     invalid: (channel: string) => string;
     taken: (name: string) => string;
     alreadyBound: (channel: string) => string;

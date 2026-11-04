@@ -212,6 +212,21 @@ describe('TelegramService', () => {
       );
     });
 
+    it('maps a picked user', () => {
+      expect(
+        service.toChatEvent(
+          messageUpdate({
+            users_shared: { request_id: 1, users: [{ user_id: 300_000_099 }] },
+          }),
+        ),
+      ).toEqual(
+        chatEvent({
+          type: ChatInputType.PICKED_USER,
+          externalId: '300000099',
+        }),
+      );
+    });
+
     it('maps a button press', () => {
       expect(service.toChatEvent(buttonUpdate())).toEqual(
         chatEvent({
@@ -308,20 +323,46 @@ describe('TelegramService', () => {
     it.each([
       { name: 'without buttons', buttons: undefined },
       { name: 'with empty buttons', buttons: [] },
-    ])('sends no keyboard $name', async ({ buttons }) => {
+    ])('removes a leftover reply keyboard $name', async ({ buttons }) => {
       call.mockResolvedValueOnce(sentMessage(300_000_007));
 
       await service.sendScreen(CHAT_ID, { text: 'Hi', buttons });
 
-      const [[method, params]] = call.mock.calls;
-      expect(method).toBe('sendMessage');
-      expect(params).toEqual({
+      expect(call).toHaveBeenCalledExactlyOnceWith('sendMessage', {
         chat_id: CHAT_ID,
         text: 'Hi',
         parse_mode: 'HTML',
         link_preview_options: { is_disabled: true },
+        reply_markup: { remove_keyboard: true },
       });
-      expect(params).not.toHaveProperty('reply_markup');
+    });
+
+    it('sends a user picker as a one-time reply keyboard', async () => {
+      call.mockResolvedValueOnce(sentMessage(300_000_007));
+
+      await service.sendScreen(CHAT_ID, {
+        text: 'Pick',
+        userPicker: { text: 'Choose' },
+      });
+
+      expect(call).toHaveBeenCalledExactlyOnceWith('sendMessage', {
+        chat_id: CHAT_ID,
+        text: 'Pick',
+        parse_mode: 'HTML',
+        link_preview_options: { is_disabled: true },
+        reply_markup: {
+          keyboard: [
+            [
+              {
+                text: 'Choose',
+                request_users: { request_id: 1, user_is_bot: false },
+              },
+            ],
+          ],
+          resize_keyboard: true,
+          one_time_keyboard: true,
+        },
+      });
     });
 
     it('throws ChatUnreachableError when the bot is blocked', async () => {
@@ -347,6 +388,18 @@ describe('TelegramService', () => {
   });
 
   describe('editScreen', () => {
+    it('sends a user picker as a new message', async () => {
+      call.mockResolvedValueOnce(sentMessage(300_000_007));
+
+      await service.editScreen(CHAT_ID, '300000003', {
+        text: 'Pick',
+        userPicker: { text: 'Choose' },
+      });
+
+      expect(call).toHaveBeenCalledOnce();
+      expect(call.mock.calls[0][0]).toBe('sendMessage');
+    });
+
     it('edits the message by its numeric id', async () => {
       call.mockResolvedValueOnce(sentMessage(MESSAGE_ID));
 

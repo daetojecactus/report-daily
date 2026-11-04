@@ -1,5 +1,6 @@
 export enum EmployeeBindAction {
   START = 'start',
+  PICK = 'pick',
   CANCEL = 'cancel',
 }
 

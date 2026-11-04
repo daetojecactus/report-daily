@@ -118,7 +118,11 @@ export const en: Locale = {
   },
   employeeBind: {
     prompt: (channel, name) =>
-      `**${name}**\nEnter the employee's ${channel} ID. The bot shows it to a person who writes to it without access.`,
+      `**${name}**\nChoose the employee in ${channel} or enter their ${channel} ID. The bot shows the ID to a person who writes to it without access.`,
+    pick: (channel) => `Choose in ${channel}`,
+    pickPrompt:
+      'Press "Choose the employee" at the bottom of the screen and pick them from your chats or contacts. Cancel with /cancel.',
+    pickButton: 'Choose the employee',
     invalid: (channel) =>
       `This does not look like a ${channel} ID. Enter the number the bot showed the employee.`,
     taken: (name) =>

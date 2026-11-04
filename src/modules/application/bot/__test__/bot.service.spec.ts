@@ -303,6 +303,24 @@ describe('BotService', () => {
     expect(moduleRef.get(TestHandler).contexts).toEqual([]);
   });
 
+  it('passes a picked user to the section of the dialog', async () => {
+    asEmployee({ permissions: [Permission.USERS] });
+    store.set(
+      DIALOG_KEY,
+      JSON.stringify({ namespace: 'test', step: 'name', data: {} }),
+    );
+
+    await botService.handle(
+      event(EMPLOYEE_ID, { type: ChatInputType.PICKED_USER, externalId: '42' }),
+    );
+
+    const [context] = moduleRef.get(TestHandler).contexts;
+    expect(context.input).toEqual({
+      type: ChatInputType.PICKED_USER,
+      externalId: '42',
+    });
+  });
+
   it('runs a dialog of a permitted section', async () => {
     asEmployee({ permissions: [Permission.USERS] });
 
@@ -396,6 +414,11 @@ describe('BotService', () => {
     [
       'unsupported content',
       { type: ChatInputType.UNSUPPORTED },
+      en.bot.unknownInput,
+    ],
+    [
+      'a picked user outside a dialog',
+      { type: ChatInputType.PICKED_USER, externalId: '1' },
       en.bot.unknownInput,
     ],
   ])('explains %s to an employee', async (_name, input, reply) => {

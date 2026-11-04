@@ -17,6 +17,8 @@ export const TELEGRAM_COMMAND_ENTITY = 'bot_command';
 
 export const TELEGRAM_COMMAND_PREFIX = '/';
 
+export const TELEGRAM_USER_PICKER_REQUEST_ID = 1;
+
 export const TELEGRAM_BOT_MENTION_SEPARATOR = '@';
 
 export const TELEGRAM_BAD_REQUEST = 400;

@@ -282,6 +282,26 @@ export function privateMessage(
   };
 }
 
+export function pickedUser(
+  userId: number,
+  pickedUserId: number,
+  languageCode = 'en',
+): FakeUpdate {
+  return {
+    message: {
+      message_id: nextMessageId++,
+      from: {
+        id: userId,
+        is_bot: false,
+        first_name: 'Test',
+        language_code: languageCode,
+      },
+      chat: { id: userId, type: 'private' },
+      users_shared: { request_id: 1, users: [{ user_id: pickedUserId }] },
+    },
+  };
+}
+
 export function buttonPress(
   userId: number,
   data: string,
