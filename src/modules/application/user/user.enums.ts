@@ -14,7 +14,6 @@ export enum Gender {
 export enum UserStatus {
   PENDING = 'pending',
   ACTIVE = 'active',
-  ON_LEAVE = 'on_leave',
   BLOCKED = 'blocked',
 }
 

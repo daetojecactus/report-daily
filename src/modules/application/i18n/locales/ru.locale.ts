@@ -1,6 +1,5 @@
 import { Channel } from 'src/common/enums/channel.enums';
 import { BotCommand } from 'src/modules/application/bot/bot.enums';
-import { ReportPreset } from 'src/modules/application/report/report.enums';
 import {
   Gender,
   JobRole,
@@ -18,11 +17,6 @@ export const ru: Locale = {
   languages: {
     [Language.RU]: 'Русский',
     [Language.EN]: 'English',
-  },
-  presets: {
-    [ReportPreset.STANDARD]: 'Стандартный',
-    [ReportPreset.QA]: 'QA',
-    [ReportPreset.ANALYST]: 'Аналитик',
   },
   commands: {
     [BotCommand.START]: 'Начать работу с ботом',
@@ -45,7 +39,6 @@ export const ru: Locale = {
   statuses: {
     [UserStatus.PENDING]: 'ждёт подключения',
     [UserStatus.ACTIVE]: 'работает',
-    [UserStatus.ON_LEAVE]: 'в отпуске',
     [UserStatus.BLOCKED]: 'доступ закрыт',
   },
   permissions: {
@@ -95,17 +88,9 @@ export const ru: Locale = {
     timeZonePrompt: (zone) =>
       `Отправьте часовой пояс в формате IANA, например \`Europe/Moscow\` или \`Asia/Almaty\`. Сейчас: ${zone}.`,
     timeZoneInvalid: 'Не знаю такого часового пояса. Пример: `Europe/Moscow`.',
-    preset: 'Пресет отчёта',
-    presetByRole: (preset) => `по роли (${preset})`,
-    choosePreset: (preset) => `Выберите пресет отчёта. Сейчас: ${preset}.`,
-    byRole: (preset) => `По роли (${preset})`,
-    presetDescriptions: {
-      [ReportPreset.STANDARD]: 'строки сгруппированы по проектам',
-      [ReportPreset.QA]:
-        'разделы: возвраты, тестирование, проверено, баги, автотесты, прочее',
-      [ReportPreset.ANALYST]:
-        'как стандартный, но каждая строка ссылается на задачу или MR',
-    },
+    gender: 'Пол',
+    chooseGender:
+      'Выберите пол: от него зависят формулировки отчёта, например «сделал» или «сделала».',
     ai: {
       name: 'AI',
       description: 'улучшать формулировки строк отчёта через AI',
@@ -115,26 +100,8 @@ export const ru: Locale = {
       description:
         'отправлять в AI заголовки моих коммитов и выдержки из моих комментариев',
     },
-    notifyEmpty: {
-      name: 'Пустой день',
-      description: 'присылать сообщение, если за день не было активности',
-    },
     on: 'да',
     off: 'нет',
-    gender: 'Пол',
-    chooseGender:
-      'Выберите пол: от него зависят формулировки отчёта, например «сделал» или «сделала».',
-    leave: 'Отпуск',
-    noLeave: 'нет',
-    leaveUntil: (date) => `до ${date}`,
-    leaveNoEndDate: 'без даты окончания',
-    leavePrompt: (leave) =>
-      `Пришлите последний день отпуска: \`ДД.ММ\`, \`ДД.ММ.ГГГГ\` или \`ГГГГ-ММ-ДД\`. До этого дня включительно отчёты не приходят. Отпуск сейчас: ${leave}.`,
-    leaveInvalid: 'Не понимаю дату. Пример: `15.11` или `15.11.2026`.',
-    leaveOutOfRange:
-      'Последний день отпуска — не раньше сегодняшнего и не дальше чем через год.',
-    noEndDate: 'Без даты',
-    endLeave: 'Выйти из отпуска',
   },
   employees: {
     title: (count) => `**Сотрудники** · ${count}`,
