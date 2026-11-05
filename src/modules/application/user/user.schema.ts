@@ -2,7 +2,6 @@ import { sql } from 'drizzle-orm';
 import {
   boolean,
   check,
-  date,
   integer,
   pgEnum,
   pgTable,
@@ -11,7 +10,6 @@ import {
   unique,
 } from 'drizzle-orm/pg-core';
 import { Language } from '../i18n/i18n.enums';
-import { ReportPreset } from '../report/report.enums';
 import { Gender, JobRole, Permission, UserStatus } from './user.enums';
 import {
   createdAt,
@@ -34,8 +32,6 @@ export const permission = pgEnum('permission', Permission);
 
 export const language = pgEnum('language', Language);
 
-export const reportPreset = pgEnum('report_preset', ReportPreset);
-
 export const users = pgTable(
   'users',
   {
@@ -46,7 +42,6 @@ export const users = pgTable(
     role: jobRole().notNull(),
     gender: gender().notNull(),
     status: userStatus().notNull().default(UserStatus.PENDING),
-    onLeaveUntil: date({ mode: 'string' }),
     language: language(),
     timezone: text(),
     reportTime: time({ precision: 0 })
@@ -54,8 +49,6 @@ export const users = pgTable(
       .default(USER_DEFAULT_REPORT_TIME),
     aiEnabled: boolean().notNull().default(true),
     aiDataOptOut: boolean().notNull().default(false),
-    notifyEmpty: boolean().notNull().default(true),
-    preset: reportPreset(),
     permissions: permission().array().notNull().default([]),
     createdAt: createdAt(),
     updatedAt: updatedAt(),

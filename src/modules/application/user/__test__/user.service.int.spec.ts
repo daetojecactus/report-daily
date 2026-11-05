@@ -10,7 +10,6 @@ import {
   UserStatus,
 } from 'src/modules/application/user/user.enums';
 import { Language } from 'src/modules/application/i18n/i18n.enums';
-import { ReportPreset } from 'src/modules/application/report/report.enums';
 import { DATABASE_INSTANCE } from 'src/modules/infrastructure/database/constants/database.constants';
 import { createTestApp } from 'test/setup/test-app';
 import type { UserChannelInsert } from '../channel/channel.interface';
@@ -284,10 +283,10 @@ describe('User module', () => {
     });
 
     it('does not unblock a user who is not blocked', async () => {
-      const user = await insertUser({ status: UserStatus.ON_LEAVE });
+      const user = await insertUser({ status: UserStatus.ACTIVE });
 
       expect(await userService.unblock(user.id)).toBeNull();
-      expect((await findUser(user.id)).status).toBe(UserStatus.ON_LEAVE);
+      expect((await findUser(user.id)).status).toBe(UserStatus.ACTIVE);
     });
 
     it('deletes a user with the channels', async () => {
@@ -326,71 +325,20 @@ describe('User module', () => {
       });
     });
 
-    it('stores the switches, the preset and the gender', async () => {
+    it('stores the AI switches and the gender', async () => {
       const user = await insertUser();
-      expect(user).toMatchObject({
-        aiEnabled: true,
-        aiDataOptOut: false,
-        notifyEmpty: true,
-        preset: null,
-      });
+      expect(user).toMatchObject({ aiEnabled: true, aiDataOptOut: false });
 
       await userService.updateSettings(user.id, {
         aiEnabled: false,
         aiDataOptOut: true,
-        notifyEmpty: false,
-        preset: ReportPreset.QA,
         gender: Gender.MALE,
       });
       expect(await findUser(user.id)).toMatchObject({
         aiEnabled: false,
         aiDataOptOut: true,
-        notifyEmpty: false,
-        preset: ReportPreset.QA,
         gender: Gender.MALE,
       });
-
-      await userService.updateSettings(user.id, { preset: null });
-      expect(await findUser(user.id)).toMatchObject({
-        aiEnabled: false,
-        preset: null,
-      });
-    });
-  });
-
-  describe('leave', () => {
-    it('starts, changes and ends a vacation', async () => {
-      const user = await insertUser({ status: UserStatus.ACTIVE });
-
-      expect(await userService.startLeave(user.id, '2026-11-15')).toMatchObject(
-        {
-          status: UserStatus.ON_LEAVE,
-          onLeaveUntil: '2026-11-15',
-        },
-      );
-      expect(await userService.startLeave(user.id, null)).toMatchObject({
-        status: UserStatus.ON_LEAVE,
-        onLeaveUntil: null,
-      });
-      expect(await userService.endLeave(user.id)).toMatchObject({
-        status: UserStatus.ACTIVE,
-        onLeaveUntil: null,
-      });
-      expect(await userService.endLeave(user.id)).toBeNull();
-    });
-
-    it('leaves a blocked or pending employee as is', async () => {
-      const blocked = await insertUser({ status: UserStatus.BLOCKED });
-      const pending = await insertUser({ status: UserStatus.PENDING });
-
-      expect(await userService.startLeave(blocked.id, null)).toBeNull();
-      expect(await userService.startLeave(pending.id, null)).toBeNull();
-      expect(await userService.endLeave(blocked.id)).toBeNull();
-      expect(await findUser(blocked.id)).toMatchObject({
-        status: UserStatus.BLOCKED,
-        onLeaveUntil: null,
-      });
-      expect((await findUser(pending.id)).status).toBe(UserStatus.PENDING);
     });
   });
 
@@ -449,7 +397,7 @@ describe('User module', () => {
       expect((await findUser(user.id)).status).toBe(UserStatus.ACTIVE);
     });
 
-    it.each([UserStatus.ON_LEAVE, UserStatus.BLOCKED])(
+    it.each([UserStatus.ACTIVE, UserStatus.BLOCKED])(
       'keeps the %s status',
       async (status) => {
         const user = await insertUser({ status });
@@ -578,12 +526,9 @@ describe('User module', () => {
         status: UserStatus.PENDING,
         language: null,
         timezone: null,
-        onLeaveUntil: null,
         reportTime: '18:00:00',
         aiEnabled: true,
         aiDataOptOut: false,
-        notifyEmpty: true,
-        preset: null,
         permissions: [],
       });
     });

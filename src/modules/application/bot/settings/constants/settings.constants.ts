@@ -1,10 +1,9 @@
 import { z } from 'zod';
 import { Language } from 'src/modules/application/i18n/i18n.enums';
-import { ReportPreset } from 'src/modules/application/report/report.enums';
 import { USER_REPORT_TIME_STEP_MINUTES } from 'src/modules/application/user/constants/user.constants';
 import { Gender } from 'src/modules/application/user/user.enums';
 import { BotNamespace } from '../../bot.enums';
-import { SettingsAction, SettingsLeave } from '../settings.enums';
+import { SettingsAction } from '../settings.enums';
 
 export const SETTINGS_HOURS_PER_ROW = 6;
 
@@ -14,13 +13,9 @@ export const SETTINGS_TIME_SEPARATOR = ':';
 
 export const SETTINGS_DEFAULT_TIME_ZONE = 'default';
 
-export const SETTINGS_ROLE_PRESET = 'role';
-
 export const SETTINGS_ON = 'on';
 
 export const SETTINGS_OFF = 'off';
-
-export const SETTINGS_LEAVE_MAX_DAYS = 365;
 
 export const SETTINGS_HOURS = Array.from({ length: 24 }, (_, hour) =>
   String(hour).padStart(2, '0'),
@@ -82,47 +77,16 @@ export const SETTINGS_BUTTON_SCHEMA = z.union([
     ])
     .transform(([, action]) => ({ action, isDefault: true })),
   z
-    .tuple([NAMESPACE_SCHEMA, z.literal(SettingsAction.PRESET)])
-    .transform(([, action]) => ({ action, isChoice: false, preset: null })),
-  z
-    .tuple([
-      NAMESPACE_SCHEMA,
-      z.literal(SettingsAction.PRESET),
-      z.literal(SETTINGS_ROLE_PRESET),
-    ])
-    .transform(([, action]) => ({ action, isChoice: true, preset: null })),
-  z
-    .tuple([
-      NAMESPACE_SCHEMA,
-      z.literal(SettingsAction.PRESET),
-      z.enum(ReportPreset),
-    ])
-    .transform(([, action, preset]) => ({ action, isChoice: true, preset })),
-  z
-    .tuple([
-      NAMESPACE_SCHEMA,
-      z.enum([
-        SettingsAction.AI,
-        SettingsAction.AI_DATA,
-        SettingsAction.NOTIFY_EMPTY,
-      ]),
-      SWITCH_SCHEMA,
-    ])
-    .transform(([, action, isOn]) => ({ action, isOn })),
-  z
     .tuple([NAMESPACE_SCHEMA, z.literal(SettingsAction.GENDER)])
     .transform(([, action]) => ({ action, gender: null })),
   z
     .tuple([NAMESPACE_SCHEMA, z.literal(SettingsAction.GENDER), z.enum(Gender)])
     .transform(([, action, gender]) => ({ action, gender })),
   z
-    .tuple([NAMESPACE_SCHEMA, z.literal(SettingsAction.LEAVE)])
-    .transform(([, action]) => ({ action, leave: null })),
-  z
     .tuple([
       NAMESPACE_SCHEMA,
-      z.literal(SettingsAction.LEAVE),
-      z.enum(SettingsLeave),
+      z.enum([SettingsAction.AI, SettingsAction.AI_DATA]),
+      SWITCH_SCHEMA,
     ])
-    .transform(([, action, leave]) => ({ action, leave })),
+    .transform(([, action, isOn]) => ({ action, isOn })),
 ]);

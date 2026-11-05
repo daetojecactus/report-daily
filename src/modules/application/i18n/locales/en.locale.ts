@@ -1,6 +1,5 @@
 import { Channel } from 'src/common/enums/channel.enums';
 import { BotCommand } from 'src/modules/application/bot/bot.enums';
-import { ReportPreset } from 'src/modules/application/report/report.enums';
 import {
   Gender,
   JobRole,
@@ -18,11 +17,6 @@ export const en: Locale = {
   languages: {
     [Language.RU]: 'Русский',
     [Language.EN]: 'English',
-  },
-  presets: {
-    [ReportPreset.STANDARD]: 'Standard',
-    [ReportPreset.QA]: 'QA',
-    [ReportPreset.ANALYST]: 'Analyst',
   },
   commands: {
     [BotCommand.START]: 'Start the bot',
@@ -45,7 +39,6 @@ export const en: Locale = {
   statuses: {
     [UserStatus.PENDING]: 'waiting for connection',
     [UserStatus.ACTIVE]: 'active',
-    [UserStatus.ON_LEAVE]: 'on leave',
     [UserStatus.BLOCKED]: 'blocked',
   },
   permissions: {
@@ -96,17 +89,9 @@ export const en: Locale = {
     timeZonePrompt: (zone) =>
       `Send the time zone as an IANA name, for example \`Europe/Moscow\` or \`Asia/Almaty\`. Now: ${zone}.`,
     timeZoneInvalid: 'Unknown time zone. Example: `Europe/Moscow`.',
-    preset: 'Report preset',
-    presetByRole: (preset) => `by role (${preset})`,
-    choosePreset: (preset) => `Choose the report preset. Now: ${preset}.`,
-    byRole: (preset) => `By role (${preset})`,
-    presetDescriptions: {
-      [ReportPreset.STANDARD]: 'lines grouped by projects',
-      [ReportPreset.QA]:
-        'sections: returns, testing, verified, bugs, autotests, other',
-      [ReportPreset.ANALYST]:
-        'like standard, but every line links to the issue or MR',
-    },
+    gender: 'Gender',
+    chooseGender:
+      'Choose your gender: reports in Russian use it in the wording.',
     ai: {
       name: 'AI',
       description: 'improve the wording of report lines with AI',
@@ -116,26 +101,8 @@ export const en: Locale = {
       description:
         'send the titles of my commits and excerpts of my comments to AI',
     },
-    notifyEmpty: {
-      name: 'Empty day',
-      description: 'send a message when a day had no activity',
-    },
     on: 'yes',
     off: 'no',
-    gender: 'Gender',
-    chooseGender:
-      'Choose your gender: reports in Russian use it in the wording.',
-    leave: 'Vacation',
-    noLeave: 'no',
-    leaveUntil: (date) => `until ${date}`,
-    leaveNoEndDate: 'no end date',
-    leavePrompt: (leave) =>
-      `Send the last day of your vacation: \`DD.MM\`, \`DD.MM.YYYY\` or \`YYYY-MM-DD\`. Until that day inclusive, no reports are sent. Vacation now: ${leave}.`,
-    leaveInvalid: 'Unknown date. Example: `15.11` or `15.11.2026`.',
-    leaveOutOfRange:
-      'The last day of the vacation must be between today and one year ahead.',
-    noEndDate: 'No end date',
-    endLeave: 'End the vacation',
   },
   employees: {
     title: (count) => `**Employees** · ${count}`,
