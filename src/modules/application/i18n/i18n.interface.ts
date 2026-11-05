@@ -92,6 +92,25 @@ export interface Locale {
     backToList: string;
     notFound: string;
     everyone: string;
+    addValue: string;
+    drop: string;
+  };
+  labelManage: {
+    askValue: (
+      label: string,
+      whom: string,
+      dimension: string,
+      value: string,
+    ) => string;
+    deleteValue: string;
+    back: string;
+    changed: (label: string, whom: string, value: string) => string;
+    valueDeleted: (label: string, whom: string, value: string) => string;
+    labelEmpty: string;
+    confirmDrop: (label: string, count: number) => string;
+    confirm: string;
+    cancel: string;
+    dropped: (label: string) => string;
   };
   labelAdd: {
     prompt: string;

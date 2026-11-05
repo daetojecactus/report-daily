@@ -20,6 +20,7 @@ import { EmployeesHandler } from './employees/employees.handler';
 import { CancelHandler } from './handlers/cancel.handler';
 import { HelpHandler } from './handlers/help.handler';
 import { LabelAddHandler } from './label-add/label-add.handler';
+import { LabelManageHandler } from './label-manage/label-manage.handler';
 import { LabelsHandler } from './labels/labels.handler';
 import { StartHandler } from './handlers/start.handler';
 import { MenuService } from './menu/menu.service';
@@ -53,6 +54,7 @@ import { SettingsHandler } from './settings/settings.handler';
     SettingsHandler,
     LabelsHandler,
     LabelAddHandler,
+    LabelManageHandler,
     {
       provide: BOT_CHANNELS,
       useFactory: (telegramService: TelegramService): ChatChannel[] => [

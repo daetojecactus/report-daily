@@ -36,6 +36,9 @@ export const LABEL_ADD_BUTTON_SCHEMA = z.union([
     .tuple([NAMESPACE_SCHEMA, z.literal(LabelAddAction.START)])
     .transform(([, action]) => ({ action })),
   z
+    .tuple([NAMESPACE_SCHEMA, z.literal(LabelAddAction.MORE), z.uuid()])
+    .transform(([, action, id]) => ({ action, id })),
+  z
     .tuple([
       NAMESPACE_SCHEMA,
       z.literal(LabelAddAction.ROLE),

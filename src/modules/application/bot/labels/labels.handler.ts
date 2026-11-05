@@ -16,6 +16,7 @@ import { BotNamespace } from '../bot.enums';
 import type { BotContext, BotHandler, BotReply } from '../bot.interface';
 import { BOT_BUTTON_DATA_SEPARATOR } from '../constants/bot.constants';
 import { LabelAddAction } from '../label-add/label-add.enums';
+import { LabelManageAction } from '../label-manage/label-manage.enums';
 import {
   LABELS_BUTTON_SCHEMA,
   LABELS_ITEM_SEPARATOR,
@@ -130,6 +131,7 @@ export class LabelsHandler implements BotHandler {
     const mappings = await this.labelService.findByKey(mapping.labelKey);
     const dimensions = Object.values(LabelDimension);
     const lines = [`**${escapeMarkdown(mapping.label)}**`];
+    const valueButtons: ScreenButton[][] = [];
     for (const role of [null, ...Object.values(JobRole)]) {
       const values = mappings
         .filter((item) => item.role === role)
@@ -145,15 +147,67 @@ export class LabelsHandler implements BotHandler {
         '',
         `${role ? locale.roles[role] : locale.labelList.everyone}:`,
         ...values.map(
-          (item) =>
-            `${LABELS_VALUE_PREFIX}${locale.labels.dimensions[item.dimension]}: ${this.toValueText(locale, item).name}`,
+          (item) => `${LABELS_VALUE_PREFIX}${this.describe(locale, item)}`,
         ),
+      );
+      valueButtons.push(
+        ...values.map((item) => [
+          {
+            text: role
+              ? [locale.roles[role], this.describe(locale, item)].join(
+                  LABELS_ITEM_SEPARATOR,
+                )
+              : this.describe(locale, item),
+            data: this.toSectionData(
+              BotNamespace.LABEL_MANAGE,
+              LabelManageAction.OPEN,
+              item.id,
+            ),
+          },
+        ]),
       );
     }
     return {
-      screen: { text: lines.join('\n'), buttons: back },
+      screen: {
+        text: lines.join('\n'),
+        buttons: [
+          ...valueButtons,
+          [
+            {
+              text: locale.labelList.addValue,
+              data: this.toSectionData(
+                BotNamespace.LABEL_ADD,
+                LabelAddAction.MORE,
+                mapping.id,
+              ),
+            },
+          ],
+          [
+            {
+              text: locale.labelList.drop,
+              data: this.toSectionData(
+                BotNamespace.LABEL_MANAGE,
+                LabelManageAction.DROP,
+                mapping.id,
+              ),
+            },
+          ],
+          ...back,
+        ],
+      },
       dialog: null,
     };
+  }
+
+  private describe(
+    locale: Locale,
+    item: Pick<LabelMapping, 'dimension' | 'value'>,
+  ) {
+    return `${locale.labels.dimensions[item.dimension]}: ${this.toValueText(locale, item).name}`;
+  }
+
+  private toSectionData(namespace: BotNamespace, ...parts: string[]) {
+    return [namespace, ...parts].join(BOT_BUTTON_DATA_SEPARATOR);
   }
 
   private toValueText(

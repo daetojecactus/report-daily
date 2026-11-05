@@ -737,4 +737,38 @@ describe('Telegram bot', () => {
       en.bot.forbidden,
     );
   });
+
+  it('lets an admin change a label value and delete the label', async () => {
+    const { telegramId } = await createEmployee({
+      permissions: [Permission.LABELS],
+    });
+    const label = `stage::wip ${telegramId}`;
+    const [mapping] = await db
+      .insert(labelMappings)
+      .values({
+        label,
+        labelKey: label,
+        role: null,
+        dimension: LabelDimension.PRIORITY,
+        value: Priority.LOW,
+      })
+      .returning();
+    const findStored = () =>
+      db.select().from(labelMappings).where(eq(labelMappings.labelKey, label));
+
+    expect(
+      (await press(telegramId, `lbl:card:${mapping.id}:0`, 1501)).text,
+    ).toBe(`<b>${label}</b>\n\nFor everyone:\n• Priority: Low`);
+    await press(telegramId, `lblmng:open:${mapping.id}`, 1502);
+    expect(
+      (await press(telegramId, `lblmng:set:${mapping.id}:1`, 1503)).text,
+    ).toBe(`Done: <b>${label}</b> for everyone — now Priority: High.`);
+    expect(await findStored()).toMatchObject([{ value: Priority.HIGH }]);
+
+    await press(telegramId, `lblmng:drop:${mapping.id}`, 1504);
+    expect(
+      (await press(telegramId, `lblmng:dropok:${mapping.id}`, 1505)).text,
+    ).toBe(`The label <b>${label}</b> is deleted.`);
+    expect(await findStored()).toEqual([]);
+  });
 });

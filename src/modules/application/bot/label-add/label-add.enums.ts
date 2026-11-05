@@ -1,5 +1,6 @@
 export enum LabelAddAction {
   START = 'start',
+  MORE = 'more',
   ROLE = 'role',
   DIMENSIONS = 'dims',
   DIMENSION = 'dim',

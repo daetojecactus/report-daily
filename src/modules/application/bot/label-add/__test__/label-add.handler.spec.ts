@@ -47,6 +47,7 @@ function text(value: string): ChatInput {
 
 describe('LabelAddHandler', () => {
   const labelService = {
+    findById: vi.fn<(id: string) => Promise<LabelMapping | null>>(),
     findByKey: vi.fn<(labelKey: string) => Promise<LabelMapping[]>>(),
     addValue:
       vi.fn<(input: LabelMappingInput) => Promise<LabelMapping | null>>(),
@@ -127,6 +128,25 @@ describe('LabelAddHandler', () => {
         ],
       },
       dialog: dialog('role', { label: LABEL }),
+    });
+  });
+
+  it('adds a value to a label that is already set up', async () => {
+    labelService.findById.mockResolvedValue(MAPPING);
+
+    const reply = await open(button(`lbladd:more:${MAPPING.id}`));
+
+    expect(reply.screen.text).toBe(locale.labelAdd.forWhom(BOLD));
+    expect(reply.dialog).toEqual(dialog('role', { label: LABEL }));
+    expect(labelService.findByKey).not.toHaveBeenCalled();
+  });
+
+  it('says a deleted label is not found when adding a value', async () => {
+    labelService.findById.mockResolvedValue(null);
+
+    expect(await open(button(`lbladd:more:${MAPPING.id}`))).toEqual({
+      screen: { text: locale.labelList.notFound, buttons: [[LIST]] },
+      dialog: null,
     });
   });
 

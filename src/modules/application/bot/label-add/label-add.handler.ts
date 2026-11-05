@@ -69,6 +69,8 @@ export class LabelAddHandler implements BotHandler {
     switch (button.data.action) {
       case LabelAddAction.START:
         return this.askLabel(locale);
+      case LabelAddAction.MORE:
+        return this.addToLabel(locale, button.data.id);
       case LabelAddAction.ROLE:
         return this.chooseRole(locale, dialog, button.data.role);
       case LabelAddAction.DIMENSIONS:
@@ -112,7 +114,24 @@ export class LabelAddHandler implements BotHandler {
         locale.labelAdd.exists(this.toLabelText(existing.label)),
       );
     }
+    return this.askRole(locale, label);
+  }
 
+  private async addToLabel(locale: Locale, id: string): Promise<BotReply> {
+    const mapping = await this.labelService.findById(id);
+    if (!mapping) {
+      return {
+        screen: {
+          text: locale.labelList.notFound,
+          buttons: [[this.toListButton(locale)]],
+        },
+        dialog: null,
+      };
+    }
+    return this.askRole(locale, mapping.label);
+  }
+
+  private askRole(locale: Locale, label: string): BotReply {
     return {
       screen: {
         text: locale.labelAdd.forWhom(this.toLabelText(label)),

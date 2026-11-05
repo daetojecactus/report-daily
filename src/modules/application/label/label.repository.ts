@@ -46,6 +46,13 @@ export class LabelRepository {
     return mapping ?? null;
   }
 
+  deleteMany(filter: SQL) {
+    return this.databaseService.db
+      .delete(labelMappings)
+      .where(filter)
+      .returning();
+  }
+
   async countLabels() {
     const [row] = await this.databaseService.db
       .select({ count: countDistinct(labelMappings.labelKey) })

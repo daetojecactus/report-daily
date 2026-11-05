@@ -23,4 +23,5 @@ export enum BotNamespace {
   SETTINGS = 'set',
   LABELS = 'lbl',
   LABEL_ADD = 'lbladd',
+  LABEL_MANAGE = 'lblmng',
 }

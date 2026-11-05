@@ -5,6 +5,7 @@ import type {
   LabelMappingInput,
   LabelMappingInsert,
   LabelMappingUpdate,
+  LabelValue,
 } from './label.interface';
 import { LabelRepository } from './label.repository';
 import { labelMappings } from './label.schema';
@@ -47,6 +48,20 @@ export class LabelService {
 
   findLabelPage(limit: number, offset: number) {
     return this.labelRepository.findLabelPage(limit, offset);
+  }
+
+  changeValue(id: string, value: LabelValue) {
+    return this.updateOne(eq(labelMappings.id, id), { value });
+  }
+
+  deleteById(id: string) {
+    return this.deleteOne(eq(labelMappings.id, id));
+  }
+
+  deleteByKey(labelKey: string) {
+    return this.labelRepository.deleteMany(
+      eq(labelMappings.labelKey, labelKey),
+    );
   }
 
   addValue({ label, role, dimension, value }: LabelMappingInput) {
