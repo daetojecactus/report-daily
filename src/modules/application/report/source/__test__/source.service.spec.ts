@@ -32,6 +32,7 @@ interface GitLabData {
   projects?: GitLabProject[];
   issues?: GitLabIssue[];
   mergeRequests?: GitLabMergeRequest[];
+  closingIssues?: Record<number, GitLabIssue[]>;
   notes?: Record<string, GitLabNote[]>;
   stateEvents?: Record<string, GitLabStateEvent[]>;
 }
@@ -73,6 +74,9 @@ function createGitLab(data: GitLabData) {
             mergeRequest.source_branch === branch,
         ) ?? null,
       ),
+    ),
+    findIssuesClosedOnMerge: vi.fn((_projectId: number, iid: number) =>
+      Promise.resolve(data.closingIssues?.[iid] ?? []),
     ),
     findNotes: vi.fn(
       (issuable: GitLabIssuable, projectId: number, iid: number) =>
@@ -332,5 +336,75 @@ describe('SourceService', () => {
       closedOnReportDate: true,
     });
     expect(grouped.issues[0].mergeRequests[0].reviewers).toEqual(['qa.user']);
+  });
+
+  it('keeps a merge request that closes several issues alone with their list', async () => {
+    const gitlab = createGitLab({
+      events: [createEvent({ target_type: 'MergeRequest', target_iid: 5 })],
+      mergeRequests: [createMergeRequest({ iid: 5, source_branch: 'release' })],
+      closingIssues: {
+        5: [createIssue({ iid: 12 }), createIssue({ iid: 30, project_id: 2 })],
+      },
+    });
+
+    const grouped = await collect(gitlab);
+
+    expect(gitlab.findIssue).not.toHaveBeenCalled();
+    expect(grouped.issues).toEqual([]);
+    expect(
+      grouped.standaloneMergeRequests[0].closesIssues.map((issue) => [
+        issue.projectId,
+        issue.iid,
+      ]),
+    ).toEqual([
+      [PROJECT_ID, 12],
+      [2, 30],
+    ]);
+  });
+
+  it('puts a merge request without a number in its branch under the only issue it closes', async () => {
+    const gitlab = createGitLab({
+      events: [createEvent({ target_type: 'MergeRequest', target_iid: 5 })],
+      projects: [createProject(), createProject({ id: 2, name: 'frontend' })],
+      mergeRequests: [createMergeRequest({ iid: 5, source_branch: 'fix/x' })],
+      closingIssues: { 5: [createIssue({ iid: 30, project_id: 2 })] },
+    });
+
+    const grouped = await collect(gitlab);
+
+    expect(gitlab.findIssue).not.toHaveBeenCalled();
+    expect(
+      grouped.issues.map((issue) => [
+        issue.projectId,
+        issue.iid,
+        issue.mergeRequests.map((mergeRequest) => mergeRequest.iid),
+      ]),
+    ).toEqual([[2, 30, [5]]]);
+    expect(grouped.standaloneMergeRequests).toEqual([]);
+    expect(grouped.projects.map((project) => project.name)).toEqual([
+      'backend',
+      'frontend',
+    ]);
+  });
+
+  it('puts a merge request under the issue of its branch and lists the issues it closes', async () => {
+    const gitlab = createGitLab({
+      events: [createEvent({ target_type: 'MergeRequest', target_iid: 5 })],
+      issues: [createIssue({ iid: 12 })],
+      mergeRequests: [
+        createMergeRequest({ iid: 5, source_branch: '12-login' }),
+      ],
+      closingIssues: {
+        5: [createIssue({ iid: 12 }), createIssue({ iid: 13 })],
+      },
+    });
+
+    const grouped = await collect(gitlab);
+
+    expect(gitlab.findIssue).not.toHaveBeenCalled();
+    expect(grouped.issues.map((issue) => issue.iid)).toEqual([12]);
+    expect(
+      grouped.issues[0].mergeRequests[0].closesIssues.map((issue) => issue.iid),
+    ).toEqual([12, 13]);
   });
 });

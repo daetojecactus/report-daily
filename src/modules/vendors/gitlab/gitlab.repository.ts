@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { getFailureReason } from 'src/common/utils/error.util';
 import {
+  GITLAB_CLOSES_ISSUES_PATH,
   GITLAB_COMMITS_PATH,
   GITLAB_EVENTS_PATH,
   GITLAB_LABEL_EVENTS_PATH,
@@ -92,6 +93,12 @@ export class GitLabRepository {
       { source_branch: branch, per_page: 1 },
     );
     return mergeRequests?.[0] ?? null;
+  }
+
+  findIssuesClosedOnMerge(projectId: number, iid: number) {
+    return this.getAll<GitLabIssue>(
+      `${this.toIssuablePath(GitLabIssuable.MERGE_REQUESTS, projectId, iid)}${GITLAB_CLOSES_ISSUES_PATH}`,
+    );
   }
 
   findNotes(issuable: GitLabIssuable, projectId: number, iid: number) {

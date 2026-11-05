@@ -1,8 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import type { DayRange } from 'src/common/interfaces/date.interface';
 import { isWithinDay } from 'src/common/utils/date.util';
-import { GitLabState } from 'src/modules/vendors/gitlab/gitlab.enums';
+import {
+  GitLabLabelAction,
+  GitLabState,
+} from 'src/modules/vendors/gitlab/gitlab.enums';
 import type {
+  GitLabAuthor,
   GitLabCommit,
   GitLabEvent,
   GitLabLabelEvent,
@@ -11,8 +15,11 @@ import type {
   GitLabStateEvent,
 } from 'src/modules/vendors/gitlab/gitlab.interface';
 import {
+  SOURCE_ASSIGNEE_CHANGE,
+  SOURCE_DRAFT_PATTERN,
   SOURCE_MENTION_PATTERN,
-  SOURCE_REVIEW_REQUEST_PREFIX,
+  SOURCE_READY_MARK,
+  SOURCE_REVIEWER_CHANGE,
 } from './constants/source.constants';
 import type {
   CleanEvent,
@@ -25,6 +32,7 @@ import type {
   IssueActivity,
   MergeRequestActivity,
   ReviewThreads,
+  SourceUserChange,
 } from './source.interface';
 
 @Injectable()
@@ -50,7 +58,7 @@ export class SourceBuilder {
   }
 
   private buildIssue(activity: IssueActivity, day: DayRange): GroupedIssue {
-    const { issue, stateEvents } = activity;
+    const { issue, notes, labelEvents, stateEvents } = activity;
     return {
       projectId: issue.project_id,
       iid: issue.iid,
@@ -62,12 +70,17 @@ export class SourceBuilder {
         GitLabState.CLOSED,
       ),
       webUrl: issue.web_url,
-      labels: issue.labels,
+      labels: this.restoreLabels(issue.labels, labelEvents, day),
       createdAt: issue.created_at,
-      assignee: issue.assignee?.username ?? null,
+      assignees: this.restoreUsers(
+        this.toUsernames(issue.assignees),
+        notes,
+        day,
+        SOURCE_ASSIGNEE_CHANGE,
+      ),
       events: this.cleanEvents(activity.events),
-      notes: this.cleanNotes(activity.notes, day),
-      labelEvents: this.cleanLabelEvents(activity.labelEvents, day),
+      notes: this.cleanNotes(notes, day),
+      labelEvents: this.cleanLabelEvents(labelEvents, day),
       mergeRequests: activity.mergeRequests.map((mergeRequest) =>
         this.buildMergeRequest(mergeRequest, day),
       ),
@@ -78,7 +91,7 @@ export class SourceBuilder {
     activity: MergeRequestActivity,
     day: DayRange,
   ): GroupedMergeRequest {
-    const { mergeRequest, notes, stateEvents } = activity;
+    const { mergeRequest, notes, labelEvents, stateEvents } = activity;
     return {
       projectId: mergeRequest.project_id,
       iid: mergeRequest.iid,
@@ -89,52 +102,147 @@ export class SourceBuilder {
         day,
         GitLabState.MERGED,
       ),
+      draft: this.restoreDraft(mergeRequest.draft ?? false, notes, day),
       webUrl: mergeRequest.web_url,
       sourceBranch: mergeRequest.source_branch,
-      labels: mergeRequest.labels,
+      labels: this.restoreLabels(mergeRequest.labels, labelEvents, day),
       createdAt: mergeRequest.created_at,
       lastCommitAt: this.resolveLastCommitBeforeDate(activity.commits, day),
       author: mergeRequest.author?.username ?? null,
-      assignee: mergeRequest.assignee?.username ?? null,
-      reviewers: this.resolveReviewers(mergeRequest, notes),
+      assignees: this.restoreUsers(
+        this.toUsernames(mergeRequest.assignees),
+        notes,
+        day,
+        SOURCE_ASSIGNEE_CHANGE,
+      ),
+      reviewers: this.resolveReviewers(mergeRequest, notes, day),
+      closesIssues: activity.closingIssues.map((issue) => ({
+        projectId: issue.project_id,
+        iid: issue.iid,
+        title: issue.title,
+        webUrl: issue.web_url,
+      })),
       events: this.cleanEvents(activity.events),
       notes: this.cleanNotes(notes, day),
-      labelEvents: this.cleanLabelEvents(activity.labelEvents, day),
-      reviewThreads: this.resolveReviewThreads(notes),
+      labelEvents: this.cleanLabelEvents(labelEvents, day),
+      reviewThreads: this.resolveReviewThreads(notes, day),
     };
+  }
+
+  private restoreLabels(
+    current: string[],
+    labelEvents: GitLabLabelEvent[],
+    day: DayRange,
+  ) {
+    const labels = new Set(current);
+    for (const event of this.toLatestFirst(labelEvents)) {
+      if (!event.label || Date.parse(event.created_at) < day.end) {
+        continue;
+      }
+      if (event.action === GitLabLabelAction.ADD) {
+        labels.delete(event.label.name);
+      } else {
+        labels.add(event.label.name);
+      }
+    }
+    return [...labels];
+  }
+
+  private restoreUsers(
+    current: string[],
+    notes: GitLabNote[],
+    day: DayRange,
+    change: SourceUserChange,
+  ) {
+    const users = new Set(current);
+    for (const note of this.toLatestFirst(notes)) {
+      if (Date.parse(note.created_at) < day.end) {
+        continue;
+      }
+      const { added, removed } = this.parseUserChange(note, change);
+      added.forEach((user) => users.delete(user));
+      removed.forEach((user) => users.add(user));
+    }
+    return [...users];
   }
 
   private resolveReviewers(
     mergeRequest: GitLabMergeRequest,
     notes: GitLabNote[],
+    day: DayRange,
   ) {
-    const current =
-      mergeRequest.reviewers?.map((reviewer) => reviewer.username) ?? [];
-    return [
-      ...new Set([...current, ...this.extractHistoricalReviewers(notes)]),
-    ];
-  }
-
-  private extractHistoricalReviewers(notes: GitLabNote[]) {
-    return notes
-      .filter(
-        (note) =>
-          note.system &&
-          note.body.toLowerCase().startsWith(SOURCE_REVIEW_REQUEST_PREFIX),
-      )
-      .flatMap((note) =>
-        [...note.body.matchAll(SOURCE_MENTION_PATTERN)].map(
-          ([, username]) => username,
-        ),
+    const atEndOfDay = this.restoreUsers(
+      this.toUsernames(mergeRequest.reviewers),
+      notes,
+      day,
+      SOURCE_REVIEWER_CHANGE,
+    );
+    const requested = notes
+      .filter((note) => Date.parse(note.created_at) < day.end)
+      .flatMap(
+        (note) => this.parseUserChange(note, SOURCE_REVIEWER_CHANGE).added,
       );
+    return [...new Set([...atEndOfDay, ...requested])];
   }
 
-  private resolveReviewThreads(notes: GitLabNote[]): ReviewThreads {
-    const resolvable = notes.filter((note) => note.resolvable);
+  private parseUserChange(note: GitLabNote, change: SourceUserChange) {
+    const { body } = note;
+    const isAdded = body.startsWith(change.added);
+    if (!note.system || (!isAdded && !body.startsWith(change.removed))) {
+      return { added: [], removed: [] };
+    }
+    const removedAt = body.indexOf(change.removed);
+    return {
+      added: isAdded
+        ? this.toMentions(
+            body.slice(0, removedAt === -1 ? undefined : removedAt),
+          )
+        : [],
+      removed: removedAt === -1 ? [] : this.toMentions(body.slice(removedAt)),
+    };
+  }
+
+  private restoreDraft(current: boolean, notes: GitLabNote[], day: DayRange) {
+    const firstMark = this.toLatestFirst(notes)
+      .reverse()
+      .filter((note) => note.system && Date.parse(note.created_at) >= day.end)
+      .map((note) => SOURCE_DRAFT_PATTERN.exec(note.body)?.[1])
+      .find((mark) => mark !== undefined);
+    return firstMark === undefined ? current : firstMark === SOURCE_READY_MARK;
+  }
+
+  private resolveReviewThreads(
+    notes: GitLabNote[],
+    day: DayRange,
+  ): ReviewThreads {
+    const resolvable = notes.filter(
+      (note) => note.resolvable && Date.parse(note.created_at) < day.end,
+    );
     return {
       total: resolvable.length,
-      unresolved: resolvable.filter((note) => note.resolved === false).length,
+      unresolved: resolvable.filter(
+        (note) =>
+          note.resolved === false ||
+          (note.resolved_at && Date.parse(note.resolved_at) >= day.end),
+      ).length,
     };
+  }
+
+  private toLatestFirst<T extends { created_at: string }>(items: T[]) {
+    return items.toSorted(
+      (left, right) =>
+        Date.parse(right.created_at) - Date.parse(left.created_at),
+    );
+  }
+
+  private toMentions(text: string) {
+    return [...text.matchAll(SOURCE_MENTION_PATTERN)].map(
+      ([, username]) => username,
+    );
+  }
+
+  private toUsernames(users: GitLabAuthor[] | undefined) {
+    return users?.map((user) => user.username) ?? [];
   }
 
   private resolveStateAsOfDate(

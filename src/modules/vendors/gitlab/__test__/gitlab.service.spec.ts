@@ -13,6 +13,7 @@ describe('GitLabService', () => {
     findIssue: vi.fn(),
     findMergeRequest: vi.fn(),
     findMergeRequestByBranch: vi.fn(),
+    findIssuesClosedOnMerge: vi.fn(),
     findNotes: vi.fn(),
     findLabelEvents: vi.fn(),
     findStateEvents: vi.fn(),
@@ -59,6 +60,11 @@ describe('GitLabService', () => {
       'findMergeRequestByBranch',
       () => service.findMergeRequestByBranch(3, '12-login'),
       [3, '12-login'],
+    ],
+    [
+      'findIssuesClosedOnMerge',
+      () => service.findIssuesClosedOnMerge(3, 5),
+      [3, 5],
     ],
     [
       'findNotes',

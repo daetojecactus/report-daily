@@ -12,6 +12,11 @@ export enum GitLabState {
   REOPENED = 'reopened',
 }
 
+export enum GitLabLabelAction {
+  ADD = 'add',
+  REMOVE = 'remove',
+}
+
 export enum GitLabIssuable {
   ISSUES = 'issues',
   MERGE_REQUESTS = 'merge_requests',

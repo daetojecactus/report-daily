@@ -177,6 +177,10 @@ describe('GitLabRepository', () => {
       '/projects/3/merge_requests/5/commits',
       () => repository.findMergeRequestCommits(3, 5),
     ],
+    [
+      '/projects/3/merge_requests/5/closes_issues',
+      () => repository.findIssuesClosedOnMerge(3, 5),
+    ],
   ])('reads every page of %s', async (path, call) => {
     client.get.mockResolvedValue(respond(200, [{ id: 1 }]));
 

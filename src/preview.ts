@@ -32,6 +32,13 @@ function describeDetails(
   const comments = item.notes.filter((note) => !note.system).length;
   return [
     item.labels.length ? `labels: ${item.labels.join(', ')}` : '',
+    item.assignees.length ? `assignees: ${item.assignees.join(', ')}` : '',
+    'reviewers' in item && item.reviewers.length
+      ? `reviewers: ${item.reviewers.join(', ')}`
+      : '',
+    'closesIssues' in item && item.closesIssues.length
+      ? `closes: ${item.closesIssues.map((issue) => `#${issue.iid}`).join(', ')}`
+      : '',
     item.events.length ? `events: ${describeEvents(item.events)}` : '',
     comments ? `comments of the day: ${comments}` : '',
   ]
@@ -43,9 +50,10 @@ function describeMergeRequest(
   mergeRequest: GroupedMergeRequest,
   indent: string,
 ): string[] {
+  const draft = mergeRequest.draft ? ', draft' : '';
   const merged = mergeRequest.mergedOnReportDate ? ', merged on the day' : '';
   return [
-    `${indent}MR !${mergeRequest.iid} ${mergeRequest.title} · ${mergeRequest.state}${merged} · ${mergeRequest.sourceBranch}`,
+    `${indent}MR !${mergeRequest.iid} ${mergeRequest.title} · ${mergeRequest.state}${draft}${merged} · ${mergeRequest.sourceBranch}`,
     ...describeDetails(mergeRequest, indent + INDENT),
   ];
 }

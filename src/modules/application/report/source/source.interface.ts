@@ -1,4 +1,7 @@
-import type { GitLabState } from 'src/modules/vendors/gitlab/gitlab.enums';
+import type {
+  GitLabLabelAction,
+  GitLabState,
+} from 'src/modules/vendors/gitlab/gitlab.enums';
 import type {
   GitLabCommit,
   GitLabEvent,
@@ -20,6 +23,11 @@ export interface SourceBranch {
   branch: string;
 }
 
+export interface SourceUserChange {
+  added: string;
+  removed: string;
+}
+
 export interface SourceEvents<T> {
   target: T;
   events: GitLabEvent[];
@@ -31,8 +39,14 @@ export interface SourceEventGroups {
   pushes: Map<string, SourceEvents<SourceBranch>>;
 }
 
+export interface SourceLinks {
+  issues: Map<string, GitLabIssue>;
+  mainIssues: Map<string, string>;
+}
+
 export interface MergeRequestActivity {
   mergeRequest: GitLabMergeRequest;
+  closingIssues: GitLabIssue[];
   events: GitLabEvent[];
   notes: GitLabNote[];
   labelEvents: GitLabLabelEvent[];
@@ -90,9 +104,16 @@ export interface CleanNote {
 export interface CleanLabelEvent {
   id: number;
   labelName: string;
-  action: string;
+  action: GitLabLabelAction;
   createdAt: string;
   username: string;
+}
+
+export interface IssueReference {
+  projectId: number;
+  iid: number;
+  title: string;
+  webUrl: string;
 }
 
 export interface ReviewThreads {
@@ -106,14 +127,16 @@ export interface GroupedMergeRequest {
   title: string;
   state: GitLabState;
   mergedOnReportDate: boolean;
+  draft: boolean;
   webUrl: string;
   sourceBranch: string;
   labels: string[];
   createdAt: string;
   lastCommitAt: string | null;
   author: string | null;
-  assignee: string | null;
+  assignees: string[];
   reviewers: string[];
+  closesIssues: IssueReference[];
   events: CleanEvent[];
   notes: CleanNote[];
   labelEvents: CleanLabelEvent[];
@@ -129,7 +152,7 @@ export interface GroupedIssue {
   webUrl: string;
   labels: string[];
   createdAt: string;
-  assignee: string | null;
+  assignees: string[];
   events: CleanEvent[];
   notes: CleanNote[];
   labelEvents: CleanLabelEvent[];
