@@ -381,10 +381,10 @@ describe('User module', () => {
       const user = await insertUser();
 
       expect(
-        await userService.grantPermission(user.id, Permission.LABELS),
-      ).toMatchObject({ permissions: [Permission.LABELS] });
+        await userService.grantPermission(user.id, Permission.TRAITS),
+      ).toMatchObject({ permissions: [Permission.TRAITS] });
       expect(
-        await userService.grantPermission(user.id, Permission.LABELS),
+        await userService.grantPermission(user.id, Permission.TRAITS),
       ).toBeNull();
       await Promise.all([
         userService.grantPermission(user.id, Permission.USERS),
@@ -392,7 +392,7 @@ describe('User module', () => {
       ]);
 
       expect((await findUser(user.id)).permissions).toEqual([
-        Permission.LABELS,
+        Permission.TRAITS,
         Permission.USERS,
       ]);
     });

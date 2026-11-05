@@ -171,7 +171,7 @@ describe('EmployeeManageHandler', () => {
   it('lets only an owner block an employee with permissions', async () => {
     userService.findById.mockResolvedValue({
       ...USER,
-      permissions: [Permission.LABELS],
+      permissions: [Permission.TRAITS],
     });
     const admin = createEmployee({
       id: '019a4d2e-7c1b-7f3a-9c2d-000000000099',

@@ -170,7 +170,7 @@ describe('EmployeesHandler', () => {
   it('shows a card with channels and permissions', async () => {
     const user = employee(1, {
       displayName: 'Anna *Smirnova*',
-      permissions: [Permission.USERS, Permission.LABELS],
+      permissions: [Permission.USERS, Permission.TRAITS],
     });
     userService.findById.mockResolvedValue(user);
     userSourceService.findByUser.mockResolvedValue([
@@ -191,7 +191,7 @@ describe('EmployeesHandler', () => {
         'Gender: male',
         'Status: active',
         'Telegram: unreachable, the bot is blocked',
-        'Permissions: Employees, Labels',
+        'Permissions: Employees, Traits',
       ].join('\n'),
       buttons: [
         [{ text: 'Change role', data: `mng:role:${user.id}` }],
@@ -243,7 +243,7 @@ describe('EmployeesHandler', () => {
   it.each<[string, Partial<User>, (user: User) => Partial<BotActor>]>([
     [
       'an admin with permissions to another admin',
-      { permissions: [Permission.LABELS] },
+      { permissions: [Permission.TRAITS] },
       () => ({
         isOwner: false,
         user: employee(9, { permissions: [Permission.USERS] }),

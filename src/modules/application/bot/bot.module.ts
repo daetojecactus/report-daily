@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { DiscoveryModule } from '@nestjs/core';
 import type { ChatChannel } from 'src/common/interfaces/chat-channel.interface';
 import { I18nModule } from 'src/modules/application/i18n/i18n.module';
-import { LabelModule } from 'src/modules/application/label/label.module';
+import { TraitModule } from 'src/modules/application/trait/trait.module';
 import { UserModule } from 'src/modules/application/user/user.module';
 import { GitLabModule } from 'src/modules/vendors/gitlab/gitlab.module';
 import { TelegramModule } from 'src/modules/vendors/telegram/telegram.module';
@@ -19,9 +19,9 @@ import { EmployeePermissionsHandler } from './employee-permissions/employee-perm
 import { EmployeesHandler } from './employees/employees.handler';
 import { CancelHandler } from './handlers/cancel.handler';
 import { HelpHandler } from './handlers/help.handler';
-import { LabelAddHandler } from './label-add/label-add.handler';
-import { LabelManageHandler } from './label-manage/label-manage.handler';
-import { LabelsHandler } from './labels/labels.handler';
+import { TraitAddHandler } from './trait-add/trait-add.handler';
+import { TraitManageHandler } from './trait-manage/trait-manage.handler';
+import { TraitsHandler } from './traits/traits.handler';
 import { StartHandler } from './handlers/start.handler';
 import { MenuService } from './menu/menu.service';
 import { RouterService } from './router/router.service';
@@ -31,7 +31,7 @@ import { SettingsHandler } from './settings/settings.handler';
   imports: [
     DiscoveryModule,
     I18nModule,
-    LabelModule,
+    TraitModule,
     UserModule,
     GitLabModule,
     TelegramModule,
@@ -52,9 +52,9 @@ import { SettingsHandler } from './settings/settings.handler';
     EmployeeManageHandler,
     EmployeePermissionsHandler,
     SettingsHandler,
-    LabelsHandler,
-    LabelAddHandler,
-    LabelManageHandler,
+    TraitsHandler,
+    TraitAddHandler,
+    TraitManageHandler,
     {
       provide: BOT_CHANNELS,
       useFactory: (telegramService: TelegramService): ChatChannel[] => [

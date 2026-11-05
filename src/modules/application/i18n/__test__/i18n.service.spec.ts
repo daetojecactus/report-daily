@@ -12,8 +12,8 @@ const NAMES = [
   'sources.',
   'languages.',
   'settings.ai.name',
-  'labels.values.area.api.name',
-  'labels.values.area.ci_cd.name',
+  'traits.values.area.api.name',
+  'traits.values.area.ci_cd.name',
   'roles.qa',
   'roles.devops',
 ];

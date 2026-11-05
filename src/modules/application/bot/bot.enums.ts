@@ -21,7 +21,7 @@ export enum BotNamespace {
   EMPLOYEE_MANAGE = 'mng',
   EMPLOYEE_PERMISSIONS = 'perm',
   SETTINGS = 'set',
-  LABELS = 'lbl',
-  LABEL_ADD = 'lbladd',
-  LABEL_MANAGE = 'lblmng',
+  TRAITS = 'trt',
+  TRAIT_ADD = 'trtadd',
+  TRAIT_MANAGE = 'trtmng',
 }

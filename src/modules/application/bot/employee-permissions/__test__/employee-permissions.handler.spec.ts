@@ -76,14 +76,14 @@ describe('EmployeePermissionsHandler', () => {
         locale.employeePermissions.title('Anna \\*S\\*'),
         '',
         `**Employees** — ${locale.employeePermissions.descriptions.users}`,
-        `**Labels** — ${locale.employeePermissions.descriptions.labels}`,
+        `**Traits** — ${locale.employeePermissions.descriptions.traits}`,
         `**Broadcast** — ${locale.employeePermissions.descriptions.broadcast}`,
         `**Settings** — ${locale.employeePermissions.descriptions.settings}`,
       ].join('\n'),
     );
     expect(screen.buttons).toEqual([
       [{ text: 'Employees: yes', data: `perm:revoke:${USER.id}:users` }],
-      [{ text: 'Labels: no', data: `perm:grant:${USER.id}:labels` }],
+      [{ text: 'Traits: no', data: `perm:grant:${USER.id}:traits` }],
       [{ text: 'Broadcast: no', data: `perm:grant:${USER.id}:broadcast` }],
       [{ text: 'Settings: no', data: `perm:grant:${USER.id}:settings` }],
       [{ text: 'Open the card', data: `emp:card:${USER.id}:0` }],
@@ -94,21 +94,21 @@ describe('EmployeePermissionsHandler', () => {
   it('grants a permission and syncs the menu of the employee', async () => {
     const updated = {
       ...USER,
-      permissions: [Permission.USERS, Permission.LABELS],
+      permissions: [Permission.USERS, Permission.TRAITS],
     };
     userService.grantPermission.mockResolvedValue(updated);
 
-    const { screen } = await open(`perm:grant:${USER.id}:labels`);
+    const { screen } = await open(`perm:grant:${USER.id}:traits`);
 
     expect(userService.grantPermission).toHaveBeenCalledWith(
       USER.id,
-      Permission.LABELS,
+      Permission.TRAITS,
     );
     expect(menuService.syncEmployee).toHaveBeenCalledWith(updated, [
       FOUND.channel,
     ]);
     expect(screen.buttons?.[1]).toEqual([
-      { text: 'Labels: yes', data: `perm:revoke:${USER.id}:labels` },
+      { text: 'Traits: yes', data: `perm:revoke:${USER.id}:traits` },
     ]);
   });
 

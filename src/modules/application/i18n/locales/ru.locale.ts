@@ -1,14 +1,14 @@
 import { Channel } from 'src/common/enums/channel.enums';
 import { BotCommand } from 'src/modules/application/bot/bot.enums';
 import {
-  LabelDimension,
+  TraitDimension,
   Priority,
   Severity,
   TaskArea,
   TaskFlag,
   TaskKind,
   WorkflowState,
-} from 'src/modules/application/label/label.enums';
+} from 'src/modules/application/trait/trait.enums';
 import {
   Gender,
   JobRole,
@@ -56,7 +56,7 @@ export const ru: Locale = {
   },
   permissions: {
     [Permission.USERS]: 'Сотрудники',
-    [Permission.LABELS]: 'Лейблы',
+    [Permission.TRAITS]: 'Признаки',
     [Permission.BROADCAST]: 'Рассылка',
     [Permission.SETTINGS]: 'Настройки',
   },
@@ -116,17 +116,17 @@ export const ru: Locale = {
     on: 'да',
     off: 'нет',
   },
-  labels: {
+  traits: {
     dimensions: {
-      [LabelDimension.WORKFLOW_STATE]: 'Состояние',
-      [LabelDimension.TASK_KIND]: 'Тип задачи',
-      [LabelDimension.PRIORITY]: 'Приоритет',
-      [LabelDimension.SEVERITY]: 'Серьёзность',
-      [LabelDimension.AREA]: 'Область',
-      [LabelDimension.FLAG]: 'Флаг',
+      [TraitDimension.WORKFLOW_STATE]: 'Состояние',
+      [TraitDimension.TASK_KIND]: 'Тип задачи',
+      [TraitDimension.PRIORITY]: 'Приоритет',
+      [TraitDimension.SEVERITY]: 'Серьёзность',
+      [TraitDimension.AREA]: 'Область',
+      [TraitDimension.FLAG]: 'Флаг',
     },
     values: {
-      [LabelDimension.WORKFLOW_STATE]: {
+      [TraitDimension.WORKFLOW_STATE]: {
         [WorkflowState.BACKLOG]: {
           name: 'Бэклог',
           description: 'Заведена, но не запланирована',
@@ -201,7 +201,7 @@ export const ru: Locale = {
           description: 'Передано другой части команды',
         },
       },
-      [LabelDimension.TASK_KIND]: {
+      [TraitDimension.TASK_KIND]: {
         [TaskKind.HOTFIX]: {
           name: 'Хотфикс',
           description: 'Срочное исправление на проде',
@@ -261,7 +261,7 @@ export const ru: Locale = {
           description: 'Обычная задача без особого типа',
         },
       },
-      [LabelDimension.PRIORITY]: {
+      [TraitDimension.PRIORITY]: {
         [Priority.CRITICAL]: {
           name: 'Критический',
           description: 'Нужно прямо сейчас',
@@ -270,7 +270,7 @@ export const ru: Locale = {
         [Priority.MEDIUM]: { name: 'Средний', description: 'По плану' },
         [Priority.LOW]: { name: 'Низкий', description: 'Когда будет время' },
       },
-      [LabelDimension.SEVERITY]: {
+      [TraitDimension.SEVERITY]: {
         [Severity.BLOCKER]: {
           name: 'S1 — блокирующая',
           description: 'Работа невозможна, обхода нет',
@@ -288,7 +288,7 @@ export const ru: Locale = {
           description: 'Косметика, мелочи',
         },
       },
-      [LabelDimension.AREA]: {
+      [TraitDimension.AREA]: {
         [TaskArea.FRONTEND]: { name: 'Фронтенд', description: 'Веб-интерфейс' },
         [TaskArea.BACKEND]: { name: 'Бэкенд', description: 'Серверная логика' },
         [TaskArea.MOBILE]: {
@@ -332,7 +332,7 @@ export const ru: Locale = {
           description: 'Макеты, удобство, юзабилити',
         },
       },
-      [LabelDimension.FLAG]: {
+      [TraitDimension.FLAG]: {
         [TaskFlag.EXCLUDE_FROM_REPORT]: {
           name: 'Не в отчёт',
           description: 'Задача не попадает в отчёт',
@@ -376,11 +376,11 @@ export const ru: Locale = {
       },
     },
   },
-  labelList: {
-    title: (count) => `**Лейблы** · ${count}`,
+  traitList: {
+    title: (count) => `**Признаки** · лейблов GitLab: ${count}`,
     page: (page, pages) => `Страница ${page} из ${pages}`,
     empty:
-      'Лейблов пока нет. Нажмите «Добавить»: бот спросит лейбл как в GitLab и что он значит в отчёте.',
+      'Лейблов пока нет. Нажмите «Добавить»: бот спросит лейбл как в GitLab и какой признак задачи он означает.',
     previous: '‹ Назад',
     next: 'Дальше ›',
     add: 'Добавить',
@@ -388,41 +388,41 @@ export const ru: Locale = {
     backToList: 'К списку',
     notFound: 'Лейбл не найден: возможно, его уже удалили.',
     everyone: 'Для всех',
-    addValue: 'Добавить значение',
+    addValue: 'Добавить признак',
     drop: 'Удалить лейбл',
   },
-  labelManage: {
+  traitManage: {
     askValue: (label, whom, dimension, value) =>
-      `${label} ${whom} · ${dimension}\nСейчас: ${value}. Выберите новое значение или удалите это.`,
-    deleteValue: 'Удалить значение',
+      `${label} ${whom} · ${dimension}\nСейчас: ${value}. Выберите другой признак или удалите этот.`,
+    deleteValue: 'Удалить признак',
     back: '‹ Назад',
     changed: (label, whom, value) =>
       `Готово: ${label} ${whom} — теперь ${value}.`,
     valueDeleted: (label, whom, value) =>
-      `Значение удалено: ${label} ${whom} — ${value}.`,
-    labelEmpty: 'У лейбла больше нет значений, он убран из списка.',
+      `Признак удалён: ${label} ${whom} — ${value}.`,
+    labelEmpty: 'У лейбла больше нет признаков, он убран из списка.',
     confirmDrop: (label, count) =>
-      `Удалить лейбл ${label}? Значений у него: ${count}.`,
+      `Удалить лейбл ${label}? Признаков у него: ${count}.`,
     confirm: 'Да, удалить',
     cancel: 'Отмена',
     dropped: (label) => `Лейбл ${label} удалён.`,
   },
-  labelAdd: {
+  traitAdd: {
     prompt:
       'Пришлите лейбл как в GitLab, например `status::easy`. Регистр, лишние пробелы и `_` не важны.',
     invalid: (max) =>
       `Не похоже на лейбл. Пришлите его как в GitLab, например \`status::easy\`, не длиннее ${max} символов.`,
     exists: (label) => `Лейбл ${label} уже заведён.`,
-    forWhom: (label) => `${label}\nДля кого задать значение?`,
+    forWhom: (label) => `${label}\nДля кого задать признак?`,
     everyone: 'Для всех',
     forEveryone: 'для всех',
     forRole: (role) => `для роли «${role}»`,
     chooseDimension: (label, whom) =>
-      `${label} ${whom}\nЧто этот лейбл значит? Выберите группу.`,
+      `${label} ${whom}\nЧто этот лейбл значит? Выберите группу признаков.`,
     chooseValue: (label, whom, dimension) =>
-      `${label} ${whom} · ${dimension}\nВыберите наше значение.`,
+      `${label} ${whom} · ${dimension}\nВыберите признак задачи.`,
     alreadySet: (label) =>
-      `У лейбла ${label} уже есть значение в этой группе для выбранной роли. Изменить его можно в карточке.`,
+      `У лейбла ${label} уже есть признак в этой группе для выбранной роли. Изменить его можно в карточке.`,
     added: (label, whom, value) => `Готово: ${label} ${whom} — ${value}.`,
     openCard: 'Открыть карточку',
     addMore: 'Добавить ещё',
@@ -505,7 +505,7 @@ export const ru: Locale = {
     descriptions: {
       [Permission.USERS]:
         'добавлять, менять, блокировать и удалять сотрудников',
-      [Permission.LABELS]: 'настраивать лейблы GitLab',
+      [Permission.TRAITS]: 'сопоставлять лейблы GitLab с признаками задачи',
       [Permission.BROADCAST]: 'делать рассылку всем сотрудникам',
       [Permission.SETTINGS]: 'пауза отчётов, AI, календарь, состояние системы',
     },

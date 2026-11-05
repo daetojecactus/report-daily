@@ -1,7 +1,7 @@
 import type { Channel } from 'src/common/enums/channel.enums';
 import type { BotCommand } from 'src/modules/application/bot/bot.enums';
-import type { LabelDimension } from 'src/modules/application/label/label.enums';
-import type { LabelDimensionValueMap } from 'src/modules/application/label/label.interface';
+import type { TraitDimension } from 'src/modules/application/trait/trait.enums';
+import type { TraitDimensionValueMap } from 'src/modules/application/trait/trait.interface';
 import type { Source } from 'src/modules/application/source/source.enums';
 import type { Language } from './i18n.enums';
 import type {
@@ -16,7 +16,7 @@ export interface LocaleSwitch {
   description: string;
 }
 
-export interface LabelValueText {
+export interface TraitValueText {
   name: string;
   description: string;
 }
@@ -74,16 +74,16 @@ export interface Locale {
     on: string;
     off: string;
   };
-  labels: {
-    dimensions: Record<LabelDimension, string>;
+  traits: {
+    dimensions: Record<TraitDimension, string>;
     values: {
-      [Dimension in LabelDimension]: Record<
-        LabelDimensionValueMap[Dimension],
-        LabelValueText
+      [Dimension in TraitDimension]: Record<
+        TraitDimensionValueMap[Dimension],
+        TraitValueText
       >;
     };
   };
-  labelList: {
+  traitList: {
     title: (count: number) => string;
     page: (page: number, pages: number) => string;
     empty: string;
@@ -97,7 +97,7 @@ export interface Locale {
     addValue: string;
     drop: string;
   };
-  labelManage: {
+  traitManage: {
     askValue: (
       label: string,
       whom: string,
@@ -114,7 +114,7 @@ export interface Locale {
     cancel: string;
     dropped: (label: string) => string;
   };
-  labelAdd: {
+  traitAdd: {
     prompt: string;
     invalid: (max: number) => string;
     exists: (label: string) => string;

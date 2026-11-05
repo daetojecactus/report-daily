@@ -19,7 +19,7 @@ export enum UserStatus {
 
 export enum Permission {
   USERS = 'users',
-  LABELS = 'labels',
+  TRAITS = 'traits',
   BROADCAST = 'broadcast',
   SETTINGS = 'settings',
 }

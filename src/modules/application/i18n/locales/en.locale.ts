@@ -1,14 +1,14 @@
 import { Channel } from 'src/common/enums/channel.enums';
 import { BotCommand } from 'src/modules/application/bot/bot.enums';
 import {
-  LabelDimension,
+  TraitDimension,
   Priority,
   Severity,
   TaskArea,
   TaskFlag,
   TaskKind,
   WorkflowState,
-} from 'src/modules/application/label/label.enums';
+} from 'src/modules/application/trait/trait.enums';
 import {
   Gender,
   JobRole,
@@ -56,7 +56,7 @@ export const en: Locale = {
   },
   permissions: {
     [Permission.USERS]: 'Employees',
-    [Permission.LABELS]: 'Labels',
+    [Permission.TRAITS]: 'Traits',
     [Permission.BROADCAST]: 'Broadcast',
     [Permission.SETTINGS]: 'Settings',
   },
@@ -117,17 +117,17 @@ export const en: Locale = {
     on: 'yes',
     off: 'no',
   },
-  labels: {
+  traits: {
     dimensions: {
-      [LabelDimension.WORKFLOW_STATE]: 'State',
-      [LabelDimension.TASK_KIND]: 'Task type',
-      [LabelDimension.PRIORITY]: 'Priority',
-      [LabelDimension.SEVERITY]: 'Severity',
-      [LabelDimension.AREA]: 'Area',
-      [LabelDimension.FLAG]: 'Flag',
+      [TraitDimension.WORKFLOW_STATE]: 'State',
+      [TraitDimension.TASK_KIND]: 'Task type',
+      [TraitDimension.PRIORITY]: 'Priority',
+      [TraitDimension.SEVERITY]: 'Severity',
+      [TraitDimension.AREA]: 'Area',
+      [TraitDimension.FLAG]: 'Flag',
     },
     values: {
-      [LabelDimension.WORKFLOW_STATE]: {
+      [TraitDimension.WORKFLOW_STATE]: {
         [WorkflowState.BACKLOG]: {
           name: 'Backlog',
           description: 'Created but not planned yet',
@@ -202,7 +202,7 @@ export const en: Locale = {
           description: 'Passed to another part of the team',
         },
       },
-      [LabelDimension.TASK_KIND]: {
+      [TraitDimension.TASK_KIND]: {
         [TaskKind.HOTFIX]: {
           name: 'Hotfix',
           description: 'An urgent fix in production',
@@ -265,7 +265,7 @@ export const en: Locale = {
           description: 'A plain task without a special type',
         },
       },
-      [LabelDimension.PRIORITY]: {
+      [TraitDimension.PRIORITY]: {
         [Priority.CRITICAL]: {
           name: 'Critical',
           description: 'Needed right now',
@@ -274,7 +274,7 @@ export const en: Locale = {
         [Priority.MEDIUM]: { name: 'Medium', description: 'As planned' },
         [Priority.LOW]: { name: 'Low', description: 'When there is time' },
       },
-      [LabelDimension.SEVERITY]: {
+      [TraitDimension.SEVERITY]: {
         [Severity.BLOCKER]: {
           name: 'S1 — blocker',
           description: 'Work is impossible, no workaround',
@@ -292,7 +292,7 @@ export const en: Locale = {
           description: 'Cosmetic issues and small things',
         },
       },
-      [LabelDimension.AREA]: {
+      [TraitDimension.AREA]: {
         [TaskArea.FRONTEND]: {
           name: 'Frontend',
           description: 'The web interface',
@@ -339,7 +339,7 @@ export const en: Locale = {
           description: 'Mockups and usability',
         },
       },
-      [LabelDimension.FLAG]: {
+      [TraitDimension.FLAG]: {
         [TaskFlag.EXCLUDE_FROM_REPORT]: {
           name: 'Not in report',
           description: 'The task stays out of the report',
@@ -383,11 +383,11 @@ export const en: Locale = {
       },
     },
   },
-  labelList: {
-    title: (count) => `**Labels** · ${count}`,
+  traitList: {
+    title: (count) => `**Traits** · GitLab labels: ${count}`,
     page: (page, pages) => `Page ${page} of ${pages}`,
     empty:
-      'No labels yet. Press "Add": the bot asks for a label as in GitLab and what it means in the report.',
+      'No labels yet. Press "Add": the bot asks for a label as in GitLab and the task trait it stands for.',
     previous: '‹ Back',
     next: 'Next ›',
     add: 'Add',
@@ -395,40 +395,40 @@ export const en: Locale = {
     backToList: 'To the list',
     notFound: 'Label not found: it may have been deleted.',
     everyone: 'For everyone',
-    addValue: 'Add a value',
+    addValue: 'Add a trait',
     drop: 'Delete the label',
   },
-  labelManage: {
+  traitManage: {
     askValue: (label, whom, dimension, value) =>
-      `${label} ${whom} · ${dimension}\nNow: ${value}. Choose a new value or delete this one.`,
-    deleteValue: 'Delete the value',
+      `${label} ${whom} · ${dimension}\nNow: ${value}. Choose another trait or delete this one.`,
+    deleteValue: 'Delete the trait',
     back: '‹ Back',
     changed: (label, whom, value) => `Done: ${label} ${whom} — now ${value}.`,
     valueDeleted: (label, whom, value) =>
-      `Value deleted: ${label} ${whom} — ${value}.`,
-    labelEmpty: 'The label has no values left and is gone from the list.',
+      `Trait deleted: ${label} ${whom} — ${value}.`,
+    labelEmpty: 'The label has no traits left and is gone from the list.',
     confirmDrop: (label, count) =>
-      `Delete the label ${label}? Values: ${count}.`,
+      `Delete the label ${label}? Traits: ${count}.`,
     confirm: 'Yes, delete',
     cancel: 'Cancel',
     dropped: (label) => `The label ${label} is deleted.`,
   },
-  labelAdd: {
+  traitAdd: {
     prompt:
       'Send the label as in GitLab, for example `status::easy`. Letter case, extra spaces and `_` do not matter.',
     invalid: (max) =>
       `This does not look like a label. Send it as in GitLab, for example \`status::easy\`, up to ${max} characters.`,
     exists: (label) => `The label ${label} is already set up.`,
-    forWhom: (label) => `${label}\nWho is the value for?`,
+    forWhom: (label) => `${label}\nWho is the trait for?`,
     everyone: 'For everyone',
     forEveryone: 'for everyone',
     forRole: (role) => `for the ${role} role`,
     chooseDimension: (label, whom) =>
-      `${label} ${whom}\nWhat does this label mean? Choose a group.`,
+      `${label} ${whom}\nWhat does this label mean? Choose a group of traits.`,
     chooseValue: (label, whom, dimension) =>
-      `${label} ${whom} · ${dimension}\nChoose our value.`,
+      `${label} ${whom} · ${dimension}\nChoose the task trait.`,
     alreadySet: (label) =>
-      `The label ${label} already has a value in this group for this role. You can change it in the card.`,
+      `The label ${label} already has a trait in this group for this role. You can change it in the card.`,
     added: (label, whom, value) => `Done: ${label} ${whom} — ${value}.`,
     openCard: 'Open the card',
     addMore: 'Add another',
@@ -509,7 +509,7 @@ export const en: Locale = {
       `**${name}**\nPermissions in the bot. Tap one to grant or revoke it.`,
     descriptions: {
       [Permission.USERS]: 'add, change, block and delete employees',
-      [Permission.LABELS]: 'set up GitLab labels',
+      [Permission.TRAITS]: 'map GitLab labels to task traits',
       [Permission.BROADCAST]: 'send a broadcast to all employees',
       [Permission.SETTINGS]: 'report pause, AI, calendar, system status',
     },
