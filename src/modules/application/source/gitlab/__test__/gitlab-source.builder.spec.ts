@@ -8,9 +8,12 @@ import type {
   GitLabMergeRequest,
   GitLabNote,
 } from 'src/modules/vendors/gitlab/gitlab.interface';
-import { SourceBuilder } from '../source.builder';
-import { SourceActionKind } from '../source.enums';
-import type { IssueActivity, MergeRequestActivity } from '../source.interface';
+import { GitLabSourceBuilder } from '../gitlab-source.builder';
+import { SourceActionKind } from '../../source.enums';
+import type {
+  IssueActivity,
+  MergeRequestActivity,
+} from '../gitlab-source.interface';
 import {
   createAuthor,
   createCommit,
@@ -22,7 +25,7 @@ import {
   createProject,
   createStateEvent,
   REPORT_DATE,
-} from './source.fixture';
+} from './gitlab-source.fixture';
 
 const DAY = getDayRange(REPORT_DATE, 'UTC');
 const USERNAME = 'qa.user';
@@ -48,7 +51,7 @@ function buildMergeRequest(
   mergeRequest: GitLabMergeRequest,
   overrides: Partial<MergeRequestActivity> = {},
 ) {
-  const [grouped] = new SourceBuilder().build(
+  const [grouped] = new GitLabSourceBuilder().build(
     {
       projects: [],
       issues: [],
@@ -63,7 +66,7 @@ function buildMergeRequest(
 }
 
 function buildIssue(overrides: Partial<IssueActivity> = {}) {
-  const [grouped] = new SourceBuilder().build(
+  const [grouped] = new GitLabSourceBuilder().build(
     {
       projects: [],
       issues: [
@@ -91,7 +94,7 @@ function withNotes(notes: GitLabNote[]) {
   return { notes };
 }
 
-describe('SourceBuilder', () => {
+describe('GitLabSourceBuilder', () => {
   describe('merge request reviewers', () => {
     it('keeps the current reviewers', () => {
       const grouped = buildMergeRequest(
@@ -307,7 +310,7 @@ describe('SourceBuilder', () => {
       },
     });
 
-    const grouped = new SourceBuilder().build(
+    const grouped = new GitLabSourceBuilder().build(
       {
         projects: [createProject()],
         issues: [

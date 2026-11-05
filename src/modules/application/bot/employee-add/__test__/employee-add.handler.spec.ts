@@ -4,6 +4,7 @@ import { Channel, ChatInputType } from 'src/common/enums/channel.enums';
 import type { ChatInput } from 'src/common/interfaces/chat-channel.interface';
 import { Language } from 'src/modules/application/i18n/i18n.enums';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
+import { Source } from 'src/modules/application/source/source.enums';
 import {
   Gender,
   JobRole,
@@ -14,6 +15,7 @@ import type {
   UserInsert,
 } from 'src/modules/application/user/user.interface';
 import type { UserService } from 'src/modules/application/user/user.service';
+import type { UserSourceInsert } from 'src/modules/application/user/user-source/user-source.interface';
 import {
   GitLabCertificateError,
   GitLabRejectedError,
@@ -49,8 +51,15 @@ function text(value: string): ChatInput {
 
 describe('EmployeeAddHandler', () => {
   const userService = {
-    findByGitlabId: vi.fn<(id: number) => Promise<User | null>>(),
-    create: vi.fn<(values: UserInsert) => Promise<User>>(),
+    findOneBySource:
+      vi.fn<(source: Source, externalId: string) => Promise<User | null>>(),
+    createWithSource:
+      vi.fn<
+        (
+          values: UserInsert,
+          account: Omit<UserSourceInsert, 'userId'>,
+        ) => Promise<User>
+      >(),
   };
   const gitlabService = {
     searchUsers: vi.fn<(query: string) => Promise<GitLabUser[]>>(),
@@ -83,7 +92,7 @@ describe('EmployeeAddHandler', () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
-    userService.findByGitlabId.mockResolvedValue(null);
+    userService.findOneBySource.mockResolvedValue(null);
   });
 
   it('asks for a GitLab query', async () => {
@@ -182,7 +191,7 @@ describe('EmployeeAddHandler', () => {
 
   it('opens the card of a user who is already an employee', async () => {
     const existing = createEmployee({ displayName: 'Anna' }).user;
-    userService.findByGitlabId.mockResolvedValue(existing);
+    userService.findOneBySource.mockResolvedValue(existing);
 
     const reply = await open(
       button('add:pick:501'),
@@ -224,10 +233,9 @@ describe('EmployeeAddHandler', () => {
   it('creates a pending employee after the gender', async () => {
     const created = createEmployee({
       displayName: CANDIDATE.name,
-      gitlabUserId: CANDIDATE.id,
       status: UserStatus.PENDING,
     }).user;
-    userService.create.mockResolvedValue(created);
+    userService.createWithSource.mockResolvedValue(created);
     gitlabService.hasVisibleActivity.mockResolvedValue(true);
 
     const reply = await open(
@@ -235,13 +243,18 @@ describe('EmployeeAddHandler', () => {
       dialog('gender', { candidate: CANDIDATE, role: JobRole.QA }),
     );
 
-    expect(userService.create).toHaveBeenCalledWith({
-      gitlabUserId: 501,
-      gitlabUsername: 'anna_s',
-      displayName: 'Anna *Smirnova*',
-      role: JobRole.QA,
-      gender: Gender.FEMALE,
-    });
+    expect(userService.findOneBySource).toHaveBeenCalledWith(
+      Source.GITLAB,
+      '501',
+    );
+    expect(userService.createWithSource).toHaveBeenCalledWith(
+      {
+        displayName: 'Anna *Smirnova*',
+        role: JobRole.QA,
+        gender: Gender.FEMALE,
+      },
+      { source: Source.GITLAB, externalId: '501', username: 'anna_s' },
+    );
     expect(gitlabService.hasVisibleActivity).toHaveBeenCalledWith(501);
     expect(reply).toEqual({
       screen: {
@@ -276,7 +289,7 @@ describe('EmployeeAddHandler', () => {
   ])(
     'warns when the GitLab activity is %s',
     async (_name, arrange, warning) => {
-      userService.create.mockResolvedValue(createEmployee().user);
+      userService.createWithSource.mockResolvedValue(createEmployee().user);
       arrange();
 
       const reply = await open(
@@ -293,14 +306,14 @@ describe('EmployeeAddHandler', () => {
   );
 
   it('does not create an employee added in the meantime', async () => {
-    userService.findByGitlabId.mockResolvedValue(createEmployee().user);
+    userService.findOneBySource.mockResolvedValue(createEmployee().user);
 
     const reply = await open(
       button('add:gender:male'),
       dialog('gender', { candidate: CANDIDATE, role: JobRole.DEVELOPER }),
     );
 
-    expect(userService.create).not.toHaveBeenCalled();
+    expect(userService.createWithSource).not.toHaveBeenCalled();
     expect(reply.screen.text).toContain('is already an employee');
   });
 
@@ -327,6 +340,6 @@ describe('EmployeeAddHandler', () => {
     const reply = await open(button(data), current);
 
     expect(reply).toEqual({ screen: { text: locale.bot.expired } });
-    expect(userService.create).not.toHaveBeenCalled();
+    expect(userService.createWithSource).not.toHaveBeenCalled();
   });
 });

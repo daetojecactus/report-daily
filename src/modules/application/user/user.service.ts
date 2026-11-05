@@ -4,15 +4,14 @@ import {
   and,
   arrayContains,
   eq,
-  ilike,
   isNull,
   not,
-  or,
   sql,
   type SQL,
 } from 'drizzle-orm';
 import type { Channel } from 'src/common/enums/channel.enums';
 import type { Language } from 'src/modules/application/i18n/i18n.enums';
+import type { Source } from 'src/modules/application/source/source.enums';
 import { ChannelService } from './channel/channel.service';
 import { USER_LIKE_SPECIAL_CHARACTERS } from './constants/user.constants';
 import { type JobRole, type Permission, UserStatus } from './user.enums';
@@ -24,12 +23,15 @@ import type {
 } from './user.interface';
 import { UserRepository } from './user.repository';
 import { users } from './user.schema';
+import type { UserSourceInsert } from './user-source/user-source.interface';
+import { UserSourceService } from './user-source/user-source.service';
 
 @Injectable()
 export class UserService {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly channelService: ChannelService,
+    private readonly userSourceService: UserSourceService,
   ) {}
 
   find(filter?: SQL) {
@@ -56,12 +58,8 @@ export class UserService {
     return this.findOne(eq(users.id, id));
   }
 
-  findByGitlabId(gitlabUserId: number) {
-    return this.findOne(eq(users.gitlabUserId, gitlabUserId));
-  }
-
-  findByGitlabUsername(gitlabUsername: string) {
-    return this.findOne(eq(users.gitlabUsername, gitlabUsername));
+  findOneBySource(source: Source, externalId: string) {
+    return this.userRepository.findOneBySource(source, externalId);
   }
 
   findPage(limit: number, offset: number) {
@@ -73,14 +71,9 @@ export class UserService {
   }
 
   search(query: string, limit: number) {
-    const pattern = `%${query.replace(USER_LIKE_SPECIAL_CHARACTERS, '\\$&')}%`;
-    return this.userRepository.findPage(
-      or(
-        ilike(users.displayName, pattern),
-        ilike(users.gitlabUsername, pattern),
-      ),
+    return this.userRepository.search(
+      `%${query.replace(USER_LIKE_SPECIAL_CHARACTERS, '\\$&')}%`,
       limit,
-      0,
     );
   }
 
@@ -129,6 +122,16 @@ export class UserService {
 
   deleteById(id: string) {
     return this.deleteOne(eq(users.id, id));
+  }
+
+  @Transactional()
+  async createWithSource(
+    values: UserInsert,
+    account: Omit<UserSourceInsert, 'userId'>,
+  ) {
+    const user = await this.create(values);
+    await this.userSourceService.create({ ...account, userId: user.id });
+    return user;
   }
 
   @Transactional()

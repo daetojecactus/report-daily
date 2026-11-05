@@ -2,6 +2,7 @@ import type { Channel } from 'src/common/enums/channel.enums';
 import type { BotCommand } from 'src/modules/application/bot/bot.enums';
 import type { LabelDimension } from 'src/modules/application/label/label.enums';
 import type { LabelDimensionValueMap } from 'src/modules/application/label/label.interface';
+import type { Source } from 'src/modules/application/source/source.enums';
 import type { Language } from './i18n.enums';
 import type {
   Gender,
@@ -22,6 +23,7 @@ export interface LabelValueText {
 
 export interface Locale {
   channels: Record<Channel, string>;
+  sources: Record<Source, string>;
   languages: Record<Language, string>;
   commands: Record<BotCommand, string>;
   roles: Record<JobRole, string>;
@@ -147,7 +149,6 @@ export interface Locale {
     searchTooMany: (limit: number) => string;
     notFound: string;
     card: {
-      gitlab: string;
       role: string;
       gender: string;
       status: string;

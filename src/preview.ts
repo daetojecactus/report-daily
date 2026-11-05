@@ -10,9 +10,11 @@ import type {
   GroupedIssue,
   GroupedMergeRequest,
   SourceAction,
-} from './modules/application/report/source/source.interface';
-import { SourceService } from './modules/application/report/source/source.service';
+} from './modules/application/source/source.interface';
+import { Source } from './modules/application/source/source.enums';
+import { SourceService } from './modules/application/source/source.service';
 import { UserService } from './modules/application/user/user.service';
+import { UserSourceService } from './modules/application/user/user-source/user-source.service';
 import type { AppEnvs } from './modules/infrastructure/config/config.env';
 import { PreviewModule } from './modules/preview.module';
 
@@ -134,8 +136,11 @@ const app = await NestFactory.createApplicationContext(PreviewModule, {
   logger: ['error', 'warn'],
 });
 try {
-  const user = await app.get(UserService).findByGitlabUsername(username);
-  if (!user) {
+  const account = await app
+    .get(UserSourceService)
+    .findOneByUsername(Source.GITLAB, username);
+  const user = account && (await app.get(UserService).findById(account.userId));
+  if (!account || !user) {
     Logger.error(`${DefaultMessages.PREVIEW_EMPLOYEE_NOT_FOUND}: ${username}`);
     process.exitCode = 1;
   } else {
@@ -144,11 +149,9 @@ try {
       app
         .get<ConfigService<AppEnvs, true>>(ConfigService)
         .get('APP_TIMEZONE', { infer: true });
-    const day = await app
-      .get(SourceService)
-      .collect(user.gitlabUserId, date, timeZone);
+    const day = await app.get(SourceService).collect(account, date, timeZone);
     const lines = [
-      [user.gitlabUsername, user.role, date, timeZone].join(' · '),
+      [account.username, user.role, date, timeZone].join(' · '),
       `issues: ${day.issues.length}, merge requests without an issue: ${day.standaloneMergeRequests.length}, pushes without a merge request: ${day.standalonePushes.length}`,
       ...describeDay(day),
     ];

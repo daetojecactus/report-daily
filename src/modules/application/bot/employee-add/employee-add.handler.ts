@@ -8,6 +8,7 @@ import {
   JobRole,
   Permission,
 } from 'src/modules/application/user/user.enums';
+import { Source } from 'src/modules/application/source/source.enums';
 import { UserService } from 'src/modules/application/user/user.service';
 import {
   GitLabCertificateError,
@@ -160,7 +161,10 @@ export class EmployeeAddHandler implements BotHandler {
     if (!candidate) {
       return { screen: { text: locale.bot.expired } };
     }
-    const existing = await this.userService.findByGitlabId(candidate.id);
+    const existing = await this.userService.findOneBySource(
+      Source.GITLAB,
+      String(candidate.id),
+    );
     if (existing) {
       return this.showExisting(locale, existing.id, existing.displayName);
     }
@@ -218,25 +222,29 @@ export class EmployeeAddHandler implements BotHandler {
       return { screen: { text: locale.bot.expired } };
     }
     const { candidate, role } = draft;
-    const existing = await this.userService.findByGitlabId(candidate.id);
+    const existing = await this.userService.findOneBySource(
+      Source.GITLAB,
+      String(candidate.id),
+    );
     if (existing) {
       return this.showExisting(locale, existing.id, existing.displayName);
     }
 
-    const user = await this.userService.create({
-      gitlabUserId: candidate.id,
-      gitlabUsername: candidate.username,
-      displayName: candidate.name,
-      role,
-      gender,
-    });
+    const user = await this.userService.createWithSource(
+      { displayName: candidate.name, role, gender },
+      {
+        source: Source.GITLAB,
+        externalId: String(candidate.id),
+        username: candidate.username,
+      },
+    );
     this.logger.log(
       { userId: user.id, actorId: actor.user?.id ?? BotAccess.OWNER },
       EmployeeAddMessages.EMPLOYEE_ADDED,
     );
 
     const lines = [locale.employeeAdd.added(escapeMarkdown(user.displayName))];
-    const isActivityVisible = await this.checkActivity(user.gitlabUserId);
+    const isActivityVisible = await this.checkActivity(candidate.id);
     if (isActivityVisible === false) {
       lines.push(locale.employeeAdd.activityHidden);
     }

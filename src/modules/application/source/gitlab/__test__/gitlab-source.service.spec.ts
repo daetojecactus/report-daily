@@ -13,8 +13,9 @@ import type {
   GitLabStateEvent,
 } from 'src/modules/vendors/gitlab/gitlab.interface';
 import type { GitLabService } from 'src/modules/vendors/gitlab/gitlab.service';
-import { SourceBuilder } from '../source.builder';
-import { SourceService } from '../source.service';
+import { Source } from '../../source.enums';
+import { GitLabSourceBuilder } from '../gitlab-source.builder';
+import { GitLabSourceService } from '../gitlab-source.service';
 import {
   createEvent,
   createIssue,
@@ -24,7 +25,7 @@ import {
   createStateEvent,
   PROJECT_ID,
   REPORT_DATE,
-} from './source.fixture';
+} from './gitlab-source.fixture';
 
 const GITLAB_USER_ID = 501;
 
@@ -100,10 +101,22 @@ function createGitLab(data: GitLabData) {
 }
 
 function collect(gitlab: ReturnType<typeof createGitLab>, timeZone = 'UTC') {
-  return new SourceService(
+  return new GitLabSourceService(
     gitlab as unknown as GitLabService,
-    new SourceBuilder(),
-  ).collect(GITLAB_USER_ID, REPORT_DATE, timeZone);
+    new GitLabSourceBuilder(),
+  ).collect(
+    {
+      id: '0190b5a8-0000-7000-8000-000000000003',
+      userId: '0190b5a8-0000-7000-8000-000000000001',
+      source: Source.GITLAB,
+      externalId: String(GITLAB_USER_ID),
+      username: 'qa.user',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    REPORT_DATE,
+    timeZone,
+  );
 }
 
 function issueEvent(iid: number, overrides: Partial<GitLabEvent> = {}) {
@@ -140,7 +153,7 @@ function pushEvent(branch: string) {
   });
 }
 
-describe('SourceService', () => {
+describe('GitLabSourceService', () => {
   it('keeps only the events of the day in the time zone of the employee', async () => {
     const gitlab = createGitLab({
       events: [

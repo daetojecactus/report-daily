@@ -16,32 +16,36 @@ import type {
   GitLabStateEvent,
 } from 'src/modules/vendors/gitlab/gitlab.interface';
 import {
-  SOURCE_ASSIGNEE_CHANGE,
-  SOURCE_DRAFT_ACTIONS,
-  SOURCE_MENTION_PATTERN,
-  SOURCE_NOTE_ACTIONS,
-  SOURCE_REVIEWER_CHANGE,
-  SOURCE_STATE_ACTIONS,
-} from './constants/source.constants';
-import { SourceActionKind } from './source.enums';
+  GITLAB_SOURCE_ASSIGNEE_CHANGE,
+  GITLAB_SOURCE_DRAFT_ACTIONS,
+  GITLAB_SOURCE_ITEM_STATES,
+  GITLAB_SOURCE_LABEL_ACTIONS,
+  GITLAB_SOURCE_MENTION_PATTERN,
+  GITLAB_SOURCE_NOTE_ACTIONS,
+  GITLAB_SOURCE_REVIEWER_CHANGE,
+  GITLAB_SOURCE_STATE_ACTIONS,
+} from './constants/gitlab-source.constants';
+import { SourceActionKind } from '../source.enums';
 import type {
   CleanEvent,
   CleanLabelEvent,
   CleanNote,
-  DayActivity,
   GroupedDailyData,
   GroupedIssue,
   GroupedMergeRequest,
-  IssueActivity,
-  MergeRequestActivity,
   ReviewThreads,
   SourceAction,
+} from '../source.interface';
+import type {
+  DayActivity,
+  IssueActivity,
+  MergeRequestActivity,
   SourceBuildContext,
   SourceUserChange,
-} from './source.interface';
+} from './gitlab-source.interface';
 
 @Injectable()
-export class SourceBuilder {
+export class GitLabSourceBuilder {
   build(
     activity: DayActivity,
     day: DayRange,
@@ -81,7 +85,10 @@ export class SourceBuilder {
       projectId: issue.project_id,
       iid: issue.iid,
       title: issue.title,
-      state: this.resolveStateAsOfDate(issue.state, stateEvents, day),
+      state:
+        GITLAB_SOURCE_ITEM_STATES[
+          this.resolveStateAsOfDate(issue.state, stateEvents, day)
+        ],
       closedOnReportDate: this.hasStateChangeOnDate(
         stateEvents,
         day,
@@ -94,7 +101,7 @@ export class SourceBuilder {
         this.toUsernames(issue.assignees),
         notes,
         day,
-        SOURCE_ASSIGNEE_CHANGE,
+        GITLAB_SOURCE_ASSIGNEE_CHANGE,
       ),
       status: this.resolveStatus(notes, day),
       actions: this.resolveActions(issue, activity, context),
@@ -117,7 +124,10 @@ export class SourceBuilder {
       projectId: mergeRequest.project_id,
       iid: mergeRequest.iid,
       title: mergeRequest.title,
-      state: this.resolveStateAsOfDate(mergeRequest.state, stateEvents, day),
+      state:
+        GITLAB_SOURCE_ITEM_STATES[
+          this.resolveStateAsOfDate(mergeRequest.state, stateEvents, day)
+        ],
       mergedOnReportDate: this.hasStateChangeOnDate(
         stateEvents,
         day,
@@ -134,7 +144,7 @@ export class SourceBuilder {
         this.toUsernames(mergeRequest.assignees),
         notes,
         day,
-        SOURCE_ASSIGNEE_CHANGE,
+        GITLAB_SOURCE_ASSIGNEE_CHANGE,
       ),
       reviewers: this.resolveReviewers(mergeRequest, notes, day),
       closesIssues: activity.closingIssues.map((issue) => ({
@@ -182,7 +192,7 @@ export class SourceBuilder {
       }
     }
     for (const event of stateEvents) {
-      const kind = SOURCE_STATE_ACTIONS.get(event.state);
+      const kind = GITLAB_SOURCE_STATE_ACTIONS.get(event.state);
       if (kind && this.isOwnAction(event.user, event.created_at, context)) {
         actions.push(this.toAction(kind, event.created_at));
       }
@@ -196,8 +206,8 @@ export class SourceBuilder {
     if (!note.system) {
       return [this.toAction(SourceActionKind.COMMENTED, note.created_at)];
     }
-    const assignees = this.parseUserChange(note, SOURCE_ASSIGNEE_CHANGE);
-    const reviewers = this.parseUserChange(note, SOURCE_REVIEWER_CHANGE);
+    const assignees = this.parseUserChange(note, GITLAB_SOURCE_ASSIGNEE_CHANGE);
+    const reviewers = this.parseUserChange(note, GITLAB_SOURCE_REVIEWER_CHANGE);
     const userActions = [
       { kind: SourceActionKind.ASSIGNED, users: assignees.added },
       { kind: SourceActionKind.UNASSIGNED, users: assignees.removed },
@@ -224,7 +234,7 @@ export class SourceBuilder {
     if (!note.system) {
       return null;
     }
-    for (const { pattern, kind } of SOURCE_NOTE_ACTIONS) {
+    for (const { pattern, kind } of GITLAB_SOURCE_NOTE_ACTIONS) {
       const match = pattern.exec(note.body);
       if (match) {
         return { kind, value: match[1] ?? null };
@@ -309,12 +319,13 @@ export class SourceBuilder {
       this.toUsernames(mergeRequest.reviewers),
       notes,
       day,
-      SOURCE_REVIEWER_CHANGE,
+      GITLAB_SOURCE_REVIEWER_CHANGE,
     );
     const requested = notes
       .filter((note) => Date.parse(note.created_at) < day.end)
       .flatMap(
-        (note) => this.parseUserChange(note, SOURCE_REVIEWER_CHANGE).added,
+        (note) =>
+          this.parseUserChange(note, GITLAB_SOURCE_REVIEWER_CHANGE).added,
       );
     return [...new Set([...atEndOfDay, ...requested])];
   }
@@ -341,7 +352,7 @@ export class SourceBuilder {
       const match = this.matchNote(note);
       if (
         match &&
-        SOURCE_DRAFT_ACTIONS.has(match.kind) &&
+        GITLAB_SOURCE_DRAFT_ACTIONS.has(match.kind) &&
         Date.parse(note.created_at) >= day.end
       ) {
         return match.kind === SourceActionKind.MARKED_READY;
@@ -375,7 +386,7 @@ export class SourceBuilder {
   }
 
   private toMentions(text: string) {
-    return [...text.matchAll(SOURCE_MENTION_PATTERN)].map(
+    return [...text.matchAll(GITLAB_SOURCE_MENTION_PATTERN)].map(
       ([, username]) => username,
     );
   }
@@ -476,7 +487,7 @@ export class SourceBuilder {
             {
               id: event.id,
               labelName: event.label.name,
-              action: event.action,
+              action: GITLAB_SOURCE_LABEL_ACTIONS[event.action],
               createdAt: event.created_at,
               username: event.user.username,
             },

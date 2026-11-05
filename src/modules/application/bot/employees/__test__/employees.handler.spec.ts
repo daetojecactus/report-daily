@@ -13,10 +13,15 @@ import {
 } from 'src/modules/application/user/user.enums';
 import type { User } from 'src/modules/application/user/user.interface';
 import type { UserService } from 'src/modules/application/user/user.service';
+import type { UserSource } from 'src/modules/application/user/user-source/user-source.interface';
+import type { UserSourceService } from 'src/modules/application/user/user-source/user-source.service';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { AccessService } from '../../access/access.service';
 import type { BotActor, BotDialog } from '../../bot.interface';
-import { createEmployee } from '../../__test__/bot.fixture';
+import {
+  createEmployee,
+  createSourceAccount,
+} from '../../__test__/bot.fixture';
 import { EmployeesHandler } from '../employees.handler';
 
 const locale = new I18nService().getLocale(Language.EN);
@@ -49,9 +54,13 @@ describe('EmployeesHandler', () => {
   const channelService = {
     findByUser: vi.fn<(userId: string) => Promise<UserChannel[]>>(),
   };
+  const userSourceService = {
+    findByUser: vi.fn<(userId: string) => Promise<UserSource[]>>(),
+  };
   const handler = new EmployeesHandler(
     userService as unknown as UserService,
     channelService as unknown as ChannelService,
+    userSourceService as unknown as UserSourceService,
     new AccessService(
       { get: () => [] } as unknown as ConfigService<AppEnvs, true>,
       {} as UserService,
@@ -82,6 +91,7 @@ describe('EmployeesHandler', () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
+    userSourceService.findByUser.mockResolvedValue([]);
   });
 
   it('shows the first page with navigation, search and menu', async () => {
@@ -160,10 +170,12 @@ describe('EmployeesHandler', () => {
   it('shows a card with channels and permissions', async () => {
     const user = employee(1, {
       displayName: 'Anna *Smirnova*',
-      gitlabUsername: 'anna_s',
       permissions: [Permission.USERS, Permission.LABELS],
     });
     userService.findById.mockResolvedValue(user);
+    userSourceService.findByUser.mockResolvedValue([
+      createSourceAccount({ userId: user.id, username: 'anna_s' }),
+    ]);
     channelService.findByUser.mockResolvedValue([
       { ...createEmployee().channel, reachable: false },
     ]);

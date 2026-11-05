@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { and, asc, eq, type SQL } from 'drizzle-orm';
+import { and, asc, eq, ilike, inArray, or, type SQL } from 'drizzle-orm';
 import type { Channel } from 'src/common/enums/channel.enums';
+import type { Source } from 'src/modules/application/source/source.enums';
 import { DatabaseService } from 'src/modules/infrastructure/database/database.service';
 import { userChannels } from './channel/channel.schema';
+import { userSources } from './user-source/user-source.schema';
 import type { UserInsert, UserUpdate, UserWithChannel } from './user.interface';
 import { users } from './user.schema';
 
@@ -58,6 +60,18 @@ export class UserRepository {
       .offset(offset);
   }
 
+  search(pattern: string, limit: number) {
+    const accounts = this.databaseService.db
+      .select({ userId: userSources.userId })
+      .from(userSources)
+      .where(ilike(userSources.username, pattern));
+    return this.findPage(
+      or(ilike(users.displayName, pattern), inArray(users.id, accounts)),
+      limit,
+      0,
+    );
+  }
+
   count(filter?: SQL) {
     return this.databaseService.db.$count(users, filter);
   }
@@ -78,5 +92,20 @@ export class UserRepository {
       )
       .limit(1);
     return row ?? null;
+  }
+
+  async findOneBySource(source: Source, externalId: string) {
+    const [row] = await this.databaseService.db
+      .select({ user: users })
+      .from(userSources)
+      .innerJoin(users, eq(users.id, userSources.userId))
+      .where(
+        and(
+          eq(userSources.source, source),
+          eq(userSources.externalId, externalId),
+        ),
+      )
+      .limit(1);
+    return row?.user ?? null;
   }
 }

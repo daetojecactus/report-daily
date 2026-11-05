@@ -10,6 +10,7 @@ import {
   UserStatus,
 } from 'src/modules/application/user/user.enums';
 import { Language } from 'src/modules/application/i18n/i18n.enums';
+import { Source } from 'src/modules/application/source/source.enums';
 import { DATABASE_INSTANCE } from 'src/modules/infrastructure/database/constants/database.constants';
 import { createTestApp } from 'test/setup/test-app';
 import type { UserChannelInsert } from '../channel/channel.interface';
@@ -18,6 +19,8 @@ import { ChannelService } from '../channel/channel.service';
 import type { UserInsert } from '../user.interface';
 import { users } from '../user.schema';
 import { UserService } from '../user.service';
+import { userSources } from '../user-source/user-source.schema';
+import { UserSourceService } from '../user-source/user-source.service';
 
 let nextId = 400_000_000;
 
@@ -26,31 +29,40 @@ describe('User module', () => {
   let db: NodePgDatabase;
   let userService: UserService;
   let channelService: ChannelService;
+  let userSourceService: UserSourceService;
 
   beforeAll(async () => {
     app = await createTestApp();
     db = app.get<NodePgDatabase>(DATABASE_INSTANCE);
     userService = app.get(UserService);
     channelService = app.get(ChannelService);
+    userSourceService = app.get(UserSourceService);
   });
 
   afterAll(async () => {
     await app.close();
   });
 
-  async function insertUser(values: Partial<UserInsert> = {}) {
-    const gitlabUserId = nextId++;
+  async function insertUser(
+    values: Partial<UserInsert> = {},
+    username = `user${nextId}`,
+  ) {
+    const externalId = String(nextId++);
     const [user] = await db
       .insert(users)
       .values({
-        gitlabUserId,
-        gitlabUsername: `user${gitlabUserId}`,
         displayName: 'Anna_Smirnova',
         role: JobRole.QA,
         gender: Gender.FEMALE,
         ...values,
       })
       .returning();
+    await db.insert(userSources).values({
+      userId: user.id,
+      source: Source.GITLAB,
+      externalId,
+      username,
+    });
     return user;
   }
 
@@ -85,11 +97,9 @@ describe('User module', () => {
 
   describe('UserService', () => {
     it('creates, finds, updates and deletes a user', async () => {
-      const gitlabUserId = nextId++;
+      const displayName = `Petr${nextId++}`;
       const created = await userService.create({
-        gitlabUserId,
-        gitlabUsername: `user${gitlabUserId}`,
-        displayName: 'Petr',
+        displayName,
         role: JobRole.DEVELOPER,
         gender: Gender.MALE,
       });
@@ -98,7 +108,7 @@ describe('User module', () => {
         created,
       );
       expect(
-        await userService.find(eq(users.gitlabUserId, gitlabUserId)),
+        await userService.find(eq(users.displayName, displayName)),
       ).toEqual([created]);
       expect(
         await userService.updateOne(eq(users.id, created.id), {
@@ -132,20 +142,35 @@ describe('User module', () => {
       ).toBeNull();
     });
 
-    it('finds a user by the GitLab id', async () => {
-      const user = await insertUser();
-
-      expect(await userService.findByGitlabId(user.gitlabUserId)).toEqual(user);
-      expect(await userService.findByGitlabId(nextId++)).toBeNull();
-    });
-
-    it('finds a user by the GitLab username', async () => {
+    it('finds a user by the account in a source', async () => {
+      const externalId = String(nextId);
       const user = await insertUser();
 
       expect(
-        await userService.findByGitlabUsername(user.gitlabUsername),
+        await userService.findOneBySource(Source.GITLAB, externalId),
       ).toEqual(user);
-      expect(await userService.findByGitlabUsername('nobody')).toBeNull();
+      expect(
+        await userService.findOneBySource(Source.GITLAB, String(nextId++)),
+      ).toBeNull();
+    });
+
+    it('creates a user with the account in a source at once', async () => {
+      const externalId = String(nextId++);
+      const user = await userService.createWithSource(
+        { displayName: 'Olga', role: JobRole.QA, gender: Gender.FEMALE },
+        { source: Source.GITLAB, externalId, username: `olga${externalId}` },
+      );
+
+      expect(await userSourceService.findByUser(user.id)).toMatchObject([
+        { source: Source.GITLAB, externalId, username: `olga${externalId}` },
+      ]);
+      await expect(
+        userService.createWithSource(
+          { displayName: 'Copy', role: JobRole.QA, gender: Gender.FEMALE },
+          { source: Source.GITLAB, externalId, username: 'copy' },
+        ),
+      ).rejects.toThrow();
+      expect(await userService.find(eq(users.displayName, 'Copy'))).toEqual([]);
     });
 
     it('counts users and pages them by name', async () => {
@@ -162,10 +187,10 @@ describe('User module', () => {
       const tag = `Tag${nextId}`;
       const second = await insertUser({ displayName: `${tag} Boris` });
       const first = await insertUser({ displayName: `${tag} Anna` });
-      const byUsername = await insertUser({
-        displayName: 'Viktor',
-        gitlabUsername: `${tag.toLowerCase()}_viktor`,
-      });
+      const byUsername = await insertUser(
+        { displayName: 'Viktor' },
+        `${tag.toLowerCase()}_viktor`,
+      );
 
       expect(
         (await userService.search(tag.toUpperCase(), 10)).map(
@@ -565,14 +590,46 @@ describe('User module', () => {
       });
     });
 
-    it('rejects a second user with the same gitlab id', async () => {
-      const user = await insertUser();
+    it('links an account in a source to one user and one account per source to a user', async () => {
+      const externalId = String(nextId);
+      const first = await insertUser();
+      const [withoutAccount] = await db
+        .insert(users)
+        .values({
+          displayName: 'Bare',
+          role: JobRole.QA,
+          gender: Gender.FEMALE,
+        })
+        .returning();
 
       await expect(
-        insertUser({ gitlabUserId: user.gitlabUserId }),
+        db.insert(userSources).values({
+          userId: withoutAccount.id,
+          source: Source.GITLAB,
+          externalId,
+          username: 'copy',
+        }),
       ).rejects.toMatchObject({
-        cause: { constraint: 'users_gitlab_user_id_unique' },
+        cause: { constraint: 'user_sources_source_external_id_unique' },
       });
+      await expect(
+        db.insert(userSources).values({
+          userId: first.id,
+          source: Source.GITLAB,
+          externalId: String(nextId++),
+          username: 'second',
+        }),
+      ).rejects.toMatchObject({
+        cause: { constraint: 'user_sources_user_id_source_unique' },
+      });
+    });
+
+    it('deletes the accounts in sources together with the user', async () => {
+      const user = await insertUser();
+
+      await userService.deleteById(user.id);
+
+      expect(await userSourceService.findByUser(user.id)).toEqual([]);
     });
 
     it('links an external id to one user per channel', async () => {
