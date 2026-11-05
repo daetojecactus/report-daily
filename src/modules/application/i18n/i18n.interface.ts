@@ -161,6 +161,7 @@ export interface Locale {
   employeeAdd: {
     prompt: string;
     gitlabUnavailable: string;
+    gitlabCertificate: string;
     noMatches: string;
     pick: (query: string) => string;
     role: (name: string) => string;

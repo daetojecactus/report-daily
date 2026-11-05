@@ -10,6 +10,7 @@ import {
 } from 'src/modules/application/user/user.enums';
 import { UserService } from 'src/modules/application/user/user.service';
 import {
+  GitLabCertificateError,
   GitLabRejectedError,
   GitLabRetryableError,
 } from 'src/modules/vendors/gitlab/gitlab.error';
@@ -111,7 +112,12 @@ export class EmployeeAddHandler implements BotHandler {
       this.logger.warn(
         `${EmployeeAddMessages.GITLAB_FAILED}: ${getErrorMessage(error)}`,
       );
-      return this.askQuery(locale, locale.employeeAdd.gitlabUnavailable);
+      return this.askQuery(
+        locale,
+        error instanceof GitLabCertificateError
+          ? locale.employeeAdd.gitlabCertificate
+          : locale.employeeAdd.gitlabUnavailable,
+      );
     }
     if (candidates.length === 0) {
       return this.askQuery(locale, locale.employeeAdd.noMatches);
@@ -288,7 +294,8 @@ export class EmployeeAddHandler implements BotHandler {
   private isGitLabFailure(error: unknown) {
     return (
       error instanceof GitLabRetryableError ||
-      error instanceof GitLabRejectedError
+      error instanceof GitLabRejectedError ||
+      error instanceof GitLabCertificateError
     );
   }
 

@@ -464,6 +464,8 @@ export const en: Locale = {
     prompt: "Enter the employee's name or username in GitLab.",
     gitlabUnavailable:
       'GitLab is unavailable right now. Try again a bit later: just send the query again.',
+    gitlabCertificate:
+      "GitLab's certificate is not trusted: the bot's server needs your company's CA certificate. Owner: see `NODE_EXTRA_CA_CERTS` in the README.",
     noMatches: 'Nobody found in GitLab. Try another name or username.',
     pick: (query) => `**GitLab:** ${query}\nChoose the employee.`,
     role: (name) => `**${name}**\nChoose the role.`,

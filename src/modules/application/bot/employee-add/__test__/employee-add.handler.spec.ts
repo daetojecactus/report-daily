@@ -15,6 +15,7 @@ import type {
 } from 'src/modules/application/user/user.interface';
 import type { UserService } from 'src/modules/application/user/user.service';
 import {
+  GitLabCertificateError,
   GitLabRejectedError,
   GitLabRetryableError,
 } from 'src/modules/vendors/gitlab/gitlab.error';
@@ -139,6 +140,17 @@ describe('EmployeeAddHandler', () => {
     const reply = await open(text('anna'), dialog('query', {}));
 
     expect(reply.screen.text).toBe(locale.employeeAdd.gitlabUnavailable);
+    expect(reply.dialog).toEqual(dialog('query', {}));
+  });
+
+  it('asks the owner to set up the CA certificate of GitLab', async () => {
+    gitlabService.searchUsers.mockRejectedValue(
+      new GitLabCertificateError('UNABLE_TO_VERIFY_LEAF_SIGNATURE'),
+    );
+
+    const reply = await open(text('anna'), dialog('query', {}));
+
+    expect(reply.screen.text).toBe(locale.employeeAdd.gitlabCertificate);
     expect(reply.dialog).toEqual(dialog('query', {}));
   });
 

@@ -4,6 +4,7 @@ import { getFailureReason } from 'src/common/utils/error.util';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import {
   GITLAB_API_PATH,
+  GITLAB_CERTIFICATE_ERROR_CODES,
   GITLAB_NOT_FOUND,
   GITLAB_REQUEST_TIMEOUT_MS,
   GITLAB_RETRY_AFTER_HEADER,
@@ -13,7 +14,11 @@ import {
   GITLAB_URL_TRAILING_SLASHES,
 } from './constants/gitlab.constants';
 import { GitLabMessages } from './constants/gitlab.messages';
-import { GitLabRejectedError, GitLabRetryableError } from './gitlab.error';
+import {
+  GitLabCertificateError,
+  GitLabRejectedError,
+  GitLabRetryableError,
+} from './gitlab.error';
 import type { GitLabQuery } from './gitlab.interface';
 
 @Injectable()
@@ -61,8 +66,14 @@ export class GitLabClient {
         signal: AbortSignal.timeout(GITLAB_REQUEST_TIMEOUT_MS),
       });
     } catch (error) {
+      const reason = getFailureReason(error);
+      if (GITLAB_CERTIFICATE_ERROR_CODES.has(reason)) {
+        throw new GitLabCertificateError(
+          `${GitLabMessages.CERTIFICATE_UNTRUSTED}: ${path}: ${reason}`,
+        );
+      }
       throw new GitLabRetryableError(
-        `${GitLabMessages.REQUEST_FAILED}: ${path}: ${getFailureReason(error)}`,
+        `${GitLabMessages.REQUEST_FAILED}: ${path}: ${reason}`,
       );
     }
   }

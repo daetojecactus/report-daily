@@ -40,6 +40,16 @@ Fill in `OWNER_TELEGRAM_IDS`, `TELEGRAM_BOT_TOKEN`, `GITLAB_URL` and `GITLAB_TOK
 | `GITLAB_TOKEN` | yes | | Token of a GitLab service account with the `read_api` and `read_user` scopes |
 | `LOG_LEVEL` | no | `info` | `fatal`, `error`, `warn`, `info`, `debug`, `trace` or `silent` |
 | `PORT` | no | `3000` | Port of the health endpoints |
+| `NODE_EXTRA_CA_CERTS` | no | | Path to a PEM file with the CA certificate of a GitLab signed by a company CA. Not read from `.env`, see below |
+
+## GitLab with a company certificate
+
+If GitLab uses a certificate of an internal certificate authority, the bot reports that the GitLab certificate is not trusted. Give Node.js the CA certificate in `NODE_EXTRA_CA_CERTS`. TLS checks are never switched off.
+
+Node.js reads this variable when the process starts, before `.env` is loaded with `--env-file`, so it has to be in the environment of the process:
+
+- **Development:** start the bot with the variable: `NODE_EXTRA_CA_CERTS=/path/to/company-ca.pem pnpm watch`.
+- **Docker:** mount the file into the container and set `NODE_EXTRA_CA_CERTS` in the `environment` of the service.
 
 ## License
 
