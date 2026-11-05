@@ -1,3 +1,4 @@
+import type { DayRange } from 'src/common/interfaces/date.interface';
 import type {
   GitLabLabelAction,
   GitLabState,
@@ -12,6 +13,7 @@ import type {
   GitLabProject,
   GitLabStateEvent,
 } from 'src/modules/vendors/gitlab/gitlab.interface';
+import type { SourceActionKind } from './source.enums';
 
 export interface SourceItem {
   projectId: number;
@@ -26,6 +28,11 @@ export interface SourceBranch {
 export interface SourceUserChange {
   added: string;
   removed: string;
+}
+
+export interface SourceNoteAction {
+  pattern: RegExp;
+  kind: SourceActionKind;
 }
 
 export interface SourceEvents<T> {
@@ -68,6 +75,25 @@ export interface DayActivity {
   issues: IssueActivity[];
   mergeRequests: MergeRequestActivity[];
   pushes: SourceEvents<SourceBranch>[];
+  pushCommits: Map<number, GitLabCommit[]>;
+}
+
+export interface SourceBuildContext {
+  day: DayRange;
+  userId: number;
+  pushCommits: Map<number, GitLabCommit[]>;
+}
+
+export interface SourceAction {
+  kind: SourceActionKind;
+  at: string;
+  value: string | null;
+  users: string[];
+}
+
+export interface CleanCommit {
+  id: string;
+  title: string;
 }
 
 export interface CleanPushData {
@@ -76,6 +102,7 @@ export interface CleanPushData {
   refType: string;
   ref: string | null;
   commitTitle: string | null;
+  commits: CleanCommit[];
 }
 
 export interface CleanEvent {
@@ -137,6 +164,7 @@ export interface GroupedMergeRequest {
   assignees: string[];
   reviewers: string[];
   closesIssues: IssueReference[];
+  actions: SourceAction[];
   events: CleanEvent[];
   notes: CleanNote[];
   labelEvents: CleanLabelEvent[];
@@ -153,6 +181,8 @@ export interface GroupedIssue {
   labels: string[];
   createdAt: string;
   assignees: string[];
+  status: string | null;
+  actions: SourceAction[];
   events: CleanEvent[];
   notes: CleanNote[];
   labelEvents: CleanLabelEvent[];

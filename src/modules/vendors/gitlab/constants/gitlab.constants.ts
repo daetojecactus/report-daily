@@ -38,6 +38,8 @@ export const GITLAB_COMMITS_PATH = '/commits';
 
 export const GITLAB_CLOSES_ISSUES_PATH = '/closes_issues';
 
+export const GITLAB_REPOSITORY_COMMITS_PATH = '/repository/commits';
+
 export const GITLAB_USER_SEARCH_LIMIT = 10;
 
 export const GITLAB_EVENTS_MARGIN_DAYS = 2;

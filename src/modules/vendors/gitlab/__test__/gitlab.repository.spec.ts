@@ -203,6 +203,18 @@ describe('GitLabRepository', () => {
     });
   });
 
+  it('reads the commits of a ref up to a limit', async () => {
+    client.get.mockResolvedValueOnce(respond(200, [{ id: 'bbb' }]));
+    client.get.mockResolvedValueOnce(respond(404, { message: 'Not Found' }));
+
+    expect(await repository.findCommits(3, 'bbb', 2)).toEqual([{ id: 'bbb' }]);
+    expect(await repository.findCommits(3, 'gone', 2)).toEqual([]);
+    expect(client.get).toHaveBeenCalledWith('/projects/3/repository/commits', {
+      ref_name: 'bbb',
+      per_page: 2,
+    });
+  });
+
   it.each([401, 403, 400])(
     'rejects without retries on status %i',
     async (status) => {

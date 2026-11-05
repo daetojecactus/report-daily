@@ -1,7 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { addDays } from 'src/common/utils/date.util';
-import { GITLAB_EVENTS_MARGIN_DAYS } from './constants/gitlab.constants';
+import {
+  GITLAB_EVENTS_MARGIN_DAYS,
+  GITLAB_PAGE_SIZE,
+} from './constants/gitlab.constants';
 import type { GitLabIssuable } from './gitlab.enums';
+import type { GitLabPushData } from './gitlab.interface';
 import { GitLabRepository } from './gitlab.repository';
 
 @Injectable()
@@ -62,5 +66,23 @@ export class GitLabService {
 
   findMergeRequestCommits(projectId: number, iid: number) {
     return this.gitlabRepository.findMergeRequestCommits(projectId, iid);
+  }
+
+  async findPushCommits(
+    projectId: number,
+    { commit_from: from, commit_to: to, commit_count: count }: GitLabPushData,
+  ) {
+    if (!to || !count) {
+      return [];
+    }
+    const commits = await this.gitlabRepository.findCommits(
+      projectId,
+      to,
+      Math.min(count, GITLAB_PAGE_SIZE),
+    );
+    const fromIndex = commits.findIndex((commit) => commit.id === from);
+    return (
+      fromIndex === -1 ? commits : commits.slice(0, fromIndex)
+    ).toReversed();
   }
 }

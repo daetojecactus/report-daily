@@ -34,6 +34,8 @@ export interface GitLabPushData {
   ref_type: string;
   ref: string | null;
   commit_count: number;
+  commit_from: string | null;
+  commit_to: string | null;
   commit_title: string | null;
 }
 
@@ -71,6 +73,7 @@ export interface GitLabIssue {
   labels: string[];
   web_url: string;
   created_at: string;
+  author?: GitLabAuthor | null;
   assignees?: GitLabAuthor[];
 }
 
@@ -111,12 +114,14 @@ export interface GitLabLabelEvent {
 
 export interface GitLabStateEvent {
   id: number;
+  user?: GitLabAuthor | null;
   created_at: string;
   state: GitLabState;
 }
 
 export interface GitLabCommit {
   id: string;
+  title: string;
   created_at: string;
   committed_date?: string;
 }

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { GitLabIssuable } from '../gitlab.enums';
+import type { GitLabPushData } from '../gitlab.interface';
 import type { GitLabRepository } from '../gitlab.repository';
 import { GitLabService } from '../gitlab.service';
 
@@ -18,6 +19,7 @@ describe('GitLabService', () => {
     findLabelEvents: vi.fn(),
     findStateEvents: vi.fn(),
     findMergeRequestCommits: vi.fn(),
+    findCommits: vi.fn(),
   };
   const service = new GitLabService(repository as unknown as GitLabRepository);
 
@@ -37,6 +39,57 @@ describe('GitLabService', () => {
       expect(repository.findLastUserEvent).toHaveBeenCalledWith(7);
     },
   );
+
+  function push(overrides: Partial<GitLabPushData> = {}): GitLabPushData {
+    return {
+      action: 'pushed',
+      ref_type: 'branch',
+      ref: '12-login',
+      commit_count: 2,
+      commit_from: 'aaa',
+      commit_to: 'ccc',
+      commit_title: 'feat: c',
+      ...overrides,
+    };
+  }
+
+  it('finds the commits of a push from the oldest to the newest', async () => {
+    repository.findCommits.mockResolvedValue([
+      { id: 'ccc' },
+      { id: 'bbb' },
+      { id: 'aaa' },
+    ]);
+
+    expect(await service.findPushCommits(3, push())).toEqual([
+      { id: 'bbb' },
+      { id: 'ccc' },
+    ]);
+    expect(repository.findCommits).toHaveBeenCalledWith(3, 'ccc', 2);
+  });
+
+  it('takes the commits of a new branch up to the count', async () => {
+    repository.findCommits.mockResolvedValue([{ id: 'ccc' }, { id: 'bbb' }]);
+
+    expect(
+      await service.findPushCommits(3, push({ commit_from: null })),
+    ).toEqual([{ id: 'bbb' }, { id: 'ccc' }]);
+  });
+
+  it('asks for at most one page of commits', async () => {
+    repository.findCommits.mockResolvedValue([]);
+
+    await service.findPushCommits(3, push({ commit_count: 250 }));
+
+    expect(repository.findCommits).toHaveBeenCalledWith(3, 'ccc', 100);
+  });
+
+  it.each([
+    ['a removed branch', { commit_to: null, commit_count: 0 }],
+    ['a push without commits', { commit_count: 0 }],
+  ])('finds no commits for %s', async (_name, overrides) => {
+    expect(await service.findPushCommits(3, push(overrides))).toEqual([]);
+    expect(repository.findCommits).not.toHaveBeenCalled();
+  });
 
   it('asks for the events from two days before to two days after the date', async () => {
     const events = [{ id: 1 }];
