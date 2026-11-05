@@ -15,6 +15,13 @@
       "when": 1793857032227,
       "tag": "0001_drop_leave_and_presets",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793860422862,
+      "tag": "0002_label_mappings",
+      "breakpoints": true
     }
   ]
 }
