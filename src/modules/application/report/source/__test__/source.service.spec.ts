@@ -9,6 +9,7 @@ import type {
   GitLabMergeRequest,
   GitLabNote,
   GitLabProject,
+  GitLabPushData,
   GitLabStateEvent,
 } from 'src/modules/vendors/gitlab/gitlab.interface';
 import type { GitLabService } from 'src/modules/vendors/gitlab/gitlab.service';
@@ -90,6 +91,11 @@ function createGitLab(data: GitLabData) {
         ),
     ),
     findMergeRequestCommits: vi.fn(() => Promise.resolve([])),
+    findPushCommits: vi.fn((_projectId: number, push: GitLabPushData) =>
+      Promise.resolve([
+        { id: push.commit_to ?? '', title: 'fix: a bug', created_at: '' },
+      ]),
+    ),
   };
 }
 
@@ -127,6 +133,8 @@ function pushEvent(branch: string) {
       ref_type: 'branch',
       ref: branch,
       commit_count: 1,
+      commit_from: 'aaa',
+      commit_to: 'bbb',
       commit_title: 'fix: a bug',
     },
   });
@@ -406,5 +414,55 @@ describe('SourceService', () => {
     expect(
       grouped.issues[0].mergeRequests[0].closesIssues.map((issue) => issue.iid),
     ).toEqual([12, 13]);
+  });
+
+  it('loads the commits of every push of the day', async () => {
+    const gitlab = createGitLab({
+      events: [pushEvent('12-login'), pushEvent('experiment')],
+      issues: [createIssue({ iid: 12 })],
+      mergeRequests: [
+        createMergeRequest({ iid: 5, source_branch: '12-login' }),
+      ],
+    });
+
+    const grouped = await collect(gitlab);
+
+    expect(gitlab.findPushCommits).toHaveBeenCalledTimes(2);
+    expect(gitlab.findPushCommits).toHaveBeenCalledWith(
+      PROJECT_ID,
+      expect.objectContaining({ ref: '12-login', commit_to: 'bbb' }),
+    );
+    const [push] = grouped.issues[0].mergeRequests[0].events;
+    expect(push.pushData?.commits).toEqual([
+      { id: 'bbb', title: 'fix: a bug' },
+    ]);
+    expect(grouped.standalonePushes[0].events[0].pushData?.commits).toEqual([
+      { id: 'bbb', title: 'fix: a bug' },
+    ]);
+  });
+
+  it('collects the actions of the employee by the GitLab id', async () => {
+    const gitlab = createGitLab({
+      events: [issueEvent(12)],
+      issues: [createIssue({ iid: 12 })],
+      notes: {
+        [`issues:${PROJECT_ID}:12`]: [
+          createNote({
+            body: 'changed the description',
+            author: {
+              id: GITLAB_USER_ID,
+              username: 'renamed',
+              name: 'Renamed',
+            },
+          }),
+        ],
+      },
+    });
+
+    const grouped = await collect(gitlab);
+
+    expect(grouped.issues[0].actions.map((item) => item.kind)).toEqual([
+      'description_changed',
+    ]);
   });
 });

@@ -71,7 +71,7 @@ export class SourceService {
       closingIssues,
       links,
     );
-    return this.sourceBuilder.build(activity, day);
+    return this.sourceBuilder.build(activity, day, gitlabUserId);
   }
 
   private groupEvents(events: GitLabEvent[]): SourceEventGroups {
@@ -246,35 +246,38 @@ export class SourceService {
       }
     }
 
-    const issueActivities = new Map(
-      await Promise.all(
-        [...links.issues].map(
-          async ([key, issue]) =>
-            [
-              key,
-              await this.loadIssueActivity(
-                issue,
-                groups.issues.get(key)?.events ?? [],
-              ),
-            ] as const,
+    const [issueEntries, mergeRequestActivities, pushCommits] =
+      await Promise.all([
+        Promise.all(
+          [...links.issues].map(
+            async ([key, issue]) =>
+              [
+                key,
+                await this.loadIssueActivity(
+                  issue,
+                  groups.issues.get(key)?.events ?? [],
+                ),
+              ] as const,
+          ),
         ),
-      ),
-    );
-    const mergeRequestActivities = await Promise.all(
-      [...mergeRequests].map(async ([key, mergeRequest]) => {
-        const branchKey = this.toBranchKey(mergeRequest);
-        const pushes =
-          branchMergeRequests.get(branchKey) === key
-            ? (groups.pushes.get(branchKey)?.events ?? [])
-            : [];
-        const activity = await this.loadMergeRequestActivity(
-          mergeRequest,
-          closingIssues.get(key) ?? [],
-          [...(groups.mergeRequests.get(key)?.events ?? []), ...pushes],
-        );
-        return [key, activity] as const;
-      }),
-    );
+        Promise.all(
+          [...mergeRequests].map(async ([key, mergeRequest]) => {
+            const branchKey = this.toBranchKey(mergeRequest);
+            const pushes =
+              branchMergeRequests.get(branchKey) === key
+                ? (groups.pushes.get(branchKey)?.events ?? [])
+                : [];
+            const activity = await this.loadMergeRequestActivity(
+              mergeRequest,
+              closingIssues.get(key) ?? [],
+              [...(groups.mergeRequests.get(key)?.events ?? []), ...pushes],
+            );
+            return [key, activity] as const;
+          }),
+        ),
+        this.loadPushCommits(groups),
+      ]);
+    const issueActivities = new Map(issueEntries);
 
     const standaloneMergeRequests: MergeRequestActivity[] = [];
     for (const [key, activity] of mergeRequestActivities) {
@@ -298,7 +301,35 @@ export class SourceService {
             this.isWorkBranch(target, projects),
         )
         .map(([, push]) => push),
+      pushCommits,
     };
+  }
+
+  private async loadPushCommits(groups: SourceEventGroups) {
+    const pushes = [...groups.pushes.values()].flatMap(({ target, events }) =>
+      events.flatMap((event) =>
+        event.push_data
+          ? [
+              {
+                projectId: target.projectId,
+                id: event.id,
+                push: event.push_data,
+              },
+            ]
+          : [],
+      ),
+    );
+    return new Map(
+      await Promise.all(
+        pushes.map(
+          async ({ projectId, id, push }) =>
+            [
+              id,
+              await this.gitlabService.findPushCommits(projectId, push),
+            ] as const,
+        ),
+      ),
+    );
   }
 
   private async loadIssueActivity(

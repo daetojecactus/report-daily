@@ -11,6 +11,7 @@ import {
   GITLAB_NOTES_PATH,
   GITLAB_PAGE_SIZE,
   GITLAB_PROJECTS_PATH,
+  GITLAB_REPOSITORY_COMMITS_PATH,
   GITLAB_RETRY_AFTER_HEADER,
   GITLAB_SERVER_ERROR,
   GITLAB_STATE_EVENTS_PATH,
@@ -117,6 +118,14 @@ export class GitLabRepository {
     return this.getAll<GitLabStateEvent>(
       `${this.toIssuablePath(issuable, projectId, iid)}${GITLAB_STATE_EVENTS_PATH}`,
     );
+  }
+
+  async findCommits(projectId: number, ref: string, limit: number) {
+    const commits = await this.get<GitLabCommit[]>(
+      `${GITLAB_PROJECTS_PATH}/${projectId}${GITLAB_REPOSITORY_COMMITS_PATH}`,
+      { ref_name: ref, per_page: limit },
+    );
+    return commits ?? [];
   }
 
   findMergeRequestCommits(projectId: number, iid: number) {

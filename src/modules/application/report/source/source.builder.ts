@@ -9,6 +9,7 @@ import type {
   GitLabAuthor,
   GitLabCommit,
   GitLabEvent,
+  GitLabIssue,
   GitLabLabelEvent,
   GitLabMergeRequest,
   GitLabNote,
@@ -16,11 +17,13 @@ import type {
 } from 'src/modules/vendors/gitlab/gitlab.interface';
 import {
   SOURCE_ASSIGNEE_CHANGE,
-  SOURCE_DRAFT_PATTERN,
+  SOURCE_DRAFT_ACTIONS,
   SOURCE_MENTION_PATTERN,
-  SOURCE_READY_MARK,
+  SOURCE_NOTE_ACTIONS,
   SOURCE_REVIEWER_CHANGE,
+  SOURCE_STATE_ACTIONS,
 } from './constants/source.constants';
+import { SourceActionKind } from './source.enums';
 import type {
   CleanEvent,
   CleanLabelEvent,
@@ -32,12 +35,23 @@ import type {
   IssueActivity,
   MergeRequestActivity,
   ReviewThreads,
+  SourceAction,
+  SourceBuildContext,
   SourceUserChange,
 } from './source.interface';
 
 @Injectable()
 export class SourceBuilder {
-  build(activity: DayActivity, day: DayRange): GroupedDailyData {
+  build(
+    activity: DayActivity,
+    day: DayRange,
+    userId: number,
+  ): GroupedDailyData {
+    const context: SourceBuildContext = {
+      day,
+      userId,
+      pushCommits: activity.pushCommits,
+    };
     return {
       projects: activity.projects.map((project) => ({
         id: project.id,
@@ -45,20 +59,24 @@ export class SourceBuilder {
         path: project.path_with_namespace,
         webUrl: project.web_url,
       })),
-      issues: activity.issues.map((issue) => this.buildIssue(issue, day)),
+      issues: activity.issues.map((issue) => this.buildIssue(issue, context)),
       standaloneMergeRequests: activity.mergeRequests.map((mergeRequest) =>
-        this.buildMergeRequest(mergeRequest, day),
+        this.buildMergeRequest(mergeRequest, context),
       ),
       standalonePushes: activity.pushes.map(({ target, events }) => ({
         projectId: target.projectId,
         branch: target.branch,
-        events: this.cleanEvents(events),
+        events: this.cleanEvents(events, context),
       })),
     };
   }
 
-  private buildIssue(activity: IssueActivity, day: DayRange): GroupedIssue {
+  private buildIssue(
+    activity: IssueActivity,
+    context: SourceBuildContext,
+  ): GroupedIssue {
     const { issue, notes, labelEvents, stateEvents } = activity;
+    const { day } = context;
     return {
       projectId: issue.project_id,
       iid: issue.iid,
@@ -78,20 +96,23 @@ export class SourceBuilder {
         day,
         SOURCE_ASSIGNEE_CHANGE,
       ),
-      events: this.cleanEvents(activity.events),
+      status: this.resolveStatus(notes, day),
+      actions: this.resolveActions(issue, activity, context),
+      events: this.cleanEvents(activity.events, context),
       notes: this.cleanNotes(notes, day),
       labelEvents: this.cleanLabelEvents(labelEvents, day),
       mergeRequests: activity.mergeRequests.map((mergeRequest) =>
-        this.buildMergeRequest(mergeRequest, day),
+        this.buildMergeRequest(mergeRequest, context),
       ),
     };
   }
 
   private buildMergeRequest(
     activity: MergeRequestActivity,
-    day: DayRange,
+    context: SourceBuildContext,
   ): GroupedMergeRequest {
     const { mergeRequest, notes, labelEvents, stateEvents } = activity;
+    const { day } = context;
     return {
       projectId: mergeRequest.project_id,
       iid: mergeRequest.iid,
@@ -122,11 +143,124 @@ export class SourceBuilder {
         title: issue.title,
         webUrl: issue.web_url,
       })),
-      events: this.cleanEvents(activity.events),
+      actions: this.resolveActions(mergeRequest, activity, context),
+      events: this.cleanEvents(activity.events, context),
       notes: this.cleanNotes(notes, day),
       labelEvents: this.cleanLabelEvents(labelEvents, day),
       reviewThreads: this.resolveReviewThreads(notes, day),
     };
+  }
+
+  private resolveActions(
+    item: GitLabIssue | GitLabMergeRequest,
+    { notes, labelEvents, stateEvents }: IssueActivity | MergeRequestActivity,
+    context: SourceBuildContext,
+  ) {
+    const actions: SourceAction[] = [];
+    if (this.isOwnAction(item.author, item.created_at, context)) {
+      actions.push(this.toAction(SourceActionKind.OPENED, item.created_at));
+    }
+    for (const note of notes) {
+      if (this.isOwnAction(note.author, note.created_at, context)) {
+        actions.push(...this.toNoteActions(note));
+      }
+    }
+    for (const event of labelEvents) {
+      if (
+        event.label &&
+        this.isOwnAction(event.user, event.created_at, context)
+      ) {
+        actions.push(
+          this.toAction(
+            event.action === GitLabLabelAction.ADD
+              ? SourceActionKind.LABEL_ADDED
+              : SourceActionKind.LABEL_REMOVED,
+            event.created_at,
+            event.label.name,
+          ),
+        );
+      }
+    }
+    for (const event of stateEvents) {
+      const kind = SOURCE_STATE_ACTIONS.get(event.state);
+      if (kind && this.isOwnAction(event.user, event.created_at, context)) {
+        actions.push(this.toAction(kind, event.created_at));
+      }
+    }
+    return actions.sort(
+      (left, right) => Date.parse(left.at) - Date.parse(right.at),
+    );
+  }
+
+  private toNoteActions(note: GitLabNote): SourceAction[] {
+    if (!note.system) {
+      return [this.toAction(SourceActionKind.COMMENTED, note.created_at)];
+    }
+    const assignees = this.parseUserChange(note, SOURCE_ASSIGNEE_CHANGE);
+    const reviewers = this.parseUserChange(note, SOURCE_REVIEWER_CHANGE);
+    const userActions = [
+      { kind: SourceActionKind.ASSIGNED, users: assignees.added },
+      { kind: SourceActionKind.UNASSIGNED, users: assignees.removed },
+      { kind: SourceActionKind.REVIEW_REQUESTED, users: reviewers.added },
+      {
+        kind: SourceActionKind.REVIEW_REQUEST_REMOVED,
+        users: reviewers.removed,
+      },
+    ]
+      .filter(({ users }) => users.length)
+      .map(({ kind, users }) =>
+        this.toAction(kind, note.created_at, null, users),
+      );
+    if (userActions.length) {
+      return userActions;
+    }
+    const match = this.matchNote(note);
+    return match
+      ? [this.toAction(match.kind, note.created_at, match.value)]
+      : [];
+  }
+
+  private matchNote(note: GitLabNote) {
+    if (!note.system) {
+      return null;
+    }
+    for (const { pattern, kind } of SOURCE_NOTE_ACTIONS) {
+      const match = pattern.exec(note.body);
+      if (match) {
+        return { kind, value: match[1] ?? null };
+      }
+    }
+    return null;
+  }
+
+  private resolveStatus(notes: GitLabNote[], day: DayRange) {
+    for (const note of this.toLatestFirst(notes)) {
+      const match = this.matchNote(note);
+      if (
+        match?.kind === SourceActionKind.STATUS_SET &&
+        Date.parse(note.created_at) < day.end
+      ) {
+        return match.value;
+      }
+    }
+    return null;
+  }
+
+  private isOwnAction(
+    user: GitLabAuthor | null | undefined,
+    at: string,
+    { day, userId }: SourceBuildContext,
+  ) {
+    return user?.id === userId && isWithinDay(at, day);
+  }
+
+  private toAction(
+    kind: SourceActionKind,
+    at: string,
+    value: string | null = null,
+    users: string[] = [],
+  ): SourceAction {
+    return { kind, at, value, users };
   }
 
   private restoreLabels(
@@ -203,12 +337,17 @@ export class SourceBuilder {
   }
 
   private restoreDraft(current: boolean, notes: GitLabNote[], day: DayRange) {
-    const firstMark = this.toLatestFirst(notes)
-      .reverse()
-      .filter((note) => note.system && Date.parse(note.created_at) >= day.end)
-      .map((note) => SOURCE_DRAFT_PATTERN.exec(note.body)?.[1])
-      .find((mark) => mark !== undefined);
-    return firstMark === undefined ? current : firstMark === SOURCE_READY_MARK;
+    for (const note of this.toLatestFirst(notes).toReversed()) {
+      const match = this.matchNote(note);
+      if (
+        match &&
+        SOURCE_DRAFT_ACTIONS.has(match.kind) &&
+        Date.parse(note.created_at) >= day.end
+      ) {
+        return match.kind === SourceActionKind.MARKED_READY;
+      }
+    }
+    return current;
   }
 
   private resolveReviewThreads(
@@ -285,7 +424,10 @@ export class SourceBuilder {
     return times.length ? new Date(Math.max(...times)).toISOString() : null;
   }
 
-  private cleanEvents(events: GitLabEvent[]): CleanEvent[] {
+  private cleanEvents(
+    events: GitLabEvent[],
+    { pushCommits }: SourceBuildContext,
+  ): CleanEvent[] {
     return events.map((event) => ({
       id: event.id,
       projectId: event.project_id,
@@ -299,6 +441,10 @@ export class SourceBuilder {
         refType: event.push_data.ref_type,
         ref: event.push_data.ref,
         commitTitle: event.push_data.commit_title,
+        commits: (pushCommits.get(event.id) ?? []).map((commit) => ({
+          id: commit.id,
+          title: commit.title,
+        })),
       },
       noteBody: event.note?.body,
     }));

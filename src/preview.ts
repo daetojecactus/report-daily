@@ -9,6 +9,7 @@ import type {
   GroupedDailyData,
   GroupedIssue,
   GroupedMergeRequest,
+  SourceAction,
 } from './modules/application/report/source/source.interface';
 import { SourceService } from './modules/application/report/source/source.service';
 import { UserService } from './modules/application/user/user.service';
@@ -18,11 +19,30 @@ import { PreviewModule } from './modules/preview.module';
 const INDENT = '  ';
 
 function describeEvents(events: CleanEvent[]) {
-  return [...Map.groupBy(events, (event) => event.actionName)]
-    .map(([action, { length }]) =>
-      length > 1 ? `${action} x${length}` : action,
-    )
+  return countRepeats(events.map((event) => event.actionName));
+}
+
+function countRepeats(texts: string[]) {
+  return [...Map.groupBy(texts, (text) => text)]
+    .map(([text, { length }]) => (length > 1 ? `${text} x${length}` : text))
     .join(', ');
+}
+
+function describeActions(actions: SourceAction[]) {
+  return countRepeats(
+    actions.map(({ kind, value, users }) =>
+      [kind, value, ...users.map((user) => `@${user}`)]
+        .filter(Boolean)
+        .join(' '),
+    ),
+  );
+}
+
+function describeCommits(events: CleanEvent[]) {
+  const commits = events.flatMap((event) => event.pushData?.commits ?? []);
+  return commits.length
+    ? `commits: ${commits.map((commit) => commit.title).join('; ')}`
+    : '';
 }
 
 function describeDetails(
@@ -39,7 +59,10 @@ function describeDetails(
     'closesIssues' in item && item.closesIssues.length
       ? `closes: ${item.closesIssues.map((issue) => `#${issue.iid}`).join(', ')}`
       : '',
+    'status' in item && item.status ? `status: ${item.status}` : '',
+    item.actions.length ? `actions: ${describeActions(item.actions)}` : '',
     item.events.length ? `events: ${describeEvents(item.events)}` : '',
+    describeCommits(item.events),
     comments ? `comments of the day: ${comments}` : '',
   ]
     .filter(Boolean)
@@ -88,10 +111,14 @@ function describeDay(day: GroupedDailyData) {
         .flatMap((mergeRequest) => describeMergeRequest(mergeRequest, INDENT)),
       ...day.standalonePushes
         .filter((push) => push.projectId === projectId)
-        .flatMap((push) => [
-          `${INDENT}Push ${push.branch}`,
-          `${INDENT}${INDENT}events: ${describeEvents(push.events)}`,
-        ]),
+        .flatMap((push) =>
+          [
+            `${INDENT}Push ${push.branch}`,
+            `${INDENT}${INDENT}events: ${describeEvents(push.events)}`,
+            describeCommits(push.events) &&
+              `${INDENT}${INDENT}${describeCommits(push.events)}`,
+          ].filter(Boolean),
+        ),
     ],
   );
 }

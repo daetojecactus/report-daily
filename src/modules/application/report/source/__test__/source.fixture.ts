@@ -18,8 +18,13 @@ export const REPORT_DATE = '2026-08-02';
 
 export const PROJECT_ID = 1;
 
+const authorIds = new Map<string, number>();
+
 export function createAuthor(username: string): GitLabAuthor {
-  return { id: username.length, username, name: username };
+  if (!authorIds.has(username)) {
+    authorIds.set(username, authorIds.size + 1);
+  }
+  return { id: authorIds.get(username) ?? 0, username, name: username };
 }
 
 export function createProject(
@@ -115,6 +120,9 @@ export function createStateEvent(
   return { id: 1, created_at: createdAt, state };
 }
 
-export function createCommit(committedDate: string): GitLabCommit {
-  return { id: committedDate, created_at: committedDate };
+export function createCommit(
+  committedDate: string,
+  title = 'feat: something',
+): GitLabCommit {
+  return { id: committedDate, title, created_at: committedDate };
 }

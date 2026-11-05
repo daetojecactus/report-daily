@@ -9,6 +9,7 @@ import type {
   GitLabNote,
 } from 'src/modules/vendors/gitlab/gitlab.interface';
 import { SourceBuilder } from '../source.builder';
+import { SourceActionKind } from '../source.enums';
 import type { IssueActivity, MergeRequestActivity } from '../source.interface';
 import {
   createAuthor,
@@ -25,6 +26,7 @@ import {
 
 const DAY = getDayRange(REPORT_DATE, 'UTC');
 const USERNAME = 'qa.user';
+const EMPLOYEE = createAuthor(USERNAME);
 
 function toActivity(
   mergeRequest: GitLabMergeRequest,
@@ -52,8 +54,10 @@ function buildMergeRequest(
       issues: [],
       mergeRequests: [toActivity(mergeRequest, overrides)],
       pushes: [],
+      pushCommits: new Map(),
     },
     DAY,
+    EMPLOYEE.id,
   ).standaloneMergeRequests;
   return grouped;
 }
@@ -75,8 +79,10 @@ function buildIssue(overrides: Partial<IssueActivity> = {}) {
       ],
       mergeRequests: [],
       pushes: [],
+      pushCommits: new Map(),
     },
     DAY,
+    EMPLOYEE.id,
   ).issues;
   return grouped;
 }
@@ -294,7 +300,9 @@ describe('SourceBuilder', () => {
         action: 'pushed',
         ref_type: 'branch',
         ref: 'hotfix',
-        commit_count: 2,
+        commit_count: 1,
+        commit_from: 'aaa',
+        commit_to: 'bbb',
         commit_title: 'fix: the cache',
       },
     });
@@ -320,8 +328,12 @@ describe('SourceBuilder', () => {
         pushes: [
           { target: { projectId: 1, branch: 'hotfix' }, events: [push] },
         ],
+        pushCommits: new Map([
+          [7, [createCommit(`${REPORT_DATE}T09:00:00.000Z`, 'fix: the cache')]],
+        ]),
       },
       DAY,
+      EMPLOYEE.id,
     );
 
     expect(grouped.projects).toEqual([
@@ -363,11 +375,14 @@ describe('SourceBuilder', () => {
             targetTitle: null,
             createdAt: `${REPORT_DATE}T10:00:00.000Z`,
             pushData: {
-              commitCount: 2,
+              commitCount: 1,
               action: 'pushed',
               refType: 'branch',
               ref: 'hotfix',
               commitTitle: 'fix: the cache',
+              commits: [
+                { id: `${REPORT_DATE}T09:00:00.000Z`, title: 'fix: the cache' },
+              ],
             },
             noteBody: undefined,
           },
@@ -507,6 +522,172 @@ describe('SourceBuilder', () => {
       );
 
       expect(grouped.reviewThreads).toEqual({ total: 3, unresolved: 2 });
+    });
+  });
+  describe('own actions of the day', () => {
+    const OTHER = createAuthor('dev.other');
+
+    function ownNote(body: string, hour: number, system = true) {
+      return createNote({
+        id: hour,
+        body,
+        system,
+        author: EMPLOYEE,
+        created_at: `${REPORT_DATE}T${String(hour).padStart(2, '0')}:00:00.000Z`,
+      });
+    }
+
+    function action(
+      kind: SourceActionKind,
+      hour: number,
+      value: string | null = null,
+      users: string[] = [],
+    ) {
+      return {
+        kind,
+        at: `${REPORT_DATE}T${String(hour).padStart(2, '0')}:00:00.000Z`,
+        value,
+        users,
+      };
+    }
+
+    it('collects what the employee did on an issue in time order', () => {
+      const grouped = buildIssue({
+        issue: createIssue({
+          author: EMPLOYEE,
+          created_at: `${REPORT_DATE}T08:00:00.000Z`,
+        }),
+        notes: [
+          ownNote('looks good', 9, false),
+          ownNote('set status to **In progress**', 10),
+          ownNote('assigned to @dev.other and unassigned @qa.user', 12),
+          ownNote('changed the description', 13),
+          ownNote(
+            '<p>changed title from <code class="idiff">a</code> to <code class="idiff">b</code></p>',
+            14,
+          ),
+          ownNote(
+            'created branch [`12-login`](/team/backend/-/compare/main...12-login) to address this issue',
+            15,
+          ),
+          ownNote('moved to team/frontend#3', 16),
+          createNote({ body: 'changed the description', author: OTHER }),
+          createNote({
+            body: 'changed the description',
+            author: EMPLOYEE,
+            created_at: '2026-08-01T10:00:00.000Z',
+          }),
+        ],
+        labelEvents: [
+          createLabelEvent({
+            user: EMPLOYEE,
+            label: { name: 'status::doing' },
+            created_at: `${REPORT_DATE}T11:00:00.000Z`,
+          }),
+          createLabelEvent({
+            user: EMPLOYEE,
+            label: { name: 'status::todo' },
+            action: GitLabLabelAction.REMOVE,
+            created_at: `${REPORT_DATE}T11:00:00.000Z`,
+          }),
+          createLabelEvent({ user: OTHER }),
+          createLabelEvent({ user: EMPLOYEE, label: null }),
+        ],
+        stateEvents: [
+          {
+            ...createStateEvent(
+              GitLabState.CLOSED,
+              `${REPORT_DATE}T17:00:00.000Z`,
+            ),
+            user: EMPLOYEE,
+          },
+          {
+            ...createStateEvent(
+              GitLabState.REOPENED,
+              `${REPORT_DATE}T18:00:00.000Z`,
+            ),
+            user: OTHER,
+          },
+        ],
+      });
+
+      expect(grouped.actions).toEqual([
+        action(SourceActionKind.OPENED, 8),
+        action(SourceActionKind.COMMENTED, 9),
+        action(SourceActionKind.STATUS_SET, 10, 'In progress'),
+        action(SourceActionKind.LABEL_ADDED, 11, 'status::doing'),
+        action(SourceActionKind.LABEL_REMOVED, 11, 'status::todo'),
+        action(SourceActionKind.ASSIGNED, 12, null, ['dev.other']),
+        action(SourceActionKind.UNASSIGNED, 12, null, [USERNAME]),
+        action(SourceActionKind.DESCRIPTION_CHANGED, 13),
+        action(SourceActionKind.TITLE_CHANGED, 14),
+        action(SourceActionKind.BRANCH_CREATED, 15, '12-login'),
+        action(SourceActionKind.CLOSED, 17),
+      ]);
+    });
+
+    it('collects what the employee did on a merge request', () => {
+      const grouped = buildMergeRequest(createMergeRequest({ author: OTHER }), {
+        notes: [
+          ownNote(
+            'requested review from @dev.a and removed review request for @dev.b',
+            9,
+          ),
+          ownNote('approved this merge request', 10),
+          ownNote('unapproved this merge request', 11),
+          ownNote('marked this merge request as **draft**', 12),
+          ownNote('marked this merge request as **ready**', 13),
+          ownNote('resolved all threads', 14),
+          ownNote(
+            'changed this line in [version 2 of the diff](/team/backend/-/merge_requests/5/diffs)',
+            15,
+          ),
+          ownNote('left review comments', 16),
+        ],
+        stateEvents: [
+          {
+            ...createStateEvent(
+              GitLabState.MERGED,
+              `${REPORT_DATE}T17:00:00.000Z`,
+            ),
+            user: EMPLOYEE,
+          },
+        ],
+      });
+
+      expect(grouped.actions).toEqual([
+        action(SourceActionKind.REVIEW_REQUESTED, 9, null, ['dev.a']),
+        action(SourceActionKind.REVIEW_REQUEST_REMOVED, 9, null, ['dev.b']),
+        action(SourceActionKind.APPROVED, 10),
+        action(SourceActionKind.UNAPPROVED, 11),
+        action(SourceActionKind.MARKED_DRAFT, 12),
+        action(SourceActionKind.MARKED_READY, 13),
+        action(SourceActionKind.THREADS_RESOLVED, 14),
+        action(SourceActionKind.DIFF_LINE_CHANGED, 15),
+        action(SourceActionKind.REVIEW_SUBMITTED, 16),
+        action(SourceActionKind.MERGED, 17),
+      ]);
+    });
+
+    it.each([
+      [
+        'the last status set before the end of the day',
+        [
+          ['set status to **To do**', '2026-08-01T10:00:00.000Z'],
+          ['set status to **In progress**', `${REPORT_DATE}T10:00:00.000Z`],
+          ['set status to **Done**', '2026-08-03T10:00:00.000Z'],
+        ],
+        'In progress',
+      ],
+      ['no status without status notes', [], null],
+    ])('restores %s', (_name, notes, status) => {
+      const grouped = buildIssue({
+        notes: notes.map(([body, createdAt]) =>
+          createNote({ body, created_at: createdAt }),
+        ),
+      });
+
+      expect(grouped.status).toBe(status);
     });
   });
 });
