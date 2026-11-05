@@ -21,6 +21,7 @@ import type { UserSource } from 'src/modules/application/user/user-source/user-s
 import { Source } from '../source.enums';
 import type { ActivitySource } from '../source.interface';
 import { GitLabSourceBuilder } from './gitlab-source.builder';
+import { GitLabSourceScanner } from './gitlab-source.scanner';
 import type {
   DayActivity,
   IssueActivity,
@@ -39,6 +40,7 @@ export class GitLabSourceService implements ActivitySource {
   constructor(
     private readonly gitlabService: GitLabService,
     private readonly sourceBuilder: GitLabSourceBuilder,
+    private readonly gitlabSourceScanner: GitLabSourceScanner,
   ) {}
 
   async collect(account: UserSource, date: string, timeZone: string) {
@@ -51,6 +53,17 @@ export class GitLabSourceService implements ActivitySource {
     const groups = this.groupEvents(
       events.filter((event) => isWithinDay(event.created_at, day)),
     );
+    const hidden = await this.gitlabSourceScanner.findHiddenItems(
+      gitlabUserId,
+      date,
+      day,
+    );
+    for (const target of hidden.issues) {
+      this.addTarget(groups.issues, target);
+    }
+    for (const target of hidden.mergeRequests) {
+      this.addTarget(groups.mergeRequests, target);
+    }
     const projects = await this.loadProjects(
       [
         ...groups.issues.values(),
@@ -380,6 +393,16 @@ export class GitLabSourceService implements ActivitySource {
       stateEvents,
       commits,
     };
+  }
+
+  private addTarget(
+    groups: Map<string, SourceEvents<SourceItem>>,
+    target: SourceItem,
+  ) {
+    const key = this.toKey(target);
+    if (!groups.has(key)) {
+      groups.set(key, { target, events: [] });
+    }
   }
 
   private addEvent<T extends SourceItem | SourceBranch>(

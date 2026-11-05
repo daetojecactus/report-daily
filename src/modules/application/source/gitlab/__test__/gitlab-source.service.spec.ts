@@ -15,6 +15,8 @@ import type {
 import type { GitLabService } from 'src/modules/vendors/gitlab/gitlab.service';
 import { Source } from '../../source.enums';
 import { GitLabSourceBuilder } from '../gitlab-source.builder';
+import type { SourceHiddenItems } from '../gitlab-source.interface';
+import type { GitLabSourceScanner } from '../gitlab-source.scanner';
 import { GitLabSourceService } from '../gitlab-source.service';
 import {
   createEvent,
@@ -100,10 +102,16 @@ function createGitLab(data: GitLabData) {
   };
 }
 
-function collect(gitlab: ReturnType<typeof createGitLab>, timeZone = 'UTC') {
+function collect(
+  gitlab: ReturnType<typeof createGitLab>,
+  timeZone = 'UTC',
+  hidden: SourceHiddenItems = { issues: [], mergeRequests: [] },
+) {
+  const scanner = { findHiddenItems: vi.fn(() => Promise.resolve(hidden)) };
   return new GitLabSourceService(
     gitlab as unknown as GitLabService,
     new GitLabSourceBuilder(),
+    scanner as unknown as GitLabSourceScanner,
   ).collect(
     {
       id: '0190b5a8-0000-7000-8000-000000000003',
@@ -477,5 +485,43 @@ describe('GitLabSourceService', () => {
     expect(grouped.issues[0].actions.map((item) => item.kind)).toEqual([
       'description_changed',
     ]);
+  });
+
+  it('adds the items changed without events to the day', async () => {
+    const gitlab = createGitLab({
+      events: [issueEvent(12)],
+      issues: [createIssue({ iid: 12 }), createIssue({ iid: 30 })],
+      mergeRequests: [createMergeRequest({ iid: 7, source_branch: 'docs' })],
+      notes: {
+        [`issues:${PROJECT_ID}:30`]: [
+          createNote({
+            body: 'changed the description',
+            author: { id: GITLAB_USER_ID, username: 'qa.user', name: 'QA' },
+          }),
+        ],
+      },
+    });
+
+    const grouped = await collect(gitlab, 'UTC', {
+      issues: [
+        { projectId: PROJECT_ID, iid: 12 },
+        { projectId: PROJECT_ID, iid: 30 },
+      ],
+      mergeRequests: [{ projectId: PROJECT_ID, iid: 7 }],
+    });
+
+    expect(
+      grouped.issues.map((issue) => [issue.iid, issue.events.length]),
+    ).toEqual([
+      [12, 1],
+      [30, 0],
+    ]);
+    expect(grouped.issues[1].actions.map((action) => action.kind)).toEqual([
+      'description_changed',
+    ]);
+    expect(grouped.standaloneMergeRequests.map((item) => item.iid)).toEqual([
+      7,
+    ]);
+    expect(gitlab.findIssue).toHaveBeenCalledTimes(2);
   });
 });

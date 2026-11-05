@@ -3,6 +3,7 @@ import {
   GitLabState,
   GitLabTargetType,
 } from 'src/modules/vendors/gitlab/gitlab.enums';
+import { z } from 'zod';
 import { ItemState, LabelAction, SourceActionKind } from '../../source.enums';
 import type {
   SourceNoteAction,
@@ -100,3 +101,19 @@ export const GITLAB_SOURCE_LABEL_ACTIONS: Record<
   [GitLabLabelAction.ADD]: LabelAction.ADD,
   [GitLabLabelAction.REMOVE]: LabelAction.REMOVE,
 };
+
+export const GITLAB_SOURCE_LOOKBACK_DAYS = 30;
+
+export const GITLAB_SOURCE_INDEX_KEY = 'source:gitlab:day';
+
+export const GITLAB_SOURCE_INDEX_TTL_MS = 900_000;
+
+export const GITLAB_SOURCE_SCAN_LIMIT = 300;
+
+export const GITLAB_SOURCE_INDEX_SCHEMA = z.record(
+  z.string(),
+  z.object({
+    issues: z.array(z.number().int()),
+    mergeRequests: z.array(z.number().int()),
+  }),
+);

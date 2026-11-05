@@ -27,6 +27,7 @@ import type {
   GitLabCommit,
   GitLabEvent,
   GitLabHttpResponse,
+  GitLabIssuableItem,
   GitLabIssue,
   GitLabLabelEvent,
   GitLabMergeRequest,
@@ -99,6 +100,17 @@ export class GitLabRepository {
   findIssuesClosedOnMerge(projectId: number, iid: number) {
     return this.getAll<GitLabIssue>(
       `${this.toIssuablePath(GitLabIssuable.MERGE_REQUESTS, projectId, iid)}${GITLAB_CLOSES_ISSUES_PATH}`,
+    );
+  }
+
+  findUpdatedItems(
+    issuable: GitLabIssuable,
+    projectId: number,
+    updatedAfter: string,
+  ) {
+    return this.getAll<GitLabIssuableItem>(
+      `${GITLAB_PROJECTS_PATH}/${projectId}/${issuable}`,
+      { updated_after: updatedAfter },
     );
   }
 

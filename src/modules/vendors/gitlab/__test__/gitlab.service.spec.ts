@@ -15,6 +15,7 @@ describe('GitLabService', () => {
     findMergeRequest: vi.fn(),
     findMergeRequestByBranch: vi.fn(),
     findIssuesClosedOnMerge: vi.fn(),
+    findUpdatedItems: vi.fn(),
     findNotes: vi.fn(),
     findLabelEvents: vi.fn(),
     findStateEvents: vi.fn(),
@@ -91,6 +92,24 @@ describe('GitLabService', () => {
     expect(repository.findCommits).not.toHaveBeenCalled();
   });
 
+  it('finds the projects of the user events over the last days', async () => {
+    repository.findUserEvents.mockResolvedValue([
+      { project_id: 3 },
+      { project_id: null },
+      { project_id: 4 },
+      { project_id: 3 },
+    ]);
+
+    expect(await service.findRecentProjectIds(7, '2026-11-05', 30)).toEqual([
+      3, 4,
+    ]);
+    expect(repository.findUserEvents).toHaveBeenCalledWith(
+      7,
+      '2026-10-06',
+      '2026-11-07',
+    );
+  });
+
   it('asks for the events from two days before to two days after the date', async () => {
     const events = [{ id: 1 }];
     repository.findUserEvents.mockResolvedValue(events);
@@ -118,6 +137,16 @@ describe('GitLabService', () => {
       'findIssuesClosedOnMerge',
       () => service.findIssuesClosedOnMerge(3, 5),
       [3, 5],
+    ],
+    [
+      'findUpdatedItems',
+      () =>
+        service.findUpdatedItems(
+          GitLabIssuable.ISSUES,
+          3,
+          '2026-11-03T19:00:00.000Z',
+        ),
+      [GitLabIssuable.ISSUES, 3, '2026-11-03T19:00:00.000Z'],
     ],
     [
       'findNotes',

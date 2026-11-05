@@ -65,6 +65,11 @@ export interface GitLabProject {
   default_branch: string | null;
 }
 
+export interface GitLabIssuableItem {
+  iid: number;
+  project_id: number;
+}
+
 export interface GitLabIssue {
   iid: number;
   project_id: number;
