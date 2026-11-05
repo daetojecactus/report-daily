@@ -1,0 +1,336 @@
+import { describe, expect, it, vi } from 'vitest';
+import {
+  GitLabIssuable,
+  GitLabState,
+} from 'src/modules/vendors/gitlab/gitlab.enums';
+import type {
+  GitLabEvent,
+  GitLabIssue,
+  GitLabMergeRequest,
+  GitLabNote,
+  GitLabProject,
+  GitLabStateEvent,
+} from 'src/modules/vendors/gitlab/gitlab.interface';
+import type { GitLabService } from 'src/modules/vendors/gitlab/gitlab.service';
+import { SourceBuilder } from '../source.builder';
+import { SourceService } from '../source.service';
+import {
+  createEvent,
+  createIssue,
+  createMergeRequest,
+  createNote,
+  createProject,
+  createStateEvent,
+  PROJECT_ID,
+  REPORT_DATE,
+} from './source.fixture';
+
+const GITLAB_USER_ID = 501;
+
+interface GitLabData {
+  events: GitLabEvent[];
+  projects?: GitLabProject[];
+  issues?: GitLabIssue[];
+  mergeRequests?: GitLabMergeRequest[];
+  notes?: Record<string, GitLabNote[]>;
+  stateEvents?: Record<string, GitLabStateEvent[]>;
+}
+
+function findItem<T extends { project_id: number; iid: number }>(
+  items: T[] | undefined,
+  projectId: number,
+  iid: number,
+) {
+  return (
+    items?.find((item) => item.project_id === projectId && item.iid === iid) ??
+    null
+  );
+}
+
+function createGitLab(data: GitLabData) {
+  const toKey = (issuable: GitLabIssuable, projectId: number, iid: number) =>
+    `${issuable}:${projectId}:${iid}`;
+  return {
+    findUserEventsAround: vi.fn(() => Promise.resolve(data.events)),
+    findProject: vi.fn((id: number) =>
+      Promise.resolve(
+        (data.projects ?? [createProject()]).find(
+          (project) => project.id === id,
+        ) ?? null,
+      ),
+    ),
+    findIssue: vi.fn((projectId: number, iid: number) =>
+      Promise.resolve(findItem(data.issues, projectId, iid)),
+    ),
+    findMergeRequest: vi.fn((projectId: number, iid: number) =>
+      Promise.resolve(findItem(data.mergeRequests, projectId, iid)),
+    ),
+    findMergeRequestByBranch: vi.fn((projectId: number, branch: string) =>
+      Promise.resolve(
+        data.mergeRequests?.find(
+          (mergeRequest) =>
+            mergeRequest.project_id === projectId &&
+            mergeRequest.source_branch === branch,
+        ) ?? null,
+      ),
+    ),
+    findNotes: vi.fn(
+      (issuable: GitLabIssuable, projectId: number, iid: number) =>
+        Promise.resolve(data.notes?.[toKey(issuable, projectId, iid)] ?? []),
+    ),
+    findLabelEvents: vi.fn(() => Promise.resolve([])),
+    findStateEvents: vi.fn(
+      (issuable: GitLabIssuable, projectId: number, iid: number) =>
+        Promise.resolve(
+          data.stateEvents?.[toKey(issuable, projectId, iid)] ?? [],
+        ),
+    ),
+    findMergeRequestCommits: vi.fn(() => Promise.resolve([])),
+  };
+}
+
+function collect(gitlab: ReturnType<typeof createGitLab>, timeZone = 'UTC') {
+  return new SourceService(
+    gitlab as unknown as GitLabService,
+    new SourceBuilder(),
+  ).collect(GITLAB_USER_ID, REPORT_DATE, timeZone);
+}
+
+function issueEvent(iid: number, overrides: Partial<GitLabEvent> = {}) {
+  return createEvent({
+    action_name: 'opened',
+    target_type: 'Issue',
+    target_iid: iid,
+    ...overrides,
+  });
+}
+
+function commentEvent(targetType: string, noteableType: string, iid: number) {
+  return createEvent({
+    action_name: 'commented on',
+    target_type: targetType,
+    target_iid: 900,
+    note: { body: 'a comment', noteable_type: noteableType, noteable_iid: iid },
+  });
+}
+
+function pushEvent(branch: string) {
+  return createEvent({
+    action_name: 'pushed to',
+    target_type: null,
+    push_data: {
+      action: 'pushed',
+      ref_type: 'branch',
+      ref: branch,
+      commit_count: 1,
+      commit_title: 'fix: a bug',
+    },
+  });
+}
+
+describe('SourceService', () => {
+  it('keeps only the events of the day in the time zone of the employee', async () => {
+    const gitlab = createGitLab({
+      events: [
+        issueEvent(12, { created_at: '2026-08-01T20:00:00.000Z' }),
+        issueEvent(13, { created_at: '2026-08-02T20:00:00.000Z' }),
+      ],
+      issues: [createIssue({ iid: 12 }), createIssue({ iid: 13 })],
+    });
+
+    const grouped = await collect(gitlab, 'Asia/Almaty');
+
+    expect(gitlab.findUserEventsAround).toHaveBeenCalledWith(
+      GITLAB_USER_ID,
+      REPORT_DATE,
+    );
+    expect(grouped.issues.map((issue) => issue.iid)).toEqual([12]);
+    expect(gitlab.findIssue).toHaveBeenCalledTimes(1);
+  });
+
+  it('groups work items and comments of every type under their item', async () => {
+    const gitlab = createGitLab({
+      events: [
+        issueEvent(12, { target_type: 'WorkItem' }),
+        commentEvent('Note', 'Issue', 12),
+        commentEvent('DiscussionNote', 'Issue', 12),
+        commentEvent('DiscussionNote', 'WorkItem', 12),
+        commentEvent('DiffNote', 'MergeRequest', 5),
+      ],
+      issues: [createIssue({ iid: 12 })],
+      mergeRequests: [createMergeRequest({ iid: 5 })],
+    });
+
+    const grouped = await collect(gitlab);
+
+    expect(grouped.issues).toHaveLength(1);
+    expect(grouped.issues[0].events).toHaveLength(4);
+    expect(grouped.standaloneMergeRequests).toHaveLength(1);
+    expect(grouped.standaloneMergeRequests[0].events[0].noteBody).toBe(
+      'a comment',
+    );
+    expect(gitlab.findIssue).toHaveBeenCalledTimes(1);
+  });
+
+  it('links a merge request to the issue of its branch and loads that issue', async () => {
+    const gitlab = createGitLab({
+      events: [
+        createEvent({
+          action_name: 'opened',
+          target_type: 'MergeRequest',
+          target_iid: 5,
+        }),
+      ],
+      issues: [createIssue({ iid: 12 })],
+      mergeRequests: [
+        createMergeRequest({ iid: 5, source_branch: '12-login' }),
+      ],
+    });
+
+    const grouped = await collect(gitlab);
+
+    expect(gitlab.findIssue).toHaveBeenCalledWith(PROJECT_ID, 12);
+    expect(grouped.issues).toHaveLength(1);
+    expect(grouped.issues[0].mergeRequests.map((item) => item.iid)).toEqual([
+      5,
+    ]);
+    expect(grouped.standaloneMergeRequests).toEqual([]);
+  });
+
+  it('keeps a merge request alone when its branch names no issue it can load', async () => {
+    const gitlab = createGitLab({
+      events: [
+        createEvent({ target_type: 'MergeRequest', target_iid: 5 }),
+        createEvent({ target_type: 'MergeRequest', target_iid: 6 }),
+      ],
+      mergeRequests: [
+        createMergeRequest({ iid: 5, source_branch: '99-gone' }),
+        createMergeRequest({ iid: 6, source_branch: 'feature/x' }),
+      ],
+    });
+
+    const grouped = await collect(gitlab);
+
+    expect(grouped.issues).toEqual([]);
+    expect(
+      grouped.standaloneMergeRequests.map((mergeRequest) => mergeRequest.iid),
+    ).toEqual([5, 6]);
+  });
+
+  it('finds the merge request of a pushed branch and moves the pushes into it', async () => {
+    const gitlab = createGitLab({
+      events: [pushEvent('12-login')],
+      issues: [createIssue({ iid: 12 })],
+      mergeRequests: [
+        createMergeRequest({ iid: 5, source_branch: '12-login' }),
+      ],
+    });
+
+    const grouped = await collect(gitlab);
+
+    expect(gitlab.findMergeRequestByBranch).toHaveBeenCalledWith(
+      PROJECT_ID,
+      '12-login',
+    );
+    const [mergeRequest] = grouped.issues[0].mergeRequests;
+    expect(mergeRequest.iid).toBe(5);
+    expect(mergeRequest.events.map((event) => event.actionName)).toEqual([
+      'pushed to',
+    ]);
+    expect(grouped.standalonePushes).toEqual([]);
+  });
+
+  it('keeps pushes to a work branch and drops pushes to the main branches', async () => {
+    const gitlab = createGitLab({
+      events: [
+        pushEvent('experiment'),
+        pushEvent('main'),
+        pushEvent('develop'),
+        pushEvent('release'),
+      ],
+      projects: [createProject({ default_branch: 'release' })],
+    });
+
+    const grouped = await collect(gitlab);
+
+    expect(gitlab.findMergeRequestByBranch).toHaveBeenCalledTimes(1);
+    expect(grouped.standalonePushes.map((push) => push.branch)).toEqual([
+      'experiment',
+    ]);
+  });
+
+  it('skips issues and merge requests GitLab does not have', async () => {
+    const gitlab = createGitLab({
+      events: [
+        issueEvent(12),
+        createEvent({ target_type: 'MergeRequest', target_iid: 5 }),
+      ],
+    });
+
+    const grouped = await collect(gitlab);
+
+    expect(grouped.issues).toEqual([]);
+    expect(grouped.standaloneMergeRequests).toEqual([]);
+    expect(gitlab.findNotes).not.toHaveBeenCalled();
+  });
+
+  it('ignores events without a project and comments on commits', async () => {
+    const gitlab = createGitLab({
+      events: [
+        issueEvent(12, { project_id: null }),
+        commentEvent('Note', 'Commit', 0),
+        createEvent({ action_name: 'joined', target_type: null }),
+      ],
+    });
+
+    const grouped = await collect(gitlab);
+
+    expect(gitlab.findProject).not.toHaveBeenCalled();
+    expect(grouped).toEqual({
+      projects: [],
+      issues: [],
+      standaloneMergeRequests: [],
+      standalonePushes: [],
+    });
+  });
+
+  it('loads the comments and state events of issues and merge requests', async () => {
+    const gitlab = createGitLab({
+      events: [
+        issueEvent(12, { action_name: 'closed' }),
+        createEvent({ target_type: 'MergeRequest', target_iid: 5 }),
+      ],
+      issues: [createIssue({ iid: 12, state: GitLabState.CLOSED })],
+      mergeRequests: [
+        createMergeRequest({ iid: 5, source_branch: '12-login' }),
+      ],
+      notes: {
+        [`merge_requests:${PROJECT_ID}:5`]: [
+          createNote({ body: 'requested review from @qa.user' }),
+        ],
+      },
+      stateEvents: {
+        [`issues:${PROJECT_ID}:12`]: [
+          createStateEvent(GitLabState.CLOSED, `${REPORT_DATE}T16:00:00.000Z`),
+        ],
+      },
+    });
+
+    const grouped = await collect(gitlab);
+
+    expect(gitlab.findNotes).toHaveBeenCalledWith(
+      GitLabIssuable.ISSUES,
+      PROJECT_ID,
+      12,
+    );
+    expect(gitlab.findMergeRequestCommits).toHaveBeenCalledWith(PROJECT_ID, 5);
+    expect(grouped.projects.map((project) => project.name)).toEqual([
+      'backend',
+    ]);
+    expect(grouped.issues[0]).toMatchObject({
+      state: GitLabState.CLOSED,
+      closedOnReportDate: true,
+    });
+    expect(grouped.issues[0].mergeRequests[0].reviewers).toEqual(['qa.user']);
+  });
+});

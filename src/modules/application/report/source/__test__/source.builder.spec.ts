@@ -1,0 +1,356 @@
+import { describe, expect, it } from 'vitest';
+import { getDayRange } from 'src/common/utils/date.util';
+import { GitLabState } from 'src/modules/vendors/gitlab/gitlab.enums';
+import type {
+  GitLabMergeRequest,
+  GitLabNote,
+} from 'src/modules/vendors/gitlab/gitlab.interface';
+import { SourceBuilder } from '../source.builder';
+import type { IssueActivity, MergeRequestActivity } from '../source.interface';
+import {
+  createAuthor,
+  createCommit,
+  createEvent,
+  createIssue,
+  createLabelEvent,
+  createMergeRequest,
+  createNote,
+  createProject,
+  createStateEvent,
+  REPORT_DATE,
+} from './source.fixture';
+
+const DAY = getDayRange(REPORT_DATE, 'UTC');
+const USERNAME = 'qa.user';
+
+function toActivity(
+  mergeRequest: GitLabMergeRequest,
+  overrides: Partial<MergeRequestActivity> = {},
+): MergeRequestActivity {
+  return {
+    mergeRequest,
+    events: [],
+    notes: [],
+    labelEvents: [],
+    stateEvents: [],
+    commits: [],
+    ...overrides,
+  };
+}
+
+function buildMergeRequest(
+  mergeRequest: GitLabMergeRequest,
+  overrides: Partial<MergeRequestActivity> = {},
+) {
+  const [grouped] = new SourceBuilder().build(
+    {
+      projects: [],
+      issues: [],
+      mergeRequests: [toActivity(mergeRequest, overrides)],
+      pushes: [],
+    },
+    DAY,
+  ).standaloneMergeRequests;
+  return grouped;
+}
+
+function buildIssue(overrides: Partial<IssueActivity> = {}) {
+  const [grouped] = new SourceBuilder().build(
+    {
+      projects: [],
+      issues: [
+        {
+          issue: createIssue(),
+          events: [],
+          notes: [],
+          labelEvents: [],
+          stateEvents: [],
+          mergeRequests: [],
+          ...overrides,
+        },
+      ],
+      mergeRequests: [],
+      pushes: [],
+    },
+    DAY,
+  ).issues;
+  return grouped;
+}
+
+function withNotes(notes: GitLabNote[]) {
+  return { notes };
+}
+
+describe('SourceBuilder', () => {
+  describe('merge request reviewers', () => {
+    it('keeps the current reviewers', () => {
+      const grouped = buildMergeRequest(
+        createMergeRequest({ reviewers: [createAuthor(USERNAME)] }),
+      );
+
+      expect(grouped.reviewers).toContain(USERNAME);
+    });
+
+    it('keeps a reviewer who removed themselves, by the review request note', () => {
+      const grouped = buildMergeRequest(
+        createMergeRequest({ reviewers: [] }),
+        withNotes([createNote({ body: `requested review from @${USERNAME}` })]),
+      );
+
+      expect(grouped.reviewers).toEqual([USERNAME]);
+    });
+
+    it('reads several reviewers from one note', () => {
+      const grouped = buildMergeRequest(
+        createMergeRequest({ reviewers: [] }),
+        withNotes([
+          createNote({
+            body: `requested review from @${USERNAME} and @dev.two`,
+          }),
+        ]),
+      );
+
+      expect(grouped.reviewers).toEqual([USERNAME, 'dev.two']);
+    });
+
+    it('does not make a reviewer of someone mentioned in a comment', () => {
+      const grouped = buildMergeRequest(
+        createMergeRequest({ reviewers: [] }),
+        withNotes([
+          createNote({ body: `please review @${USERNAME}`, system: false }),
+        ]),
+      );
+
+      expect(grouped.reviewers).toEqual([]);
+    });
+
+    it('counts review threads over all comments, not only the report day', () => {
+      const grouped = buildMergeRequest(
+        createMergeRequest(),
+        withNotes([
+          createNote({
+            id: 1,
+            body: 'a remark two days ago',
+            system: false,
+            resolvable: true,
+            resolved: true,
+            created_at: '2026-07-31T10:00:00.000Z',
+          }),
+          createNote({
+            id: 2,
+            body: 'one more remark',
+            system: false,
+            resolvable: true,
+            resolved: false,
+            created_at: '2026-07-31T11:00:00.000Z',
+          }),
+        ]),
+      );
+
+      expect(grouped.reviewThreads).toEqual({ total: 2, unresolved: 1 });
+    });
+  });
+
+  describe('state at the end of the day', () => {
+    it('keeps the current state without state events', () => {
+      expect(
+        buildIssue({ issue: createIssue({ state: GitLabState.CLOSED }) }),
+      ).toMatchObject({ state: GitLabState.CLOSED, closedOnReportDate: false });
+    });
+
+    it('takes the last state of the day, not the current one', () => {
+      const grouped = buildIssue({
+        issue: createIssue({ state: GitLabState.OPENED }),
+        stateEvents: [
+          createStateEvent(GitLabState.REOPENED, '2026-08-03T09:00:00.000Z'),
+          createStateEvent(GitLabState.CLOSED, `${REPORT_DATE}T15:00:00.000Z`),
+        ],
+      });
+
+      expect(grouped).toMatchObject({
+        state: GitLabState.CLOSED,
+        closedOnReportDate: true,
+      });
+    });
+
+    it('reads a reopened issue as opened', () => {
+      const grouped = buildIssue({
+        issue: createIssue({ state: GitLabState.CLOSED }),
+        stateEvents: [
+          createStateEvent(GitLabState.CLOSED, '2026-07-30T09:00:00.000Z'),
+          createStateEvent(
+            GitLabState.REOPENED,
+            `${REPORT_DATE}T09:00:00.000Z`,
+          ),
+          createStateEvent(GitLabState.CLOSED, '2026-08-04T09:00:00.000Z'),
+        ],
+      });
+
+      expect(grouped).toMatchObject({
+        state: GitLabState.OPENED,
+        closedOnReportDate: false,
+      });
+    });
+
+    it('treats an item with state events only after the day as opened', () => {
+      const grouped = buildMergeRequest(createMergeRequest(), {
+        stateEvents: [
+          createStateEvent(GitLabState.MERGED, '2026-08-03T09:00:00.000Z'),
+        ],
+      });
+
+      expect(grouped).toMatchObject({
+        state: GitLabState.OPENED,
+        mergedOnReportDate: false,
+      });
+    });
+
+    it('marks a merge request merged on the report day', () => {
+      const grouped = buildMergeRequest(createMergeRequest(), {
+        stateEvents: [
+          createStateEvent(GitLabState.MERGED, `${REPORT_DATE}T17:00:00.000Z`),
+        ],
+      });
+
+      expect(grouped).toMatchObject({
+        state: GitLabState.MERGED,
+        mergedOnReportDate: true,
+      });
+    });
+  });
+
+  it('takes the last commit before the report day', () => {
+    const grouped = buildMergeRequest(createMergeRequest(), {
+      commits: [
+        createCommit('2026-07-25T10:00:00.000Z'),
+        createCommit('2026-08-01T22:00:00.000Z'),
+        createCommit(`${REPORT_DATE}T10:00:00.000Z`),
+      ],
+    });
+
+    expect(grouped.lastCommitAt).toBe('2026-08-01T22:00:00.000Z');
+  });
+
+  it('has no last commit when every commit is of the report day', () => {
+    const grouped = buildMergeRequest(createMergeRequest(), {
+      commits: [createCommit(`${REPORT_DATE}T10:00:00.000Z`)],
+    });
+
+    expect(grouped.lastCommitAt).toBeNull();
+  });
+
+  it('keeps the comments and label events of the report day only', () => {
+    const grouped = buildIssue({
+      notes: [
+        createNote({ id: 1, created_at: '2026-08-01T10:00:00.000Z' }),
+        createNote({
+          id: 2,
+          body: 'done',
+          system: false,
+          noteable_type: 'Issue',
+          author: createAuthor(USERNAME),
+        }),
+      ],
+      labelEvents: [
+        createLabelEvent({ id: 1, created_at: '2026-08-03T10:00:00.000Z' }),
+        createLabelEvent({ id: 2, label: null }),
+        createLabelEvent({ id: 3, action: 'remove' }),
+      ],
+    });
+
+    expect(grouped.notes).toEqual([
+      {
+        id: 2,
+        body: 'done',
+        authorUsername: USERNAME,
+        authorName: USERNAME,
+        createdAt: `${REPORT_DATE}T10:00:00.000Z`,
+        system: false,
+        noteableType: 'Issue',
+        resolvable: false,
+        resolved: undefined,
+      },
+    ]);
+    expect(grouped.labelEvents).toEqual([
+      {
+        id: 3,
+        labelName: 'status::doing',
+        action: 'remove',
+        createdAt: `${REPORT_DATE}T11:00:00.000Z`,
+        username: 'dev.author',
+      },
+    ]);
+  });
+
+  it('nests merge requests in their issue and cleans pushes and projects', () => {
+    const push = createEvent({
+      id: 7,
+      action_name: 'pushed to',
+      push_data: {
+        action: 'pushed',
+        ref_type: 'branch',
+        ref: 'hotfix',
+        commit_count: 2,
+        commit_title: 'fix: the cache',
+      },
+    });
+
+    const grouped = new SourceBuilder().build(
+      {
+        projects: [createProject()],
+        issues: [
+          {
+            issue: createIssue(),
+            events: [],
+            notes: [],
+            labelEvents: [],
+            stateEvents: [],
+            mergeRequests: [
+              toActivity(createMergeRequest({ source_branch: '12-login' })),
+            ],
+          },
+        ],
+        mergeRequests: [],
+        pushes: [
+          { target: { projectId: 1, branch: 'hotfix' }, events: [push] },
+        ],
+      },
+      DAY,
+    );
+
+    expect(grouped.projects).toEqual([
+      {
+        id: 1,
+        name: 'backend',
+        path: 'team/backend',
+        webUrl: 'https://gitlab.example.com/team/backend',
+      },
+    ]);
+    expect(grouped.issues[0].mergeRequests[0].sourceBranch).toBe('12-login');
+    expect(grouped.standaloneMergeRequests).toEqual([]);
+    expect(grouped.standalonePushes).toEqual([
+      {
+        projectId: 1,
+        branch: 'hotfix',
+        events: [
+          {
+            id: 7,
+            projectId: 1,
+            actionName: 'pushed to',
+            targetType: null,
+            targetTitle: null,
+            createdAt: `${REPORT_DATE}T10:00:00.000Z`,
+            pushData: {
+              commitCount: 2,
+              action: 'pushed',
+              refType: 'branch',
+              ref: 'hotfix',
+              commitTitle: 'fix: the cache',
+            },
+            noteBody: undefined,
+          },
+        ],
+      },
+    ]);
+  });
+});

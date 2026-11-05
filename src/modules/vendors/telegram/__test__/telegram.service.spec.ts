@@ -8,7 +8,6 @@ import type {
   ChatInput,
   Screen,
 } from 'src/common/interfaces/chat-channel.interface';
-import type { TelegramClient } from '../telegram.client';
 import {
   TelegramRejectedError,
   TelegramRetryableError,
@@ -21,6 +20,7 @@ import type {
   TelegramUser,
 } from '../telegram.interface';
 import { TelegramRenderer } from '../telegram.renderer';
+import type { TelegramRepository } from '../telegram.repository';
 import { TelegramService } from '../telegram.service';
 
 const USER_ID = 300_000_001;
@@ -154,13 +154,27 @@ function sentMessage(messageId: number): TelegramMessage {
 }
 
 describe('TelegramService', () => {
-  let call: Mock<TelegramClient['call']>;
+  let repository: {
+    getUpdates: Mock<TelegramRepository['getUpdates']>;
+    deleteWebhook: Mock<TelegramRepository['deleteWebhook']>;
+    sendMessage: Mock<TelegramRepository['sendMessage']>;
+    editMessageText: Mock<TelegramRepository['editMessageText']>;
+    answerCallbackQuery: Mock<TelegramRepository['answerCallbackQuery']>;
+    setMyCommands: Mock<TelegramRepository['setMyCommands']>;
+  };
   let service: TelegramService;
 
   beforeEach(() => {
-    call = vi.fn<TelegramClient['call']>();
+    repository = {
+      getUpdates: vi.fn(),
+      deleteWebhook: vi.fn(),
+      sendMessage: vi.fn(),
+      editMessageText: vi.fn(),
+      answerCallbackQuery: vi.fn(),
+      setMyCommands: vi.fn(),
+    };
     service = new TelegramService(
-      { call } as unknown as TelegramClient,
+      repository as unknown as TelegramRepository,
       new TelegramRenderer(new TelegramFormatter()),
     );
   });
@@ -309,27 +323,26 @@ describe('TelegramService', () => {
 
   describe('sendScreen', () => {
     it('sends an HTML message with a keyboard and returns its id', async () => {
-      call.mockResolvedValueOnce(sentMessage(300_000_007));
+      repository.sendMessage.mockResolvedValueOnce(sentMessage(300_000_007));
 
       await expect(service.sendScreen(CHAT_ID, SCREEN)).resolves.toBe(
         '300000007',
       );
-      expect(call).toHaveBeenCalledExactlyOnceWith('sendMessage', {
-        chat_id: CHAT_ID,
-        ...RENDERED_SCREEN,
-      });
+      expect(repository.sendMessage).toHaveBeenCalledExactlyOnceWith(
+        CHAT_ID,
+        RENDERED_SCREEN,
+      );
     });
 
     it.each([
       { name: 'without buttons', buttons: undefined },
       { name: 'with empty buttons', buttons: [] },
     ])('removes a leftover reply keyboard $name', async ({ buttons }) => {
-      call.mockResolvedValueOnce(sentMessage(300_000_007));
+      repository.sendMessage.mockResolvedValueOnce(sentMessage(300_000_007));
 
       await service.sendScreen(CHAT_ID, { text: 'Hi', buttons });
 
-      expect(call).toHaveBeenCalledExactlyOnceWith('sendMessage', {
-        chat_id: CHAT_ID,
+      expect(repository.sendMessage).toHaveBeenCalledExactlyOnceWith(CHAT_ID, {
         text: 'Hi',
         parse_mode: 'HTML',
         link_preview_options: { is_disabled: true },
@@ -338,15 +351,14 @@ describe('TelegramService', () => {
     });
 
     it('sends a user picker as a one-time reply keyboard', async () => {
-      call.mockResolvedValueOnce(sentMessage(300_000_007));
+      repository.sendMessage.mockResolvedValueOnce(sentMessage(300_000_007));
 
       await service.sendScreen(CHAT_ID, {
         text: 'Pick',
         userPicker: { text: 'Choose' },
       });
 
-      expect(call).toHaveBeenCalledExactlyOnceWith('sendMessage', {
-        chat_id: CHAT_ID,
+      expect(repository.sendMessage).toHaveBeenCalledExactlyOnceWith(CHAT_ID, {
         text: 'Pick',
         parse_mode: 'HTML',
         link_preview_options: { is_disabled: true },
@@ -366,7 +378,9 @@ describe('TelegramService', () => {
     });
 
     it('throws ChatUnreachableError when the bot is blocked', async () => {
-      call.mockRejectedValueOnce(rejected(403, BLOCKED_DESCRIPTION));
+      repository.sendMessage.mockRejectedValueOnce(
+        rejected(403, BLOCKED_DESCRIPTION),
+      );
 
       await expect(service.sendScreen(CHAT_ID, SCREEN)).rejects.toThrow(
         ChatUnreachableError,
@@ -381,7 +395,7 @@ describe('TelegramService', () => {
       { name: 'a retryable error', error: RETRYABLE_ERROR },
       { name: 'an unknown error', error: UNKNOWN_ERROR },
     ])('propagates $name', async ({ error }) => {
-      call.mockRejectedValueOnce(error);
+      repository.sendMessage.mockRejectedValueOnce(error);
 
       await expect(service.sendScreen(CHAT_ID, SCREEN)).rejects.toBe(error);
     });
@@ -389,71 +403,74 @@ describe('TelegramService', () => {
 
   describe('editScreen', () => {
     it('sends a user picker as a new message', async () => {
-      call.mockResolvedValueOnce(sentMessage(300_000_007));
+      repository.sendMessage.mockResolvedValueOnce(sentMessage(300_000_007));
 
       await service.editScreen(CHAT_ID, '300000003', {
         text: 'Pick',
         userPicker: { text: 'Choose' },
       });
 
-      expect(call).toHaveBeenCalledOnce();
-      expect(call.mock.calls[0][0]).toBe('sendMessage');
+      expect(repository.sendMessage).toHaveBeenCalledOnce();
+      expect(repository.editMessageText).not.toHaveBeenCalled();
     });
 
     it('edits the message by its numeric id', async () => {
-      call.mockResolvedValueOnce(sentMessage(MESSAGE_ID));
+      repository.editMessageText.mockResolvedValueOnce();
 
       await expect(
         service.editScreen(CHAT_ID, '300000003', SCREEN),
       ).resolves.toBeUndefined();
-      expect(call).toHaveBeenCalledExactlyOnceWith('editMessageText', {
-        chat_id: CHAT_ID,
-        message_id: 300_000_003,
-        ...RENDERED_SCREEN,
-      });
+      expect(repository.editMessageText).toHaveBeenCalledExactlyOnceWith(
+        CHAT_ID,
+        300_000_003,
+        RENDERED_SCREEN,
+      );
     });
 
     it('ignores an unchanged message', async () => {
-      call.mockRejectedValueOnce(rejected(400, NOT_MODIFIED_DESCRIPTION));
+      repository.editMessageText.mockRejectedValueOnce(
+        rejected(400, NOT_MODIFIED_DESCRIPTION),
+      );
 
       await expect(
         service.editScreen(CHAT_ID, '300000003', SCREEN),
       ).resolves.toBeUndefined();
-      expect(call).toHaveBeenCalledOnce();
+      expect(repository.sendMessage).not.toHaveBeenCalled();
     });
 
     it('sends a new message when the message cannot be edited', async () => {
-      call
-        .mockRejectedValueOnce(
-          rejected(400, 'Bad Request: message to edit not found'),
-        )
-        .mockResolvedValueOnce(sentMessage(300_000_008));
+      repository.editMessageText.mockRejectedValueOnce(
+        rejected(400, 'Bad Request: message to edit not found'),
+      );
+      repository.sendMessage.mockResolvedValueOnce(sentMessage(300_000_008));
 
       await expect(
         service.editScreen(CHAT_ID, '300000003', SCREEN),
       ).resolves.toBeUndefined();
-      expect(call).toHaveBeenCalledTimes(2);
-      expect(call).toHaveBeenLastCalledWith('sendMessage', {
-        chat_id: CHAT_ID,
-        ...RENDERED_SCREEN,
-      });
+      expect(repository.sendMessage).toHaveBeenCalledExactlyOnceWith(
+        CHAT_ID,
+        RENDERED_SCREEN,
+      );
     });
 
     it('throws ChatUnreachableError when the bot is blocked', async () => {
-      call.mockRejectedValueOnce(rejected(403, BLOCKED_DESCRIPTION));
+      repository.editMessageText.mockRejectedValueOnce(
+        rejected(403, BLOCKED_DESCRIPTION),
+      );
 
       await expect(
         service.editScreen(CHAT_ID, '300000003', SCREEN),
       ).rejects.toThrow(ChatUnreachableError);
-      expect(call).toHaveBeenCalledOnce();
+      expect(repository.sendMessage).not.toHaveBeenCalled();
     });
 
     it('throws ChatUnreachableError when the fallback is blocked', async () => {
-      call
-        .mockRejectedValueOnce(
-          rejected(400, "Bad Request: message can't be edited"),
-        )
-        .mockRejectedValueOnce(rejected(403, BLOCKED_DESCRIPTION));
+      repository.editMessageText.mockRejectedValueOnce(
+        rejected(400, "Bad Request: message can't be edited"),
+      );
+      repository.sendMessage.mockRejectedValueOnce(
+        rejected(403, BLOCKED_DESCRIPTION),
+      );
 
       await expect(
         service.editScreen(CHAT_ID, '300000003', SCREEN),
@@ -465,28 +482,30 @@ describe('TelegramService', () => {
       { name: 'a rejected error with another code', error: UNAUTHORIZED_ERROR },
       { name: 'an unknown error', error: UNKNOWN_ERROR },
     ])('propagates $name without sending', async ({ error }) => {
-      call.mockRejectedValueOnce(error);
+      repository.editMessageText.mockRejectedValueOnce(error);
 
       await expect(
         service.editScreen(CHAT_ID, '300000003', SCREEN),
       ).rejects.toBe(error);
-      expect(call).toHaveBeenCalledOnce();
+      expect(repository.sendMessage).not.toHaveBeenCalled();
     });
   });
 
   describe('answerButton', () => {
     it('answers the callback query', async () => {
-      call.mockResolvedValueOnce(true);
+      repository.answerCallbackQuery.mockResolvedValueOnce();
 
       await service.answerButton(CALLBACK_ID);
 
-      expect(call).toHaveBeenCalledExactlyOnceWith('answerCallbackQuery', {
-        callback_query_id: CALLBACK_ID,
-      });
+      expect(repository.answerCallbackQuery).toHaveBeenCalledExactlyOnceWith(
+        CALLBACK_ID,
+      );
     });
 
     it('ignores a bad request', async () => {
-      call.mockRejectedValueOnce(rejected(400, QUERY_TOO_OLD_DESCRIPTION));
+      repository.answerCallbackQuery.mockRejectedValueOnce(
+        rejected(400, QUERY_TOO_OLD_DESCRIPTION),
+      );
 
       await expect(service.answerButton(CALLBACK_ID)).resolves.toBeUndefined();
     });
@@ -497,7 +516,7 @@ describe('TelegramService', () => {
       { name: 'a rejected error with another code', error: UNAUTHORIZED_ERROR },
       { name: 'an unknown error', error: UNKNOWN_ERROR },
     ])('rethrows $name', async ({ error }) => {
-      call.mockRejectedValueOnce(error);
+      repository.answerCallbackQuery.mockRejectedValueOnce(error);
 
       await expect(service.answerButton(CALLBACK_ID)).rejects.toBe(error);
     });
@@ -505,71 +524,61 @@ describe('TelegramService', () => {
 
   describe('commands', () => {
     beforeEach(() => {
-      call.mockResolvedValue(true);
+      repository.setMyCommands.mockResolvedValue();
     });
 
     it('sets default commands for private chats in a language', async () => {
       await service.setDefaultCommands(COMMANDS, Language.RU);
 
-      expect(call).toHaveBeenCalledExactlyOnceWith('setMyCommands', {
-        commands: COMMANDS,
-        scope: { type: 'all_private_chats' },
-        language_code: 'ru',
-      });
+      expect(repository.setMyCommands).toHaveBeenCalledExactlyOnceWith(
+        COMMANDS,
+        { type: 'all_private_chats' },
+        'ru',
+      );
     });
 
     it('sets default commands without a language code', async () => {
       await service.setDefaultCommands(COMMANDS, null);
 
-      const [[method, params]] = call.mock.calls;
-      expect(method).toBe('setMyCommands');
-      expect(params).toEqual({
-        commands: COMMANDS,
-        scope: { type: 'all_private_chats' },
-      });
-      expect(params).not.toHaveProperty('language_code');
+      expect(repository.setMyCommands).toHaveBeenCalledExactlyOnceWith(
+        COMMANDS,
+        { type: 'all_private_chats' },
+        null,
+      );
     });
 
     it('sets commands for one chat', async () => {
       await service.setChatCommands(CHAT_ID, COMMANDS);
 
-      const [[method, params]] = call.mock.calls;
-      expect(method).toBe('setMyCommands');
-      expect(params).toEqual({
-        commands: COMMANDS,
-        scope: { type: 'chat', chat_id: CHAT_ID },
-      });
-      expect(params).not.toHaveProperty('language_code');
+      expect(repository.setMyCommands).toHaveBeenCalledExactlyOnceWith(
+        COMMANDS,
+        { type: 'chat', chat_id: CHAT_ID },
+        null,
+      );
     });
   });
 
   describe('updates', () => {
-    it('long polls for messages and button presses', async () => {
+    it('reads updates from the offset', async () => {
       const updates = [commandUpdate('/start'), buttonUpdate()];
       const { signal } = new AbortController();
-      call.mockResolvedValueOnce(updates);
+      repository.getUpdates.mockResolvedValueOnce(updates);
 
       await expect(service.getUpdates(300_000_009, signal)).resolves.toBe(
         updates,
       );
-
-      const [[method, params, options]] = call.mock.calls;
-      expect(method).toBe('getUpdates');
-      expect(params).toEqual({
-        offset: 300_000_009,
-        timeout: 25,
-        allowed_updates: ['message', 'callback_query'],
-      });
-      expect(options?.signal).toBe(signal);
-      expect(options?.timeoutMs).toBeGreaterThan(25_000);
+      expect(repository.getUpdates).toHaveBeenCalledExactlyOnceWith(
+        300_000_009,
+        signal,
+      );
     });
 
     it('deletes the webhook', async () => {
-      call.mockResolvedValueOnce(true);
+      repository.deleteWebhook.mockResolvedValueOnce();
 
       await service.deleteWebhook();
 
-      expect(call).toHaveBeenCalledExactlyOnceWith('deleteWebhook', {});
+      expect(repository.deleteWebhook).toHaveBeenCalledOnce();
     });
   });
 });
