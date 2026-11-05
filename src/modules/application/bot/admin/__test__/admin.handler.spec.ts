@@ -51,7 +51,7 @@ describe('AdminHandler', () => {
         text: locale.admin.title,
         buttons: [
           [{ text: 'Employees', data: 'emp:list:0' }],
-          [{ text: 'Labels', data: 'lbl:list:0' }],
+          [{ text: 'Traits', data: 'trt:list:0' }],
         ],
       },
       dialog: null,
@@ -67,10 +67,10 @@ describe('AdminHandler', () => {
   });
 
   it('shows the labels section to an admin with the labels permission', () => {
-    const user = createEmployee({ permissions: [Permission.LABELS] }).user;
+    const user = createEmployee({ permissions: [Permission.TRAITS] }).user;
 
     expect(open(actor({ user }), COMMAND).screen.buttons).toEqual([
-      [{ text: 'Labels', data: 'lbl:list:0' }],
+      [{ text: 'Traits', data: 'trt:list:0' }],
     ]);
   });
 

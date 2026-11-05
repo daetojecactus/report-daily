@@ -49,7 +49,7 @@ const LEVELS: BotSectionAccess[] = [
   BotAccess.ADMIN,
   BotAccess.OWNER,
   Permission.USERS,
-  Permission.LABELS,
+  Permission.TRAITS,
 ];
 
 describe('AccessService', () => {
@@ -73,7 +73,7 @@ describe('AccessService', () => {
         BotAccess.ADMIN,
         BotAccess.OWNER,
         Permission.USERS,
-        Permission.LABELS,
+        Permission.TRAITS,
       ],
     ],
     [
@@ -111,7 +111,7 @@ describe('AccessService', () => {
         user: createEmployee({ id: ADMIN_ID, permissions: [Permission.USERS] })
           .user,
       },
-      { permissions: [Permission.LABELS] },
+      { permissions: [Permission.TRAITS] },
       false,
     ],
     ['yourself as an admin', { user: createEmployee().user }, {}, false],
