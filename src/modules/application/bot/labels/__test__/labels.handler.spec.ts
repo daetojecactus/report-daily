@@ -152,7 +152,19 @@ describe('LabelsHandler', () => {
           'QA:',
           '• Flag: Regression',
         ].join('\n'),
-        buttons: [[{ text: 'To the list', data: 'lbl:list:2' }]],
+        buttons: [
+          [{ text: 'State: Blocked', data: `lblmng:open:${mapping(3).id}` }],
+          [{ text: 'Priority: Low', data: `lblmng:open:${found.id}` }],
+          [
+            {
+              text: 'QA · Flag: Regression',
+              data: `lblmng:open:${mapping(2).id}`,
+            },
+          ],
+          [{ text: 'Add a value', data: `lbladd:more:${found.id}` }],
+          [{ text: 'Delete the label', data: `lblmng:drop:${found.id}` }],
+          [{ text: 'To the list', data: 'lbl:list:2' }],
+        ],
       },
       dialog: null,
     });

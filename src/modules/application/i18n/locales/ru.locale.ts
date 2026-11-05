@@ -384,6 +384,24 @@ export const ru: Locale = {
     backToList: 'К списку',
     notFound: 'Лейбл не найден: возможно, его уже удалили.',
     everyone: 'Для всех',
+    addValue: 'Добавить значение',
+    drop: 'Удалить лейбл',
+  },
+  labelManage: {
+    askValue: (label, whom, dimension, value) =>
+      `${label} ${whom} · ${dimension}\nСейчас: ${value}. Выберите новое значение или удалите это.`,
+    deleteValue: 'Удалить значение',
+    back: '‹ Назад',
+    changed: (label, whom, value) =>
+      `Готово: ${label} ${whom} — теперь ${value}.`,
+    valueDeleted: (label, whom, value) =>
+      `Значение удалено: ${label} ${whom} — ${value}.`,
+    labelEmpty: 'У лейбла больше нет значений, он убран из списка.',
+    confirmDrop: (label, count) =>
+      `Удалить лейбл ${label}? Значений у него: ${count}.`,
+    confirm: 'Да, удалить',
+    cancel: 'Отмена',
+    dropped: (label) => `Лейбл ${label} удалён.`,
   },
   labelAdd: {
     prompt:

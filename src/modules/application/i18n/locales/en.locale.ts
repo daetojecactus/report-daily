@@ -391,6 +391,23 @@ export const en: Locale = {
     backToList: 'To the list',
     notFound: 'Label not found: it may have been deleted.',
     everyone: 'For everyone',
+    addValue: 'Add a value',
+    drop: 'Delete the label',
+  },
+  labelManage: {
+    askValue: (label, whom, dimension, value) =>
+      `${label} ${whom} · ${dimension}\nNow: ${value}. Choose a new value or delete this one.`,
+    deleteValue: 'Delete the value',
+    back: '‹ Back',
+    changed: (label, whom, value) => `Done: ${label} ${whom} — now ${value}.`,
+    valueDeleted: (label, whom, value) =>
+      `Value deleted: ${label} ${whom} — ${value}.`,
+    labelEmpty: 'The label has no values left and is gone from the list.',
+    confirmDrop: (label, count) =>
+      `Delete the label ${label}? Values: ${count}.`,
+    confirm: 'Yes, delete',
+    cancel: 'Cancel',
+    dropped: (label) => `The label ${label} is deleted.`,
   },
   labelAdd: {
     prompt:

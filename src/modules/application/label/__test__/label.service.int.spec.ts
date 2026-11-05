@@ -168,6 +168,46 @@ describe('Label module', () => {
     expect(await labelService.findByKey('status::easy')).toHaveLength(1);
   });
 
+  it('changes a value only to one of its group', async () => {
+    const mapping = await labelService.create(
+      toMapping('status::easy', LabelDimension.PRIORITY, Priority.LOW),
+    );
+
+    expect(
+      await labelService.changeValue(mapping.id, Priority.HIGH),
+    ).toMatchObject({ value: Priority.HIGH });
+    await expect(
+      labelService.changeValue(mapping.id, WorkflowState.REVIEW),
+    ).rejects.toMatchObject({
+      cause: { constraint: 'label_mappings_dimension_value' },
+    });
+  });
+
+  it('deletes a value or the whole label', async () => {
+    const first = await labelService.create(
+      toMapping('status::easy', LabelDimension.PRIORITY, Priority.LOW),
+    );
+    await labelService.create(
+      toMapping(
+        'status::easy',
+        LabelDimension.FLAG,
+        TaskFlag.REGRESSION,
+        JobRole.QA,
+      ),
+    );
+    await labelService.create(
+      toMapping('type::bug', LabelDimension.TASK_KIND, TaskKind.BUG),
+    );
+
+    expect(await labelService.deleteById(first.id)).toMatchObject({
+      id: first.id,
+    });
+    expect(await labelService.findByKey('status::easy')).toHaveLength(1);
+    expect(await labelService.deleteByKey('status::easy')).toHaveLength(1);
+    expect(await labelService.findByKey('status::easy')).toEqual([]);
+    expect(await labelService.findByKey('type::bug')).toHaveLength(1);
+  });
+
   it('limits the label to 1-255 characters', async () => {
     for (const label of ['', 'a'.repeat(256)]) {
       await expect(
