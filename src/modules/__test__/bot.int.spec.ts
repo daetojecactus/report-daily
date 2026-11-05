@@ -15,6 +15,11 @@ import { ru } from 'src/modules/application/i18n/locales/ru.locale';
 import { userChannels } from 'src/modules/application/user/channel/channel.schema';
 import type { UserInsert } from 'src/modules/application/user/user.interface';
 import { users } from 'src/modules/application/user/user.schema';
+import { labelMappings } from 'src/modules/application/label/label.schema';
+import {
+  LabelDimension,
+  Priority,
+} from 'src/modules/application/label/label.enums';
 import { DATABASE_INSTANCE } from 'src/modules/infrastructure/database/constants/database.constants';
 import { RedisService } from 'src/modules/infrastructure/redis/redis.service';
 import { TEST_OWNER_TELEGRAM_ID } from 'test/setup/env';
@@ -268,7 +273,10 @@ describe('Telegram bot', () => {
       ),
     ).toMatchObject({
       reply_markup: {
-        inline_keyboard: [[{ text: 'Employees', callback_data: 'emp:list:0' }]],
+        inline_keyboard: [
+          [{ text: 'Employees', callback_data: 'emp:list:0' }],
+          [{ text: 'Labels', callback_data: 'lbl:list:0' }],
+        ],
       },
     });
 
@@ -674,5 +682,59 @@ describe('Telegram bot', () => {
       aiDataOptOut: true,
       gender: Gender.FEMALE,
     });
+  });
+
+  it('lets an admin with the labels permission map a label to our value', async () => {
+    const { telegramId } = await createEmployee({
+      permissions: [Permission.LABELS],
+    });
+    const label = `status::easy ${telegramId}`;
+
+    await fakeBotApi.pushUpdate(privateMessage(telegramId, '/admin'));
+    expect(await replyTo(telegramId)).toMatchObject({
+      reply_markup: {
+        inline_keyboard: [[{ text: 'Labels', callback_data: 'lbl:list:0' }]],
+      },
+    });
+    expect((await press(telegramId, 'lbl:list:0', 1401)).text).toMatch(
+      /^<b>Labels<\/b> · \d+/,
+    );
+    expect((await press(telegramId, 'lbladd:start', 1402)).text).toBe(
+      'Send the label as in GitLab, for example <code>status::easy</code>. Letter case, extra spaces and <code>_</code> do not matter.',
+    );
+    await fakeBotApi.pushUpdate(privateMessage(telegramId, label));
+    await fakeBotApi.waitForRequest(
+      'sendMessage',
+      (body) =>
+        body.chat_id === String(telegramId) &&
+        String(body.text).endsWith('Who is the value for?'),
+    );
+    await press(telegramId, 'lbladd:role:all', 1403);
+    await press(telegramId, 'lbladd:dim:priority', 1404);
+    expect((await press(telegramId, 'lbladd:val:low', 1405)).text).toBe(
+      `Done: <b>${label}</b> for everyone — Priority: Low.`,
+    );
+
+    expect(
+      await db
+        .select()
+        .from(labelMappings)
+        .where(eq(labelMappings.label, label)),
+    ).toMatchObject([
+      {
+        labelKey: label,
+        role: null,
+        dimension: LabelDimension.PRIORITY,
+        value: Priority.LOW,
+      },
+    ]);
+  });
+
+  it('keeps labels closed without the labels permission', async () => {
+    const { telegramId } = await createEmployee();
+
+    expect((await press(telegramId, 'lbl:list:0', 1406)).text).toBe(
+      en.bot.forbidden,
+    );
   });
 });

@@ -81,6 +81,36 @@ export interface Locale {
       >;
     };
   };
+  labelList: {
+    title: (count: number) => string;
+    page: (page: number, pages: number) => string;
+    empty: string;
+    previous: string;
+    next: string;
+    add: string;
+    menu: string;
+    backToList: string;
+    notFound: string;
+    everyone: string;
+  };
+  labelAdd: {
+    prompt: string;
+    invalid: (max: number) => string;
+    exists: (label: string) => string;
+    forWhom: (label: string) => string;
+    everyone: string;
+    forEveryone: string;
+    forRole: (role: string) => string;
+    chooseDimension: (label: string, whom: string) => string;
+    chooseValue: (label: string, whom: string, dimension: string) => string;
+    alreadySet: (label: string) => string;
+    added: (label: string, whom: string, value: string) => string;
+    openCard: string;
+    addMore: string;
+    back: string;
+    cancel: string;
+    cancelled: string;
+  };
   employees: {
     title: (count: number) => string;
     page: (page: number, pages: number) => string;
