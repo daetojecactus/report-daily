@@ -45,11 +45,14 @@ function button(data: string): ChatInput {
 }
 
 describe('AdminHandler', () => {
-  it('shows an owner the employees section', () => {
+  it('shows an owner every section', () => {
     expect(open(actor({ isOwner: true }), COMMAND)).toEqual({
       screen: {
         text: locale.admin.title,
-        buttons: [[{ text: 'Employees', data: 'emp:list:0' }]],
+        buttons: [
+          [{ text: 'Employees', data: 'emp:list:0' }],
+          [{ text: 'Labels', data: 'lbl:list:0' }],
+        ],
       },
       dialog: null,
     });
@@ -63,8 +66,16 @@ describe('AdminHandler', () => {
     ]);
   });
 
-  it('says there is nothing yet for other permissions', () => {
+  it('shows the labels section to an admin with the labels permission', () => {
     const user = createEmployee({ permissions: [Permission.LABELS] }).user;
+
+    expect(open(actor({ user }), COMMAND).screen.buttons).toEqual([
+      [{ text: 'Labels', data: 'lbl:list:0' }],
+    ]);
+  });
+
+  it('says there is nothing yet for other permissions', () => {
+    const user = createEmployee({ permissions: [Permission.BROADCAST] }).user;
 
     expect(open(actor({ user }), COMMAND).screen).toEqual({
       text: [locale.admin.title, locale.admin.noSections].join('\n'),

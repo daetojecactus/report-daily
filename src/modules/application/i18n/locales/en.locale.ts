@@ -379,6 +379,42 @@ export const en: Locale = {
       },
     },
   },
+  labelList: {
+    title: (count) => `**Labels** · ${count}`,
+    page: (page, pages) => `Page ${page} of ${pages}`,
+    empty:
+      'No labels yet. Press "Add": the bot asks for a label as in GitLab and what it means in the report.',
+    previous: '‹ Back',
+    next: 'Next ›',
+    add: 'Add',
+    menu: 'Menu',
+    backToList: 'To the list',
+    notFound: 'Label not found: it may have been deleted.',
+    everyone: 'For everyone',
+  },
+  labelAdd: {
+    prompt:
+      'Send the label as in GitLab, for example `status::easy`. Letter case, extra spaces and `_` do not matter.',
+    invalid: (max) =>
+      `This does not look like a label. Send it as in GitLab, for example \`status::easy\`, up to ${max} characters.`,
+    exists: (label) => `The label ${label} is already set up.`,
+    forWhom: (label) => `${label}\nWho is the value for?`,
+    everyone: 'For everyone',
+    forEveryone: 'for everyone',
+    forRole: (role) => `for the ${role} role`,
+    chooseDimension: (label, whom) =>
+      `${label} ${whom}\nWhat does this label mean? Choose a group.`,
+    chooseValue: (label, whom, dimension) =>
+      `${label} ${whom} · ${dimension}\nChoose our value.`,
+    alreadySet: (label) =>
+      `The label ${label} already has a value in this group for this role. You can change it in the card.`,
+    added: (label, whom, value) => `Done: ${label} ${whom} — ${value}.`,
+    openCard: 'Open the card',
+    addMore: 'Add another',
+    back: '‹ Back',
+    cancel: 'Cancel',
+    cancelled: 'Adding cancelled.',
+  },
   employees: {
     title: (count) => `**Employees** · ${count}`,
     page: (page, pages) => `Page ${page} of ${pages}`,

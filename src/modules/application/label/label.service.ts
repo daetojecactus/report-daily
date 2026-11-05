@@ -1,7 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import type { SQL } from 'drizzle-orm';
-import type { LabelMappingInsert, LabelMappingUpdate } from './label.interface';
+import { eq, type SQL } from 'drizzle-orm';
+import { toLabelKey } from 'src/common/utils/label.util';
+import type {
+  LabelMappingInput,
+  LabelMappingInsert,
+  LabelMappingUpdate,
+} from './label.interface';
 import { LabelRepository } from './label.repository';
+import { labelMappings } from './label.schema';
 
 @Injectable()
 export class LabelService {
@@ -25,5 +31,32 @@ export class LabelService {
 
   deleteOne(filter: SQL) {
     return this.labelRepository.deleteOne(filter);
+  }
+
+  findById(id: string) {
+    return this.findOne(eq(labelMappings.id, id));
+  }
+
+  findByKey(labelKey: string) {
+    return this.find(eq(labelMappings.labelKey, labelKey));
+  }
+
+  countLabels() {
+    return this.labelRepository.countLabels();
+  }
+
+  findLabelPage(limit: number, offset: number) {
+    return this.labelRepository.findLabelPage(limit, offset);
+  }
+
+  addValue({ label, role, dimension, value }: LabelMappingInput) {
+    const text = label.trim();
+    return this.labelRepository.createIfMissing({
+      label: text,
+      labelKey: toLabelKey(text),
+      role,
+      dimension,
+      value,
+    });
   }
 }

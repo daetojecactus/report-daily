@@ -11,6 +11,7 @@ import {
   Priority,
   Severity,
   TaskArea,
+  TaskFlag,
   TaskKind,
   WorkflowState,
 } from '../label.enums';
@@ -122,6 +123,49 @@ describe('Label module', () => {
         cause: { constraint: 'label_mappings_dimension_value' },
       });
     }
+  });
+
+  it('lists every label once with its value for everyone first', async () => {
+    await labelService.create(
+      toMapping(
+        'Status::Easy',
+        LabelDimension.FLAG,
+        TaskFlag.REGRESSION,
+        JobRole.QA,
+      ),
+    );
+    await labelService.create(
+      toMapping('status::easy', LabelDimension.PRIORITY, Priority.LOW),
+    );
+    await labelService.create(
+      toMapping('type::bug', LabelDimension.TASK_KIND, TaskKind.BUG),
+    );
+
+    expect(await labelService.countLabels()).toBe(2);
+    expect(await labelService.findLabelPage(8, 0)).toMatchObject([
+      { labelKey: 'status::easy', role: null, value: Priority.LOW },
+      { labelKey: 'type::bug', value: TaskKind.BUG },
+    ]);
+    expect(await labelService.findLabelPage(1, 1)).toMatchObject([
+      { labelKey: 'type::bug' },
+    ]);
+    expect(await labelService.findByKey('status::easy')).toHaveLength(2);
+  });
+
+  it('adds a value once and keeps the label as entered', async () => {
+    const input = {
+      label: ' Status::Easy ',
+      role: null,
+      dimension: LabelDimension.PRIORITY,
+      value: Priority.LOW,
+    };
+
+    expect(await labelService.addValue(input)).toMatchObject({
+      label: 'Status::Easy',
+      labelKey: 'status::easy',
+    });
+    expect(await labelService.addValue(input)).toBeNull();
+    expect(await labelService.findByKey('status::easy')).toHaveLength(1);
   });
 
   it('limits the label to 1-255 characters', async () => {

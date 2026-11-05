@@ -1,4 +1,5 @@
 import type { PgUpdateSetSource } from 'drizzle-orm/pg-core';
+import type { JobRole } from 'src/modules/application/user/user.enums';
 import type {
   LabelDimension,
   Priority,
@@ -26,3 +27,10 @@ export interface LabelDimensionValueMap {
 }
 
 export type LabelValue = LabelDimensionValueMap[LabelDimension];
+
+export interface LabelMappingInput {
+  label: string;
+  role: JobRole | null;
+  dimension: LabelDimension;
+  value: LabelValue;
+}
