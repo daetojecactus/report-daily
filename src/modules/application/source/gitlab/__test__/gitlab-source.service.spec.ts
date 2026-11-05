@@ -1,8 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import {
-  GitLabIssuable,
-  GitLabState,
-} from 'src/modules/vendors/gitlab/gitlab.enums';
+import { GitLabIssuable, GitLabState } from 'src/modules/vendors/gitlab/gitlab.enums';
 import type {
   GitLabEvent,
   GitLabIssue,
@@ -14,11 +11,13 @@ import type {
 } from 'src/modules/vendors/gitlab/gitlab.interface';
 import type { GitLabService } from 'src/modules/vendors/gitlab/gitlab.service';
 import { Source } from '../../source.enums';
-import { GitLabSourceBuilder } from '../gitlab-source.builder';
+import { GitLabSourceDetails } from '../gitlab-source.details';
 import type { SourceHiddenItems } from '../gitlab-source.interface';
+import { GitLabSourceKeys } from '../gitlab-source.keys';
 import type { GitLabSourceScanner } from '../gitlab-source.scanner';
 import { GitLabSourceService } from '../gitlab-source.service';
 import {
+  createBuilder,
   createEvent,
   createIssue,
   createMergeRequest,
@@ -46,10 +45,7 @@ function findItem<T extends { project_id: number; iid: number }>(
   projectId: number,
   iid: number,
 ) {
-  return (
-    items?.find((item) => item.project_id === projectId && item.iid === iid) ??
-    null
-  );
+  return items?.find((item) => item.project_id === projectId && item.iid === iid) ?? null;
 }
 
 function createGitLab(data: GitLabData) {
@@ -59,9 +55,7 @@ function createGitLab(data: GitLabData) {
     findUserEventsAround: vi.fn(() => Promise.resolve(data.events)),
     findProject: vi.fn((id: number) =>
       Promise.resolve(
-        (data.projects ?? [createProject()]).find(
-          (project) => project.id === id,
-        ) ?? null,
+        (data.projects ?? [createProject()]).find((project) => project.id === id) ?? null,
       ),
     ),
     findIssue: vi.fn((projectId: number, iid: number) =>
@@ -74,30 +68,23 @@ function createGitLab(data: GitLabData) {
       Promise.resolve(
         data.mergeRequests?.find(
           (mergeRequest) =>
-            mergeRequest.project_id === projectId &&
-            mergeRequest.source_branch === branch,
+            mergeRequest.project_id === projectId && mergeRequest.source_branch === branch,
         ) ?? null,
       ),
     ),
     findIssuesClosedOnMerge: vi.fn((_projectId: number, iid: number) =>
       Promise.resolve(data.closingIssues?.[iid] ?? []),
     ),
-    findNotes: vi.fn(
-      (issuable: GitLabIssuable, projectId: number, iid: number) =>
-        Promise.resolve(data.notes?.[toKey(issuable, projectId, iid)] ?? []),
+    findNotes: vi.fn((issuable: GitLabIssuable, projectId: number, iid: number) =>
+      Promise.resolve(data.notes?.[toKey(issuable, projectId, iid)] ?? []),
     ),
     findLabelEvents: vi.fn(() => Promise.resolve([])),
-    findStateEvents: vi.fn(
-      (issuable: GitLabIssuable, projectId: number, iid: number) =>
-        Promise.resolve(
-          data.stateEvents?.[toKey(issuable, projectId, iid)] ?? [],
-        ),
+    findStateEvents: vi.fn((issuable: GitLabIssuable, projectId: number, iid: number) =>
+      Promise.resolve(data.stateEvents?.[toKey(issuable, projectId, iid)] ?? []),
     ),
     findMergeRequestCommits: vi.fn(() => Promise.resolve([])),
     findPushCommits: vi.fn((_projectId: number, push: GitLabPushData) =>
-      Promise.resolve([
-        { id: push.commit_to ?? '', title: 'fix: a bug', created_at: '' },
-      ]),
+      Promise.resolve([{ id: push.commit_to ?? '', title: 'fix: a bug', created_at: '' }]),
     ),
   };
 }
@@ -108,10 +95,13 @@ function collect(
   hidden: SourceHiddenItems = { issues: [], mergeRequests: [] },
 ) {
   const scanner = { findHiddenItems: vi.fn(() => Promise.resolve(hidden)) };
+  const keys = new GitLabSourceKeys();
   return new GitLabSourceService(
     gitlab as unknown as GitLabService,
-    new GitLabSourceBuilder(),
+    createBuilder(),
     scanner as unknown as GitLabSourceScanner,
+    new GitLabSourceDetails(gitlab as unknown as GitLabService, keys),
+    keys,
   ).collect(
     {
       id: '0190b5a8-0000-7000-8000-000000000003',
@@ -173,10 +163,7 @@ describe('GitLabSourceService', () => {
 
     const grouped = await collect(gitlab, 'Asia/Almaty');
 
-    expect(gitlab.findUserEventsAround).toHaveBeenCalledWith(
-      GITLAB_USER_ID,
-      REPORT_DATE,
-    );
+    expect(gitlab.findUserEventsAround).toHaveBeenCalledWith(GITLAB_USER_ID, REPORT_DATE);
     expect(grouped.issues.map((issue) => issue.iid)).toEqual([12]);
     expect(gitlab.findIssue).toHaveBeenCalledTimes(1);
   });
@@ -199,9 +186,7 @@ describe('GitLabSourceService', () => {
     expect(grouped.issues).toHaveLength(1);
     expect(grouped.issues[0].events).toHaveLength(4);
     expect(grouped.standaloneMergeRequests).toHaveLength(1);
-    expect(grouped.standaloneMergeRequests[0].events[0].noteBody).toBe(
-      'a comment',
-    );
+    expect(grouped.standaloneMergeRequests[0].events[0].noteBody).toBe('a comment');
     expect(gitlab.findIssue).toHaveBeenCalledTimes(1);
   });
 
@@ -215,18 +200,14 @@ describe('GitLabSourceService', () => {
         }),
       ],
       issues: [createIssue({ iid: 12 })],
-      mergeRequests: [
-        createMergeRequest({ iid: 5, source_branch: '12-login' }),
-      ],
+      mergeRequests: [createMergeRequest({ iid: 5, source_branch: '12-login' })],
     });
 
     const grouped = await collect(gitlab);
 
     expect(gitlab.findIssue).toHaveBeenCalledWith(PROJECT_ID, 12);
     expect(grouped.issues).toHaveLength(1);
-    expect(grouped.issues[0].mergeRequests.map((item) => item.iid)).toEqual([
-      5,
-    ]);
+    expect(grouped.issues[0].mergeRequests.map((item) => item.iid)).toEqual([5]);
     expect(grouped.standaloneMergeRequests).toEqual([]);
   });
 
@@ -245,31 +226,22 @@ describe('GitLabSourceService', () => {
     const grouped = await collect(gitlab);
 
     expect(grouped.issues).toEqual([]);
-    expect(
-      grouped.standaloneMergeRequests.map((mergeRequest) => mergeRequest.iid),
-    ).toEqual([5, 6]);
+    expect(grouped.standaloneMergeRequests.map((mergeRequest) => mergeRequest.iid)).toEqual([5, 6]);
   });
 
   it('finds the merge request of a pushed branch and moves the pushes into it', async () => {
     const gitlab = createGitLab({
       events: [pushEvent('12-login')],
       issues: [createIssue({ iid: 12 })],
-      mergeRequests: [
-        createMergeRequest({ iid: 5, source_branch: '12-login' }),
-      ],
+      mergeRequests: [createMergeRequest({ iid: 5, source_branch: '12-login' })],
     });
 
     const grouped = await collect(gitlab);
 
-    expect(gitlab.findMergeRequestByBranch).toHaveBeenCalledWith(
-      PROJECT_ID,
-      '12-login',
-    );
+    expect(gitlab.findMergeRequestByBranch).toHaveBeenCalledWith(PROJECT_ID, '12-login');
     const [mergeRequest] = grouped.issues[0].mergeRequests;
     expect(mergeRequest.iid).toBe(5);
-    expect(mergeRequest.events.map((event) => event.actionName)).toEqual([
-      'pushed to',
-    ]);
+    expect(mergeRequest.events.map((event) => event.actionName)).toEqual(['pushed to']);
     expect(grouped.standalonePushes).toEqual([]);
   });
 
@@ -287,17 +259,12 @@ describe('GitLabSourceService', () => {
     const grouped = await collect(gitlab);
 
     expect(gitlab.findMergeRequestByBranch).toHaveBeenCalledTimes(1);
-    expect(grouped.standalonePushes.map((push) => push.branch)).toEqual([
-      'experiment',
-    ]);
+    expect(grouped.standalonePushes.map((push) => push.branch)).toEqual(['experiment']);
   });
 
   it('skips issues and merge requests GitLab does not have', async () => {
     const gitlab = createGitLab({
-      events: [
-        issueEvent(12),
-        createEvent({ target_type: 'MergeRequest', target_iid: 5 }),
-      ],
+      events: [issueEvent(12), createEvent({ target_type: 'MergeRequest', target_iid: 5 })],
     });
 
     const grouped = await collect(gitlab);
@@ -334,9 +301,7 @@ describe('GitLabSourceService', () => {
         createEvent({ target_type: 'MergeRequest', target_iid: 5 }),
       ],
       issues: [createIssue({ iid: 12, state: GitLabState.CLOSED })],
-      mergeRequests: [
-        createMergeRequest({ iid: 5, source_branch: '12-login' }),
-      ],
+      mergeRequests: [createMergeRequest({ iid: 5, source_branch: '12-login' })],
       notes: {
         [`merge_requests:${PROJECT_ID}:5`]: [
           createNote({ body: 'requested review from @qa.user' }),
@@ -351,15 +316,9 @@ describe('GitLabSourceService', () => {
 
     const grouped = await collect(gitlab);
 
-    expect(gitlab.findNotes).toHaveBeenCalledWith(
-      GitLabIssuable.ISSUES,
-      PROJECT_ID,
-      12,
-    );
+    expect(gitlab.findNotes).toHaveBeenCalledWith(GitLabIssuable.ISSUES, PROJECT_ID, 12);
     expect(gitlab.findMergeRequestCommits).toHaveBeenCalledWith(PROJECT_ID, 5);
-    expect(grouped.projects.map((project) => project.name)).toEqual([
-      'backend',
-    ]);
+    expect(grouped.projects.map((project) => project.name)).toEqual(['backend']);
     expect(grouped.issues[0]).toMatchObject({
       state: GitLabState.CLOSED,
       closedOnReportDate: true,
@@ -381,10 +340,7 @@ describe('GitLabSourceService', () => {
     expect(gitlab.findIssue).not.toHaveBeenCalled();
     expect(grouped.issues).toEqual([]);
     expect(
-      grouped.standaloneMergeRequests[0].closesIssues.map((issue) => [
-        issue.projectId,
-        issue.iid,
-      ]),
+      grouped.standaloneMergeRequests[0].closesIssues.map((issue) => [issue.projectId, issue.iid]),
     ).toEqual([
       [PROJECT_ID, 12],
       [2, 30],
@@ -410,19 +366,14 @@ describe('GitLabSourceService', () => {
       ]),
     ).toEqual([[2, 30, [5]]]);
     expect(grouped.standaloneMergeRequests).toEqual([]);
-    expect(grouped.projects.map((project) => project.name)).toEqual([
-      'backend',
-      'frontend',
-    ]);
+    expect(grouped.projects.map((project) => project.name)).toEqual(['backend', 'frontend']);
   });
 
   it('puts a merge request under the issue of its branch and lists the issues it closes', async () => {
     const gitlab = createGitLab({
       events: [createEvent({ target_type: 'MergeRequest', target_iid: 5 })],
       issues: [createIssue({ iid: 12 })],
-      mergeRequests: [
-        createMergeRequest({ iid: 5, source_branch: '12-login' }),
-      ],
+      mergeRequests: [createMergeRequest({ iid: 5, source_branch: '12-login' })],
       closingIssues: {
         5: [createIssue({ iid: 12 }), createIssue({ iid: 13 })],
       },
@@ -432,18 +383,16 @@ describe('GitLabSourceService', () => {
 
     expect(gitlab.findIssue).not.toHaveBeenCalled();
     expect(grouped.issues.map((issue) => issue.iid)).toEqual([12]);
-    expect(
-      grouped.issues[0].mergeRequests[0].closesIssues.map((issue) => issue.iid),
-    ).toEqual([12, 13]);
+    expect(grouped.issues[0].mergeRequests[0].closesIssues.map((issue) => issue.iid)).toEqual([
+      12, 13,
+    ]);
   });
 
   it('loads the commits of every push of the day', async () => {
     const gitlab = createGitLab({
       events: [pushEvent('12-login'), pushEvent('experiment')],
       issues: [createIssue({ iid: 12 })],
-      mergeRequests: [
-        createMergeRequest({ iid: 5, source_branch: '12-login' }),
-      ],
+      mergeRequests: [createMergeRequest({ iid: 5, source_branch: '12-login' })],
     });
 
     const grouped = await collect(gitlab);
@@ -454,9 +403,7 @@ describe('GitLabSourceService', () => {
       expect.objectContaining({ ref: '12-login', commit_to: 'bbb' }),
     );
     const [push] = grouped.issues[0].mergeRequests[0].events;
-    expect(push.pushData?.commits).toEqual([
-      { id: 'bbb', title: 'fix: a bug' },
-    ]);
+    expect(push.pushData?.commits).toEqual([{ id: 'bbb', title: 'fix: a bug' }]);
     expect(grouped.standalonePushes[0].events[0].pushData?.commits).toEqual([
       { id: 'bbb', title: 'fix: a bug' },
     ]);
@@ -482,9 +429,7 @@ describe('GitLabSourceService', () => {
 
     const grouped = await collect(gitlab);
 
-    expect(grouped.issues[0].actions.map((item) => item.kind)).toEqual([
-      'description_changed',
-    ]);
+    expect(grouped.issues[0].actions.map((item) => item.kind)).toEqual(['description_changed']);
   });
 
   it('adds the items changed without events to the day', async () => {
@@ -510,18 +455,12 @@ describe('GitLabSourceService', () => {
       mergeRequests: [{ projectId: PROJECT_ID, iid: 7 }],
     });
 
-    expect(
-      grouped.issues.map((issue) => [issue.iid, issue.events.length]),
-    ).toEqual([
+    expect(grouped.issues.map((issue) => [issue.iid, issue.events.length])).toEqual([
       [12, 1],
       [30, 0],
     ]);
-    expect(grouped.issues[1].actions.map((action) => action.kind)).toEqual([
-      'description_changed',
-    ]);
-    expect(grouped.standaloneMergeRequests.map((item) => item.iid)).toEqual([
-      7,
-    ]);
+    expect(grouped.issues[1].actions.map((action) => action.kind)).toEqual(['description_changed']);
+    expect(grouped.standaloneMergeRequests.map((item) => item.iid)).toEqual([7]);
     expect(gitlab.findIssue).toHaveBeenCalledTimes(2);
   });
 });

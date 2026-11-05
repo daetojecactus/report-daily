@@ -1,16 +1,9 @@
 import { sql } from 'drizzle-orm';
 import { check, pgEnum, pgTable, text, unique } from 'drizzle-orm/pg-core';
-import {
-  createdAt,
-  primaryId,
-  updatedAt,
-} from '../../infrastructure/database/database.columns';
+import { createdAt, primaryId, updatedAt } from '../../infrastructure/database/database.columns';
 import { jobRole } from '../user/user.schema';
 import { source } from '../user/user-source/user-source.schema';
-import {
-  TRAIT_DICTIONARY,
-  TRAIT_SOURCE_NAME_MAX_LENGTH,
-} from './constants/trait.constants';
+import { TRAIT_DICTIONARY, TRAIT_SOURCE_NAME_MAX_LENGTH } from './constants/trait.constants';
 import { TraitDimension } from './trait.enums';
 import type { TraitValue } from './trait.interface';
 

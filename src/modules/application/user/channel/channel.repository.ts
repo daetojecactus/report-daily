@@ -22,10 +22,7 @@ export class ChannelRepository {
   }
 
   async create(values: UserChannelInsert) {
-    const [channel] = await this.databaseService.db
-      .insert(userChannels)
-      .values(values)
-      .returning();
+    const [channel] = await this.databaseService.db.insert(userChannels).values(values).returning();
     return channel;
   }
 
@@ -39,10 +36,7 @@ export class ChannelRepository {
   }
 
   async deleteOne(filter: SQL) {
-    const [channel] = await this.databaseService.db
-      .delete(userChannels)
-      .where(filter)
-      .returning();
+    const [channel] = await this.databaseService.db.delete(userChannels).where(filter).returning();
     return channel ?? null;
   }
 }

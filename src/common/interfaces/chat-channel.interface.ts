@@ -46,9 +46,6 @@ export interface ChatChannel {
   sendScreen(chatId: string, screen: Screen): Promise<string>;
   editScreen(chatId: string, messageId: string, screen: Screen): Promise<void>;
   answerButton(callbackId: string): Promise<void>;
-  setDefaultCommands(
-    commands: ChatCommand[],
-    languageCode: string | null,
-  ): Promise<void>;
+  setDefaultCommands(commands: ChatCommand[], languageCode: string | null): Promise<void>;
   setChatCommands(chatId: string, commands: ChatCommand[]): Promise<void>;
 }

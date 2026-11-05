@@ -3,12 +3,7 @@ import { eq } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { Channel } from 'src/common/enums/channel.enums';
-import {
-  Gender,
-  JobRole,
-  Permission,
-  UserStatus,
-} from 'src/modules/application/user/user.enums';
+import { Gender, JobRole, Permission, UserStatus } from 'src/modules/application/user/user.enums';
 import { Language } from 'src/modules/application/i18n/i18n.enums';
 import { Source } from 'src/modules/application/source/source.enums';
 import { DATABASE_INSTANCE } from 'src/modules/infrastructure/database/constants/database.constants';
@@ -43,10 +38,7 @@ describe('User module', () => {
     await app.close();
   });
 
-  async function insertUser(
-    values: Partial<UserInsert> = {},
-    username = `user${nextId}`,
-  ) {
+  async function insertUser(values: Partial<UserInsert> = {}, username = `user${nextId}`) {
     const externalId = String(nextId++);
     const [user] = await db
       .insert(users)
@@ -66,10 +58,7 @@ describe('User module', () => {
     return user;
   }
 
-  async function insertChannel(
-    userId: string,
-    values: Partial<UserChannelInsert> = {},
-  ) {
+  async function insertChannel(userId: string, values: Partial<UserChannelInsert> = {}) {
     const [channel] = await db
       .insert(userChannels)
       .values({
@@ -88,10 +77,7 @@ describe('User module', () => {
   }
 
   async function findChannel(id: string) {
-    const [channel] = await db
-      .select()
-      .from(userChannels)
-      .where(eq(userChannels.id, id));
+    const [channel] = await db.select().from(userChannels).where(eq(userChannels.id, id));
     return channel;
   }
 
@@ -104,20 +90,16 @@ describe('User module', () => {
         gender: Gender.MALE,
       });
 
-      expect(await userService.findOne(eq(users.id, created.id))).toEqual(
-        created,
-      );
-      expect(
-        await userService.find(eq(users.displayName, displayName)),
-      ).toEqual([created]);
+      expect(await userService.findOne(eq(users.id, created.id))).toEqual(created);
+      expect(await userService.find(eq(users.displayName, displayName))).toEqual([created]);
       expect(
         await userService.updateOne(eq(users.id, created.id), {
           role: JobRole.DEVOPS,
         }),
       ).toMatchObject({ id: created.id, role: JobRole.DEVOPS });
-      expect(
-        await userService.deleteOne(eq(users.id, created.id)),
-      ).toMatchObject({ id: created.id });
+      expect(await userService.deleteOne(eq(users.id, created.id))).toMatchObject({
+        id: created.id,
+      });
       expect(await userService.findOne(eq(users.id, created.id))).toBeNull();
     });
 
@@ -137,21 +119,15 @@ describe('User module', () => {
       const user = await insertUser();
 
       expect(await userService.findById(user.id)).toEqual(user);
-      expect(
-        await userService.findById('019a4d2e-7c1b-7f3a-9c2d-000000000000'),
-      ).toBeNull();
+      expect(await userService.findById('019a4d2e-7c1b-7f3a-9c2d-000000000000')).toBeNull();
     });
 
     it('finds a user by the account in a source', async () => {
       const externalId = String(nextId);
       const user = await insertUser();
 
-      expect(
-        await userService.findOneBySource(Source.GITLAB, externalId),
-      ).toEqual(user);
-      expect(
-        await userService.findOneBySource(Source.GITLAB, String(nextId++)),
-      ).toBeNull();
+      expect(await userService.findOneBySource(Source.GITLAB, externalId)).toEqual(user);
+      expect(await userService.findOneBySource(Source.GITLAB, String(nextId++))).toBeNull();
     });
 
     it('creates a user with the account in a source at once', async () => {
@@ -187,16 +163,13 @@ describe('User module', () => {
       const tag = `Tag${nextId}`;
       const second = await insertUser({ displayName: `${tag} Boris` });
       const first = await insertUser({ displayName: `${tag} Anna` });
-      const byUsername = await insertUser(
-        { displayName: 'Viktor' },
-        `${tag.toLowerCase()}_viktor`,
-      );
+      const byUsername = await insertUser({ displayName: 'Viktor' }, `${tag.toLowerCase()}_viktor`);
 
-      expect(
-        (await userService.search(tag.toUpperCase(), 10)).map(
-          (user) => user.id,
-        ),
-      ).toEqual([first.id, second.id, byUsername.id]);
+      expect((await userService.search(tag.toUpperCase(), 10)).map((user) => user.id)).toEqual([
+        first.id,
+        second.id,
+        byUsername.id,
+      ]);
       expect(await userService.search(tag, 2)).toHaveLength(2);
     });
 
@@ -207,45 +180,37 @@ describe('User module', () => {
       const percent = await insertUser({ displayName: `${tag} 50%` });
       await insertUser({ displayName: `${tag} 500` });
 
-      expect(
-        (await userService.search(`${tag} a_b`, 10)).map((user) => user.id),
-      ).toEqual([underscore.id]);
-      expect(
-        (await userService.search(`${tag} 50%`, 10)).map((user) => user.id),
-      ).toEqual([percent.id]);
+      expect((await userService.search(`${tag} a_b`, 10)).map((user) => user.id)).toEqual([
+        underscore.id,
+      ]);
+      expect((await userService.search(`${tag} 50%`, 10)).map((user) => user.id)).toEqual([
+        percent.id,
+      ]);
     });
 
     it('finds a user with the channel by a telegram id', async () => {
       const user = await insertUser();
       const channel = await insertChannel(user.id);
 
-      expect(
-        await userService.findOneByChannel(
-          Channel.TELEGRAM,
-          channel.externalId,
-        ),
-      ).toEqual({ user, channel });
+      expect(await userService.findOneByChannel(Channel.TELEGRAM, channel.externalId)).toEqual({
+        user,
+        channel,
+      });
     });
 
     it('returns null for an unknown telegram id', async () => {
-      expect(
-        await userService.findOneByChannel(Channel.TELEGRAM, String(nextId++)),
-      ).toBeNull();
+      expect(await userService.findOneByChannel(Channel.TELEGRAM, String(nextId++))).toBeNull();
     });
 
     it('matches the id only within its channel', async () => {
       const user = await insertUser();
       const channel = await insertChannel(user.id, { channel: Channel.SLACK });
 
-      expect(
-        await userService.findOneByChannel(
-          Channel.TELEGRAM,
-          channel.externalId,
-        ),
-      ).toBeNull();
-      expect(
-        await userService.findOneByChannel(Channel.SLACK, channel.externalId),
-      ).toEqual({ user, channel });
+      expect(await userService.findOneByChannel(Channel.TELEGRAM, channel.externalId)).toBeNull();
+      expect(await userService.findOneByChannel(Channel.SLACK, channel.externalId)).toEqual({
+        user,
+        channel,
+      });
     });
 
     it('records the language of a user without one', async () => {
@@ -270,10 +235,7 @@ describe('User module', () => {
       const user = await insertUser({ language: Language.EN });
       const channel = await insertChannel(user.id);
 
-      await userService.recordContact(
-        { user: { ...user, language: null }, channel },
-        Language.RU,
-      );
+      await userService.recordContact({ user: { ...user, language: null }, channel }, Language.RU);
 
       expect((await findUser(user.id)).language).toBe(Language.EN);
     });
@@ -380,21 +342,16 @@ describe('User module', () => {
     it('grants a permission once', async () => {
       const user = await insertUser();
 
-      expect(
-        await userService.grantPermission(user.id, Permission.TRAITS),
-      ).toMatchObject({ permissions: [Permission.TRAITS] });
-      expect(
-        await userService.grantPermission(user.id, Permission.TRAITS),
-      ).toBeNull();
+      expect(await userService.grantPermission(user.id, Permission.TRAITS)).toMatchObject({
+        permissions: [Permission.TRAITS],
+      });
+      expect(await userService.grantPermission(user.id, Permission.TRAITS)).toBeNull();
       await Promise.all([
         userService.grantPermission(user.id, Permission.USERS),
         userService.grantPermission(user.id, Permission.USERS),
       ]);
 
-      expect((await findUser(user.id)).permissions).toEqual([
-        Permission.TRAITS,
-        Permission.USERS,
-      ]);
+      expect((await findUser(user.id)).permissions).toEqual([Permission.TRAITS, Permission.USERS]);
     });
 
     it('revokes a permission it has', async () => {
@@ -402,12 +359,10 @@ describe('User module', () => {
         permissions: [Permission.USERS, Permission.SETTINGS],
       });
 
-      expect(
-        await userService.revokePermission(user.id, Permission.USERS),
-      ).toMatchObject({ permissions: [Permission.SETTINGS] });
-      expect(
-        await userService.revokePermission(user.id, Permission.USERS),
-      ).toBeNull();
+      expect(await userService.revokePermission(user.id, Permission.USERS)).toMatchObject({
+        permissions: [Permission.SETTINGS],
+      });
+      expect(await userService.revokePermission(user.id, Permission.USERS)).toBeNull();
     });
   });
 
@@ -416,11 +371,7 @@ describe('User module', () => {
       const user = await insertUser({ status: UserStatus.PENDING });
       const externalId = String(nextId++);
 
-      const channel = await userService.bindChannel(
-        user.id,
-        Channel.TELEGRAM,
-        externalId,
-      );
+      const channel = await userService.bindChannel(user.id, Channel.TELEGRAM, externalId);
 
       expect(channel).toMatchObject({
         userId: user.id,
@@ -431,20 +382,13 @@ describe('User module', () => {
       expect((await findUser(user.id)).status).toBe(UserStatus.ACTIVE);
     });
 
-    it.each([UserStatus.ACTIVE, UserStatus.BLOCKED])(
-      'keeps the %s status',
-      async (status) => {
-        const user = await insertUser({ status });
+    it.each([UserStatus.ACTIVE, UserStatus.BLOCKED])('keeps the %s status', async (status) => {
+      const user = await insertUser({ status });
 
-        await userService.bindChannel(
-          user.id,
-          Channel.TELEGRAM,
-          String(nextId++),
-        );
+      await userService.bindChannel(user.id, Channel.TELEGRAM, String(nextId++));
 
-        expect((await findUser(user.id)).status).toBe(status);
-      },
-    );
+      expect((await findUser(user.id)).status).toBe(status);
+    });
 
     it('changes nothing when the account is already bound', async () => {
       const owner = await insertUser({ status: UserStatus.ACTIVE });
@@ -470,23 +414,17 @@ describe('User module', () => {
       });
 
       expect(created.reachable).toBe(true);
-      expect(
-        await channelService.findOne(eq(userChannels.id, created.id)),
-      ).toEqual(created);
-      expect(
-        await channelService.find(eq(userChannels.userId, user.id)),
-      ).toEqual([created]);
+      expect(await channelService.findOne(eq(userChannels.id, created.id))).toEqual(created);
+      expect(await channelService.find(eq(userChannels.userId, user.id))).toEqual([created]);
       expect(
         await channelService.updateOne(eq(userChannels.id, created.id), {
           reachable: false,
         }),
       ).toMatchObject({ id: created.id, reachable: false });
-      expect(
-        await channelService.deleteOne(eq(userChannels.id, created.id)),
-      ).toMatchObject({ id: created.id });
-      expect(
-        await channelService.find(eq(userChannels.userId, user.id)),
-      ).toEqual([]);
+      expect(await channelService.deleteOne(eq(userChannels.id, created.id))).toMatchObject({
+        id: created.id,
+      });
+      expect(await channelService.find(eq(userChannels.userId, user.id))).toEqual([]);
     });
 
     it('finds the channels of a user', async () => {
@@ -515,22 +453,14 @@ describe('User module', () => {
       const channel = await insertChannel(user.id, { reachable: false });
 
       expect(
-        await channelService.updateReachable(
-          Channel.TELEGRAM,
-          channel.externalId,
-          false,
-        ),
+        await channelService.updateReachable(Channel.TELEGRAM, channel.externalId, false),
       ).toBeNull();
       expect((await findChannel(channel.id)).reachable).toBe(false);
     });
 
     it('returns null for an unknown channel', async () => {
       expect(
-        await channelService.updateReachable(
-          Channel.TELEGRAM,
-          String(nextId++),
-          false,
-        ),
+        await channelService.updateReachable(Channel.TELEGRAM, String(nextId++), false),
       ).toBeNull();
     });
 
@@ -543,11 +473,7 @@ describe('User module', () => {
         externalId: telegram.externalId,
       });
 
-      await channelService.updateReachable(
-        Channel.TELEGRAM,
-        telegram.externalId,
-        false,
-      );
+      await channelService.updateReachable(Channel.TELEGRAM, telegram.externalId, false);
 
       expect((await findChannel(telegram.id)).reachable).toBe(false);
       expect((await findChannel(slack.id)).reachable).toBe(true);
@@ -580,9 +506,7 @@ describe('User module', () => {
       await expect(insertUser({ displayName: '' })).rejects.toMatchObject({
         cause: { constraint: 'users_display_name_length' },
       });
-      await expect(
-        insertUser({ displayName: 'a'.repeat(256) }),
-      ).rejects.toMatchObject({
+      await expect(insertUser({ displayName: 'a'.repeat(256) })).rejects.toMatchObject({
         cause: { constraint: 'users_display_name_length' },
       });
       expect(await insertUser({ displayName: 'a'.repeat(255) })).toMatchObject({
@@ -657,17 +581,16 @@ describe('User module', () => {
       await expect(insertChannel(user.id)).rejects.toMatchObject({
         cause: { constraint: 'user_channels_user_id_channel_unique' },
       });
-      expect(
-        await insertChannel(user.id, { channel: Channel.SLACK }),
-      ).toMatchObject({ userId: user.id, channel: Channel.SLACK });
+      expect(await insertChannel(user.id, { channel: Channel.SLACK })).toMatchObject({
+        userId: user.id,
+        channel: Channel.SLACK,
+      });
     });
 
     it('rejects an empty external id', async () => {
       const user = await insertUser();
 
-      await expect(
-        insertChannel(user.id, { externalId: '' }),
-      ).rejects.toMatchObject({
+      await expect(insertChannel(user.id, { externalId: '' })).rejects.toMatchObject({
         cause: { constraint: 'user_channels_external_id_length' },
       });
     });
@@ -679,12 +602,9 @@ describe('User module', () => {
 
       await db.delete(users).where(eq(users.id, user.id));
 
-      expect(
-        await db
-          .select()
-          .from(userChannels)
-          .where(eq(userChannels.userId, user.id)),
-      ).toEqual([]);
+      expect(await db.select().from(userChannels).where(eq(userChannels.userId, user.id))).toEqual(
+        [],
+      );
     });
   });
 });

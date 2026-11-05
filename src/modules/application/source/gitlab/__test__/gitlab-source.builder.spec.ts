@@ -1,21 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { getDayRange } from 'src/common/utils/date.util';
-import {
-  GitLabLabelAction,
-  GitLabState,
-} from 'src/modules/vendors/gitlab/gitlab.enums';
-import type {
-  GitLabMergeRequest,
-  GitLabNote,
-} from 'src/modules/vendors/gitlab/gitlab.interface';
-import { GitLabSourceBuilder } from '../gitlab-source.builder';
+import { GitLabLabelAction, GitLabState } from 'src/modules/vendors/gitlab/gitlab.enums';
+import type { GitLabMergeRequest, GitLabNote } from 'src/modules/vendors/gitlab/gitlab.interface';
 import { SourceActionKind } from '../../source.enums';
-import type {
-  IssueActivity,
-  MergeRequestActivity,
-} from '../gitlab-source.interface';
+import type { IssueActivity, MergeRequestActivity } from '../gitlab-source.interface';
 import {
   createAuthor,
+  createBuilder,
   createCommit,
   createEvent,
   createIssue,
@@ -51,7 +42,7 @@ function buildMergeRequest(
   mergeRequest: GitLabMergeRequest,
   overrides: Partial<MergeRequestActivity> = {},
 ) {
-  const [grouped] = new GitLabSourceBuilder().build(
+  const [grouped] = createBuilder().build(
     {
       projects: [],
       issues: [],
@@ -66,7 +57,7 @@ function buildMergeRequest(
 }
 
 function buildIssue(overrides: Partial<IssueActivity> = {}) {
-  const [grouped] = new GitLabSourceBuilder().build(
+  const [grouped] = createBuilder().build(
     {
       projects: [],
       issues: [
@@ -129,9 +120,7 @@ describe('GitLabSourceBuilder', () => {
     it('does not make a reviewer of someone mentioned in a comment', () => {
       const grouped = buildMergeRequest(
         createMergeRequest({ reviewers: [] }),
-        withNotes([
-          createNote({ body: `please review @${USERNAME}`, system: false }),
-        ]),
+        withNotes([createNote({ body: `please review @${USERNAME}`, system: false })]),
       );
 
       expect(grouped.reviewers).toEqual([]);
@@ -166,9 +155,10 @@ describe('GitLabSourceBuilder', () => {
 
   describe('state at the end of the day', () => {
     it('keeps the current state without state events', () => {
-      expect(
-        buildIssue({ issue: createIssue({ state: GitLabState.CLOSED }) }),
-      ).toMatchObject({ state: GitLabState.CLOSED, closedOnReportDate: false });
+      expect(buildIssue({ issue: createIssue({ state: GitLabState.CLOSED }) })).toMatchObject({
+        state: GitLabState.CLOSED,
+        closedOnReportDate: false,
+      });
     });
 
     it('takes the last state of the day, not the current one', () => {
@@ -191,10 +181,7 @@ describe('GitLabSourceBuilder', () => {
         issue: createIssue({ state: GitLabState.CLOSED }),
         stateEvents: [
           createStateEvent(GitLabState.CLOSED, '2026-07-30T09:00:00.000Z'),
-          createStateEvent(
-            GitLabState.REOPENED,
-            `${REPORT_DATE}T09:00:00.000Z`,
-          ),
+          createStateEvent(GitLabState.REOPENED, `${REPORT_DATE}T09:00:00.000Z`),
           createStateEvent(GitLabState.CLOSED, '2026-08-04T09:00:00.000Z'),
         ],
       });
@@ -207,9 +194,7 @@ describe('GitLabSourceBuilder', () => {
 
     it('treats an item with state events only after the day as opened', () => {
       const grouped = buildMergeRequest(createMergeRequest(), {
-        stateEvents: [
-          createStateEvent(GitLabState.MERGED, '2026-08-03T09:00:00.000Z'),
-        ],
+        stateEvents: [createStateEvent(GitLabState.MERGED, '2026-08-03T09:00:00.000Z')],
       });
 
       expect(grouped).toMatchObject({
@@ -220,9 +205,7 @@ describe('GitLabSourceBuilder', () => {
 
     it('marks a merge request merged on the report day', () => {
       const grouped = buildMergeRequest(createMergeRequest(), {
-        stateEvents: [
-          createStateEvent(GitLabState.MERGED, `${REPORT_DATE}T17:00:00.000Z`),
-        ],
+        stateEvents: [createStateEvent(GitLabState.MERGED, `${REPORT_DATE}T17:00:00.000Z`)],
       });
 
       expect(grouped).toMatchObject({
@@ -310,7 +293,7 @@ describe('GitLabSourceBuilder', () => {
       },
     });
 
-    const grouped = new GitLabSourceBuilder().build(
+    const grouped = createBuilder().build(
       {
         projects: [createProject()],
         issues: [
@@ -328,9 +311,7 @@ describe('GitLabSourceBuilder', () => {
           },
         ],
         mergeRequests: [],
-        pushes: [
-          { target: { projectId: 1, branch: 'hotfix' }, events: [push] },
-        ],
+        pushes: [{ target: { projectId: 1, branch: 'hotfix' }, events: [push] }],
         pushCommits: new Map([
           [7, [createCommit(`${REPORT_DATE}T09:00:00.000Z`, 'fix: the cache')]],
         ]),
@@ -383,9 +364,7 @@ describe('GitLabSourceBuilder', () => {
               refType: 'branch',
               ref: 'hotfix',
               commitTitle: 'fix: the cache',
-              commits: [
-                { id: `${REPORT_DATE}T09:00:00.000Z`, title: 'fix: the cache' },
-              ],
+              commits: [{ id: `${REPORT_DATE}T09:00:00.000Z`, title: 'fix: the cache' }],
             },
             noteBody: undefined,
           },
@@ -427,10 +406,7 @@ describe('GitLabSourceBuilder', () => {
           assignees: [createAuthor('dev.two'), createAuthor('dev.three')],
         }),
         notes: [
-          systemNote(
-            `assigned to @${USERNAME}`,
-            `${REPORT_DATE}T09:00:00.000Z`,
-          ),
+          systemNote(`assigned to @${USERNAME}`, `${REPORT_DATE}T09:00:00.000Z`),
           systemNote(`assigned to @dev.two and unassigned @${USERNAME}`),
           systemNote('assigned to @dev.three', '2026-08-04T09:00:00.000Z'),
         ],
@@ -444,11 +420,7 @@ describe('GitLabSourceBuilder', () => {
         createMergeRequest({
           assignees: ['dev.c', 'dev.d', 'dev.e'].map(createAuthor),
         }),
-        withNotes([
-          systemNote(
-            'assigned to @dev.c, @dev.d and @dev.e and unassigned @dev.f',
-          ),
-        ]),
+        withNotes([systemNote('assigned to @dev.c, @dev.d and @dev.e and unassigned @dev.f')]),
       );
 
       expect(grouped.assignees).toEqual(['dev.f']);
@@ -458,13 +430,8 @@ describe('GitLabSourceBuilder', () => {
       const grouped = buildMergeRequest(
         createMergeRequest({ reviewers: [createAuthor('dev.late')] }),
         withNotes([
-          systemNote(
-            `requested review from @${USERNAME}`,
-            `${REPORT_DATE}T10:00:00.000Z`,
-          ),
-          systemNote(
-            `requested review from @dev.late and removed review request for @${USERNAME}`,
-          ),
+          systemNote(`requested review from @${USERNAME}`, `${REPORT_DATE}T10:00:00.000Z`),
+          systemNote(`requested review from @dev.late and removed review request for @${USERNAME}`),
         ]),
       );
 
@@ -474,32 +441,26 @@ describe('GitLabSourceBuilder', () => {
     it.each([
       [false, 'ready', true],
       [true, 'draft', false],
-    ])(
-      'restores the draft flag %s after a later mark as %s',
-      (isDraftNow, mark, isDraftThen) => {
-        const grouped = buildMergeRequest(
-          createMergeRequest({ draft: isDraftNow }),
-          withNotes([
-            systemNote(`marked this merge request as **${mark}**`),
-            systemNote(
-              `marked this merge request as **${isDraftNow ? 'ready' : 'draft'}**`,
-              '2026-08-04T09:00:00.000Z',
-            ),
-          ]),
-        );
+    ])('restores the draft flag %s after a later mark as %s', (isDraftNow, mark, isDraftThen) => {
+      const grouped = buildMergeRequest(
+        createMergeRequest({ draft: isDraftNow }),
+        withNotes([
+          systemNote(`marked this merge request as **${mark}**`),
+          systemNote(
+            `marked this merge request as **${isDraftNow ? 'ready' : 'draft'}**`,
+            '2026-08-04T09:00:00.000Z',
+          ),
+        ]),
+      );
 
-        expect(grouped.draft).toBe(isDraftThen);
-      },
-    );
+      expect(grouped.draft).toBe(isDraftThen);
+    });
 
     it('keeps the draft flag without later marks', () => {
       const grouped = buildMergeRequest(
         createMergeRequest({ draft: true }),
         withNotes([
-          systemNote(
-            'marked this merge request as **draft**',
-            `${REPORT_DATE}T09:00:00.000Z`,
-          ),
+          systemNote('marked this merge request as **draft**', `${REPORT_DATE}T09:00:00.000Z`),
         ]),
       );
 
@@ -598,17 +559,11 @@ describe('GitLabSourceBuilder', () => {
         ],
         stateEvents: [
           {
-            ...createStateEvent(
-              GitLabState.CLOSED,
-              `${REPORT_DATE}T17:00:00.000Z`,
-            ),
+            ...createStateEvent(GitLabState.CLOSED, `${REPORT_DATE}T17:00:00.000Z`),
             user: EMPLOYEE,
           },
           {
-            ...createStateEvent(
-              GitLabState.REOPENED,
-              `${REPORT_DATE}T18:00:00.000Z`,
-            ),
+            ...createStateEvent(GitLabState.REOPENED, `${REPORT_DATE}T18:00:00.000Z`),
             user: OTHER,
           },
         ],
@@ -632,10 +587,7 @@ describe('GitLabSourceBuilder', () => {
     it('collects what the employee did on a merge request', () => {
       const grouped = buildMergeRequest(createMergeRequest({ author: OTHER }), {
         notes: [
-          ownNote(
-            'requested review from @dev.a and removed review request for @dev.b',
-            9,
-          ),
+          ownNote('requested review from @dev.a and removed review request for @dev.b', 9),
           ownNote('approved this merge request', 10),
           ownNote('unapproved this merge request', 11),
           ownNote('marked this merge request as **draft**', 12),
@@ -649,10 +601,7 @@ describe('GitLabSourceBuilder', () => {
         ],
         stateEvents: [
           {
-            ...createStateEvent(
-              GitLabState.MERGED,
-              `${REPORT_DATE}T17:00:00.000Z`,
-            ),
+            ...createStateEvent(GitLabState.MERGED, `${REPORT_DATE}T17:00:00.000Z`),
             user: EMPLOYEE,
           },
         ],
@@ -685,9 +634,7 @@ describe('GitLabSourceBuilder', () => {
       ['no status without status notes', [], null],
     ])('restores %s', (_name, notes, status) => {
       const grouped = buildIssue({
-        notes: notes.map(([body, createdAt]) =>
-          createNote({ body, created_at: createdAt }),
-        ),
+        notes: notes.map(([body, createdAt]) => createNote({ body, created_at: createdAt })),
       });
 
       expect(grouped.status).toBe(status);

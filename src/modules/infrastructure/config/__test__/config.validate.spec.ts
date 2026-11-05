@@ -1,8 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  APP_DEFAULT_PORT,
-  TELEGRAM_DEFAULT_API_URL,
-} from '../constants/config.constants';
+import { APP_DEFAULT_PORT, TELEGRAM_DEFAULT_API_URL } from '../constants/config.constants';
 import { ConfigMessages } from '../constants/config.messages';
 import { LogLevel } from '../config.enums';
 import { validateEnv } from '../config.validate';
@@ -41,15 +38,13 @@ describe('validateEnv', () => {
 
   it('splits owner ids by comma and ignores spaces and empty items', () => {
     expect(
-      validateEnv({ ...ENV, OWNER_TELEGRAM_IDS: ' 111, 222 ,,333 ' })
-        .OWNER_TELEGRAM_IDS,
+      validateEnv({ ...ENV, OWNER_TELEGRAM_IDS: ' 111, 222 ,,333 ' }).OWNER_TELEGRAM_IDS,
     ).toEqual(['111', '222', '333']);
   });
 
   it('accepts a local Bot API server', () => {
     expect(
-      validateEnv({ ...ENV, TELEGRAM_API_URL: 'http://127.0.0.1:8081' })
-        .TELEGRAM_API_URL,
+      validateEnv({ ...ENV, TELEGRAM_API_URL: 'http://127.0.0.1:8081' }).TELEGRAM_API_URL,
     ).toBe('http://127.0.0.1:8081');
   });
 
@@ -67,15 +62,13 @@ describe('validateEnv', () => {
   });
 
   it.each(['Mars/Base', '+05:00'])('rejects the time zone %s', (value) => {
-    expect(getValidationMessage({ ...ENV, APP_TIMEZONE: value })).toContain(
-      'APP_TIMEZONE',
-    );
+    expect(getValidationMessage({ ...ENV, APP_TIMEZONE: value })).toContain('APP_TIMEZONE');
   });
 
   it('rejects an empty owner list', () => {
-    expect(
-      getValidationMessage({ ...ENV, OWNER_TELEGRAM_IDS: ' , ' }),
-    ).toContain('OWNER_TELEGRAM_IDS');
+    expect(getValidationMessage({ ...ENV, OWNER_TELEGRAM_IDS: ' , ' })).toContain(
+      'OWNER_TELEGRAM_IDS',
+    );
   });
 
   it('rejects invalid values without printing them', () => {

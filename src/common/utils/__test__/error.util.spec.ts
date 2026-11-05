@@ -12,15 +12,11 @@ describe('error util', () => {
       code: 'ECONNREFUSED',
     });
 
-    expect(getFailureReason(new TypeError('fetch failed', { cause }))).toBe(
-      'ECONNREFUSED',
-    );
+    expect(getFailureReason(new TypeError('fetch failed', { cause }))).toBe('ECONNREFUSED');
   });
 
   it('falls back to the error name and never to the message', () => {
-    const error = new TypeError(
-      'Failed to parse URL from https://x/bot123:secret',
-    );
+    const error = new TypeError('Failed to parse URL from https://x/bot123:secret');
 
     expect(getFailureReason(error)).toBe('TypeError');
     expect(getFailureReason('text')).toBe('string');

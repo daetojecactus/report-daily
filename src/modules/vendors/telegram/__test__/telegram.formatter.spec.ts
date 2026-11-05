@@ -40,20 +40,14 @@ describe('TelegramFormatter', () => {
   });
 
   it('formats code with escaping and without formatting inside', () => {
-    expect(
-      formatter.format('run `a < b && **c** _d_ \\_e [f](http://x)` now'),
-    ).toBe(
+    expect(formatter.format('run `a < b && **c** _d_ \\_e [f](http://x)` now')).toBe(
       'run <code>a &lt; b &amp;&amp; **c** _d_ \\_e [f](http://x)</code> now',
     );
   });
 
   it('formats nested bold and italic', () => {
-    expect(formatter.format('**bold _italic_**')).toBe(
-      '<b>bold <i>italic</i></b>',
-    );
-    expect(formatter.format('_italic **bold**_')).toBe(
-      '<i>italic <b>bold</b></i>',
-    );
+    expect(formatter.format('**bold _italic_**')).toBe('<b>bold <i>italic</i></b>');
+    expect(formatter.format('_italic **bold**_')).toBe('<i>italic <b>bold</b></i>');
   });
 
   it.each([
@@ -68,9 +62,7 @@ describe('TelegramFormatter', () => {
   });
 
   it('skips escaped markers when looking for the closing marker', () => {
-    expect(formatter.format('**a\\*\\*b** _c\\_d_')).toBe(
-      '<b>a**b</b> <i>c_d</i>',
-    );
+    expect(formatter.format('**a\\*\\*b** _c\\_d_')).toBe('<b>a**b</b> <i>c_d</i>');
   });
 
   it.each(['**a', '_a', '`a', 'a**', '[a](https://x.y', '[a] b', 'a\\'])(
@@ -137,12 +129,8 @@ describe('TelegramFormatter', () => {
   });
 
   it('keeps Cyrillic text', () => {
-    expect(formatter.format('Привет, мир! Ёжик — 100%')).toBe(
-      'Привет, мир! Ёжик — 100%',
-    );
-    expect(formatter.format('**Отчёт** за _сегодня_')).toBe(
-      '<b>Отчёт</b> за <i>сегодня</i>',
-    );
+    expect(formatter.format('Привет, мир! Ёжик — 100%')).toBe('Привет, мир! Ёжик — 100%');
+    expect(formatter.format('**Отчёт** за _сегодня_')).toBe('<b>Отчёт</b> за <i>сегодня</i>');
   });
 
   it('renders escaped data as plain text', () => {

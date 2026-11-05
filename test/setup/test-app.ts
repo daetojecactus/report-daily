@@ -1,8 +1,5 @@
 import type { DynamicModule, Type } from '@nestjs/common';
-import {
-  FastifyAdapter,
-  type NestFastifyApplication,
-} from '@nestjs/platform-fastify';
+import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
 import { Test } from '@nestjs/testing';
 import { AppModule } from 'src/modules/app.module';
 
@@ -12,10 +9,9 @@ export async function createTestApp(
   const moduleRef = await Test.createTestingModule({
     imports: [AppModule, ...imports],
   }).compile();
-  const app = moduleRef.createNestApplication<NestFastifyApplication>(
-    new FastifyAdapter(),
-    { logger: false },
-  );
+  const app = moduleRef.createNestApplication<NestFastifyApplication>(new FastifyAdapter(), {
+    logger: false,
+  });
 
   await app.init();
   await app.getHttpAdapter().getInstance().ready();

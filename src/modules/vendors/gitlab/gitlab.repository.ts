@@ -67,10 +67,10 @@ export class GitLabRepository {
   }
 
   findUserEvents(userId: number, after: string, before: string) {
-    return this.getAll<GitLabEvent>(
-      `${GITLAB_USERS_PATH}/${userId}${GITLAB_EVENTS_PATH}`,
-      { after, before },
-    );
+    return this.getAll<GitLabEvent>(`${GITLAB_USERS_PATH}/${userId}${GITLAB_EVENTS_PATH}`, {
+      after,
+      before,
+    });
   }
 
   findProject(projectId: number) {
@@ -78,9 +78,7 @@ export class GitLabRepository {
   }
 
   findIssue(projectId: number, iid: number) {
-    return this.get<GitLabIssue>(
-      this.toIssuablePath(GitLabIssuable.ISSUES, projectId, iid),
-    );
+    return this.get<GitLabIssue>(this.toIssuablePath(GitLabIssuable.ISSUES, projectId, iid));
   }
 
   findMergeRequest(projectId: number, iid: number) {
@@ -103,15 +101,10 @@ export class GitLabRepository {
     );
   }
 
-  findUpdatedItems(
-    issuable: GitLabIssuable,
-    projectId: number,
-    updatedAfter: string,
-  ) {
-    return this.getAll<GitLabIssuableItem>(
-      `${GITLAB_PROJECTS_PATH}/${projectId}/${issuable}`,
-      { updated_after: updatedAfter },
-    );
+  findUpdatedItems(issuable: GitLabIssuable, projectId: number, updatedAfter: string) {
+    return this.getAll<GitLabIssuableItem>(`${GITLAB_PROJECTS_PATH}/${projectId}/${issuable}`, {
+      updated_after: updatedAfter,
+    });
   }
 
   findNotes(issuable: GitLabIssuable, projectId: number, iid: number) {
@@ -173,10 +166,7 @@ export class GitLabRepository {
     return items;
   }
 
-  private async getPage<T>(
-    path: string,
-    query: GitLabQuery,
-  ): Promise<GitLabPage<T> | null> {
+  private async getPage<T>(path: string, query: GitLabQuery): Promise<GitLabPage<T> | null> {
     const response = await this.gitlabClient.get(path, query);
     if (response.status === GITLAB_NOT_FOUND) {
       return null;
@@ -204,13 +194,8 @@ export class GitLabRepository {
 
   private toError(path: string, response: GitLabHttpResponse) {
     const message = `${GitLabMessages.API_ERROR}: ${path}: ${response.status}`;
-    if (
-      response.status === GITLAB_TOO_MANY_REQUESTS ||
-      response.status >= GITLAB_SERVER_ERROR
-    ) {
-      const retryAfter = Number(
-        response.headers.get(GITLAB_RETRY_AFTER_HEADER),
-      );
+    if (response.status === GITLAB_TOO_MANY_REQUESTS || response.status >= GITLAB_SERVER_ERROR) {
+      const retryAfter = Number(response.headers.get(GITLAB_RETRY_AFTER_HEADER));
       return new GitLabRetryableError(
         message,
         Number.isInteger(retryAfter) && retryAfter > 0 ? retryAfter : null,
@@ -219,11 +204,7 @@ export class GitLabRepository {
     return new GitLabRejectedError(message, response.status);
   }
 
-  private toIssuablePath(
-    issuable: GitLabIssuable,
-    projectId: number,
-    iid: number,
-  ) {
+  private toIssuablePath(issuable: GitLabIssuable, projectId: number, iid: number) {
     return `${GITLAB_PROJECTS_PATH}/${projectId}/${issuable}/${iid}`;
   }
 }

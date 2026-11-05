@@ -1,20 +1,7 @@
-import {
-  createServer,
-  type IncomingMessage,
-  type Server,
-  type ServerResponse,
-} from 'node:http';
+import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import type { ConfigService } from '@nestjs/config';
-import {
-  afterAll,
-  assert,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  it,
-} from 'vitest';
+import { afterAll, assert, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { TelegramClient } from '../telegram.client';
 import { TelegramMethod } from '../telegram.enums';
@@ -137,9 +124,7 @@ describe('TelegramClient', () => {
       response.end('<html><body>502 Bad Gateway</body></html>');
     };
 
-    await expect(
-      createClient().post(TelegramMethod.SEND_MESSAGE, {}),
-    ).resolves.toEqual({
+    await expect(createClient().post(TelegramMethod.SEND_MESSAGE, {})).resolves.toEqual({
       status: 502,
       body: '<html><body>502 Bad Gateway</body></html>',
     });

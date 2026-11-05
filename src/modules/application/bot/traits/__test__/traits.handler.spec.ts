@@ -14,13 +14,11 @@ import type { TraitMapping } from 'src/modules/application/trait/trait.interface
 import type { TraitService } from 'src/modules/application/trait/trait.service';
 import { JobRole } from 'src/modules/application/user/user.enums';
 import { TraitsHandler } from '../traits.handler';
+import { TraitsView } from '../traits.view';
 
 const locale = new I18nService().getLocale(Language.EN);
 
-function mapping(
-  index: number,
-  values: Partial<TraitMapping> = {},
-): TraitMapping {
+function mapping(index: number, values: Partial<TraitMapping> = {}): TraitMapping {
   return {
     id: `019a4d2e-7c1b-7f3a-9c2d-${String(index).padStart(12, '0')}`,
     source: Source.GITLAB,
@@ -42,13 +40,11 @@ function button(data: string): ChatInput {
 describe('TraitsHandler', () => {
   const traitService = {
     countSourceNames: vi.fn<() => Promise<number>>(),
-    findSourceNamePage:
-      vi.fn<(limit: number, offset: number) => Promise<TraitMapping[]>>(),
+    findSourceNamePage: vi.fn<(limit: number, offset: number) => Promise<TraitMapping[]>>(),
     findById: vi.fn<(id: string) => Promise<TraitMapping | null>>(),
-    findByKey:
-      vi.fn<(source: Source, sourceKey: string) => Promise<TraitMapping[]>>(),
+    findByKey: vi.fn<(source: Source, sourceKey: string) => Promise<TraitMapping[]>>(),
   };
-  const handler = new TraitsHandler(traitService as unknown as TraitService);
+  const handler = new TraitsHandler(traitService as unknown as TraitService, new TraitsView());
 
   function open(input: ChatInput) {
     return handler.handle({
@@ -101,9 +97,7 @@ describe('TraitsHandler', () => {
     const { screen } = await open(button('trt:list:0'));
 
     expect(traitService.findSourceNamePage).toHaveBeenCalledWith(8, 0);
-    expect(screen.text).toBe(
-      [locale.traitList.title(10), locale.traitList.page(1, 2)].join('\n'),
-    );
+    expect(screen.text).toBe([locale.traitList.title(10), locale.traitList.page(1, 2)].join('\n'));
     expect(screen.buttons).toEqual([
       [{ text: 'level::1 · Low', data: `trt:card:${mapping(1).id}:0` }],
       [{ text: 'level::2 · Blocked', data: `trt:card:${mapping(2).id}:0` }],
@@ -122,9 +116,7 @@ describe('TraitsHandler', () => {
     const { screen } = await open(button('trt:list:5'));
 
     expect(traitService.findSourceNamePage).toHaveBeenCalledWith(8, 8);
-    expect(screen.buttons?.[1]).toEqual([
-      { text: '‹ Back', data: 'trt:list:0' },
-    ]);
+    expect(screen.buttons?.[1]).toEqual([{ text: '‹ Back', data: 'trt:list:0' }]);
   });
 
   it('shows what a label means for everyone and for each role', async () => {
@@ -171,10 +163,7 @@ describe('TraitsHandler', () => {
       },
       dialog: null,
     });
-    expect(traitService.findByKey).toHaveBeenCalledWith(
-      Source.GITLAB,
-      found.sourceKey,
-    );
+    expect(traitService.findByKey).toHaveBeenCalledWith(Source.GITLAB, found.sourceKey);
   });
 
   it('says a deleted label is not found', async () => {
@@ -196,8 +185,8 @@ describe('TraitsHandler', () => {
   );
 
   it('does not take text', async () => {
-    expect(
-      (await open({ type: ChatInputType.TEXT, text: 'status::easy' })).screen,
-    ).toEqual({ text: locale.bot.unknownInput });
+    expect((await open({ type: ChatInputType.TEXT, text: 'status::easy' })).screen).toEqual({
+      text: locale.bot.unknownInput,
+    });
   });
 });

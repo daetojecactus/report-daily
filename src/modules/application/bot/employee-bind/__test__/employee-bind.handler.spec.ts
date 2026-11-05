@@ -1,18 +1,12 @@
 import { Logger } from '@nestjs/common';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Channel, ChatInputType } from 'src/common/enums/channel.enums';
-import type {
-  ChatChannel,
-  ChatInput,
-} from 'src/common/interfaces/chat-channel.interface';
+import type { ChatChannel, ChatInput } from 'src/common/interfaces/chat-channel.interface';
 import { Language } from 'src/modules/application/i18n/i18n.enums';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
 import type { UserChannel } from 'src/modules/application/user/channel/channel.interface';
 import type { ChannelService } from 'src/modules/application/user/channel/channel.service';
-import type {
-  User,
-  UserWithChannel,
-} from 'src/modules/application/user/user.interface';
+import type { User, UserWithChannel } from 'src/modules/application/user/user.interface';
 import type { UserService } from 'src/modules/application/user/user.service';
 import type { BotDialog } from '../../bot.interface';
 import type { MenuService } from '../../menu/menu.service';
@@ -41,20 +35,9 @@ describe('EmployeeBindHandler', () => {
   const userService = {
     findById: vi.fn<(id: string) => Promise<User | null>>(),
     findOneByChannel:
-      vi.fn<
-        (
-          channel: Channel,
-          externalId: string,
-        ) => Promise<UserWithChannel | null>
-      >(),
+      vi.fn<(channel: Channel, externalId: string) => Promise<UserWithChannel | null>>(),
     bindChannel:
-      vi.fn<
-        (
-          userId: string,
-          channel: Channel,
-          externalId: string,
-        ) => Promise<UserChannel>
-      >(),
+      vi.fn<(userId: string, channel: Channel, externalId: string) => Promise<UserChannel>>(),
   };
   const channelService = {
     findByUser: vi.fn<(userId: string) => Promise<UserChannel[]>>(),
@@ -103,10 +86,7 @@ describe('EmployeeBindHandler', () => {
     expect(await open(button(`bind:start:${USER.id}`))).toEqual({
       screen: {
         text: locale.employeeBind.prompt('Telegram', 'Anna \\*S\\*'),
-        buttons: [
-          [{ text: 'Choose in Telegram', data: `bind:pick:${USER.id}` }],
-          [CANCEL],
-        ],
+        buttons: [[{ text: 'Choose in Telegram', data: `bind:pick:${USER.id}` }], [CANCEL]],
       },
       dialog: ID_DIALOG,
     });
@@ -128,31 +108,18 @@ describe('EmployeeBindHandler', () => {
       ID_DIALOG,
     );
 
-    expect(userService.bindChannel).toHaveBeenCalledWith(
-      USER.id,
-      Channel.TELEGRAM,
-      '777000222',
-    );
+    expect(userService.bindChannel).toHaveBeenCalledWith(USER.id, Channel.TELEGRAM, '777000222');
     expect(reply.dialog).toBeNull();
   });
 
   it('binds a valid ID and activates the employee', async () => {
     const reply = await open(text(' 777000111 '), ID_DIALOG);
 
-    expect(userService.bindChannel).toHaveBeenCalledWith(
-      USER.id,
-      Channel.TELEGRAM,
-      '777000111',
-    );
-    expect(menuService.syncEmployee).toHaveBeenCalledWith(USER, [
-      found.channel,
-    ]);
+    expect(userService.bindChannel).toHaveBeenCalledWith(USER.id, Channel.TELEGRAM, '777000111');
+    expect(menuService.syncEmployee).toHaveBeenCalledWith(USER, [found.channel]);
     expect(reply).toEqual({
       screen: {
-        text: [
-          'Telegram bound: **Anna \\*S\\***.',
-          locale.employeeBind.hint,
-        ].join('\n\n'),
+        text: ['Telegram bound: **Anna \\*S\\***.', locale.employeeBind.hint].join('\n\n'),
         buttons: [
           [{ text: 'Open the card', data: `emp:card:${USER.id}:0` }],
           [{ text: 'To the list', data: 'emp:list:0' }],
@@ -175,9 +142,7 @@ describe('EmployeeBindHandler', () => {
   });
 
   it('asks again for an ID of another employee', async () => {
-    userService.findOneByChannel.mockResolvedValue(
-      createEmployee({ displayName: 'Boris' }),
-    );
+    userService.findOneByChannel.mockResolvedValue(createEmployee({ displayName: 'Boris' }));
 
     const reply = await open(text('777000111'), ID_DIALOG);
 
@@ -189,21 +154,18 @@ describe('EmployeeBindHandler', () => {
   it.each<[string, ChatInput, BotDialog | null]>([
     ['the button', button(`bind:start:${USER.id}`), null],
     ['the ID', text('777000111'), ID_DIALOG],
-  ])(
-    'refuses %s when the employee already has Telegram',
-    async (_name, input, dialog) => {
-      channelService.findByUser.mockResolvedValue([found.channel]);
+  ])('refuses %s when the employee already has Telegram', async (_name, input, dialog) => {
+    channelService.findByUser.mockResolvedValue([found.channel]);
 
-      expect(await open(input, dialog)).toEqual({
-        screen: {
-          text: locale.employeeBind.alreadyBound('Telegram'),
-          buttons: [[{ text: 'Open the card', data: `emp:card:${USER.id}:0` }]],
-        },
-        dialog: null,
-      });
-      expect(userService.bindChannel).not.toHaveBeenCalled();
-    },
-  );
+    expect(await open(input, dialog)).toEqual({
+      screen: {
+        text: locale.employeeBind.alreadyBound('Telegram'),
+        buttons: [[{ text: 'Open the card', data: `emp:card:${USER.id}:0` }]],
+      },
+      dialog: null,
+    });
+    expect(userService.bindChannel).not.toHaveBeenCalled();
+  });
 
   it('reports a deleted employee', async () => {
     userService.findById.mockResolvedValue(null);

@@ -5,10 +5,7 @@ import { BotSection } from '../bot.decorator';
 import { BotAccess, BotCommand, BotNamespace } from '../bot.enums';
 import type { BotContext, BotHandler, BotReply } from '../bot.interface';
 import { BOT_BUTTON_DATA_SEPARATOR } from '../constants/bot.constants';
-import {
-  ADMIN_BUTTON_SCHEMA,
-  ADMIN_SECTIONS,
-} from './constants/admin.constants';
+import { ADMIN_BUTTON_SCHEMA, ADMIN_SECTIONS } from './constants/admin.constants';
 
 @Injectable()
 @BotSection({
@@ -22,9 +19,7 @@ export class AdminHandler implements BotHandler {
   handle({ actor, locale, input }: BotContext): BotReply {
     if (
       input.type === ChatInputType.BUTTON &&
-      !ADMIN_BUTTON_SCHEMA.safeParse(
-        input.data.split(BOT_BUTTON_DATA_SEPARATOR),
-      ).success
+      !ADMIN_BUTTON_SCHEMA.safeParse(input.data.split(BOT_BUTTON_DATA_SEPARATOR)).success
     ) {
       return { screen: { text: locale.bot.expired } };
     }

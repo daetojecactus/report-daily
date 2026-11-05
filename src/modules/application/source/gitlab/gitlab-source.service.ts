@@ -1,9 +1,7 @@
 import { Injectable } from '@nestjs/common';
+import type { UserSource } from 'src/modules/application/user/user-source/user-source.interface';
 import { getDayRange, isWithinDay } from 'src/common/utils/date.util';
-import {
-  GitLabIssuable,
-  GitLabTargetType,
-} from 'src/modules/vendors/gitlab/gitlab.enums';
+import { GitLabTargetType } from 'src/modules/vendors/gitlab/gitlab.enums';
 import type {
   GitLabEvent,
   GitLabIssue,
@@ -11,27 +9,20 @@ import type {
   GitLabProject,
 } from 'src/modules/vendors/gitlab/gitlab.interface';
 import { GitLabService } from 'src/modules/vendors/gitlab/gitlab.service';
-import {
-  GITLAB_SOURCE_BRANCH_ISSUE_PATTERN,
-  GITLAB_SOURCE_ISSUE_TARGET_TYPES,
-  GITLAB_SOURCE_KEY_SEPARATOR,
-  GITLAB_SOURCE_MAIN_BRANCHES,
-} from './constants/gitlab-source.constants';
-import type { UserSource } from 'src/modules/application/user/user-source/user-source.interface';
 import { Source } from '../source.enums';
 import type { ActivitySource } from '../source.interface';
+import { GITLAB_SOURCE_ISSUE_TARGET_TYPES } from './constants/gitlab-source.constants';
 import { GitLabSourceBuilder } from './gitlab-source.builder';
-import { GitLabSourceScanner } from './gitlab-source.scanner';
+import { GitLabSourceDetails } from './gitlab-source.details';
 import type {
-  DayActivity,
-  IssueActivity,
-  MergeRequestActivity,
   SourceBranch,
   SourceEventGroups,
   SourceEvents,
   SourceItem,
   SourceLinks,
 } from './gitlab-source.interface';
+import { GitLabSourceKeys } from './gitlab-source.keys';
+import { GitLabSourceScanner } from './gitlab-source.scanner';
 
 @Injectable()
 export class GitLabSourceService implements ActivitySource {
@@ -39,25 +30,20 @@ export class GitLabSourceService implements ActivitySource {
 
   constructor(
     private readonly gitlabService: GitLabService,
-    private readonly sourceBuilder: GitLabSourceBuilder,
+    private readonly gitlabSourceBuilder: GitLabSourceBuilder,
     private readonly gitlabSourceScanner: GitLabSourceScanner,
+    private readonly gitlabSourceDetails: GitLabSourceDetails,
+    private readonly gitlabSourceKeys: GitLabSourceKeys,
   ) {}
 
   async collect(account: UserSource, date: string, timeZone: string) {
     const gitlabUserId = Number(account.externalId);
     const day = getDayRange(date, timeZone);
-    const events = await this.gitlabService.findUserEventsAround(
-      gitlabUserId,
-      date,
-    );
-    const groups = this.groupEvents(
-      events.filter((event) => isWithinDay(event.created_at, day)),
-    );
-    const hidden = await this.gitlabSourceScanner.findHiddenItems(
-      gitlabUserId,
-      date,
-      day,
-    );
+    const [events, hidden] = await Promise.all([
+      this.gitlabService.findUserEventsAround(gitlabUserId, date),
+      this.gitlabSourceScanner.findHiddenItems(gitlabUserId, date, day),
+    ]);
+    const groups = this.groupEvents(events.filter((event) => isWithinDay(event.created_at, day)));
     for (const target of hidden.issues) {
       this.addTarget(groups.issues, target);
     }
@@ -65,11 +51,9 @@ export class GitLabSourceService implements ActivitySource {
       this.addTarget(groups.mergeRequests, target);
     }
     const projects = await this.loadProjects(
-      [
-        ...groups.issues.values(),
-        ...groups.mergeRequests.values(),
-        ...groups.pushes.values(),
-      ].map(({ target }) => target.projectId),
+      [...groups.issues.values(), ...groups.mergeRequests.values(), ...groups.pushes.values()].map(
+        ({ target }) => target.projectId,
+      ),
     );
     const mergeRequests = await this.loadMergeRequests(groups, projects);
     const closingIssues = await this.loadClosingIssues(mergeRequests);
@@ -83,14 +67,14 @@ export class GitLabSourceService implements ActivitySource {
         .map((issue) => issue.project_id)
         .filter((projectId) => !projects.has(projectId)),
     );
-    const activity = await this.loadActivity(
+    const activity = await this.gitlabSourceDetails.load(
       groups,
       new Map([...projects, ...linkedProjects]),
       mergeRequests,
       closingIssues,
       links,
     );
-    return this.sourceBuilder.build(activity, day, gitlabUserId);
+    return this.gitlabSourceBuilder.build(activity, day, gitlabUserId);
   }
 
   private groupEvents(events: GitLabEvent[]): SourceEventGroups {
@@ -107,11 +91,7 @@ export class GitLabSourceService implements ActivitySource {
       const type = event.note?.noteable_type ?? event.target_type;
       const iid = event.note?.noteable_iid ?? event.target_iid;
       const branch = event.push_data?.ref;
-      if (
-        iid !== null &&
-        type !== null &&
-        GITLAB_SOURCE_ISSUE_TARGET_TYPES.has(type)
-      ) {
+      if (iid !== null && type !== null && GITLAB_SOURCE_ISSUE_TARGET_TYPES.has(type)) {
         this.addEvent(groups.issues, { projectId, iid }, event);
       } else if (iid !== null && type === GitLabTargetType.MERGE_REQUEST) {
         this.addEvent(groups.mergeRequests, { projectId, iid }, event);
@@ -124,21 +104,14 @@ export class GitLabSourceService implements ActivitySource {
 
   private async loadProjects(projectIds: number[]) {
     const projects = await Promise.all(
-      [...new Set(projectIds)].map((projectId) =>
-        this.gitlabService.findProject(projectId),
-      ),
+      [...new Set(projectIds)].map((projectId) => this.gitlabService.findProject(projectId)),
     );
     return new Map(
-      projects
-        .filter((project) => project !== null)
-        .map((project) => [project.id, project]),
+      projects.filter((project) => project !== null).map((project) => [project.id, project]),
     );
   }
 
-  private async loadMergeRequests(
-    groups: SourceEventGroups,
-    projects: Map<number, GitLabProject>,
-  ) {
+  private async loadMergeRequests(groups: SourceEventGroups, projects: Map<number, GitLabProject>) {
     const fromEvents = await Promise.all(
       [...groups.mergeRequests.values()].map(({ target }) =>
         this.gitlabService.findMergeRequest(target.projectId, target.iid),
@@ -147,29 +120,26 @@ export class GitLabSourceService implements ActivitySource {
     const mergeRequests = new Map(
       fromEvents
         .filter((mergeRequest) => mergeRequest !== null)
-        .map((mergeRequest) => [this.toItemKey(mergeRequest), mergeRequest]),
+        .map((mergeRequest) => [this.gitlabSourceKeys.toItemKey(mergeRequest), mergeRequest]),
     );
 
     const branches = new Set(
       [...mergeRequests.values()].map((mergeRequest) =>
-        this.toBranchKey(mergeRequest),
+        this.gitlabSourceKeys.toBranchKey(mergeRequest),
       ),
     );
     const fromBranches = await Promise.all(
       [...groups.pushes]
         .filter(
           ([key, { target }]) =>
-            !branches.has(key) && this.isWorkBranch(target, projects),
+            !branches.has(key) && this.gitlabSourceKeys.isWorkBranch(target, projects),
         )
         .map(([, { target }]) =>
-          this.gitlabService.findMergeRequestByBranch(
-            target.projectId,
-            target.branch,
-          ),
+          this.gitlabService.findMergeRequestByBranch(target.projectId, target.branch),
         ),
     );
     for (const mergeRequest of fromBranches.filter((item) => item !== null)) {
-      const key = this.toItemKey(mergeRequest);
+      const key = this.gitlabSourceKeys.toItemKey(mergeRequest);
       if (!groups.mergeRequests.has(key)) {
         mergeRequests.set(key, mergeRequest);
       }
@@ -177,9 +147,7 @@ export class GitLabSourceService implements ActivitySource {
     return mergeRequests;
   }
 
-  private async loadClosingIssues(
-    mergeRequests: Map<string, GitLabMergeRequest>,
-  ) {
+  private async loadClosingIssues(mergeRequests: Map<string, GitLabMergeRequest>) {
     return new Map(
       await Promise.all(
         [...mergeRequests].map(
@@ -204,22 +172,18 @@ export class GitLabSourceService implements ActivitySource {
     const known = new Map(
       [...closingIssues.values()]
         .flat()
-        .map((issue) => [this.toItemKey(issue), issue]),
+        .map((issue) => [this.gitlabSourceKeys.toItemKey(issue), issue]),
     );
-    const targets = new Map(
-      [...groups.issues].map(([key, { target }]) => [key, target]),
-    );
+    const targets = new Map([...groups.issues].map(([key, { target }]) => [key, target]));
     for (const mergeRequest of mergeRequests.values()) {
-      const branchIssue = this.toBranchIssue(mergeRequest);
+      const branchIssue = this.gitlabSourceKeys.toBranchIssue(mergeRequest);
       if (branchIssue) {
-        targets.set(this.toKey(branchIssue), branchIssue);
+        targets.set(this.gitlabSourceKeys.toKey(branchIssue), branchIssue);
       }
     }
     const issues = await Promise.all(
       [...targets].map(async ([key, { projectId, iid }]) => {
-        const issue =
-          known.get(key) ??
-          (await this.gitlabService.findIssue(projectId, iid));
+        const issue = known.get(key) ?? (await this.gitlabService.findIssue(projectId, iid));
         return issue ? [[key, issue] as const] : [];
       }),
     );
@@ -236,13 +200,13 @@ export class GitLabSourceService implements ActivitySource {
       mainIssues: new Map(),
     };
     for (const [key, mergeRequest] of mergeRequests) {
-      const branchIssue = this.toBranchIssue(mergeRequest);
-      const branchKey = branchIssue && this.toKey(branchIssue);
+      const branchIssue = this.gitlabSourceKeys.toBranchIssue(mergeRequest);
+      const branchKey = branchIssue && this.gitlabSourceKeys.toKey(branchIssue);
       const closing = closingIssues.get(key) ?? [];
       if (branchKey && links.issues.has(branchKey)) {
         links.mainIssues.set(key, branchKey);
       } else if (closing.length === 1) {
-        const issueKey = this.toItemKey(closing[0]);
+        const issueKey = this.gitlabSourceKeys.toItemKey(closing[0]);
         links.issues.set(issueKey, links.issues.get(issueKey) ?? closing[0]);
         links.mainIssues.set(key, issueKey);
       }
@@ -250,156 +214,8 @@ export class GitLabSourceService implements ActivitySource {
     return links;
   }
 
-  private async loadActivity(
-    groups: SourceEventGroups,
-    projects: Map<number, GitLabProject>,
-    mergeRequests: Map<string, GitLabMergeRequest>,
-    closingIssues: Map<string, GitLabIssue[]>,
-    links: SourceLinks,
-  ): Promise<DayActivity> {
-    const branchMergeRequests = new Map<string, string>();
-    for (const [key, mergeRequest] of mergeRequests) {
-      const branchKey = this.toBranchKey(mergeRequest);
-      if (!branchMergeRequests.has(branchKey)) {
-        branchMergeRequests.set(branchKey, key);
-      }
-    }
-
-    const [issueEntries, mergeRequestActivities, pushCommits] =
-      await Promise.all([
-        Promise.all(
-          [...links.issues].map(
-            async ([key, issue]) =>
-              [
-                key,
-                await this.loadIssueActivity(
-                  issue,
-                  groups.issues.get(key)?.events ?? [],
-                ),
-              ] as const,
-          ),
-        ),
-        Promise.all(
-          [...mergeRequests].map(async ([key, mergeRequest]) => {
-            const branchKey = this.toBranchKey(mergeRequest);
-            const pushes =
-              branchMergeRequests.get(branchKey) === key
-                ? (groups.pushes.get(branchKey)?.events ?? [])
-                : [];
-            const activity = await this.loadMergeRequestActivity(
-              mergeRequest,
-              closingIssues.get(key) ?? [],
-              [...(groups.mergeRequests.get(key)?.events ?? []), ...pushes],
-            );
-            return [key, activity] as const;
-          }),
-        ),
-        this.loadPushCommits(groups),
-      ]);
-    const issueActivities = new Map(issueEntries);
-
-    const standaloneMergeRequests: MergeRequestActivity[] = [];
-    for (const [key, activity] of mergeRequestActivities) {
-      const mainIssue = links.mainIssues.get(key);
-      const issue = mainIssue && issueActivities.get(mainIssue);
-      if (issue) {
-        issue.mergeRequests.push(activity);
-      } else {
-        standaloneMergeRequests.push(activity);
-      }
-    }
-
-    return {
-      projects: [...projects.values()],
-      issues: [...issueActivities.values()],
-      mergeRequests: standaloneMergeRequests,
-      pushes: [...groups.pushes]
-        .filter(
-          ([key, { target }]) =>
-            !branchMergeRequests.has(key) &&
-            this.isWorkBranch(target, projects),
-        )
-        .map(([, push]) => push),
-      pushCommits,
-    };
-  }
-
-  private async loadPushCommits(groups: SourceEventGroups) {
-    const pushes = [...groups.pushes.values()].flatMap(({ target, events }) =>
-      events.flatMap((event) =>
-        event.push_data
-          ? [
-              {
-                projectId: target.projectId,
-                id: event.id,
-                push: event.push_data,
-              },
-            ]
-          : [],
-      ),
-    );
-    return new Map(
-      await Promise.all(
-        pushes.map(
-          async ({ projectId, id, push }) =>
-            [
-              id,
-              await this.gitlabService.findPushCommits(projectId, push),
-            ] as const,
-        ),
-      ),
-    );
-  }
-
-  private async loadIssueActivity(
-    issue: GitLabIssue,
-    events: GitLabEvent[],
-  ): Promise<IssueActivity> {
-    const { project_id: projectId, iid } = issue;
-    const [notes, labelEvents, stateEvents] = await Promise.all([
-      this.gitlabService.findNotes(GitLabIssuable.ISSUES, projectId, iid),
-      this.gitlabService.findLabelEvents(GitLabIssuable.ISSUES, projectId, iid),
-      this.gitlabService.findStateEvents(GitLabIssuable.ISSUES, projectId, iid),
-    ]);
-    return {
-      issue,
-      events,
-      notes,
-      labelEvents,
-      stateEvents,
-      mergeRequests: [],
-    };
-  }
-
-  private async loadMergeRequestActivity(
-    mergeRequest: GitLabMergeRequest,
-    closingIssues: GitLabIssue[],
-    events: GitLabEvent[],
-  ): Promise<MergeRequestActivity> {
-    const { project_id: projectId, iid } = mergeRequest;
-    const issuable = GitLabIssuable.MERGE_REQUESTS;
-    const [notes, labelEvents, stateEvents, commits] = await Promise.all([
-      this.gitlabService.findNotes(issuable, projectId, iid),
-      this.gitlabService.findLabelEvents(issuable, projectId, iid),
-      this.gitlabService.findStateEvents(issuable, projectId, iid),
-      this.gitlabService.findMergeRequestCommits(projectId, iid),
-    ]);
-    return {
-      mergeRequest,
-      closingIssues,
-      events,
-      notes,
-      labelEvents,
-      stateEvents,
-      commits,
-    };
-  }
-
-  private addTarget(
-    groups: Map<string, SourceEvents<SourceItem>>,
-    target: SourceItem,
-  ) {
-    const key = this.toKey(target);
+  private addTarget(groups: Map<string, SourceEvents<SourceItem>>, target: SourceItem) {
+    const key = this.gitlabSourceKeys.toKey(target);
     if (!groups.has(key)) {
       groups.set(key, { target, events: [] });
     }
@@ -410,46 +226,9 @@ export class GitLabSourceService implements ActivitySource {
     target: T,
     event: GitLabEvent,
   ) {
-    const key = this.toKey(target);
+    const key = this.gitlabSourceKeys.toKey(target);
     const group = groups.get(key) ?? { target, events: [] };
     group.events.push(event);
     groups.set(key, group);
-  }
-
-  private isWorkBranch(
-    { projectId, branch }: SourceBranch,
-    projects: Map<number, GitLabProject>,
-  ) {
-    return (
-      !GITLAB_SOURCE_MAIN_BRANCHES.has(branch) &&
-      projects.get(projectId)?.default_branch !== branch
-    );
-  }
-
-  private toBranchIssue(mergeRequest: GitLabMergeRequest): SourceItem | null {
-    const match = GITLAB_SOURCE_BRANCH_ISSUE_PATTERN.exec(
-      mergeRequest.source_branch,
-    );
-    return match
-      ? { projectId: mergeRequest.project_id, iid: Number(match[1]) }
-      : null;
-  }
-
-  private toItemKey(item: GitLabIssue | GitLabMergeRequest) {
-    return this.toKey({ projectId: item.project_id, iid: item.iid });
-  }
-
-  private toBranchKey(mergeRequest: GitLabMergeRequest) {
-    return this.toKey({
-      projectId: mergeRequest.project_id,
-      branch: mergeRequest.source_branch,
-    });
-  }
-
-  private toKey(target: SourceItem | SourceBranch) {
-    return [
-      target.projectId,
-      'iid' in target ? target.iid : target.branch,
-    ].join(GITLAB_SOURCE_KEY_SEPARATOR);
   }
 }

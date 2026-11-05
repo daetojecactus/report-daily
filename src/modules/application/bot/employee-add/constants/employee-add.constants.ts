@@ -21,25 +21,13 @@ export const EMPLOYEE_ADD_BUTTON_SCHEMA = z.union([
     .tuple([NAMESPACE_SCHEMA, z.literal(EmployeeAddAction.START)])
     .transform(([, action]) => ({ action })),
   z
-    .tuple([
-      NAMESPACE_SCHEMA,
-      z.literal(EmployeeAddAction.PICK),
-      GITLAB_USER_ID_SCHEMA,
-    ])
+    .tuple([NAMESPACE_SCHEMA, z.literal(EmployeeAddAction.PICK), GITLAB_USER_ID_SCHEMA])
     .transform(([, action, gitlabUserId]) => ({ action, gitlabUserId })),
   z
-    .tuple([
-      NAMESPACE_SCHEMA,
-      z.literal(EmployeeAddAction.ROLE),
-      z.enum(JobRole),
-    ])
+    .tuple([NAMESPACE_SCHEMA, z.literal(EmployeeAddAction.ROLE), z.enum(JobRole)])
     .transform(([, action, role]) => ({ action, role })),
   z
-    .tuple([
-      NAMESPACE_SCHEMA,
-      z.literal(EmployeeAddAction.GENDER),
-      z.enum(Gender),
-    ])
+    .tuple([NAMESPACE_SCHEMA, z.literal(EmployeeAddAction.GENDER), z.enum(Gender)])
     .transform(([, action, gender]) => ({ action, gender })),
   z
     .tuple([NAMESPACE_SCHEMA, z.literal(EmployeeAddAction.CANCEL)])

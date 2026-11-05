@@ -4,18 +4,12 @@ import type { ChatInput } from 'src/common/interfaces/chat-channel.interface';
 import { Language } from 'src/modules/application/i18n/i18n.enums';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
 import { Source } from 'src/modules/application/source/source.enums';
-import {
-  TraitDimension,
-  Priority,
-  TaskFlag,
-} from 'src/modules/application/trait/trait.enums';
-import type {
-  TraitMapping,
-  TraitValue,
-} from 'src/modules/application/trait/trait.interface';
+import { TraitDimension, Priority, TaskFlag } from 'src/modules/application/trait/trait.enums';
+import type { TraitMapping, TraitValue } from 'src/modules/application/trait/trait.interface';
 import type { TraitService } from 'src/modules/application/trait/trait.service';
 import { JobRole } from 'src/modules/application/user/user.enums';
 import { TraitManageHandler } from '../trait-manage.handler';
+import { TraitsView } from '../../traits/traits.view';
 
 const locale = new I18nService().getLocale(Language.EN);
 const BOLD = '**status::easy**';
@@ -47,17 +41,12 @@ function button(data: string): ChatInput {
 describe('TraitManageHandler', () => {
   const traitService = {
     findById: vi.fn<(id: string) => Promise<TraitMapping | null>>(),
-    findByKey:
-      vi.fn<(source: Source, sourceKey: string) => Promise<TraitMapping[]>>(),
-    changeValue:
-      vi.fn<(id: string, value: TraitValue) => Promise<TraitMapping | null>>(),
+    findByKey: vi.fn<(source: Source, sourceKey: string) => Promise<TraitMapping[]>>(),
+    changeValue: vi.fn<(id: string, value: TraitValue) => Promise<TraitMapping | null>>(),
     deleteById: vi.fn<(id: string) => Promise<TraitMapping | null>>(),
-    deleteByKey:
-      vi.fn<(source: Source, sourceKey: string) => Promise<TraitMapping[]>>(),
+    deleteByKey: vi.fn<(source: Source, sourceKey: string) => Promise<TraitMapping[]>>(),
   };
-  const handler = new TraitManageHandler(
-    traitService as unknown as TraitService,
-  );
+  const handler = new TraitManageHandler(traitService as unknown as TraitService, new TraitsView());
 
   function open(input: ChatInput) {
     return handler.handle({
@@ -119,19 +108,14 @@ describe('TraitManageHandler', () => {
       text: locale.traitManage.changed(BOLD, 'for everyone', 'Priority: High'),
       buttons: [[CARD], [LIST]],
     });
-    expect(traitService.changeValue).toHaveBeenCalledWith(
-      MAPPING.id,
-      Priority.HIGH,
-    );
+    expect(traitService.changeValue).toHaveBeenCalledWith(MAPPING.id, Priority.HIGH);
   });
 
   it('does not write the value it already has', async () => {
     const { screen } = await open(button(`trtmng:set:${MAPPING.id}:3`));
 
     expect(traitService.changeValue).not.toHaveBeenCalled();
-    expect(screen.text).toBe(
-      locale.traitManage.changed(BOLD, 'for everyone', 'Priority: Low'),
-    );
+    expect(screen.text).toBe(locale.traitManage.changed(BOLD, 'for everyone', 'Priority: Low'));
   });
 
   it('refuses a number beyond the group', async () => {
@@ -145,15 +129,8 @@ describe('TraitManageHandler', () => {
     traitService.findByKey.mockResolvedValue([OTHER]);
 
     expect((await open(button(`trtmng:del:${MAPPING.id}`))).screen).toEqual({
-      text: locale.traitManage.valueDeleted(
-        BOLD,
-        'for everyone',
-        'Priority: Low',
-      ),
-      buttons: [
-        [{ text: 'Open the card', data: `trt:card:${OTHER.id}:0` }],
-        [LIST],
-      ],
+      text: locale.traitManage.valueDeleted(BOLD, 'for everyone', 'Priority: Low'),
+      buttons: [[{ text: 'Open the card', data: `trt:card:${OTHER.id}:0` }], [LIST]],
     });
     expect(traitService.deleteById).toHaveBeenCalledWith(MAPPING.id);
   });
@@ -188,10 +165,7 @@ describe('TraitManageHandler', () => {
       text: locale.traitManage.dropped(BOLD),
       buttons: [[LIST]],
     });
-    expect(traitService.deleteByKey).toHaveBeenCalledWith(
-      Source.GITLAB,
-      'status::easy',
-    );
+    expect(traitService.deleteByKey).toHaveBeenCalledWith(Source.GITLAB, 'status::easy');
   });
 
   it('says a deleted label is not found', async () => {

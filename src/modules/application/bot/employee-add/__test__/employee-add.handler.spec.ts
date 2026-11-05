@@ -5,15 +5,8 @@ import type { ChatInput } from 'src/common/interfaces/chat-channel.interface';
 import { Language } from 'src/modules/application/i18n/i18n.enums';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
 import { Source } from 'src/modules/application/source/source.enums';
-import {
-  Gender,
-  JobRole,
-  UserStatus,
-} from 'src/modules/application/user/user.enums';
-import type {
-  User,
-  UserInsert,
-} from 'src/modules/application/user/user.interface';
+import { Gender, JobRole, UserStatus } from 'src/modules/application/user/user.enums';
+import type { User, UserInsert } from 'src/modules/application/user/user.interface';
 import type { UserService } from 'src/modules/application/user/user.service';
 import type { UserSourceInsert } from 'src/modules/application/user/user-source/user-source.interface';
 import {
@@ -51,15 +44,9 @@ function text(value: string): ChatInput {
 
 describe('EmployeeAddHandler', () => {
   const userService = {
-    findOneBySource:
-      vi.fn<(source: Source, externalId: string) => Promise<User | null>>(),
+    findOneBySource: vi.fn<(source: Source, externalId: string) => Promise<User | null>>(),
     createWithSource:
-      vi.fn<
-        (
-          values: UserInsert,
-          account: Omit<UserSourceInsert, 'userId'>,
-        ) => Promise<User>
-      >(),
+      vi.fn<(values: UserInsert, account: Omit<UserSourceInsert, 'userId'>) => Promise<User>>(),
   };
   const gitlabService = {
     searchUsers: vi.fn<(query: string) => Promise<GitLabUser[]>>(),
@@ -111,25 +98,19 @@ describe('EmployeeAddHandler', () => {
     expect(reply).toEqual({
       screen: {
         text: '**GitLab:** anna\nChoose the employee.',
-        buttons: [
-          [{ text: 'Anna *Smirnova* · @anna_s', data: 'add:pick:501' }],
-          [CANCEL],
-        ],
+        buttons: [[{ text: 'Anna *Smirnova* · @anna_s', data: 'add:pick:501' }], [CANCEL]],
       },
       dialog: dialog('pick', { candidates: [CANDIDATE] }),
     });
   });
 
-  it.each(['  ', '@', 'x'.repeat(65)])(
-    'asks again for the query %j',
-    async (query) => {
-      const reply = await open(text(query), dialog('query', {}));
+  it.each(['  ', '@', 'x'.repeat(65)])('asks again for the query %j', async (query) => {
+    const reply = await open(text(query), dialog('query', {}));
 
-      expect(gitlabService.searchUsers).not.toHaveBeenCalled();
-      expect(reply.screen.text).toBe(locale.employeeAdd.prompt);
-      expect(reply.dialog).toEqual(dialog('query', {}));
-    },
-  );
+    expect(gitlabService.searchUsers).not.toHaveBeenCalled();
+    expect(reply.screen.text).toBe(locale.employeeAdd.prompt);
+    expect(reply.dialog).toEqual(dialog('query', {}));
+  });
 
   it('asks for another query when GitLab finds nobody', async () => {
     gitlabService.searchUsers.mockResolvedValue([]);
@@ -140,17 +121,17 @@ describe('EmployeeAddHandler', () => {
     expect(reply.dialog).toEqual(dialog('query', {}));
   });
 
-  it.each([
-    new GitLabRetryableError('timeout'),
-    new GitLabRejectedError('unauthorized', 401),
-  ])('keeps the dialog when GitLab fails with %s', async (error) => {
-    gitlabService.searchUsers.mockRejectedValue(error);
+  it.each([new GitLabRetryableError('timeout'), new GitLabRejectedError('unauthorized', 401)])(
+    'keeps the dialog when GitLab fails with %s',
+    async (error) => {
+      gitlabService.searchUsers.mockRejectedValue(error);
 
-    const reply = await open(text('anna'), dialog('query', {}));
+      const reply = await open(text('anna'), dialog('query', {}));
 
-    expect(reply.screen.text).toBe(locale.employeeAdd.gitlabUnavailable);
-    expect(reply.dialog).toEqual(dialog('query', {}));
-  });
+      expect(reply.screen.text).toBe(locale.employeeAdd.gitlabUnavailable);
+      expect(reply.dialog).toEqual(dialog('query', {}));
+    },
+  );
 
   it('asks the owner to set up the CA certificate of GitLab', async () => {
     gitlabService.searchUsers.mockRejectedValue(
@@ -166,16 +147,11 @@ describe('EmployeeAddHandler', () => {
   it('rethrows unexpected errors', async () => {
     gitlabService.searchUsers.mockRejectedValue(new Error('bug'));
 
-    await expect(open(text('anna'), dialog('query', {}))).rejects.toThrow(
-      'bug',
-    );
+    await expect(open(text('anna'), dialog('query', {}))).rejects.toThrow('bug');
   });
 
   it('asks for the role of the picked user', async () => {
-    const reply = await open(
-      button('add:pick:501'),
-      dialog('pick', { candidates: [CANDIDATE] }),
-    );
+    const reply = await open(button('add:pick:501'), dialog('pick', { candidates: [CANDIDATE] }));
 
     expect(reply.screen.text).toBe('**Anna \\*Smirnova\\***\nChoose the role.');
     expect(reply.screen.buttons).toEqual([
@@ -193,27 +169,19 @@ describe('EmployeeAddHandler', () => {
     const existing = createEmployee({ displayName: 'Anna' }).user;
     userService.findOneBySource.mockResolvedValue(existing);
 
-    const reply = await open(
-      button('add:pick:501'),
-      dialog('pick', { candidates: [CANDIDATE] }),
-    );
+    const reply = await open(button('add:pick:501'), dialog('pick', { candidates: [CANDIDATE] }));
 
     expect(reply).toEqual({
       screen: {
         text: '**Anna** is already an employee.',
-        buttons: [
-          [{ text: 'Open the card', data: `emp:card:${existing.id}:0` }],
-        ],
+        buttons: [[{ text: 'Open the card', data: `emp:card:${existing.id}:0` }]],
       },
       dialog: null,
     });
   });
 
   it('asks for the gender after the role', async () => {
-    const reply = await open(
-      button('add:role:qa'),
-      dialog('role', { candidate: CANDIDATE }),
-    );
+    const reply = await open(button('add:role:qa'), dialog('role', { candidate: CANDIDATE }));
 
     expect(reply).toEqual({
       screen: {
@@ -243,10 +211,7 @@ describe('EmployeeAddHandler', () => {
       dialog('gender', { candidate: CANDIDATE, role: JobRole.QA }),
     );
 
-    expect(userService.findOneBySource).toHaveBeenCalledWith(
-      Source.GITLAB,
-      '501',
-    );
+    expect(userService.findOneBySource).toHaveBeenCalledWith(Source.GITLAB, '501');
     expect(userService.createWithSource).toHaveBeenCalledWith(
       {
         displayName: 'Anna *Smirnova*',
@@ -258,10 +223,7 @@ describe('EmployeeAddHandler', () => {
     expect(gitlabService.hasVisibleActivity).toHaveBeenCalledWith(501);
     expect(reply).toEqual({
       screen: {
-        text: [
-          'Employee added: **Anna \\*Smirnova\\***.',
-          locale.employeeAdd.pending,
-        ].join('\n\n'),
+        text: ['Employee added: **Anna \\*Smirnova\\***.', locale.employeeAdd.pending].join('\n\n'),
         buttons: [
           [{ text: 'Bind Telegram', data: `bind:start:${created.id}` }],
           [{ text: 'Open the card', data: `emp:card:${created.id}:0` }],
@@ -280,30 +242,24 @@ describe('EmployeeAddHandler', () => {
     ],
     [
       'unknown',
-      () =>
-        gitlabService.hasVisibleActivity.mockRejectedValue(
-          new GitLabRetryableError('timeout'),
-        ),
+      () => gitlabService.hasVisibleActivity.mockRejectedValue(new GitLabRetryableError('timeout')),
       locale.employeeAdd.activityUnknown,
     ],
-  ])(
-    'warns when the GitLab activity is %s',
-    async (_name, arrange, warning) => {
-      userService.createWithSource.mockResolvedValue(createEmployee().user);
-      arrange();
+  ])('warns when the GitLab activity is %s', async (_name, arrange, warning) => {
+    userService.createWithSource.mockResolvedValue(createEmployee().user);
+    arrange();
 
-      const reply = await open(
-        button('add:gender:male'),
-        dialog('gender', { candidate: CANDIDATE, role: JobRole.DEVELOPER }),
-      );
+    const reply = await open(
+      button('add:gender:male'),
+      dialog('gender', { candidate: CANDIDATE, role: JobRole.DEVELOPER }),
+    );
 
-      expect(reply.screen.text.split('\n\n')).toEqual([
-        'Employee added: **Ivan \\*Petrov\\***.',
-        warning,
-        locale.employeeAdd.pending,
-      ]);
-    },
-  );
+    expect(reply.screen.text.split('\n\n')).toEqual([
+      'Employee added: **Ivan \\*Petrov\\***.',
+      warning,
+      locale.employeeAdd.pending,
+    ]);
+  });
 
   it('does not create an employee added in the meantime', async () => {
     userService.findOneBySource.mockResolvedValue(createEmployee().user);

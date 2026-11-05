@@ -63,10 +63,7 @@ export class TelegramService implements ChatChannel {
 
   async sendScreen(chatId: string, screen: Screen) {
     const message = await this.reachChat(() =>
-      this.telegramRepository.sendMessage(
-        chatId,
-        this.telegramRenderer.renderMessage(screen),
-      ),
+      this.telegramRepository.sendMessage(chatId, this.telegramRenderer.renderMessage(screen)),
     );
     return String(message.message_id);
   }
@@ -105,10 +102,7 @@ export class TelegramService implements ChatChannel {
     }
   }
 
-  async setDefaultCommands(
-    commands: ChatCommand[],
-    languageCode: string | null,
-  ) {
+  async setDefaultCommands(commands: ChatCommand[], languageCode: string | null) {
     await this.telegramRepository.setMyCommands(
       commands,
       { type: TelegramScopeType.ALL_PRIVATE_CHATS },
@@ -128,10 +122,7 @@ export class TelegramService implements ChatChannel {
     try {
       return await call();
     } catch (error) {
-      if (
-        error instanceof TelegramRejectedError &&
-        error.code === TELEGRAM_FORBIDDEN
-      ) {
+      if (error instanceof TelegramRejectedError && error.code === TELEGRAM_FORBIDDEN) {
         throw new ChatUnreachableError(error.message);
       }
       throw error;
@@ -139,10 +130,7 @@ export class TelegramService implements ChatChannel {
   }
 
   private isBadRequest(error: unknown): error is TelegramRejectedError {
-    return (
-      error instanceof TelegramRejectedError &&
-      error.code === TELEGRAM_BAD_REQUEST
-    );
+    return error instanceof TelegramRejectedError && error.code === TELEGRAM_BAD_REQUEST;
   }
 
   private fromMessage(message: TelegramMessage) {
@@ -154,11 +142,7 @@ export class TelegramService implements ChatChannel {
 
   private fromCallbackQuery(query: TelegramCallbackQuery) {
     const { message, data } = query;
-    if (
-      !message ||
-      data === undefined ||
-      !this.isPrivate(query.from, message.chat)
-    ) {
+    if (!message || data === undefined || !this.isPrivate(query.from, message.chat)) {
       return null;
     }
     return this.toEvent(query.from, message.chat, {
@@ -169,11 +153,7 @@ export class TelegramService implements ChatChannel {
     });
   }
 
-  private toInput({
-    text,
-    entities,
-    users_shared,
-  }: TelegramMessage): ChatInput {
+  private toInput({ text, entities, users_shared }: TelegramMessage): ChatInput {
     const picked = users_shared?.users[0];
     if (picked) {
       return {
@@ -182,8 +162,7 @@ export class TelegramService implements ChatChannel {
       };
     }
     const command = entities?.find(
-      (entity) =>
-        entity.type === TELEGRAM_COMMAND_ENTITY && entity.offset === 0,
+      (entity) => entity.type === TELEGRAM_COMMAND_ENTITY && entity.offset === 0,
     );
     if (text !== undefined && command) {
       return {
@@ -204,11 +183,7 @@ export class TelegramService implements ChatChannel {
     return !from.is_bot && chat.type === TELEGRAM_PRIVATE_CHAT;
   }
 
-  private toEvent(
-    from: TelegramUser,
-    chat: TelegramChat,
-    input: ChatInput,
-  ): ChatEvent {
+  private toEvent(from: TelegramUser, chat: TelegramChat, input: ChatInput): ChatEvent {
     return {
       channel: Channel.TELEGRAM,
       userId: String(from.id),

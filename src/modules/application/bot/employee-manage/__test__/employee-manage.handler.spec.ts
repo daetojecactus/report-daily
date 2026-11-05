@@ -81,9 +81,7 @@ describe('EmployeeManageHandler', () => {
   it('offers the other roles', async () => {
     const { screen } = await open(`mng:role:${USER.id}`);
 
-    expect(screen.text).toBe(
-      '**Anna \\*S\\***\nNow: Developer. Choose the new role.',
-    );
+    expect(screen.text).toBe('**Anna \\*S\\***\nNow: Developer. Choose the new role.');
     expect(screen.buttons).toEqual([
       [{ text: 'QA', data: `mng:set:${USER.id}:qa` }],
       [
@@ -151,22 +149,19 @@ describe('EmployeeManageHandler', () => {
     });
   });
 
-  it.each(['block', 'unblock', 'delete', 'confirm'])(
-    'refuses to %s yourself',
-    async (action) => {
-      const reply = await open(`mng:${action}:${USER.id}`, {
-        isOwner: false,
-        user: { ...USER, permissions: [Permission.USERS] },
-      });
+  it.each(['block', 'unblock', 'delete', 'confirm'])('refuses to %s yourself', async (action) => {
+    const reply = await open(`mng:${action}:${USER.id}`, {
+      isOwner: false,
+      user: { ...USER, permissions: [Permission.USERS] },
+    });
 
-      expect(reply.screen).toEqual({
-        text: locale.employeeManage.self,
-        buttons: [[CARD]],
-      });
-      expect(userService.block).not.toHaveBeenCalled();
-      expect(userService.deleteById).not.toHaveBeenCalled();
-    },
-  );
+    expect(reply.screen).toEqual({
+      text: locale.employeeManage.self,
+      buttons: [[CARD]],
+    });
+    expect(userService.block).not.toHaveBeenCalled();
+    expect(userService.deleteById).not.toHaveBeenCalled();
+  });
 
   it('lets only an owner block an employee with permissions', async () => {
     userService.findById.mockResolvedValue({
@@ -195,10 +190,7 @@ describe('EmployeeManageHandler', () => {
       user: { ...USER, permissions: [Permission.USERS] },
     });
 
-    expect(userService.changeRole).toHaveBeenCalledWith(
-      USER.id,
-      JobRole.DEVOPS,
-    );
+    expect(userService.changeRole).toHaveBeenCalledWith(USER.id, JobRole.DEVOPS);
   });
 
   it('reports a deleted employee', async () => {

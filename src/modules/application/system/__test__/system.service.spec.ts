@@ -6,14 +6,10 @@ import { DependencyStatus, HealthStatus } from '../system.enums';
 import { SystemService } from '../system.service';
 
 function ping(isAvailable: boolean) {
-  return () =>
-    isAvailable ? Promise.resolve() : Promise.reject(new Error('unavailable'));
+  return () => (isAvailable ? Promise.resolve() : Promise.reject(new Error('unavailable')));
 }
 
-function createService(
-  isDatabaseAvailable: boolean,
-  isRedisAvailable: boolean,
-) {
+function createService(isDatabaseAvailable: boolean, isRedisAvailable: boolean) {
   const databaseService = { ping: ping(isDatabaseAvailable) };
   const redisService = { ping: ping(isRedisAvailable) };
 

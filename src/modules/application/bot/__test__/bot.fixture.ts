@@ -1,15 +1,8 @@
 import { Channel } from 'src/common/enums/channel.enums';
-import {
-  Gender,
-  JobRole,
-  UserStatus,
-} from 'src/modules/application/user/user.enums';
+import { Gender, JobRole, UserStatus } from 'src/modules/application/user/user.enums';
 import { Language } from 'src/modules/application/i18n/i18n.enums';
 import { Source } from 'src/modules/application/source/source.enums';
-import type {
-  User,
-  UserWithChannel,
-} from 'src/modules/application/user/user.interface';
+import type { User, UserWithChannel } from 'src/modules/application/user/user.interface';
 import type { UserSource } from 'src/modules/application/user/user-source/user-source.interface';
 
 export const OWNER_ID = '100';
@@ -49,9 +42,7 @@ export function createEmployee(values: Partial<User> = {}): UserWithChannel {
   };
 }
 
-export function createSourceAccount(
-  values: Partial<UserSource> = {},
-): UserSource {
+export function createSourceAccount(values: Partial<UserSource> = {}): UserSource {
   return {
     id: '0190b5a8-0000-7000-8000-000000000003',
     userId: '0190b5a8-0000-7000-8000-000000000001',

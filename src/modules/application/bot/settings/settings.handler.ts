@@ -8,10 +8,7 @@ import type { Locale } from 'src/modules/application/i18n/i18n.interface';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
 import { ChannelService } from 'src/modules/application/user/channel/channel.service';
 import { Gender } from 'src/modules/application/user/user.enums';
-import type {
-  User,
-  UserSettingsUpdate,
-} from 'src/modules/application/user/user.interface';
+import type { User, UserSettingsUpdate } from 'src/modules/application/user/user.interface';
 import { UserService } from 'src/modules/application/user/user.service';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { BotSection } from '../bot.decorator';
@@ -51,12 +48,7 @@ export class SettingsHandler implements BotHandler {
     this.defaultTimeZone = configService.get('APP_TIMEZONE', { infer: true });
   }
 
-  async handle({
-    actor,
-    input,
-    dialog,
-    locale,
-  }: BotContext): Promise<BotReply> {
+  async handle({ actor, input, dialog, locale }: BotContext): Promise<BotReply> {
     const { user } = actor;
     if (!user) {
       return { screen: { text: locale.bot.forbidden } };
@@ -73,9 +65,7 @@ export class SettingsHandler implements BotHandler {
       return { screen: { text: locale.bot.unknownInput } };
     }
 
-    const button = SETTINGS_BUTTON_SCHEMA.safeParse(
-      input.data.split(BOT_BUTTON_DATA_SEPARATOR),
-    );
+    const button = SETTINGS_BUTTON_SCHEMA.safeParse(input.data.split(BOT_BUTTON_DATA_SEPARATOR));
     if (!button.success) {
       return { screen: { text: locale.bot.expired } };
     }
@@ -87,13 +77,7 @@ export class SettingsHandler implements BotHandler {
           ? this.saveLanguage(user, button.data.language)
           : this.askLanguage(locale);
       case SettingsAction.TIME:
-        return this.chooseTime(
-          locale,
-          user,
-          actor.language,
-          button.data.hour,
-          button.data.minute,
-        );
+        return this.chooseTime(locale, user, actor.language, button.data.hour, button.data.minute);
       case SettingsAction.TIME_ZONE:
         return button.data.isDefault
           ? this.save(locale, user, actor.language, { timezone: null })
@@ -134,9 +118,7 @@ export class SettingsHandler implements BotHandler {
           `${settings.timeZone}: ${this.describeTimeZone(locale, user)}`,
           `${settings.gender}: ${locale.genders[user.gender]}`,
           '',
-          ...switches.map(
-            ({ text }) => `**${text.name}** — ${text.description}`,
-          ),
+          ...switches.map(({ text }) => `**${text.name}** — ${text.description}`),
         ].join('\n'),
         buttons: [
           [
@@ -190,17 +172,9 @@ export class SettingsHandler implements BotHandler {
   }
 
   private async saveLanguage(user: User, language: Language) {
-    const updated =
-      (await this.userService.updateSettings(user.id, { language })) ?? user;
-    await this.menuService.syncEmployee(
-      updated,
-      await this.channelService.findByUser(updated.id),
-    );
-    return this.showMenu(
-      this.i18nService.getLocale(language),
-      updated,
-      language,
-    );
+    const updated = (await this.userService.updateSettings(user.id, { language })) ?? user;
+    await this.menuService.syncEmployee(updated, await this.channelService.findByUser(updated.id));
+    return this.showMenu(this.i18nService.getLocale(language), updated, language);
   }
 
   private chooseTime(
@@ -232,18 +206,12 @@ export class SettingsHandler implements BotHandler {
     }
 
     const rows: ScreenButton[][] = [];
-    for (
-      let index = 0;
-      index < SETTINGS_HOURS.length;
-      index += SETTINGS_HOURS_PER_ROW
-    ) {
+    for (let index = 0; index < SETTINGS_HOURS.length; index += SETTINGS_HOURS_PER_ROW) {
       rows.push(
-        SETTINGS_HOURS.slice(index, index + SETTINGS_HOURS_PER_ROW).map(
-          (value) => ({
-            text: value,
-            data: this.toData(SettingsAction.TIME, value),
-          }),
-        ),
+        SETTINGS_HOURS.slice(index, index + SETTINGS_HOURS_PER_ROW).map((value) => ({
+          text: value,
+          data: this.toData(SettingsAction.TIME, value),
+        })),
       );
     }
     return {
@@ -267,10 +235,7 @@ export class SettingsHandler implements BotHandler {
           [
             {
               text: locale.settings.useDefault(this.defaultTimeZone),
-              data: this.toData(
-                SettingsAction.TIME_ZONE,
-                SETTINGS_DEFAULT_TIME_ZONE,
-              ),
+              data: this.toData(SettingsAction.TIME_ZONE, SETTINGS_DEFAULT_TIME_ZONE),
             },
           ],
           [this.toBackButton(locale, SettingsAction.MENU)],
@@ -284,12 +249,7 @@ export class SettingsHandler implements BotHandler {
     };
   }
 
-  private saveTimeZone(
-    locale: Locale,
-    user: User,
-    language: Language,
-    text: string,
-  ) {
+  private saveTimeZone(locale: Locale, user: User, language: Language, text: string) {
     const timezone = toTimeZone(text);
     if (!timezone) {
       return this.askTimeZone(locale, user, locale.settings.timeZoneInvalid);
@@ -313,14 +273,8 @@ export class SettingsHandler implements BotHandler {
     };
   }
 
-  private async save(
-    locale: Locale,
-    user: User,
-    language: Language,
-    update: UserSettingsUpdate,
-  ) {
-    const updated =
-      (await this.userService.updateSettings(user.id, update)) ?? user;
+  private async save(locale: Locale, user: User, language: Language, update: UserSettingsUpdate) {
+    const updated = (await this.userService.updateSettings(user.id, update)) ?? user;
     return this.showMenu(locale, updated, language);
   }
 

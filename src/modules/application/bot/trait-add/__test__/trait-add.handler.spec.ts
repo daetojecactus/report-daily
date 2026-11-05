@@ -4,10 +4,7 @@ import type { ChatInput } from 'src/common/interfaces/chat-channel.interface';
 import { Language } from 'src/modules/application/i18n/i18n.enums';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
 import { Source } from 'src/modules/application/source/source.enums';
-import {
-  TraitDimension,
-  Priority,
-} from 'src/modules/application/trait/trait.enums';
+import { TraitDimension, Priority } from 'src/modules/application/trait/trait.enums';
 import type {
   TraitMapping,
   TraitMappingInput,
@@ -16,6 +13,7 @@ import type { TraitService } from 'src/modules/application/trait/trait.service';
 import { JobRole } from 'src/modules/application/user/user.enums';
 import type { BotDialog } from '../../bot.interface';
 import { TraitAddHandler } from '../trait-add.handler';
+import { TraitsView } from '../../traits/traits.view';
 
 const locale = new I18nService().getLocale(Language.EN);
 const LABEL = 'status::easy';
@@ -50,12 +48,10 @@ function text(value: string): ChatInput {
 describe('TraitAddHandler', () => {
   const traitService = {
     findById: vi.fn<(id: string) => Promise<TraitMapping | null>>(),
-    findByKey:
-      vi.fn<(source: Source, sourceKey: string) => Promise<TraitMapping[]>>(),
-    addValue:
-      vi.fn<(input: TraitMappingInput) => Promise<TraitMapping | null>>(),
+    findByKey: vi.fn<(source: Source, sourceKey: string) => Promise<TraitMapping[]>>(),
+    addValue: vi.fn<(input: TraitMappingInput) => Promise<TraitMapping | null>>(),
   };
-  const handler = new TraitAddHandler(traitService as unknown as TraitService);
+  const handler = new TraitAddHandler(traitService as unknown as TraitService, new TraitsView());
 
   function open(input: ChatInput, current: BotDialog | null = null) {
     return handler.handle({
@@ -103,10 +99,7 @@ describe('TraitAddHandler', () => {
       screen: { text: locale.traitAdd.exists(BOLD), buttons: [[CARD], [LIST]] },
       dialog: null,
     });
-    expect(traitService.findByKey).toHaveBeenCalledWith(
-      Source.GITLAB,
-      'status::easy',
-    );
+    expect(traitService.findByKey).toHaveBeenCalledWith(Source.GITLAB, 'status::easy');
   });
 
   it('asks who the value is for', async () => {
@@ -157,9 +150,7 @@ describe('TraitAddHandler', () => {
   });
 
   it('asks for the group of the value', async () => {
-    expect(
-      await open(button('trtadd:role:qa'), dialog('role', { label: LABEL })),
-    ).toEqual({
+    expect(await open(button('trtadd:role:qa'), dialog('role', { label: LABEL }))).toEqual({
       screen: {
         text: locale.traitAdd.chooseDimension(BOLD, 'for the QA role'),
         buttons: [
@@ -184,10 +175,7 @@ describe('TraitAddHandler', () => {
 
   it('offers the values of the group with their descriptions', async () => {
     expect(
-      await open(
-        button('trtadd:dim:priority'),
-        dialog('dim', { label: LABEL, role: null }),
-      ),
+      await open(button('trtadd:dim:priority'), dialog('dim', { label: LABEL, role: null })),
     ).toEqual({
       screen: {
         text: [
@@ -228,9 +216,7 @@ describe('TraitAddHandler', () => {
       }),
     );
 
-    expect(reply.screen.text).toBe(
-      locale.traitAdd.chooseDimension(BOLD, 'for everyone'),
-    );
+    expect(reply.screen.text).toBe(locale.traitAdd.chooseDimension(BOLD, 'for everyone'));
     expect(reply.dialog).toEqual(dialog('dim', { label: LABEL, role: null }));
   });
 
@@ -249,11 +235,7 @@ describe('TraitAddHandler', () => {
     ).toEqual({
       screen: {
         text: locale.traitAdd.added(BOLD, 'for everyone', 'Priority: Low'),
-        buttons: [
-          [CARD],
-          [{ text: 'Add another', data: 'trtadd:start' }],
-          [LIST],
-        ],
+        buttons: [[CARD], [{ text: 'Add another', data: 'trtadd:start' }], [LIST]],
       },
       dialog: null,
     });

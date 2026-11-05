@@ -25,6 +25,7 @@ Fill in `OWNER_TELEGRAM_IDS`, `TELEGRAM_BOT_TOKEN`, `GITLAB_URL` and `GITLAB_TOK
 | `pnpm db:migrate` | Apply migrations |
 | `pnpm preview <gitlab-username> <YYYY-MM-DD>` | Print what an employee did in GitLab on a day, grouped by project. Nothing is sent |
 | `pnpm lint`, `pnpm typecheck` | Static checks |
+| `pnpm format` | Format TypeScript files with Prettier |
 | `pnpm test`, `pnpm test:int` | Unit and integration tests, integration tests need Docker |
 
 ## Environment variables

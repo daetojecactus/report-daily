@@ -1,7 +1,4 @@
-import {
-  GitLabLabelAction,
-  GitLabState,
-} from 'src/modules/vendors/gitlab/gitlab.enums';
+import { GitLabLabelAction, GitLabState } from 'src/modules/vendors/gitlab/gitlab.enums';
 import type {
   GitLabAuthor,
   GitLabCommit,
@@ -13,6 +10,10 @@ import type {
   GitLabProject,
   GitLabStateEvent,
 } from 'src/modules/vendors/gitlab/gitlab.interface';
+import { GitLabSourceActions } from '../gitlab-source.actions';
+import { GitLabSourceBuilder } from '../gitlab-source.builder';
+import { GitLabSourceHistory } from '../gitlab-source.history';
+import { GitLabSourceNotes } from '../gitlab-source.notes';
 
 export const REPORT_DATE = '2026-08-02';
 
@@ -27,9 +28,7 @@ export function createAuthor(username: string): GitLabAuthor {
   return { id: authorIds.get(username) ?? 0, username, name: username };
 }
 
-export function createProject(
-  overrides: Partial<GitLabProject> = {},
-): GitLabProject {
+export function createProject(overrides: Partial<GitLabProject> = {}): GitLabProject {
   return {
     id: PROJECT_ID,
     name: 'backend',
@@ -100,9 +99,7 @@ export function createNote(overrides: Partial<GitLabNote> = {}): GitLabNote {
   };
 }
 
-export function createLabelEvent(
-  overrides: Partial<GitLabLabelEvent> = {},
-): GitLabLabelEvent {
+export function createLabelEvent(overrides: Partial<GitLabLabelEvent> = {}): GitLabLabelEvent {
   return {
     id: 1,
     user: createAuthor('dev.author'),
@@ -113,16 +110,15 @@ export function createLabelEvent(
   };
 }
 
-export function createStateEvent(
-  state: GitLabState,
-  createdAt: string,
-): GitLabStateEvent {
+export function createStateEvent(state: GitLabState, createdAt: string): GitLabStateEvent {
   return { id: 1, created_at: createdAt, state };
 }
 
-export function createCommit(
-  committedDate: string,
-  title = 'feat: something',
-): GitLabCommit {
+export function createCommit(committedDate: string, title = 'feat: something'): GitLabCommit {
   return { id: committedDate, title, created_at: committedDate };
+}
+
+export function createBuilder() {
+  const notes = new GitLabSourceNotes();
+  return new GitLabSourceBuilder(new GitLabSourceHistory(notes), new GitLabSourceActions(notes));
 }

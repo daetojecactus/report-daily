@@ -12,10 +12,7 @@ import { InboundQueueMessages } from './constants/inbound-queue.messages';
 import type { InboundEventJobData } from './inbound-queue.interface';
 
 @Processor(INBOUND_QUEUE, { concurrency: INBOUND_CONCURRENCY })
-export class InboundQueueProcessor
-  extends WorkerHost
-  implements OnModuleDestroy
-{
+export class InboundQueueProcessor extends WorkerHost implements OnModuleDestroy {
   private readonly logger = new Logger(InboundQueueProcessor.name);
 
   constructor(private readonly botService: BotService) {

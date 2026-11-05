@@ -31,11 +31,6 @@ export default async function setup(project: TestProject) {
   project.provide('gitlabUrl', gitlab.url);
 
   return async () => {
-    await Promise.all([
-      postgres.stop(),
-      redis.stop(),
-      botApi.close(),
-      gitlab.close(),
-    ]);
+    await Promise.all([postgres.stop(), redis.stop(), botApi.close(), gitlab.close()]);
   };
 }

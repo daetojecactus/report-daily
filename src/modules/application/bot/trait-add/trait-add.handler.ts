@@ -1,39 +1,24 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ChatInputType } from 'src/common/enums/channel.enums';
 import { SOURCE_NAME_SCOPE_SEPARATOR } from 'src/common/constants/source-name.constants';
-import type { ScreenButton } from 'src/common/interfaces/chat-channel.interface';
 import { toSourceKey } from 'src/common/utils/source-name.util';
-import { escapeMarkdown } from 'src/common/utils/markdown.util';
-import type {
-  TraitValueText,
-  Locale,
-} from 'src/modules/application/i18n/i18n.interface';
+import type { Locale } from 'src/modules/application/i18n/i18n.interface';
 import {
   TRAIT_DICTIONARY,
   TRAIT_SOURCE_NAME_MAX_LENGTH,
 } from 'src/modules/application/trait/constants/trait.constants';
 import { TraitDimension } from 'src/modules/application/trait/trait.enums';
-import type {
-  TraitMapping,
-  TraitValue,
-} from 'src/modules/application/trait/trait.interface';
+import type { TraitMapping, TraitValue } from 'src/modules/application/trait/trait.interface';
 import { Source } from 'src/modules/application/source/source.enums';
 import { TraitService } from 'src/modules/application/trait/trait.service';
 import { JobRole, Permission } from 'src/modules/application/user/user.enums';
 import { BotSection } from '../bot.decorator';
 import { BotAccess, BotNamespace } from '../bot.enums';
-import type {
-  BotActor,
-  BotContext,
-  BotDialog,
-  BotHandler,
-  BotReply,
-} from '../bot.interface';
+import type { BotActor, BotContext, BotDialog, BotHandler, BotReply } from '../bot.interface';
 import { BOT_BUTTON_DATA_SEPARATOR } from '../constants/bot.constants';
-import { TraitsAction } from '../traits/traits.enums';
+import { TraitsView } from '../traits/traits.view';
 import {
   TRAIT_ADD_BUTTON_SCHEMA,
-  TRAIT_ADD_BUTTONS_PER_ROW,
   TRAIT_ADD_DRAFT_SCHEMA,
   TRAIT_ADD_EVERYONE,
   TRAIT_ADD_VALUE_SCHEMAS,
@@ -46,14 +31,12 @@ import { TraitAddAction, TraitAddStep } from './trait-add.enums';
 export class TraitAddHandler implements BotHandler {
   private readonly logger = new Logger(TraitAddHandler.name);
 
-  constructor(private readonly traitService: TraitService) {}
+  constructor(
+    private readonly traitService: TraitService,
+    private readonly traitsView: TraitsView,
+  ) {}
 
-  async handle({
-    actor,
-    input,
-    dialog,
-    locale,
-  }: BotContext): Promise<BotReply> {
+  async handle({ actor, input, dialog, locale }: BotContext): Promise<BotReply> {
     if (input.type === ChatInputType.TEXT) {
       return this.receiveLabel(locale, input.text);
     }
@@ -61,9 +44,7 @@ export class TraitAddHandler implements BotHandler {
       return { screen: { text: locale.bot.unknownInput } };
     }
 
-    const button = TRAIT_ADD_BUTTON_SCHEMA.safeParse(
-      input.data.split(BOT_BUTTON_DATA_SEPARATOR),
-    );
+    const button = TRAIT_ADD_BUTTON_SCHEMA.safeParse(input.data.split(BOT_BUTTON_DATA_SEPARATOR));
     if (!button.success) {
       return { screen: { text: locale.bot.expired } };
     }
@@ -84,7 +65,7 @@ export class TraitAddHandler implements BotHandler {
         return {
           screen: {
             text: locale.traitAdd.cancelled,
-            buttons: [[this.toListButton(locale)]],
+            buttons: [[this.traitsView.toListButton(locale)]],
           },
           dialog: null,
         };
@@ -105,20 +86,14 @@ export class TraitAddHandler implements BotHandler {
       label.length > TRAIT_SOURCE_NAME_MAX_LENGTH ||
       sourceKey.split(SOURCE_NAME_SCOPE_SEPARATOR).some((part) => part === '')
     ) {
-      return this.askLabel(
-        locale,
-        locale.traitAdd.invalid(TRAIT_SOURCE_NAME_MAX_LENGTH),
-      );
+      return this.askLabel(locale, locale.traitAdd.invalid(TRAIT_SOURCE_NAME_MAX_LENGTH));
     }
-    const [existing] = await this.traitService.findByKey(
-      Source.GITLAB,
-      sourceKey,
-    );
+    const [existing] = await this.traitService.findByKey(Source.GITLAB, sourceKey);
     if (existing) {
       return this.showExisting(
         locale,
         existing,
-        locale.traitAdd.exists(this.toLabelText(existing.sourceName)),
+        locale.traitAdd.exists(this.traitsView.toSourceName(existing.sourceName)),
       );
     }
     return this.askRole(locale, label);
@@ -130,7 +105,7 @@ export class TraitAddHandler implements BotHandler {
       return {
         screen: {
           text: locale.traitList.notFound,
-          buttons: [[this.toListButton(locale)]],
+          buttons: [[this.traitsView.toListButton(locale)]],
         },
         dialog: null,
       };
@@ -141,7 +116,7 @@ export class TraitAddHandler implements BotHandler {
   private askRole(locale: Locale, label: string): BotReply {
     return {
       screen: {
-        text: locale.traitAdd.forWhom(this.toLabelText(label)),
+        text: locale.traitAdd.forWhom(this.traitsView.toSourceName(label)),
         buttons: [
           [
             {
@@ -149,7 +124,7 @@ export class TraitAddHandler implements BotHandler {
               data: this.toData(TraitAddAction.ROLE, TRAIT_ADD_EVERYONE),
             },
           ],
-          ...this.toRows(
+          ...this.traitsView.toRows(
             Object.values(JobRole).map((role) => ({
               text: locale.roles[role],
               data: this.toData(TraitAddAction.ROLE, role),
@@ -162,11 +137,7 @@ export class TraitAddHandler implements BotHandler {
     };
   }
 
-  private chooseRole(
-    locale: Locale,
-    dialog: BotDialog | null,
-    role: JobRole | null,
-  ): BotReply {
+  private chooseRole(locale: Locale, dialog: BotDialog | null, role: JobRole | null): BotReply {
     const draft = this.readDraft(dialog, TraitAddStep.ROLE);
     if (!draft) {
       return { screen: { text: locale.bot.expired } };
@@ -182,19 +153,15 @@ export class TraitAddHandler implements BotHandler {
     return this.askDimension(locale, draft.label, draft.role);
   }
 
-  private askDimension(
-    locale: Locale,
-    label: string,
-    role: JobRole | null,
-  ): BotReply {
+  private askDimension(locale: Locale, label: string, role: JobRole | null): BotReply {
     return {
       screen: {
         text: locale.traitAdd.chooseDimension(
-          this.toLabelText(label),
-          this.toWhom(locale, role),
+          this.traitsView.toSourceName(label),
+          this.traitsView.toWhom(locale, role),
         ),
         buttons: [
-          ...this.toRows(
+          ...this.traitsView.toRows(
             Object.values(TraitDimension).map((dimension) => ({
               text: locale.traits.dimensions[dimension],
               data: this.toData(TraitAddAction.DIMENSION, dimension),
@@ -223,24 +190,17 @@ export class TraitAddHandler implements BotHandler {
       screen: {
         text: [
           locale.traitAdd.chooseValue(
-            this.toLabelText(label),
-            this.toWhom(locale, role),
+            this.traitsView.toSourceName(label),
+            this.traitsView.toWhom(locale, role),
             locale.traits.dimensions[dimension],
           ),
           '',
-          ...values.map((value) => {
-            const { name, description } = this.toValueText(
-              locale,
-              dimension,
-              value,
-            );
-            return `**${name}** — ${description}`;
-          }),
+          ...this.traitsView.describeValues(locale, dimension),
         ].join('\n'),
         buttons: [
-          ...this.toRows(
+          ...this.traitsView.toRows(
             values.map((value) => ({
-              text: this.toValueText(locale, dimension, value).name,
+              text: this.traitsView.toValueName(locale, dimension, value),
               data: this.toData(TraitAddAction.VALUE, value),
             })),
           ),
@@ -281,15 +241,12 @@ export class TraitAddHandler implements BotHandler {
       value: value.data,
     });
     if (!mapping) {
-      const [existing] = await this.traitService.findByKey(
-        Source.GITLAB,
-        toSourceKey(label),
-      );
+      const [existing] = await this.traitService.findByKey(Source.GITLAB, toSourceKey(label));
       return existing
         ? this.showExisting(
             locale,
             existing,
-            locale.traitAdd.alreadySet(this.toLabelText(existing.sourceName)),
+            locale.traitAdd.alreadySet(this.traitsView.toSourceName(existing.sourceName)),
           )
         : { screen: { text: locale.bot.expired }, dialog: null };
     }
@@ -308,72 +265,36 @@ export class TraitAddHandler implements BotHandler {
     return {
       screen: {
         text: locale.traitAdd.added(
-          this.toLabelText(mapping.sourceName),
-          this.toWhom(locale, role),
-          `${locale.traits.dimensions[dimension]}: ${this.toValueText(locale, dimension, mapping.value).name}`,
+          this.traitsView.toSourceName(mapping.sourceName),
+          this.traitsView.toWhom(locale, role),
+          this.traitsView.describe(locale, dimension, mapping.value),
         ),
         buttons: [
-          [this.toCardButton(locale, mapping.id)],
+          [this.traitsView.toCardButton(locale, mapping.id)],
           [
             {
               text: locale.traitAdd.addMore,
               data: this.toData(TraitAddAction.START),
             },
           ],
-          [this.toListButton(locale)],
+          [this.traitsView.toListButton(locale)],
         ],
       },
       dialog: null,
     };
   }
 
-  private showExisting(
-    locale: Locale,
-    mapping: TraitMapping,
-    text: string,
-  ): BotReply {
+  private showExisting(locale: Locale, mapping: TraitMapping, text: string): BotReply {
     return {
       screen: {
         text,
         buttons: [
-          [this.toCardButton(locale, mapping.id)],
-          [this.toListButton(locale)],
+          [this.traitsView.toCardButton(locale, mapping.id)],
+          [this.traitsView.toListButton(locale)],
         ],
       },
       dialog: null,
     };
-  }
-
-  private toValueText(
-    locale: Locale,
-    dimension: TraitDimension,
-    value: TraitValue,
-  ) {
-    const texts: Record<string, TraitValueText> =
-      locale.traits.values[dimension];
-    return texts[value];
-  }
-
-  private toWhom(locale: Locale, role: JobRole | null) {
-    return role
-      ? locale.traitAdd.forRole(locale.roles[role])
-      : locale.traitAdd.forEveryone;
-  }
-
-  private toLabelText(label: string) {
-    return `**${escapeMarkdown(label)}**`;
-  }
-
-  private toRows(buttons: ScreenButton[]) {
-    const rows: ScreenButton[][] = [];
-    for (
-      let index = 0;
-      index < buttons.length;
-      index += TRAIT_ADD_BUTTONS_PER_ROW
-    ) {
-      rows.push(buttons.slice(index, index + TRAIT_ADD_BUTTONS_PER_ROW));
-    }
-    return rows;
   }
 
   private readDraft(dialog: BotDialog | null, step: string) {
@@ -396,24 +317,6 @@ export class TraitAddHandler implements BotHandler {
     return {
       text: locale.traitAdd.cancel,
       data: this.toData(TraitAddAction.CANCEL),
-    };
-  }
-
-  private toCardButton(locale: Locale, id: string) {
-    return {
-      text: locale.traitAdd.openCard,
-      data: [BotNamespace.TRAITS, TraitsAction.CARD, id, 0].join(
-        BOT_BUTTON_DATA_SEPARATOR,
-      ),
-    };
-  }
-
-  private toListButton(locale: Locale) {
-    return {
-      text: locale.traitList.backToList,
-      data: [BotNamespace.TRAITS, TraitsAction.LIST, 0].join(
-        BOT_BUTTON_DATA_SEPARATOR,
-      ),
     };
   }
 }

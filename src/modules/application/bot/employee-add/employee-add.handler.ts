@@ -3,11 +3,7 @@ import { ChatInputType } from 'src/common/enums/channel.enums';
 import { getErrorMessage } from 'src/common/utils/error.util';
 import { escapeMarkdown } from 'src/common/utils/markdown.util';
 import type { Locale } from 'src/modules/application/i18n/i18n.interface';
-import {
-  Gender,
-  JobRole,
-  Permission,
-} from 'src/modules/application/user/user.enums';
+import { Gender, JobRole, Permission } from 'src/modules/application/user/user.enums';
 import { Source } from 'src/modules/application/source/source.enums';
 import { UserService } from 'src/modules/application/user/user.service';
 import {
@@ -19,13 +15,7 @@ import type { GitLabUser } from 'src/modules/vendors/gitlab/gitlab.interface';
 import { GitLabService } from 'src/modules/vendors/gitlab/gitlab.service';
 import { BotSection } from '../bot.decorator';
 import { BotAccess, BotNamespace } from '../bot.enums';
-import type {
-  BotActor,
-  BotContext,
-  BotDialog,
-  BotHandler,
-  BotReply,
-} from '../bot.interface';
+import type { BotActor, BotContext, BotDialog, BotHandler, BotReply } from '../bot.interface';
 import { BOT_BUTTON_DATA_SEPARATOR } from '../constants/bot.constants';
 import {
   EMPLOYEES_ITEM_SEPARATOR,
@@ -51,12 +41,7 @@ export class EmployeeAddHandler implements BotHandler {
     private readonly gitlabService: GitLabService,
   ) {}
 
-  async handle({
-    actor,
-    input,
-    dialog,
-    locale,
-  }: BotContext): Promise<BotReply> {
+  async handle({ actor, input, dialog, locale }: BotContext): Promise<BotReply> {
     if (input.type === ChatInputType.TEXT) {
       return this.search(locale, input.text);
     }
@@ -110,9 +95,7 @@ export class EmployeeAddHandler implements BotHandler {
       if (!this.isGitLabFailure(error)) {
         throw error;
       }
-      this.logger.warn(
-        `${EmployeeAddMessages.GITLAB_FAILED}: ${getErrorMessage(error)}`,
-      );
+      this.logger.warn(`${EmployeeAddMessages.GITLAB_FAILED}: ${getErrorMessage(error)}`);
       return this.askQuery(
         locale,
         error instanceof GitLabCertificateError
@@ -130,9 +113,7 @@ export class EmployeeAddHandler implements BotHandler {
         buttons: [
           ...candidates.map((candidate) => [
             {
-              text: [candidate.name, `@${candidate.username}`].join(
-                EMPLOYEES_ITEM_SEPARATOR,
-              ),
+              text: [candidate.name, `@${candidate.username}`].join(EMPLOYEES_ITEM_SEPARATOR),
               data: this.toData(EmployeeAddAction.PICK, candidate.id),
             },
           ]),
@@ -154,17 +135,13 @@ export class EmployeeAddHandler implements BotHandler {
     dialog: BotDialog | null,
     gitlabUserId: number,
   ): Promise<BotReply> {
-    const candidate = this.readDraft(
-      dialog,
-      EmployeeAddStep.PICK,
-    )?.candidates?.find((item) => item.id === gitlabUserId);
+    const candidate = this.readDraft(dialog, EmployeeAddStep.PICK)?.candidates?.find(
+      (item) => item.id === gitlabUserId,
+    );
     if (!candidate) {
       return { screen: { text: locale.bot.expired } };
     }
-    const existing = await this.userService.findOneBySource(
-      Source.GITLAB,
-      String(candidate.id),
-    );
+    const existing = await this.userService.findOneBySource(Source.GITLAB, String(candidate.id));
     if (existing) {
       return this.showExisting(locale, existing.id, existing.displayName);
     }
@@ -186,11 +163,7 @@ export class EmployeeAddHandler implements BotHandler {
     };
   }
 
-  private chooseRole(
-    locale: Locale,
-    dialog: BotDialog | null,
-    role: JobRole,
-  ): BotReply {
+  private chooseRole(locale: Locale, dialog: BotDialog | null, role: JobRole): BotReply {
     const candidate = this.readDraft(dialog, EmployeeAddStep.ROLE)?.candidate;
     if (!candidate) {
       return { screen: { text: locale.bot.expired } };
@@ -222,10 +195,7 @@ export class EmployeeAddHandler implements BotHandler {
       return { screen: { text: locale.bot.expired } };
     }
     const { candidate, role } = draft;
-    const existing = await this.userService.findOneBySource(
-      Source.GITLAB,
-      String(candidate.id),
-    );
+    const existing = await this.userService.findOneBySource(Source.GITLAB, String(candidate.id));
     if (existing) {
       return this.showExisting(locale, existing.id, existing.displayName);
     }
@@ -260,11 +230,9 @@ export class EmployeeAddHandler implements BotHandler {
           [
             {
               text: locale.employees.bind(locale.channels[actor.channel]),
-              data: [
-                BotNamespace.EMPLOYEE_BIND,
-                EmployeeBindAction.START,
-                user.id,
-              ].join(BOT_BUTTON_DATA_SEPARATOR),
+              data: [BotNamespace.EMPLOYEE_BIND, EmployeeBindAction.START, user.id].join(
+                BOT_BUTTON_DATA_SEPARATOR,
+              ),
             },
           ],
           [this.toCardButton(locale, user.id)],
@@ -292,9 +260,7 @@ export class EmployeeAddHandler implements BotHandler {
       if (!this.isGitLabFailure(error)) {
         throw error;
       }
-      this.logger.warn(
-        `${EmployeeAddMessages.GITLAB_FAILED}: ${getErrorMessage(error)}`,
-      );
+      this.logger.warn(`${EmployeeAddMessages.GITLAB_FAILED}: ${getErrorMessage(error)}`);
       return null;
     }
   }
@@ -308,10 +274,7 @@ export class EmployeeAddHandler implements BotHandler {
   }
 
   private readDraft(dialog: BotDialog | null, step: string) {
-    if (
-      dialog?.namespace !== BotNamespace.EMPLOYEE_ADD ||
-      dialog.step !== step
-    ) {
+    if (dialog?.namespace !== BotNamespace.EMPLOYEE_ADD || dialog.step !== step) {
       return null;
     }
     const draft = EMPLOYEE_ADD_DRAFT_SCHEMA.safeParse(dialog.data);
@@ -323,9 +286,7 @@ export class EmployeeAddHandler implements BotHandler {
   }
 
   private toData(...parts: (string | number)[]) {
-    return [BotNamespace.EMPLOYEE_ADD, ...parts].join(
-      BOT_BUTTON_DATA_SEPARATOR,
-    );
+    return [BotNamespace.EMPLOYEE_ADD, ...parts].join(BOT_BUTTON_DATA_SEPARATOR);
   }
 
   private toCancelButton(locale: Locale) {
@@ -338,18 +299,14 @@ export class EmployeeAddHandler implements BotHandler {
   private toCardButton(locale: Locale, id: string) {
     return {
       text: locale.employeeAdd.openCard,
-      data: [BotNamespace.EMPLOYEES, EmployeesAction.CARD, id, 0].join(
-        BOT_BUTTON_DATA_SEPARATOR,
-      ),
+      data: [BotNamespace.EMPLOYEES, EmployeesAction.CARD, id, 0].join(BOT_BUTTON_DATA_SEPARATOR),
     };
   }
 
   private toListButton(locale: Locale) {
     return {
       text: locale.employees.backToList,
-      data: [BotNamespace.EMPLOYEES, EmployeesAction.LIST, 0].join(
-        BOT_BUTTON_DATA_SEPARATOR,
-      ),
+      data: [BotNamespace.EMPLOYEES, EmployeesAction.LIST, 0].join(BOT_BUTTON_DATA_SEPARATOR),
     };
   }
 }

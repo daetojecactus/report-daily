@@ -30,13 +30,8 @@ export class AccessService {
   }
 
   async resolveActor(event: ChatEvent): Promise<BotActor> {
-    const found = await this.userService.findOneByChannel(
-      event.channel,
-      event.userId,
-    );
-    const language =
-      found?.user.language ??
-      this.i18nService.resolveLanguage(event.languageCode);
+    const found = await this.userService.findOneByChannel(event.channel, event.userId);
+    const language = found?.user.language ?? this.i18nService.resolveLanguage(event.languageCode);
     const isActive = found !== null && found.user.status !== UserStatus.BLOCKED;
     if (isActive) {
       await this.userService.recordContact(found, language);
@@ -85,9 +80,7 @@ export class AccessService {
       case BotAccess.OWNER:
         return actor.isOwner;
       default:
-        return (
-          actor.isOwner || (actor.user?.permissions.includes(access) ?? false)
-        );
+        return actor.isOwner || (actor.user?.permissions.includes(access) ?? false);
     }
   }
 }

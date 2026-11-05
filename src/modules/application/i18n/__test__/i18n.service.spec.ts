@@ -28,34 +28,25 @@ function collectEntries(value: unknown, path = ''): [string, unknown][] {
 }
 
 function describeEntries(language: Language) {
-  return collectEntries(i18nService.getLocale(language)).map(
-    ([path, value]): [string, string] => [
-      path,
-      typeof value === 'function' ? `function/${value.length}` : typeof value,
-    ],
-  );
+  return collectEntries(i18nService.getLocale(language)).map(([path, value]): [string, string] => [
+    path,
+    typeof value === 'function' ? `function/${value.length}` : typeof value,
+  ]);
 }
 
 function renderTexts(language: Language) {
-  return collectEntries(i18nService.getLocale(language)).map(
-    ([path, value]): [string, string] => [
-      path,
-      typeof value === 'function'
-        ? String((value as (...args: string[]) => unknown)('Telegram', '1'))
-        : String(value),
-    ],
-  );
+  return collectEntries(i18nService.getLocale(language)).map(([path, value]): [string, string] => [
+    path,
+    typeof value === 'function'
+      ? String((value as (...args: string[]) => unknown)('Telegram', '1'))
+      : String(value),
+  ]);
 }
 
 describe('I18nService', () => {
-  it.each(LANGUAGES)(
-    'locale %s has the same keys as the default locale',
-    (language) => {
-      expect(describeEntries(language)).toEqual(
-        describeEntries(DEFAULT_LANGUAGE),
-      );
-    },
-  );
+  it.each(LANGUAGES)('locale %s has the same keys as the default locale', (language) => {
+    expect(describeEntries(language)).toEqual(describeEntries(DEFAULT_LANGUAGE));
+  });
 
   it.each(LANGUAGES)('locale %s has no empty or padded texts', (language) => {
     const invalid = renderTexts(language).filter(
@@ -68,9 +59,7 @@ describe('I18nService', () => {
   it('locales differ in every text except names', () => {
     const russian = new Map(renderTexts(Language.RU));
     const same = renderTexts(Language.EN).filter(
-      ([path, text]) =>
-        !NAMES.some((name) => path.startsWith(name)) &&
-        russian.get(path) === text,
+      ([path, text]) => !NAMES.some((name) => path.startsWith(name)) && russian.get(path) === text,
     );
 
     expect(same).toEqual([]);

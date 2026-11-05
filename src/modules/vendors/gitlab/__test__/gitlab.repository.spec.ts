@@ -1,14 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { UnrecoverableError } from 'bullmq';
-import {
-  assert,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from 'vitest';
+import { assert, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { GitLabClient } from '../gitlab.client';
 import { GitLabIssuable } from '../gitlab.enums';
 import { GitLabRejectedError, GitLabRetryableError } from '../gitlab.error';
@@ -93,25 +85,17 @@ describe('GitLabRepository', () => {
   });
 
   it('reads every page of a list by the next page header', async () => {
-    client.get.mockResolvedValueOnce(
-      respond(200, [{ id: 1 }, { id: 2 }], { 'x-next-page': '2' }),
-    );
-    client.get.mockResolvedValueOnce(
-      respond(200, [{ id: 3 }], { 'x-next-page': '' }),
-    );
+    client.get.mockResolvedValueOnce(respond(200, [{ id: 1 }, { id: 2 }], { 'x-next-page': '2' }));
+    client.get.mockResolvedValueOnce(respond(200, [{ id: 3 }], { 'x-next-page': '' }));
 
-    expect(
-      await repository.findUserEvents(7, '2026-11-01', '2026-11-05'),
-    ).toEqual([{ id: 1 }, { id: 2 }, { id: 3 }]);
+    expect(await repository.findUserEvents(7, '2026-11-01', '2026-11-05')).toEqual([
+      { id: 1 },
+      { id: 2 },
+      { id: 3 },
+    ]);
     expect(client.get.mock.calls).toEqual([
-      [
-        '/users/7/events',
-        { after: '2026-11-01', before: '2026-11-05', per_page: 100, page: 1 },
-      ],
-      [
-        '/users/7/events',
-        { after: '2026-11-01', before: '2026-11-05', per_page: 100, page: 2 },
-      ],
+      ['/users/7/events', { after: '2026-11-01', before: '2026-11-05', per_page: 100, page: 1 }],
+      ['/users/7/events', { after: '2026-11-01', before: '2026-11-05', per_page: 100, page: 2 }],
     ]);
   });
 
@@ -125,11 +109,7 @@ describe('GitLabRepository', () => {
       ),
     );
 
-    const events = await repository.findUserEvents(
-      7,
-      '2026-11-01',
-      '2026-11-05',
-    );
+    const events = await repository.findUserEvents(7, '2026-11-01', '2026-11-05');
 
     expect(events).toHaveLength(20);
     expect(client.get).toHaveBeenCalledTimes(20);
@@ -143,9 +123,7 @@ describe('GitLabRepository', () => {
   it('finds an empty list when the list is not found', async () => {
     client.get.mockResolvedValue(respond(404, { message: 'Not Found' }));
 
-    expect(await repository.findNotes(GitLabIssuable.ISSUES, 3, 12)).toEqual(
-      [],
-    );
+    expect(await repository.findNotes(GitLabIssuable.ISSUES, 3, 12)).toEqual([]);
     expect(client.get).toHaveBeenCalledOnce();
   });
 
@@ -161,10 +139,7 @@ describe('GitLabRepository', () => {
   });
 
   it.each([
-    [
-      '/projects/3/issues/12/notes',
-      () => repository.findNotes(GitLabIssuable.ISSUES, 3, 12),
-    ],
+    ['/projects/3/issues/12/notes', () => repository.findNotes(GitLabIssuable.ISSUES, 3, 12)],
     [
       '/projects/3/merge_requests/5/resource_label_events',
       () => repository.findLabelEvents(GitLabIssuable.MERGE_REQUESTS, 3, 5),
@@ -173,14 +148,8 @@ describe('GitLabRepository', () => {
       '/projects/3/issues/12/resource_state_events',
       () => repository.findStateEvents(GitLabIssuable.ISSUES, 3, 12),
     ],
-    [
-      '/projects/3/merge_requests/5/commits',
-      () => repository.findMergeRequestCommits(3, 5),
-    ],
-    [
-      '/projects/3/merge_requests/5/closes_issues',
-      () => repository.findIssuesClosedOnMerge(3, 5),
-    ],
+    ['/projects/3/merge_requests/5/commits', () => repository.findMergeRequestCommits(3, 5)],
+    ['/projects/3/merge_requests/5/closes_issues', () => repository.findIssuesClosedOnMerge(3, 5)],
   ])('reads every page of %s', async (path, call) => {
     client.get.mockResolvedValue(respond(200, [{ id: 1 }]));
 
@@ -194,9 +163,7 @@ describe('GitLabRepository', () => {
   ])('finds the merge request of a branch in %j', async (found, result) => {
     client.get.mockResolvedValue(respond(200, found));
 
-    expect(await repository.findMergeRequestByBranch(3, '12-login')).toEqual(
-      result,
-    );
+    expect(await repository.findMergeRequestByBranch(3, '12-login')).toEqual(result);
     expect(client.get).toHaveBeenCalledWith('/projects/3/merge_requests', {
       source_branch: '12-login',
       per_page: 1,
@@ -209,13 +176,9 @@ describe('GitLabRepository', () => {
   ])('reads every %s updated after a moment', async (issuable, path) => {
     client.get.mockResolvedValue(respond(200, [{ iid: 1, project_id: 3 }]));
 
-    expect(
-      await repository.findUpdatedItems(
-        issuable,
-        3,
-        '2026-11-03T19:00:00.000Z',
-      ),
-    ).toEqual([{ iid: 1, project_id: 3 }]);
+    expect(await repository.findUpdatedItems(issuable, 3, '2026-11-03T19:00:00.000Z')).toEqual([
+      { iid: 1, project_id: 3 },
+    ]);
     expect(client.get).toHaveBeenCalledWith(path, {
       updated_after: '2026-11-03T19:00:00.000Z',
       per_page: 100,
@@ -235,29 +198,20 @@ describe('GitLabRepository', () => {
     });
   });
 
-  it.each([401, 403, 400])(
-    'rejects without retries on status %i',
-    async (status) => {
-      client.get.mockResolvedValue(respond(status, { message: 'denied' }));
+  it.each([401, 403, 400])('rejects without retries on status %i', async (status) => {
+    client.get.mockResolvedValue(respond(status, { message: 'denied' }));
 
-      const error = await catchError(
-        repository.findUser(7),
-        GitLabRejectedError,
-      );
+    const error = await catchError(repository.findUser(7), GitLabRejectedError);
 
-      expect(error).toBeInstanceOf(UnrecoverableError);
-      expect(error.status).toBe(status);
-      expect(error.message).toBe(`GitLab API error: /users/7: ${status}`);
-    },
-  );
+    expect(error).toBeInstanceOf(UnrecoverableError);
+    expect(error.status).toBe(status);
+    expect(error.message).toBe(`GitLab API error: /users/7: ${status}`);
+  });
 
   it('reads Retry-After in seconds on 429', async () => {
     client.get.mockResolvedValue(respond(429, {}, { 'retry-after': '30' }));
 
-    const error = await catchError(
-      repository.findUser(7),
-      GitLabRetryableError,
-    );
+    const error = await catchError(repository.findUser(7), GitLabRetryableError);
 
     expect(error.retryAfterSeconds).toBe(30);
   });
@@ -267,10 +221,7 @@ describe('GitLabRepository', () => {
       respond(429, {}, { 'retry-after': 'Wed, 04 Nov 2026 12:00:00 GMT' }),
     );
 
-    const error = await catchError(
-      repository.findUser(7),
-      GitLabRetryableError,
-    );
+    const error = await catchError(repository.findUser(7), GitLabRetryableError);
 
     expect(error.retryAfterSeconds).toBeNull();
   });
@@ -278,10 +229,7 @@ describe('GitLabRepository', () => {
   it('retries a server error', async () => {
     client.get.mockResolvedValue(respond(502, '<html>Bad Gateway</html>'));
 
-    const error = await catchError(
-      repository.findUser(7),
-      GitLabRetryableError,
-    );
+    const error = await catchError(repository.findUser(7), GitLabRetryableError);
 
     expect(error.message).toContain('502');
   });
@@ -289,10 +237,7 @@ describe('GitLabRepository', () => {
   it('retries a response that is not JSON', async () => {
     client.get.mockResolvedValue(respond(200, '<html>Sign in</html>'));
 
-    const error = await catchError(
-      repository.findUser(7),
-      GitLabRetryableError,
-    );
+    const error = await catchError(repository.findUser(7), GitLabRetryableError);
 
     expect(error.message).toContain('GitLab returned an invalid response');
   });

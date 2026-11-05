@@ -74,25 +74,17 @@ export class TelegramPoller implements OnApplicationBootstrap, OnModuleDestroy {
         this.shouldDeleteWebhook = false;
       }
 
-      const offset = Number(
-        await this.redisService.get(TELEGRAM_POLLER_OFFSET_KEY),
-      );
+      const offset = Number(await this.redisService.get(TELEGRAM_POLLER_OFFSET_KEY));
       const updates = await this.telegramService.getUpdates(offset, signal);
       for (const update of updates) {
         const event = this.telegramService.toChatEvent(update);
         if (event) {
-          await this.inboundQueueProducer.addTelegramEvent(
-            update.update_id,
-            event,
-          );
+          await this.inboundQueueProducer.addTelegramEvent(update.update_id, event);
         }
       }
       const last = updates.at(-1);
       if (last) {
-        await this.redisService.set(
-          TELEGRAM_POLLER_OFFSET_KEY,
-          String(last.update_id + 1),
-        );
+        await this.redisService.set(TELEGRAM_POLLER_OFFSET_KEY, String(last.update_id + 1));
       }
       return 0;
     } catch (error) {
@@ -101,24 +93,17 @@ export class TelegramPoller implements OnApplicationBootstrap, OnModuleDestroy {
   }
 
   private getRetryDelay(error: unknown) {
-    if (
-      error instanceof TelegramRejectedError &&
-      error.code === TELEGRAM_CONFLICT
-    ) {
+    if (error instanceof TelegramRejectedError && error.code === TELEGRAM_CONFLICT) {
       this.logger.warn(TelegramPollerMessages.POLLING_CONFLICT);
       this.shouldDeleteWebhook = true;
       return TELEGRAM_POLLER_ERROR_DELAY_MS;
     }
     if (error instanceof TelegramRejectedError) {
-      this.logger.error(
-        `${TelegramPollerMessages.POLLING_REJECTED}: ${error.message}`,
-      );
+      this.logger.error(`${TelegramPollerMessages.POLLING_REJECTED}: ${error.message}`);
       return TELEGRAM_POLLER_REJECTED_DELAY_MS;
     }
 
-    this.logger.warn(
-      `${TelegramPollerMessages.POLLING_FAILED}: ${getErrorMessage(error)}`,
-    );
+    this.logger.warn(`${TelegramPollerMessages.POLLING_FAILED}: ${getErrorMessage(error)}`);
     if (error instanceof TelegramRetryableError && error.retryAfterSeconds) {
       return error.retryAfterSeconds * 1000;
     }
@@ -137,14 +122,9 @@ export class TelegramPoller implements OnApplicationBootstrap, OnModuleDestroy {
 
   private async releaseLock() {
     try {
-      await this.redisService.releaseLock(
-        TELEGRAM_POLLER_LOCK_KEY,
-        this.lockToken,
-      );
+      await this.redisService.releaseLock(TELEGRAM_POLLER_LOCK_KEY, this.lockToken);
     } catch (error) {
-      this.logger.warn(
-        `${TelegramPollerMessages.LOCK_RELEASE_FAILED}: ${getErrorMessage(error)}`,
-      );
+      this.logger.warn(`${TelegramPollerMessages.LOCK_RELEASE_FAILED}: ${getErrorMessage(error)}`);
     }
   }
 }

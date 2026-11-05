@@ -1,19 +1,8 @@
 import { sql } from 'drizzle-orm';
-import {
-  boolean,
-  check,
-  pgEnum,
-  pgTable,
-  text,
-  time,
-} from 'drizzle-orm/pg-core';
+import { boolean, check, pgEnum, pgTable, text, time } from 'drizzle-orm/pg-core';
 import { Language } from '../i18n/i18n.enums';
 import { Gender, JobRole, Permission, UserStatus } from './user.enums';
-import {
-  createdAt,
-  primaryId,
-  updatedAt,
-} from '../../infrastructure/database/database.columns';
+import { createdAt, primaryId, updatedAt } from '../../infrastructure/database/database.columns';
 import {
   USER_DEFAULT_REPORT_TIME,
   USER_DISPLAY_NAME_MAX_LENGTH,
@@ -40,9 +29,7 @@ export const users = pgTable(
     status: userStatus().notNull().default(UserStatus.PENDING),
     language: language(),
     timezone: text(),
-    reportTime: time({ precision: 0 })
-      .notNull()
-      .default(USER_DEFAULT_REPORT_TIME),
+    reportTime: time({ precision: 0 }).notNull().default(USER_DEFAULT_REPORT_TIME),
     aiEnabled: boolean().notNull().default(true),
     aiDataOptOut: boolean().notNull().default(false),
     permissions: permission().array().notNull().default([]),

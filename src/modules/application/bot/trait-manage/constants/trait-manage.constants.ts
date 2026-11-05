@@ -4,8 +4,6 @@ import { TraitManageAction } from '../trait-manage.enums';
 
 export const TRAIT_MANAGE_CURRENT_MARK = '✓ ';
 
-export const TRAIT_MANAGE_BUTTONS_PER_ROW = 2;
-
 const NAMESPACE_SCHEMA = z.literal(BotNamespace.TRAIT_MANAGE);
 
 const INDEX_SCHEMA = z
@@ -27,11 +25,6 @@ export const TRAIT_MANAGE_BUTTON_SCHEMA = z.union([
     ])
     .transform(([, action, id]) => ({ action, id })),
   z
-    .tuple([
-      NAMESPACE_SCHEMA,
-      z.literal(TraitManageAction.SET),
-      z.uuid(),
-      INDEX_SCHEMA,
-    ])
+    .tuple([NAMESPACE_SCHEMA, z.literal(TraitManageAction.SET), z.uuid(), INDEX_SCHEMA])
     .transform(([, action, id, index]) => ({ action, id, index })),
 ]);

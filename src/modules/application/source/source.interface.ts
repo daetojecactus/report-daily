@@ -1,10 +1,5 @@
 import type { UserSource } from 'src/modules/application/user/user-source/user-source.interface';
-import type {
-  ItemState,
-  LabelAction,
-  Source,
-  SourceActionKind,
-} from './source.enums';
+import type { ItemState, LabelAction, Source, SourceActionKind } from './source.enums';
 
 export interface SourceAction {
   kind: SourceActionKind;
@@ -133,9 +128,5 @@ export interface GroupedDailyData {
 
 export interface ActivitySource {
   readonly source: Source;
-  collect(
-    account: UserSource,
-    date: string,
-    timeZone: string,
-  ): Promise<GroupedDailyData>;
+  collect(account: UserSource, date: string, timeZone: string): Promise<GroupedDailyData>;
 }

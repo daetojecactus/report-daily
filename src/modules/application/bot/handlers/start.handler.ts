@@ -26,10 +26,7 @@ export class StartHandler implements BotHandler {
     }
     return {
       screen: {
-        text: locale.bot.noAccess(
-          locale.channels[actor.channel],
-          actor.externalId,
-        ),
+        text: locale.bot.noAccess(locale.channels[actor.channel], actor.externalId),
       },
     };
   }

@@ -1,10 +1,7 @@
 import type { ConfigService } from '@nestjs/config';
 import { describe, expect, it, vi } from 'vitest';
 import { Channel, ChatInputType } from 'src/common/enums/channel.enums';
-import {
-  Permission,
-  UserStatus,
-} from 'src/modules/application/user/user.enums';
+import { Permission, UserStatus } from 'src/modules/application/user/user.enums';
 import { Language } from 'src/modules/application/i18n/i18n.enums';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
 import type { UserService } from 'src/modules/application/user/user.service';
@@ -55,11 +52,7 @@ const LEVELS: BotSectionAccess[] = [
 describe('AccessService', () => {
   it.each([
     ['a stranger', actor({}), [BotAccess.ANYONE]],
-    [
-      'an employee',
-      actor({ user: createEmployee().user }),
-      [BotAccess.ANYONE, BotAccess.EMPLOYEE],
-    ],
+    ['an employee', actor({ user: createEmployee().user }), [BotAccess.ANYONE, BotAccess.EMPLOYEE]],
     [
       'an admin with the users permission',
       actor({ user: createEmployee({ permissions: [Permission.USERS] }).user }),
@@ -68,39 +61,21 @@ describe('AccessService', () => {
     [
       'an owner',
       actor({ isOwner: true }),
-      [
-        BotAccess.ANYONE,
-        BotAccess.ADMIN,
-        BotAccess.OWNER,
-        Permission.USERS,
-        Permission.TRAITS,
-      ],
+      [BotAccess.ANYONE, BotAccess.ADMIN, BotAccess.OWNER, Permission.USERS, Permission.TRAITS],
     ],
-    [
-      'an owner who is an employee',
-      actor({ isOwner: true, user: createEmployee().user }),
-      LEVELS,
-    ],
+    ['an owner who is an employee', actor({ isOwner: true, user: createEmployee().user }), LEVELS],
   ])('grants %s only its access levels', (_name, subject, allowed) => {
     const { service } = createService();
 
-    expect(LEVELS.filter((level) => service.isAllowed(subject, level))).toEqual(
-      allowed,
-    );
+    expect(LEVELS.filter((level) => service.isAllowed(subject, level))).toEqual(allowed);
   });
 
   it.each<[string, Partial<BotActor>, Partial<User>, boolean]>([
-    [
-      'an admin by an owner',
-      { isOwner: true },
-      { permissions: [Permission.USERS] },
-      true,
-    ],
+    ['an admin by an owner', { isOwner: true }, { permissions: [Permission.USERS] }, true],
     [
       'an employee by an admin',
       {
-        user: createEmployee({ id: ADMIN_ID, permissions: [Permission.USERS] })
-          .user,
+        user: createEmployee({ id: ADMIN_ID, permissions: [Permission.USERS] }).user,
       },
       {},
       true,
@@ -108,8 +83,7 @@ describe('AccessService', () => {
     [
       'an admin by another admin',
       {
-        user: createEmployee({ id: ADMIN_ID, permissions: [Permission.USERS] })
-          .user,
+        user: createEmployee({ id: ADMIN_ID, permissions: [Permission.USERS] }).user,
       },
       { permissions: [Permission.TRAITS] },
       false,
@@ -121,42 +95,34 @@ describe('AccessService', () => {
       {},
       false,
     ],
-  ])(
-    'decides whether %s can be managed',
-    (_name, subject, target, canManage) => {
-      const { service } = createService();
+  ])('decides whether %s can be managed', (_name, subject, target, canManage) => {
+    const { service } = createService();
 
-      expect(
-        service.canManage(actor(subject), createEmployee(target).user),
-      ).toBe(canManage);
-    },
-  );
+    expect(service.canManage(actor(subject), createEmployee(target).user)).toBe(canManage);
+  });
 
   it.each<[string, Partial<User>, string, boolean, boolean]>([
     ['an active employee', {}, '555', false, true],
     ['a blocked employee', { status: UserStatus.BLOCKED }, '555', false, false],
     ['an owner who is an employee', {}, OWNER_ID, true, true],
-  ])(
-    'builds the actor of %s for the menu',
-    (_name, values, externalId, isOwner, isEmployee) => {
-      const { service } = createService();
-      const found = createEmployee({ language: null, ...values });
+  ])('builds the actor of %s for the menu', (_name, values, externalId, isOwner, isEmployee) => {
+    const { service } = createService();
+    const found = createEmployee({ language: null, ...values });
 
-      const result = service.toActor(found.user, {
-        ...found.channel,
-        externalId,
-      });
+    const result = service.toActor(found.user, {
+      ...found.channel,
+      externalId,
+    });
 
-      expect(result).toMatchObject({
-        channel: Channel.TELEGRAM,
-        externalId,
-        chatId: externalId,
-        language: Language.EN,
-        isOwner,
-      });
-      expect(result.user !== null).toBe(isEmployee);
-    },
-  );
+    expect(result).toMatchObject({
+      channel: Channel.TELEGRAM,
+      externalId,
+      chatId: externalId,
+      language: Language.EN,
+      isOwner,
+    });
+    expect(result.user !== null).toBe(isEmployee);
+  });
 
   it('builds a stranger actor for a deleted employee', () => {
     const { service } = createService();

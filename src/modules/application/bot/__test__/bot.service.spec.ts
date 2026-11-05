@@ -2,21 +2,10 @@ import { Injectable, Logger, type Provider } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DiscoveryModule } from '@nestjs/core';
 import { Test, type TestingModule } from '@nestjs/testing';
-import {
-  afterEach,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { BotCommand } from 'src/modules/application/bot/bot.enums';
 import { Channel, ChatInputType } from 'src/common/enums/channel.enums';
-import {
-  Permission,
-  UserStatus,
-} from 'src/modules/application/user/user.enums';
+import { Permission, UserStatus } from 'src/modules/application/user/user.enums';
 import { ChatUnreachableError } from 'src/common/errors/chat-unreachable.error';
 import { Language } from 'src/modules/application/i18n/i18n.enums';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
@@ -43,12 +32,7 @@ import { HelpHandler } from '../handlers/help.handler';
 import { StartHandler } from '../handlers/start.handler';
 import { MenuService } from '../menu/menu.service';
 import { RouterService } from '../router/router.service';
-import {
-  createEmployee,
-  EMPLOYEE_ID,
-  OWNER_ID,
-  STRANGER_ID,
-} from './bot.fixture';
+import { createEmployee, EMPLOYEE_ID, OWNER_ID, STRANGER_ID } from './bot.fixture';
 
 @Injectable()
 @BotSection({ access: Permission.USERS, namespace: 'test' })
@@ -80,11 +64,7 @@ class DuplicateHelpHandler implements BotHandler {
 
 const DIALOG_KEY = `dialog:telegram:${EMPLOYEE_ID}`;
 
-function event(
-  userId: string,
-  input: ChatInput,
-  languageCode: string | null = 'en',
-): ChatEvent {
+function event(userId: string, input: ChatInput, languageCode: string | null = 'en'): ChatEvent {
   return {
     channel: Channel.TELEGRAM,
     userId,
@@ -191,9 +171,7 @@ describe('BotService', () => {
   it('sets the default command menus on bootstrap', async () => {
     moduleRef.get(MenuService).onApplicationBootstrap();
 
-    await vi.waitFor(() =>
-      expect(channel.setDefaultCommands).toHaveBeenCalledTimes(2),
-    );
+    await vi.waitFor(() => expect(channel.setDefaultCommands).toHaveBeenCalledTimes(2));
     expect(channel.setDefaultCommands).toHaveBeenCalledWith(
       [
         { command: 'start', description: ru.commands.start },
@@ -305,10 +283,7 @@ describe('BotService', () => {
 
   it('passes a picked user to the section of the dialog', async () => {
     asEmployee({ permissions: [Permission.USERS] });
-    store.set(
-      DIALOG_KEY,
-      JSON.stringify({ namespace: 'test', step: 'name', data: {} }),
-    );
+    store.set(DIALOG_KEY, JSON.stringify({ namespace: 'test', step: 'name', data: {} }));
 
     await botService.handle(
       event(EMPLOYEE_ID, { type: ChatInputType.PICKED_USER, externalId: '42' }),
@@ -353,10 +328,7 @@ describe('BotService', () => {
 
   it('drops a dialog when another command arrives', async () => {
     asEmployee({ permissions: [Permission.USERS] });
-    store.set(
-      DIALOG_KEY,
-      JSON.stringify({ namespace: 'test', step: 'name', data: {} }),
-    );
+    store.set(DIALOG_KEY, JSON.stringify({ namespace: 'test', step: 'name', data: {} }));
 
     await botService.handle(event(EMPLOYEE_ID, command('help')));
 
@@ -366,10 +338,7 @@ describe('BotService', () => {
 
   it('cancels a dialog and reports when there is nothing to cancel', async () => {
     asEmployee();
-    store.set(
-      DIALOG_KEY,
-      JSON.stringify({ namespace: 'test', step: 'name', data: {} }),
-    );
+    store.set(DIALOG_KEY, JSON.stringify({ namespace: 'test', step: 'name', data: {} }));
 
     await botService.handle(event(EMPLOYEE_ID, command('cancel')));
     await botService.handle(event(EMPLOYEE_ID, command('cancel')));
@@ -384,10 +353,7 @@ describe('BotService', () => {
 
   it('drops a dialog when the permission was revoked', async () => {
     asEmployee();
-    store.set(
-      DIALOG_KEY,
-      JSON.stringify({ namespace: 'test', step: 'name', data: {} }),
-    );
+    store.set(DIALOG_KEY, JSON.stringify({ namespace: 'test', step: 'name', data: {} }));
 
     await botService.handle(event(EMPLOYEE_ID, text('Anna')));
 
@@ -411,11 +377,7 @@ describe('BotService', () => {
   it.each<[string, ChatInput, string]>([
     ['an unknown command', command('nope'), en.bot.unknownCommand],
     ['text outside a dialog', text('hello'), en.bot.unknownInput],
-    [
-      'unsupported content',
-      { type: ChatInputType.UNSUPPORTED },
-      en.bot.unknownInput,
-    ],
+    ['unsupported content', { type: ChatInputType.UNSUPPORTED }, en.bot.unknownInput],
     [
       'a picked user outside a dialog',
       { type: ChatInputType.PICKED_USER, externalId: '1' },
@@ -469,9 +431,9 @@ describe('BotService', () => {
   it('propagates other channel errors', async () => {
     channel.sendScreen.mockRejectedValue(new Error('network'));
 
-    await expect(
-      botService.handle(event(STRANGER_ID, command('start'))),
-    ).rejects.toThrow('network');
+    await expect(botService.handle(event(STRANGER_ID, command('start')))).rejects.toThrow(
+      'network',
+    );
   });
 
   it('replies with a failure message in the language of the event', async () => {
@@ -495,8 +457,6 @@ describe('BotService', () => {
   it('rejects two sections with the same command', async () => {
     const duplicate = await createModule([DuplicateHelpHandler]);
 
-    await expect(duplicate.init()).rejects.toThrow(
-      BotMessages.DUPLICATE_COMMAND,
-    );
+    await expect(duplicate.init()).rejects.toThrow(BotMessages.DUPLICATE_COMMAND);
   });
 });

@@ -27,10 +27,8 @@ function button(data: string): ChatInput {
 describe('EmployeePermissionsHandler', () => {
   const userService = {
     findById: vi.fn<(id: string) => Promise<User | null>>(),
-    grantPermission:
-      vi.fn<(id: string, permission: Permission) => Promise<User | null>>(),
-    revokePermission:
-      vi.fn<(id: string, permission: Permission) => Promise<User | null>>(),
+    grantPermission: vi.fn<(id: string, permission: Permission) => Promise<User | null>>(),
+    revokePermission: vi.fn<(id: string, permission: Permission) => Promise<User | null>>(),
   };
   const channelService = {
     findByUser: vi.fn<(userId: string) => Promise<UserChannel[]>>(),
@@ -100,13 +98,8 @@ describe('EmployeePermissionsHandler', () => {
 
     const { screen } = await open(`perm:grant:${USER.id}:traits`);
 
-    expect(userService.grantPermission).toHaveBeenCalledWith(
-      USER.id,
-      Permission.TRAITS,
-    );
-    expect(menuService.syncEmployee).toHaveBeenCalledWith(updated, [
-      FOUND.channel,
-    ]);
+    expect(userService.grantPermission).toHaveBeenCalledWith(USER.id, Permission.TRAITS);
+    expect(menuService.syncEmployee).toHaveBeenCalledWith(updated, [FOUND.channel]);
     expect(screen.buttons?.[1]).toEqual([
       { text: 'Traits: yes', data: `perm:revoke:${USER.id}:traits` },
     ]);
@@ -120,10 +113,7 @@ describe('EmployeePermissionsHandler', () => {
 
     const { screen } = await open(`perm:revoke:${USER.id}:users`);
 
-    expect(userService.revokePermission).toHaveBeenCalledWith(
-      USER.id,
-      Permission.USERS,
-    );
+    expect(userService.revokePermission).toHaveBeenCalledWith(USER.id, Permission.USERS);
     expect(screen.buttons?.[0]).toEqual([
       { text: 'Employees: no', data: `perm:grant:${USER.id}:users` },
     ]);

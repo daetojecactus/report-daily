@@ -1,22 +1,8 @@
-import {
-  createServer,
-  type IncomingMessage,
-  type Server,
-  type ServerResponse,
-} from 'node:http';
+import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import type { ConfigService } from '@nestjs/config';
 import { UnrecoverableError } from 'bullmq';
-import {
-  afterAll,
-  assert,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from 'vitest';
+import { afterAll, assert, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { GitLabClient } from '../gitlab.client';
 import { GitLabCertificateError, GitLabRetryableError } from '../gitlab.error';
@@ -59,11 +45,7 @@ function receive(request: IncomingMessage, response: ServerResponse) {
   reply(response);
 }
 
-function replyWith(
-  status: number,
-  body: string,
-  headers: Record<string, string> = {},
-): Reply {
+function replyWith(status: number, body: string, headers: Record<string, string> = {}): Reply {
   return (response) => {
     response.writeHead(status, {
       'content-type': 'application/json',
@@ -149,40 +131,36 @@ describe('GitLabClient', () => {
     expect(received[0].url).toBe('/gitlab/api/v4/users/7');
   });
 
-  it.each([404, 401, 502])(
-    'returns a response with status %i as it is',
-    async (status) => {
-      reply = replyWith(status, '<html>error</html>');
+  it.each([404, 401, 502])('returns a response with status %i as it is', async (status) => {
+    reply = replyWith(status, '<html>error</html>');
 
-      expect(await createClient().get('/users')).toMatchObject({
-        ok: false,
-        status,
-        body: '<html>error</html>',
-      });
+    expect(await createClient().get('/users')).toMatchObject({
+      ok: false,
+      status,
+      body: '<html>error</html>',
+    });
+  });
+
+  it.each(['UNABLE_TO_VERIFY_LEAF_SIGNATURE', 'SELF_SIGNED_CERT_IN_CHAIN', 'CERT_HAS_EXPIRED'])(
+    'reports the untrusted certificate %s without retrying',
+    async (code) => {
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockRejectedValueOnce(
+        new TypeError('fetch failed', {
+          cause: Object.assign(new Error('certificate'), { code }),
+        }),
+      );
+
+      const error = await catchErrorWithoutToken(
+        createClient().get('/users'),
+        GitLabCertificateError,
+      );
+
+      expect(error).toBeInstanceOf(UnrecoverableError);
+      expect(error.message).toContain('NODE_EXTRA_CA_CERTS');
+      expect(error.message).toContain(code);
+      fetchSpy.mockRestore();
     },
   );
-
-  it.each([
-    'UNABLE_TO_VERIFY_LEAF_SIGNATURE',
-    'SELF_SIGNED_CERT_IN_CHAIN',
-    'CERT_HAS_EXPIRED',
-  ])('reports the untrusted certificate %s without retrying', async (code) => {
-    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockRejectedValueOnce(
-      new TypeError('fetch failed', {
-        cause: Object.assign(new Error('certificate'), { code }),
-      }),
-    );
-
-    const error = await catchErrorWithoutToken(
-      createClient().get('/users'),
-      GitLabCertificateError,
-    );
-
-    expect(error).toBeInstanceOf(UnrecoverableError);
-    expect(error.message).toContain('NODE_EXTRA_CA_CERTS');
-    expect(error.message).toContain(code);
-    fetchSpy.mockRestore();
-  });
 
   it('retries when nothing listens on the port', async () => {
     const error = await catchErrorWithoutToken(
@@ -218,9 +196,7 @@ describe('GitLabClient', () => {
     const results = await Promise.allSettled(
       Array.from({ length: 10 }, () => client.get('/users')),
     );
-    const fetchSpy = vi
-      .spyOn(globalThis, 'fetch')
-      .mockResolvedValueOnce(new Response('[]'));
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response('[]'));
 
     expect(results.every(({ status }) => status === 'rejected')).toBe(true);
     expect(await client.get('/users')).toMatchObject({ ok: true, body: '[]' });

@@ -21,10 +21,7 @@ export class RouterService implements OnModuleInit {
       metadataKey: BotSection.KEY,
     });
     for (const wrapper of wrappers) {
-      const options = this.discoveryService.getMetadataByDecorator(
-        BotSection,
-        wrapper,
-      );
+      const options = this.discoveryService.getMetadataByDecorator(BotSection, wrapper);
       if (options?.access) {
         this.register({ ...options, handler: wrapper.instance as BotHandler });
       }
@@ -36,9 +33,7 @@ export class RouterService implements OnModuleInit {
     if (!parsed.success) {
       return null;
     }
-    return (
-      this.routes.find((route) => route.commands?.includes(parsed.data)) ?? null
-    );
+    return this.routes.find((route) => route.commands?.includes(parsed.data)) ?? null;
   }
 
   findByNamespace(namespace: string) {
@@ -50,9 +45,7 @@ export class RouterService implements OnModuleInit {
     if (!parsed.success) {
       return null;
     }
-    return this.findByNamespace(
-      parsed.data.split(BOT_BUTTON_DATA_SEPARATOR)[0],
-    );
+    return this.findByNamespace(parsed.data.split(BOT_BUTTON_DATA_SEPARATOR)[0]);
   }
 
   listMenu(): BotMenuItem[] {

@@ -21,9 +21,7 @@ function createProcessor() {
     handle: vi.fn<BotService['handle']>(),
     replyFailure: vi.fn<BotService['replyFailure']>(),
   };
-  const processor = new InboundQueueProcessor(
-    botService as unknown as BotService,
-  );
+  const processor = new InboundQueueProcessor(botService as unknown as BotService);
   return { botService, processor };
 }
 
@@ -43,9 +41,7 @@ describe('InboundQueueProcessor', () => {
   it('passes an event to the bot', async () => {
     const { botService, processor } = createProcessor();
 
-    await expect(
-      processor.process(createJob(INBOUND_EVENT_JOB)),
-    ).resolves.toBeUndefined();
+    await expect(processor.process(createJob(INBOUND_EVENT_JOB))).resolves.toBeUndefined();
 
     expect(botService.handle).toHaveBeenCalledWith(event);
     expect(botService.replyFailure).not.toHaveBeenCalled();
@@ -56,9 +52,7 @@ describe('InboundQueueProcessor', () => {
     const logError = vi.spyOn(Logger.prototype, 'error');
     botService.handle.mockRejectedValue(new Error('handler crashed'));
 
-    await expect(
-      processor.process(createJob(INBOUND_EVENT_JOB)),
-    ).resolves.toBeUndefined();
+    await expect(processor.process(createJob(INBOUND_EVENT_JOB))).resolves.toBeUndefined();
 
     expect(botService.replyFailure).toHaveBeenCalledWith(event);
     expect(logError).toHaveBeenCalledWith(
@@ -72,9 +66,7 @@ describe('InboundQueueProcessor', () => {
     botService.handle.mockRejectedValue(new Error('handler crashed'));
     botService.replyFailure.mockRejectedValue(replyError);
 
-    await expect(processor.process(createJob(INBOUND_EVENT_JOB))).rejects.toBe(
-      replyError,
-    );
+    await expect(processor.process(createJob(INBOUND_EVENT_JOB))).rejects.toBe(replyError);
   });
 
   it('rejects an unknown job', async () => {

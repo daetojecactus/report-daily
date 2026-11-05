@@ -17,19 +17,12 @@ export class UserRepository {
   }
 
   async findOne(filter: SQL) {
-    const [user] = await this.databaseService.db
-      .select()
-      .from(users)
-      .where(filter)
-      .limit(1);
+    const [user] = await this.databaseService.db.select().from(users).where(filter).limit(1);
     return user ?? null;
   }
 
   async create(values: UserInsert) {
-    const [user] = await this.databaseService.db
-      .insert(users)
-      .values(values)
-      .returning();
+    const [user] = await this.databaseService.db.insert(users).values(values).returning();
     return user;
   }
 
@@ -43,10 +36,7 @@ export class UserRepository {
   }
 
   async deleteOne(filter: SQL) {
-    const [user] = await this.databaseService.db
-      .delete(users)
-      .where(filter)
-      .returning();
+    const [user] = await this.databaseService.db.delete(users).where(filter).returning();
     return user ?? null;
   }
 
@@ -76,20 +66,12 @@ export class UserRepository {
     return this.databaseService.db.$count(users, filter);
   }
 
-  async findOneByChannel(
-    channel: Channel,
-    externalId: string,
-  ): Promise<UserWithChannel | null> {
+  async findOneByChannel(channel: Channel, externalId: string): Promise<UserWithChannel | null> {
     const [row] = await this.databaseService.db
       .select({ user: users, channel: userChannels })
       .from(userChannels)
       .innerJoin(users, eq(users.id, userChannels.userId))
-      .where(
-        and(
-          eq(userChannels.channel, channel),
-          eq(userChannels.externalId, externalId),
-        ),
-      )
+      .where(and(eq(userChannels.channel, channel), eq(userChannels.externalId, externalId)))
       .limit(1);
     return row ?? null;
   }
@@ -99,12 +81,7 @@ export class UserRepository {
       .select({ user: users })
       .from(userSources)
       .innerJoin(users, eq(users.id, userSources.userId))
-      .where(
-        and(
-          eq(userSources.source, source),
-          eq(userSources.externalId, externalId),
-        ),
-      )
+      .where(and(eq(userSources.source, source), eq(userSources.externalId, externalId)))
       .limit(1);
     return row?.user ?? null;
   }

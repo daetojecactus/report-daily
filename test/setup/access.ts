@@ -7,10 +7,7 @@ import { BotAccess } from 'src/modules/application/bot/bot.enums';
 const HANDLER_SUFFIX = 'Handler';
 
 export function findBotHandlersWithoutAccess(app: INestApplicationContext) {
-  const accessLevels = new Set<string>([
-    ...Object.values(BotAccess),
-    ...Object.values(Permission),
-  ]);
+  const accessLevels = new Set<string>([...Object.values(BotAccess), ...Object.values(Permission)]);
   const discoveryService = app.get(DiscoveryService);
   const missing: string[] = [];
 
@@ -19,10 +16,7 @@ export function findBotHandlersWithoutAccess(app: INestApplicationContext) {
     if (!name.endsWith(HANDLER_SUFFIX)) {
       continue;
     }
-    const options = discoveryService.getMetadataByDecorator(
-      BotSection,
-      wrapper,
-    );
+    const options = discoveryService.getMetadataByDecorator(BotSection, wrapper);
     if (!options || !accessLevels.has(options.access)) {
       missing.push(name);
     }
