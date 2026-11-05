@@ -15,10 +15,15 @@ import {
   describe,
   expect,
   it,
+  vi,
 } from 'vitest';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { GitLabClient } from '../gitlab.client';
-import { GitLabRejectedError, GitLabRetryableError } from '../gitlab.error';
+import {
+  GitLabCertificateError,
+  GitLabRejectedError,
+  GitLabRetryableError,
+} from '../gitlab.error';
 
 const TOKEN = 'glpat-client-test-secret-token';
 
@@ -199,6 +204,28 @@ describe('GitLabClient', () => {
       createClient().get('/users'),
       GitLabRetryableError,
     );
+  });
+
+  it.each([
+    'UNABLE_TO_VERIFY_LEAF_SIGNATURE',
+    'SELF_SIGNED_CERT_IN_CHAIN',
+    'CERT_HAS_EXPIRED',
+  ])('reports the untrusted certificate %s without retrying', async (code) => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockRejectedValueOnce(
+      new TypeError('fetch failed', {
+        cause: Object.assign(new Error('certificate'), { code }),
+      }),
+    );
+
+    const error = await catchErrorWithoutToken(
+      createClient().get('/users'),
+      GitLabCertificateError,
+    );
+
+    expect(error).toBeInstanceOf(UnrecoverableError);
+    expect(error.message).toContain('NODE_EXTRA_CA_CERTS');
+    expect(error.message).toContain(code);
+    fetchSpy.mockRestore();
   });
 
   it('retries when nothing listens on the port', async () => {

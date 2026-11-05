@@ -9,6 +9,8 @@ export class GitLabRetryableError extends Error {
   }
 }
 
+export class GitLabCertificateError extends UnrecoverableError {}
+
 export class GitLabRejectedError extends UnrecoverableError {
   constructor(
     message: string,

@@ -458,6 +458,8 @@ export const ru: Locale = {
     prompt: 'Введите имя или username сотрудника в GitLab.',
     gitlabUnavailable:
       'GitLab сейчас недоступен. Попробуйте чуть позже: просто отправьте запрос ещё раз.',
+    gitlabCertificate:
+      'GitLab не прошёл проверку сертификата: серверу бота нужен сертификат центра сертификации вашей компании. Владельцу: переменная `NODE_EXTRA_CA_CERTS`, подробности в README.',
     noMatches:
       'В GitLab никого не нашлось. Попробуйте другое имя или username.',
     pick: (query) => `**GitLab:** ${query}\nВыберите сотрудника.`,
