@@ -1,0 +1,392 @@
+{
+  "id": "a2275801-8570-446e-bc61-cfeb0858cb34",
+  "prevId": "d575f1ee-be53-4390-8c9f-377da2c71618",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.label_mappings": {
+      "name": "label_mappings",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "uuidv7()"
+        },
+        "label": {
+          "name": "label",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "label_key": {
+          "name": "label_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "role": {
+          "name": "role",
+          "type": "job_role",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "dimension": {
+          "name": "dimension",
+          "type": "label_dimension",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "value": {
+          "name": "value",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "label_mappings_label_key_dimension_role_unique": {
+          "name": "label_mappings_label_key_dimension_role_unique",
+          "nullsNotDistinct": true,
+          "columns": [
+            "label_key",
+            "dimension",
+            "role"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "label_mappings_label_length": {
+          "name": "label_mappings_label_length",
+          "value": "char_length(\"label_mappings\".\"label\") between 1 and 255"
+        },
+        "label_mappings_dimension_value": {
+          "name": "label_mappings_dimension_value",
+          "value": "(\"label_mappings\".\"dimension\" = 'workflow_state' and \"label_mappings\".\"value\" in ('backlog', 'planned', 'analysis', 'design', 'in_progress', 'review', 'changes_requested', 'ready_for_qa', 'testing', 'qa_passed', 'ready_for_release', 'staging', 'released', 'done', 'cancelled', 'blocked', 'needs_info', 'handoff')) or (\"label_mappings\".\"dimension\" = 'task_kind' and \"label_mappings\".\"value\" in ('hotfix', 'incident', 'bug', 'feature', 'improvement', 'maintenance', 'dependency', 'epic', 'qa_internal', 'test_automation', 'documentation', 'requirements', 'research', 'support', 'release', 'task')) or (\"label_mappings\".\"dimension\" = 'priority' and \"label_mappings\".\"value\" in ('critical', 'high', 'medium', 'low')) or (\"label_mappings\".\"dimension\" = 'severity' and \"label_mappings\".\"value\" in ('blocker', 'critical', 'major', 'minor')) or (\"label_mappings\".\"dimension\" = 'area' and \"label_mappings\".\"value\" in ('frontend', 'backend', 'mobile', 'api', 'database', 'data', 'infrastructure', 'ci_cd', 'security', 'performance', 'accessibility', 'design')) or (\"label_mappings\".\"dimension\" = 'flag' and \"label_mappings\".\"value\" in ('exclude_from_report', 'returned_from_qa', 'e2e_required', 'unit_tests_required', 'needs_rebase', 'regression', 'flaky_test', 'draft', 'breaking_change', 'customer_request'))"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.user_channels": {
+      "name": "user_channels",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "uuidv7()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "channel": {
+          "name": "channel",
+          "type": "channel",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "external_id": {
+          "name": "external_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "reachable": {
+          "name": "reachable",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "user_channels_user_id_users_id_fk": {
+          "name": "user_channels_user_id_users_id_fk",
+          "tableFrom": "user_channels",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "user_channels_user_id_channel_unique": {
+          "name": "user_channels_user_id_channel_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "user_id",
+            "channel"
+          ]
+        },
+        "user_channels_channel_external_id_unique": {
+          "name": "user_channels_channel_external_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "channel",
+            "external_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "user_channels_external_id_length": {
+          "name": "user_channels_external_id_length",
+          "value": "char_length(\"user_channels\".\"external_id\") > 0"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.users": {
+      "name": "users",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "uuidv7()"
+        },
+        "gitlab_user_id": {
+          "name": "gitlab_user_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "gitlab_username": {
+          "name": "gitlab_username",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "display_name": {
+          "name": "display_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "role": {
+          "name": "role",
+          "type": "job_role",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "gender": {
+          "name": "gender",
+          "type": "gender",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "user_status",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'pending'"
+        },
+        "language": {
+          "name": "language",
+          "type": "language",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "timezone": {
+          "name": "timezone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "report_time": {
+          "name": "report_time",
+          "type": "time(0)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'18:00'"
+        },
+        "ai_enabled": {
+          "name": "ai_enabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "ai_data_opt_out": {
+          "name": "ai_data_opt_out",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "permissions": {
+          "name": "permissions",
+          "type": "permission[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "users_gitlab_user_id_unique": {
+          "name": "users_gitlab_user_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "gitlab_user_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "users_display_name_length": {
+          "name": "users_display_name_length",
+          "value": "char_length(\"users\".\"display_name\") between 1 and 255"
+        },
+        "users_report_time_step": {
+          "name": "users_report_time_step",
+          "value": "extract(minute from \"users\".\"report_time\")::integer % 15 = 0"
+        }
+      },
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.label_dimension": {
+      "name": "label_dimension",
+      "schema": "public",
+      "values": [
+        "workflow_state",
+        "task_kind",
+        "priority",
+        "severity",
+        "area",
+        "flag"
+      ]
+    },
+    "public.channel": {
+      "name": "channel",
+      "schema": "public",
+      "values": [
+        "telegram",
+        "slack"
+      ]
+    },
+    "public.gender": {
+      "name": "gender",
+      "schema": "public",
+      "values": [
+        "male",
+        "female"
+      ]
+    },
+    "public.job_role": {
+      "name": "job_role",
+      "schema": "public",
+      "values": [
+        "developer",
+        "qa",
+        "project_manager",
+        "system_analyst",
+        "devops"
+      ]
+    },
+    "public.language": {
+      "name": "language",
+      "schema": "public",
+      "values": [
+        "ru",
+        "en"
+      ]
+    },
+    "public.permission": {
+      "name": "permission",
+      "schema": "public",
+      "values": [
+        "users",
+        "labels",
+        "broadcast",
+        "settings"
+      ]
+    },
+    "public.user_status": {
+      "name": "user_status",
+      "schema": "public",
+      "values": [
+        "pending",
+        "active",
+        "blocked"
+      ]
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

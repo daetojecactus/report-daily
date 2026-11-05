@@ -1,5 +1,7 @@
 import type { Channel } from 'src/common/enums/channel.enums';
 import type { BotCommand } from 'src/modules/application/bot/bot.enums';
+import type { LabelDimension } from 'src/modules/application/label/label.enums';
+import type { LabelDimensionValueMap } from 'src/modules/application/label/label.interface';
 import type { Language } from './i18n.enums';
 import type {
   Gender,
@@ -9,6 +11,11 @@ import type {
 } from 'src/modules/application/user/user.enums';
 
 export interface LocaleSwitch {
+  name: string;
+  description: string;
+}
+
+export interface LabelValueText {
   name: string;
   description: string;
 }
@@ -64,6 +71,15 @@ export interface Locale {
     aiData: LocaleSwitch;
     on: string;
     off: string;
+  };
+  labels: {
+    dimensions: Record<LabelDimension, string>;
+    values: {
+      [Dimension in LabelDimension]: Record<
+        LabelDimensionValueMap[Dimension],
+        LabelValueText
+      >;
+    };
   };
   employees: {
     title: (count: number) => string;
