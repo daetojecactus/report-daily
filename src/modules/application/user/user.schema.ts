@@ -2,12 +2,10 @@ import { sql } from 'drizzle-orm';
 import {
   boolean,
   check,
-  integer,
   pgEnum,
   pgTable,
   text,
   time,
-  unique,
 } from 'drizzle-orm/pg-core';
 import { Language } from '../i18n/i18n.enums';
 import { Gender, JobRole, Permission, UserStatus } from './user.enums';
@@ -36,8 +34,6 @@ export const users = pgTable(
   'users',
   {
     id: primaryId(),
-    gitlabUserId: integer().notNull(),
-    gitlabUsername: text().notNull(),
     displayName: text().notNull(),
     role: jobRole().notNull(),
     gender: gender().notNull(),
@@ -54,7 +50,6 @@ export const users = pgTable(
     updatedAt: updatedAt(),
   },
   (table) => [
-    unique('users_gitlab_user_id_unique').on(table.gitlabUserId),
     check(
       'users_display_name_length',
       sql`char_length(${table.displayName}) between 1 and ${sql.raw(String(USER_DISPLAY_NAME_MAX_LENGTH))}`,

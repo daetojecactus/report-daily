@@ -12,12 +12,15 @@ import type {
 } from 'src/modules/vendors/gitlab/gitlab.interface';
 import { GitLabService } from 'src/modules/vendors/gitlab/gitlab.service';
 import {
-  SOURCE_BRANCH_ISSUE_PATTERN,
-  SOURCE_ISSUE_TARGET_TYPES,
-  SOURCE_KEY_SEPARATOR,
-  SOURCE_MAIN_BRANCHES,
-} from './constants/source.constants';
-import { SourceBuilder } from './source.builder';
+  GITLAB_SOURCE_BRANCH_ISSUE_PATTERN,
+  GITLAB_SOURCE_ISSUE_TARGET_TYPES,
+  GITLAB_SOURCE_KEY_SEPARATOR,
+  GITLAB_SOURCE_MAIN_BRANCHES,
+} from './constants/gitlab-source.constants';
+import type { UserSource } from 'src/modules/application/user/user-source/user-source.interface';
+import { Source } from '../source.enums';
+import type { ActivitySource } from '../source.interface';
+import { GitLabSourceBuilder } from './gitlab-source.builder';
 import type {
   DayActivity,
   IssueActivity,
@@ -27,16 +30,19 @@ import type {
   SourceEvents,
   SourceItem,
   SourceLinks,
-} from './source.interface';
+} from './gitlab-source.interface';
 
 @Injectable()
-export class SourceService {
+export class GitLabSourceService implements ActivitySource {
+  readonly source = Source.GITLAB;
+
   constructor(
     private readonly gitlabService: GitLabService,
-    private readonly sourceBuilder: SourceBuilder,
+    private readonly sourceBuilder: GitLabSourceBuilder,
   ) {}
 
-  async collect(gitlabUserId: number, date: string, timeZone: string) {
+  async collect(account: UserSource, date: string, timeZone: string) {
+    const gitlabUserId = Number(account.externalId);
     const day = getDayRange(date, timeZone);
     const events = await this.gitlabService.findUserEventsAround(
       gitlabUserId,
@@ -91,7 +97,7 @@ export class SourceService {
       if (
         iid !== null &&
         type !== null &&
-        SOURCE_ISSUE_TARGET_TYPES.has(type)
+        GITLAB_SOURCE_ISSUE_TARGET_TYPES.has(type)
       ) {
         this.addEvent(groups.issues, { projectId, iid }, event);
       } else if (iid !== null && type === GitLabTargetType.MERGE_REQUEST) {
@@ -392,13 +398,15 @@ export class SourceService {
     projects: Map<number, GitLabProject>,
   ) {
     return (
-      !SOURCE_MAIN_BRANCHES.has(branch) &&
+      !GITLAB_SOURCE_MAIN_BRANCHES.has(branch) &&
       projects.get(projectId)?.default_branch !== branch
     );
   }
 
   private toBranchIssue(mergeRequest: GitLabMergeRequest): SourceItem | null {
-    const match = SOURCE_BRANCH_ISSUE_PATTERN.exec(mergeRequest.source_branch);
+    const match = GITLAB_SOURCE_BRANCH_ISSUE_PATTERN.exec(
+      mergeRequest.source_branch,
+    );
     return match
       ? { projectId: mergeRequest.project_id, iid: Number(match[1]) }
       : null;
@@ -419,6 +427,6 @@ export class SourceService {
     return [
       target.projectId,
       'iid' in target ? target.iid : target.branch,
-    ].join(SOURCE_KEY_SEPARATOR);
+    ].join(GITLAB_SOURCE_KEY_SEPARATOR);
   }
 }

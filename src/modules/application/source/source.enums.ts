@@ -1,3 +1,19 @@
+export enum Source {
+  GITLAB = 'gitlab',
+}
+
+export enum ItemState {
+  OPENED = 'opened',
+  CLOSED = 'closed',
+  MERGED = 'merged',
+  LOCKED = 'locked',
+}
+
+export enum LabelAction {
+  ADD = 'add',
+  REMOVE = 'remove',
+}
+
 export enum SourceActionKind {
   OPENED = 'opened',
   COMMENTED = 'commented',

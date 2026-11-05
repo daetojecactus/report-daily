@@ -15,6 +15,8 @@ import { ru } from 'src/modules/application/i18n/locales/ru.locale';
 import { userChannels } from 'src/modules/application/user/channel/channel.schema';
 import type { UserInsert } from 'src/modules/application/user/user.interface';
 import { users } from 'src/modules/application/user/user.schema';
+import { userSources } from 'src/modules/application/user/user-source/user-source.schema';
+import { Source } from 'src/modules/application/source/source.enums';
 import { labelMappings } from 'src/modules/application/label/label.schema';
 import {
   LabelDimension,
@@ -56,8 +58,6 @@ describe('Telegram bot', () => {
     const [user] = await db
       .insert(users)
       .values({
-        gitlabUserId: telegramId,
-        gitlabUsername: `user${telegramId}`,
         displayName: 'Ivan_Petrov',
         role: JobRole.DEVELOPER,
         gender: Gender.MALE,
@@ -66,6 +66,12 @@ describe('Telegram bot', () => {
         ...values,
       })
       .returning();
+    await db.insert(userSources).values({
+      userId: user.id,
+      source: Source.GITLAB,
+      externalId: String(telegramId),
+      username: `user${telegramId}`,
+    });
     await db.insert(userChannels).values({
       userId: user.id,
       channel: Channel.TELEGRAM,
@@ -413,12 +419,16 @@ describe('Telegram bot', () => {
     const added = await step(604);
     expect(added.text).toContain(`Employee added: <b>Olga ${tag}</b>.`);
     expect(added.text).toContain(en.employeeAdd.activityHidden);
-    const [stored] = await db
-      .select()
-      .from(users)
-      .where(eq(users.gitlabUserId, gitlabUserId));
+    const [{ user: stored, account }] = await db
+      .select({ user: users, account: userSources })
+      .from(userSources)
+      .innerJoin(users, eq(users.id, userSources.userId))
+      .where(eq(userSources.externalId, String(gitlabUserId)));
+    expect(account).toMatchObject({
+      source: Source.GITLAB,
+      username: tag.toLowerCase(),
+    });
     expect(stored).toMatchObject({
-      gitlabUsername: tag.toLowerCase(),
       displayName: `Olga ${tag}`,
       role: JobRole.QA,
       gender: Gender.FEMALE,

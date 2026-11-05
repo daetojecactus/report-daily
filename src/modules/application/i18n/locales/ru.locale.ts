@@ -15,6 +15,7 @@ import {
   Permission,
   UserStatus,
 } from 'src/modules/application/user/user.enums';
+import { Source } from 'src/modules/application/source/source.enums';
 import { Language } from '../i18n.enums';
 import type { Locale } from '../i18n.interface';
 
@@ -22,6 +23,9 @@ export const ru: Locale = {
   channels: {
     [Channel.TELEGRAM]: 'Telegram',
     [Channel.SLACK]: 'Slack',
+  },
+  sources: {
+    [Source.GITLAB]: 'GitLab',
   },
   languages: {
     [Language.RU]: 'Русский',
@@ -443,7 +447,6 @@ export const ru: Locale = {
     searchTooMany: (limit) => `Показаны первые ${limit}, уточните запрос.`,
     notFound: 'Сотрудник не найден: возможно, его уже удалили.',
     card: {
-      gitlab: 'GitLab',
       role: 'Роль',
       gender: 'Пол',
       status: 'Статус',

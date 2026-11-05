@@ -1,88 +1,10 @@
-import type { DayRange } from 'src/common/interfaces/date.interface';
+import type { UserSource } from 'src/modules/application/user/user-source/user-source.interface';
 import type {
-  GitLabLabelAction,
-  GitLabState,
-} from 'src/modules/vendors/gitlab/gitlab.enums';
-import type {
-  GitLabCommit,
-  GitLabEvent,
-  GitLabIssue,
-  GitLabLabelEvent,
-  GitLabMergeRequest,
-  GitLabNote,
-  GitLabProject,
-  GitLabStateEvent,
-} from 'src/modules/vendors/gitlab/gitlab.interface';
-import type { SourceActionKind } from './source.enums';
-
-export interface SourceItem {
-  projectId: number;
-  iid: number;
-}
-
-export interface SourceBranch {
-  projectId: number;
-  branch: string;
-}
-
-export interface SourceUserChange {
-  added: string;
-  removed: string;
-}
-
-export interface SourceNoteAction {
-  pattern: RegExp;
-  kind: SourceActionKind;
-}
-
-export interface SourceEvents<T> {
-  target: T;
-  events: GitLabEvent[];
-}
-
-export interface SourceEventGroups {
-  issues: Map<string, SourceEvents<SourceItem>>;
-  mergeRequests: Map<string, SourceEvents<SourceItem>>;
-  pushes: Map<string, SourceEvents<SourceBranch>>;
-}
-
-export interface SourceLinks {
-  issues: Map<string, GitLabIssue>;
-  mainIssues: Map<string, string>;
-}
-
-export interface MergeRequestActivity {
-  mergeRequest: GitLabMergeRequest;
-  closingIssues: GitLabIssue[];
-  events: GitLabEvent[];
-  notes: GitLabNote[];
-  labelEvents: GitLabLabelEvent[];
-  stateEvents: GitLabStateEvent[];
-  commits: GitLabCommit[];
-}
-
-export interface IssueActivity {
-  issue: GitLabIssue;
-  events: GitLabEvent[];
-  notes: GitLabNote[];
-  labelEvents: GitLabLabelEvent[];
-  stateEvents: GitLabStateEvent[];
-  mergeRequests: MergeRequestActivity[];
-}
-
-export interface DayActivity {
-  projects: GitLabProject[];
-  issues: IssueActivity[];
-  mergeRequests: MergeRequestActivity[];
-  pushes: SourceEvents<SourceBranch>[];
-  pushCommits: Map<number, GitLabCommit[]>;
-}
-
-export interface SourceBuildContext {
-  day: DayRange;
-  userId: number;
-  pushCommits: Map<number, GitLabCommit[]>;
-}
+  ItemState,
+  LabelAction,
+  Source,
+  SourceActionKind,
+} from './source.enums';
 
 export interface SourceAction {
   kind: SourceActionKind;
@@ -131,7 +53,7 @@ export interface CleanNote {
 export interface CleanLabelEvent {
   id: number;
   labelName: string;
-  action: GitLabLabelAction;
+  action: LabelAction;
   createdAt: string;
   username: string;
 }
@@ -152,7 +74,7 @@ export interface GroupedMergeRequest {
   projectId: number;
   iid: number;
   title: string;
-  state: GitLabState;
+  state: ItemState;
   mergedOnReportDate: boolean;
   draft: boolean;
   webUrl: string;
@@ -175,7 +97,7 @@ export interface GroupedIssue {
   projectId: number;
   iid: number;
   title: string;
-  state: GitLabState;
+  state: ItemState;
   closedOnReportDate: boolean;
   webUrl: string;
   labels: string[];
@@ -207,4 +129,13 @@ export interface GroupedDailyData {
   issues: GroupedIssue[];
   standaloneMergeRequests: GroupedMergeRequest[];
   standalonePushes: StandalonePush[];
+}
+
+export interface ActivitySource {
+  readonly source: Source;
+  collect(
+    account: UserSource,
+    date: string,
+    timeZone: string,
+  ): Promise<GroupedDailyData>;
 }

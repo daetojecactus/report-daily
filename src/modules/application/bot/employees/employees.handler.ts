@@ -4,6 +4,7 @@ import type { ScreenButton } from 'src/common/interfaces/chat-channel.interface'
 import { escapeMarkdown } from 'src/common/utils/markdown.util';
 import type { Locale } from 'src/modules/application/i18n/i18n.interface';
 import { ChannelService } from 'src/modules/application/user/channel/channel.service';
+import { UserSourceService } from 'src/modules/application/user/user-source/user-source.service';
 import {
   Permission,
   UserStatus,
@@ -41,6 +42,7 @@ export class EmployeesHandler implements BotHandler {
   constructor(
     private readonly userService: UserService,
     private readonly channelService: ChannelService,
+    private readonly userSourceService: UserSourceService,
     private readonly accessService: AccessService,
   ) {}
 
@@ -155,10 +157,16 @@ export class EmployeesHandler implements BotHandler {
     }
 
     const { card } = locale.employees;
-    const channels = await this.channelService.findByUser(user.id);
+    const [channels, accounts] = await Promise.all([
+      this.channelService.findByUser(user.id),
+      this.userSourceService.findByUser(user.id),
+    ]);
     const lines = [
       `**${escapeMarkdown(user.displayName)}**`,
-      `${card.gitlab}: @${escapeMarkdown(user.gitlabUsername)}`,
+      ...accounts.map(
+        (account) =>
+          `${locale.sources[account.source]}: @${escapeMarkdown(account.username)}`,
+      ),
       `${card.role}: ${locale.roles[user.role]}`,
       `${card.gender}: ${locale.genders[user.gender]}`,
       `${card.status}: ${locale.statuses[user.status]}`,

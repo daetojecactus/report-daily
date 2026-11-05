@@ -5,10 +5,12 @@ import {
   UserStatus,
 } from 'src/modules/application/user/user.enums';
 import { Language } from 'src/modules/application/i18n/i18n.enums';
+import { Source } from 'src/modules/application/source/source.enums';
 import type {
   User,
   UserWithChannel,
 } from 'src/modules/application/user/user.interface';
+import type { UserSource } from 'src/modules/application/user/user-source/user-source.interface';
 
 export const OWNER_ID = '100';
 
@@ -19,8 +21,6 @@ export const STRANGER_ID = '300';
 export function createEmployee(values: Partial<User> = {}): UserWithChannel {
   const user: User = {
     id: '0190b5a8-0000-7000-8000-000000000001',
-    gitlabUserId: 1,
-    gitlabUsername: 'ivan',
     displayName: 'Ivan *Petrov*',
     role: JobRole.DEVELOPER,
     gender: Gender.MALE,
@@ -46,5 +46,20 @@ export function createEmployee(values: Partial<User> = {}): UserWithChannel {
       createdAt: new Date(),
       updatedAt: new Date(),
     },
+  };
+}
+
+export function createSourceAccount(
+  values: Partial<UserSource> = {},
+): UserSource {
+  return {
+    id: '0190b5a8-0000-7000-8000-000000000003',
+    userId: '0190b5a8-0000-7000-8000-000000000001',
+    source: Source.GITLAB,
+    externalId: '1',
+    username: 'ivan',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    ...values,
   };
 }
