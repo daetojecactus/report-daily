@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { getDayRange } from 'src/common/utils/date.util';
-import { GitLabState } from 'src/modules/vendors/gitlab/gitlab.enums';
+import {
+  GitLabLabelAction,
+  GitLabState,
+} from 'src/modules/vendors/gitlab/gitlab.enums';
 import type {
   GitLabMergeRequest,
   GitLabNote,
@@ -29,6 +32,7 @@ function toActivity(
 ): MergeRequestActivity {
   return {
     mergeRequest,
+    closingIssues: [],
     events: [],
     notes: [],
     labelEvents: [],
@@ -254,7 +258,7 @@ describe('SourceBuilder', () => {
       labelEvents: [
         createLabelEvent({ id: 1, created_at: '2026-08-03T10:00:00.000Z' }),
         createLabelEvent({ id: 2, label: null }),
-        createLabelEvent({ id: 3, action: 'remove' }),
+        createLabelEvent({ id: 3, action: GitLabLabelAction.REMOVE }),
       ],
     });
 
@@ -275,7 +279,7 @@ describe('SourceBuilder', () => {
       {
         id: 3,
         labelName: 'status::doing',
-        action: 'remove',
+        action: GitLabLabelAction.REMOVE,
         createdAt: `${REPORT_DATE}T11:00:00.000Z`,
         username: 'dev.author',
       },
@@ -306,7 +310,9 @@ describe('SourceBuilder', () => {
             labelEvents: [],
             stateEvents: [],
             mergeRequests: [
-              toActivity(createMergeRequest({ source_branch: '12-login' })),
+              toActivity(createMergeRequest({ source_branch: '12-login' }), {
+                closingIssues: [createIssue(), createIssue({ iid: 13 })],
+              }),
             ],
           },
         ],
@@ -326,7 +332,23 @@ describe('SourceBuilder', () => {
         webUrl: 'https://gitlab.example.com/team/backend',
       },
     ]);
-    expect(grouped.issues[0].mergeRequests[0].sourceBranch).toBe('12-login');
+    expect(grouped.issues[0].mergeRequests[0]).toMatchObject({
+      sourceBranch: '12-login',
+      closesIssues: [
+        {
+          projectId: 1,
+          iid: 12,
+          title: 'Fix the login',
+          webUrl: 'https://gitlab.example.com/team/backend/-/issues/12',
+        },
+        {
+          projectId: 1,
+          iid: 13,
+          title: 'Fix the login',
+          webUrl: 'https://gitlab.example.com/team/backend/-/issues/12',
+        },
+      ],
+    });
     expect(grouped.standaloneMergeRequests).toEqual([]);
     expect(grouped.standalonePushes).toEqual([
       {
@@ -352,5 +374,139 @@ describe('SourceBuilder', () => {
         ],
       },
     ]);
+  });
+  describe('values at the end of the day', () => {
+    const AFTER_THE_DAY = '2026-08-03T09:00:00.000Z';
+
+    function systemNote(body: string, createdAt = AFTER_THE_DAY) {
+      return createNote({ body, created_at: createdAt });
+    }
+
+    it('undoes the label events after the day', () => {
+      const grouped = buildIssue({
+        issue: createIssue({ labels: ['status::done', 'priority::high'] }),
+        labelEvents: [
+          createLabelEvent({ label: { name: 'status::review' } }),
+          createLabelEvent({
+            label: { name: 'status::review' },
+            action: GitLabLabelAction.REMOVE,
+            created_at: AFTER_THE_DAY,
+          }),
+          createLabelEvent({
+            label: { name: 'status::done' },
+            created_at: '2026-08-03T10:00:00.000Z',
+          }),
+          createLabelEvent({ label: null, created_at: AFTER_THE_DAY }),
+        ],
+      });
+
+      expect(grouped.labels).toEqual(['priority::high', 'status::review']);
+    });
+
+    it('undoes the assignments after the day', () => {
+      const grouped = buildIssue({
+        issue: createIssue({
+          assignees: [createAuthor('dev.two'), createAuthor('dev.three')],
+        }),
+        notes: [
+          systemNote(
+            `assigned to @${USERNAME}`,
+            `${REPORT_DATE}T09:00:00.000Z`,
+          ),
+          systemNote(`assigned to @dev.two and unassigned @${USERNAME}`),
+          systemNote('assigned to @dev.three', '2026-08-04T09:00:00.000Z'),
+        ],
+      });
+
+      expect(grouped.assignees).toEqual([USERNAME]);
+    });
+
+    it('reads several users on both sides of one note', () => {
+      const grouped = buildMergeRequest(
+        createMergeRequest({
+          assignees: ['dev.c', 'dev.d', 'dev.e'].map(createAuthor),
+        }),
+        withNotes([
+          systemNote(
+            'assigned to @dev.c, @dev.d and @dev.e and unassigned @dev.f',
+          ),
+        ]),
+      );
+
+      expect(grouped.assignees).toEqual(['dev.f']);
+    });
+
+    it('keeps the reviewers of the day and everyone asked before its end', () => {
+      const grouped = buildMergeRequest(
+        createMergeRequest({ reviewers: [createAuthor('dev.late')] }),
+        withNotes([
+          systemNote(
+            `requested review from @${USERNAME}`,
+            `${REPORT_DATE}T10:00:00.000Z`,
+          ),
+          systemNote(
+            `requested review from @dev.late and removed review request for @${USERNAME}`,
+          ),
+        ]),
+      );
+
+      expect(grouped.reviewers).toEqual([USERNAME]);
+    });
+
+    it.each([
+      [false, 'ready', true],
+      [true, 'draft', false],
+    ])(
+      'restores the draft flag %s after a later mark as %s',
+      (isDraftNow, mark, isDraftThen) => {
+        const grouped = buildMergeRequest(
+          createMergeRequest({ draft: isDraftNow }),
+          withNotes([
+            systemNote(`marked this merge request as **${mark}**`),
+            systemNote(
+              `marked this merge request as **${isDraftNow ? 'ready' : 'draft'}**`,
+              '2026-08-04T09:00:00.000Z',
+            ),
+          ]),
+        );
+
+        expect(grouped.draft).toBe(isDraftThen);
+      },
+    );
+
+    it('keeps the draft flag without later marks', () => {
+      const grouped = buildMergeRequest(
+        createMergeRequest({ draft: true }),
+        withNotes([
+          systemNote(
+            'marked this merge request as **draft**',
+            `${REPORT_DATE}T09:00:00.000Z`,
+          ),
+        ]),
+      );
+
+      expect(grouped.draft).toBe(true);
+    });
+
+    it('counts the review threads as they were at the end of the day', () => {
+      const thread = (overrides: Partial<GitLabNote>) =>
+        createNote({ system: false, resolvable: true, ...overrides });
+
+      const grouped = buildMergeRequest(
+        createMergeRequest(),
+        withNotes([
+          thread({
+            id: 1,
+            resolved: true,
+            resolved_at: `${REPORT_DATE}T12:00:00.000Z`,
+          }),
+          thread({ id: 2, resolved: true, resolved_at: AFTER_THE_DAY }),
+          thread({ id: 3, resolved: false }),
+          thread({ id: 4, resolved: false, created_at: AFTER_THE_DAY }),
+        ]),
+      );
+
+      expect(grouped.reviewThreads).toEqual({ total: 3, unresolved: 2 });
+    });
   });
 });

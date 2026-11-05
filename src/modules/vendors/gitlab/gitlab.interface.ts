@@ -1,4 +1,4 @@
-import type { GitLabState } from './gitlab.enums';
+import type { GitLabLabelAction, GitLabState } from './gitlab.enums';
 
 export type GitLabQuery = Record<string, string | number | boolean>;
 
@@ -71,7 +71,7 @@ export interface GitLabIssue {
   labels: string[];
   web_url: string;
   created_at: string;
-  assignee?: GitLabAuthor | null;
+  assignees?: GitLabAuthor[];
 }
 
 export interface GitLabMergeRequest {
@@ -83,8 +83,9 @@ export interface GitLabMergeRequest {
   web_url: string;
   created_at: string;
   source_branch: string;
+  draft?: boolean;
   author?: GitLabAuthor | null;
-  assignee?: GitLabAuthor | null;
+  assignees?: GitLabAuthor[];
   reviewers?: GitLabAuthor[];
 }
 
@@ -97,6 +98,7 @@ export interface GitLabNote {
   noteable_type: string;
   resolvable: boolean;
   resolved?: boolean;
+  resolved_at?: string | null;
 }
 
 export interface GitLabLabelEvent {
@@ -104,7 +106,7 @@ export interface GitLabLabelEvent {
   user: GitLabAuthor;
   created_at: string;
   label: { name: string } | null;
-  action: string;
+  action: GitLabLabelAction;
 }
 
 export interface GitLabStateEvent {

@@ -1,4 +1,7 @@
-import { GitLabState } from 'src/modules/vendors/gitlab/gitlab.enums';
+import {
+  GitLabLabelAction,
+  GitLabState,
+} from 'src/modules/vendors/gitlab/gitlab.enums';
 import type {
   GitLabAuthor,
   GitLabCommit,
@@ -54,7 +57,7 @@ export function createIssue(overrides: Partial<GitLabIssue> = {}): GitLabIssue {
     labels: [],
     web_url: 'https://gitlab.example.com/team/backend/-/issues/12',
     created_at: '2026-07-20T09:00:00.000Z',
-    assignee: null,
+    assignees: [],
     ...overrides,
   };
 }
@@ -71,8 +74,9 @@ export function createMergeRequest(
     web_url: 'https://gitlab.example.com/team/backend/-/merge_requests/5',
     created_at: `${REPORT_DATE}T09:00:00.000Z`,
     source_branch: 'feature/x',
+    draft: false,
     author: createAuthor('dev.author'),
-    assignee: null,
+    assignees: [],
     reviewers: [],
     ...overrides,
   };
@@ -99,7 +103,7 @@ export function createLabelEvent(
     user: createAuthor('dev.author'),
     created_at: `${REPORT_DATE}T11:00:00.000Z`,
     label: { name: 'status::doing' },
-    action: 'add',
+    action: GitLabLabelAction.ADD,
     ...overrides,
   };
 }

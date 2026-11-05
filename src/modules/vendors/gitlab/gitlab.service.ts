@@ -44,6 +44,10 @@ export class GitLabService {
     return this.gitlabRepository.findMergeRequestByBranch(projectId, branch);
   }
 
+  findIssuesClosedOnMerge(projectId: number, iid: number) {
+    return this.gitlabRepository.findIssuesClosedOnMerge(projectId, iid);
+  }
+
   findNotes(issuable: GitLabIssuable, projectId: number, iid: number) {
     return this.gitlabRepository.findNotes(issuable, projectId, iid);
   }
