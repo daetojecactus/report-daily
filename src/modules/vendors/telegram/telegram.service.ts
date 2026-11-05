@@ -10,36 +10,32 @@ import type {
   Screen,
 } from 'src/common/interfaces/chat-channel.interface';
 import {
-  TELEGRAM_ALLOWED_UPDATES,
   TELEGRAM_BAD_REQUEST,
   TELEGRAM_BOT_MENTION_SEPARATOR,
   TELEGRAM_COMMAND_ENTITY,
   TELEGRAM_COMMAND_PREFIX,
   TELEGRAM_FORBIDDEN,
   TELEGRAM_NOT_MODIFIED_DESCRIPTION,
-  TELEGRAM_POLL_TIMEOUT_SECONDS,
   TELEGRAM_PRIVATE_CHAT,
-  TELEGRAM_REQUEST_TIMEOUT_MS,
 } from './constants/telegram.constants';
-import { TelegramClient } from './telegram.client';
-import { TelegramMethod, TelegramScopeType } from './telegram.enums';
+import { TelegramScopeType } from './telegram.enums';
 import { TelegramRejectedError } from './telegram.error';
 import type {
   TelegramCallbackQuery,
   TelegramChat,
-  TelegramCommandScope,
   TelegramMessage,
   TelegramUpdate,
   TelegramUser,
 } from './telegram.interface';
 import { TelegramRenderer } from './telegram.renderer';
+import { TelegramRepository } from './telegram.repository';
 
 @Injectable()
 export class TelegramService implements ChatChannel {
   readonly channel = Channel.TELEGRAM;
 
   constructor(
-    private readonly telegramClient: TelegramClient,
+    private readonly telegramRepository: TelegramRepository,
     private readonly telegramRenderer: TelegramRenderer,
   ) {}
 
@@ -48,23 +44,11 @@ export class TelegramService implements ChatChannel {
   }
 
   getUpdates(offset: number, signal: AbortSignal) {
-    return this.telegramClient.call<TelegramUpdate[]>(
-      TelegramMethod.GET_UPDATES,
-      {
-        offset,
-        timeout: TELEGRAM_POLL_TIMEOUT_SECONDS,
-        allowed_updates: TELEGRAM_ALLOWED_UPDATES,
-      },
-      {
-        signal,
-        timeoutMs:
-          TELEGRAM_POLL_TIMEOUT_SECONDS * 1000 + TELEGRAM_REQUEST_TIMEOUT_MS,
-      },
-    );
+    return this.telegramRepository.getUpdates(offset, signal);
   }
 
-  async deleteWebhook() {
-    await this.telegramClient.call(TelegramMethod.DELETE_WEBHOOK, {});
+  deleteWebhook() {
+    return this.telegramRepository.deleteWebhook();
   }
 
   toChatEvent(update: TelegramUpdate): ChatEvent | null {
@@ -78,9 +62,11 @@ export class TelegramService implements ChatChannel {
   }
 
   async sendScreen(chatId: string, screen: Screen) {
-    const message = await this.callChat<TelegramMessage>(
-      TelegramMethod.SEND_MESSAGE,
-      { chat_id: chatId, ...this.telegramRenderer.renderMessage(screen) },
+    const message = await this.reachChat(() =>
+      this.telegramRepository.sendMessage(
+        chatId,
+        this.telegramRenderer.renderMessage(screen),
+      ),
     );
     return String(message.message_id);
   }
@@ -91,11 +77,13 @@ export class TelegramService implements ChatChannel {
       return;
     }
     try {
-      await this.callChat(TelegramMethod.EDIT_MESSAGE_TEXT, {
-        chat_id: chatId,
-        message_id: Number(messageId),
-        ...this.telegramRenderer.renderEdit(screen),
-      });
+      await this.reachChat(() =>
+        this.telegramRepository.editMessageText(
+          chatId,
+          Number(messageId),
+          this.telegramRenderer.renderEdit(screen),
+        ),
+      );
     } catch (error) {
       if (!this.isBadRequest(error)) {
         throw error;
@@ -109,9 +97,7 @@ export class TelegramService implements ChatChannel {
 
   async answerButton(callbackId: string) {
     try {
-      await this.telegramClient.call(TelegramMethod.ANSWER_CALLBACK_QUERY, {
-        callback_query_id: callbackId,
-      });
+      await this.telegramRepository.answerCallbackQuery(callbackId);
     } catch (error) {
       if (!this.isBadRequest(error)) {
         throw error;
@@ -123,7 +109,7 @@ export class TelegramService implements ChatChannel {
     commands: ChatCommand[],
     languageCode: string | null,
   ) {
-    await this.setCommands(
+    await this.telegramRepository.setMyCommands(
       commands,
       { type: TelegramScopeType.ALL_PRIVATE_CHATS },
       languageCode,
@@ -131,28 +117,16 @@ export class TelegramService implements ChatChannel {
   }
 
   async setChatCommands(chatId: string, commands: ChatCommand[]) {
-    await this.setCommands(
+    await this.telegramRepository.setMyCommands(
       commands,
       { type: TelegramScopeType.CHAT, chat_id: chatId },
       null,
     );
   }
 
-  private async setCommands(
-    commands: ChatCommand[],
-    scope: TelegramCommandScope,
-    languageCode: string | null,
-  ) {
-    await this.telegramClient.call(TelegramMethod.SET_MY_COMMANDS, {
-      commands,
-      scope,
-      ...(languageCode ? { language_code: languageCode } : {}),
-    });
-  }
-
-  private async callChat<T>(method: TelegramMethod, params: object) {
+  private async reachChat<T>(call: () => Promise<T>) {
     try {
-      return await this.telegramClient.call<T>(method, params);
+      return await call();
     } catch (error) {
       if (
         error instanceof TelegramRejectedError &&

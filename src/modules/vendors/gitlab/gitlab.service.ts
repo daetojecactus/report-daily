@@ -1,34 +1,62 @@
 import { Injectable } from '@nestjs/common';
-import {
-  GITLAB_EVENTS_PATH,
-  GITLAB_USER_SEARCH_LIMIT,
-  GITLAB_USERS_PATH,
-} from './constants/gitlab.constants';
-import { GitLabClient } from './gitlab.client';
-import type { GitLabUser } from './gitlab.interface';
+import { addDays } from 'src/common/utils/date.util';
+import { GITLAB_EVENTS_MARGIN_DAYS } from './constants/gitlab.constants';
+import type { GitLabIssuable } from './gitlab.enums';
+import { GitLabRepository } from './gitlab.repository';
 
 @Injectable()
 export class GitLabService {
-  constructor(private readonly gitlabClient: GitLabClient) {}
+  constructor(private readonly gitlabRepository: GitLabRepository) {}
 
-  async searchUsers(search: string) {
-    const users = await this.gitlabClient.get<GitLabUser[]>(GITLAB_USERS_PATH, {
-      search,
-      active: true,
-      per_page: GITLAB_USER_SEARCH_LIMIT,
-    });
-    return users ?? [];
+  searchUsers(search: string) {
+    return this.gitlabRepository.searchUsers(search);
   }
 
   findUser(id: number) {
-    return this.gitlabClient.get<GitLabUser>(`${GITLAB_USERS_PATH}/${id}`);
+    return this.gitlabRepository.findUser(id);
   }
 
   async hasVisibleActivity(userId: number) {
-    const events = await this.gitlabClient.get<unknown[]>(
-      `${GITLAB_USERS_PATH}/${userId}${GITLAB_EVENTS_PATH}`,
-      { per_page: 1 },
+    return (await this.gitlabRepository.findLastUserEvent(userId)) !== null;
+  }
+
+  findUserEventsAround(userId: number, date: string) {
+    return this.gitlabRepository.findUserEvents(
+      userId,
+      addDays(date, -GITLAB_EVENTS_MARGIN_DAYS),
+      addDays(date, GITLAB_EVENTS_MARGIN_DAYS),
     );
-    return (events?.length ?? 0) > 0;
+  }
+
+  findProject(projectId: number) {
+    return this.gitlabRepository.findProject(projectId);
+  }
+
+  findIssue(projectId: number, iid: number) {
+    return this.gitlabRepository.findIssue(projectId, iid);
+  }
+
+  findMergeRequest(projectId: number, iid: number) {
+    return this.gitlabRepository.findMergeRequest(projectId, iid);
+  }
+
+  findMergeRequestByBranch(projectId: number, branch: string) {
+    return this.gitlabRepository.findMergeRequestByBranch(projectId, branch);
+  }
+
+  findNotes(issuable: GitLabIssuable, projectId: number, iid: number) {
+    return this.gitlabRepository.findNotes(issuable, projectId, iid);
+  }
+
+  findLabelEvents(issuable: GitLabIssuable, projectId: number, iid: number) {
+    return this.gitlabRepository.findLabelEvents(issuable, projectId, iid);
+  }
+
+  findStateEvents(issuable: GitLabIssuable, projectId: number, iid: number) {
+    return this.gitlabRepository.findStateEvents(issuable, projectId, iid);
+  }
+
+  findMergeRequestCommits(projectId: number, iid: number) {
+    return this.gitlabRepository.findMergeRequestCommits(projectId, iid);
   }
 }

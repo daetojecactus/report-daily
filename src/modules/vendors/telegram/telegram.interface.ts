@@ -5,6 +5,11 @@ export interface TelegramCallOptions {
   signal?: AbortSignal;
 }
 
+export interface TelegramHttpResponse {
+  status: number;
+  body: string;
+}
+
 export interface TelegramResponse<T> {
   ok: boolean;
   result?: T;
@@ -83,6 +88,11 @@ export interface TelegramMessageContent {
     | TelegramInlineKeyboardMarkup
     | TelegramReplyKeyboardMarkup
     | TelegramReplyKeyboardRemove;
+}
+
+export interface TelegramBotCommand {
+  command: string;
+  description: string;
 }
 
 export type TelegramCommandScope =

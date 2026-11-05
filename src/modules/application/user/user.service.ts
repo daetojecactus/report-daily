@@ -60,6 +60,10 @@ export class UserService {
     return this.findOne(eq(users.gitlabUserId, gitlabUserId));
   }
 
+  findByGitlabUsername(gitlabUsername: string) {
+    return this.findOne(eq(users.gitlabUsername, gitlabUsername));
+  }
+
   findPage(limit: number, offset: number) {
     return this.userRepository.findPage(undefined, limit, offset);
   }

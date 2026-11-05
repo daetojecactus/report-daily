@@ -23,6 +23,7 @@ Fill in `OWNER_TELEGRAM_IDS`, `TELEGRAM_BOT_TOKEN`, `GITLAB_URL` and `GITLAB_TOK
 | `pnpm watch` | Build, run and restart on changes |
 | `pnpm db:generate --name <name>` | Create a migration from schema changes |
 | `pnpm db:migrate` | Apply migrations |
+| `pnpm preview <gitlab-username> <YYYY-MM-DD>` | Print what an employee did in GitLab on a day, grouped by project. Nothing is sent |
 | `pnpm lint`, `pnpm typecheck` | Static checks |
 | `pnpm test`, `pnpm test:int` | Unit and integration tests, integration tests need Docker |
 
@@ -48,7 +49,7 @@ If GitLab uses a certificate of an internal certificate authority, the bot repor
 
 Node.js reads this variable when the process starts, before `.env` is loaded with `--env-file`, so it has to be in the environment of the process:
 
-- **Development:** start the bot with the variable: `NODE_EXTRA_CA_CERTS=/path/to/company-ca.pem pnpm watch`.
+- **Development:** start the bot with the variable: `NODE_EXTRA_CA_CERTS=/path/to/company-ca.pem pnpm watch`, and the same for `pnpm preview`.
 - **Docker:** mount the file into the container and set `NODE_EXTRA_CA_CERTS` in the `environment` of the service.
 
 ## License

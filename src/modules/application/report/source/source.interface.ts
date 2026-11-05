@@ -1,0 +1,157 @@
+import type { GitLabState } from 'src/modules/vendors/gitlab/gitlab.enums';
+import type {
+  GitLabCommit,
+  GitLabEvent,
+  GitLabIssue,
+  GitLabLabelEvent,
+  GitLabMergeRequest,
+  GitLabNote,
+  GitLabProject,
+  GitLabStateEvent,
+} from 'src/modules/vendors/gitlab/gitlab.interface';
+
+export interface SourceItem {
+  projectId: number;
+  iid: number;
+}
+
+export interface SourceBranch {
+  projectId: number;
+  branch: string;
+}
+
+export interface SourceEvents<T> {
+  target: T;
+  events: GitLabEvent[];
+}
+
+export interface SourceEventGroups {
+  issues: Map<string, SourceEvents<SourceItem>>;
+  mergeRequests: Map<string, SourceEvents<SourceItem>>;
+  pushes: Map<string, SourceEvents<SourceBranch>>;
+}
+
+export interface MergeRequestActivity {
+  mergeRequest: GitLabMergeRequest;
+  events: GitLabEvent[];
+  notes: GitLabNote[];
+  labelEvents: GitLabLabelEvent[];
+  stateEvents: GitLabStateEvent[];
+  commits: GitLabCommit[];
+}
+
+export interface IssueActivity {
+  issue: GitLabIssue;
+  events: GitLabEvent[];
+  notes: GitLabNote[];
+  labelEvents: GitLabLabelEvent[];
+  stateEvents: GitLabStateEvent[];
+  mergeRequests: MergeRequestActivity[];
+}
+
+export interface DayActivity {
+  projects: GitLabProject[];
+  issues: IssueActivity[];
+  mergeRequests: MergeRequestActivity[];
+  pushes: SourceEvents<SourceBranch>[];
+}
+
+export interface CleanPushData {
+  commitCount: number;
+  action: string;
+  refType: string;
+  ref: string | null;
+  commitTitle: string | null;
+}
+
+export interface CleanEvent {
+  id: number;
+  projectId: number | null;
+  actionName: string;
+  targetType: string | null;
+  targetTitle: string | null;
+  createdAt: string;
+  pushData?: CleanPushData;
+  noteBody?: string;
+}
+
+export interface CleanNote {
+  id: number;
+  body: string;
+  authorUsername: string;
+  authorName: string;
+  createdAt: string;
+  system: boolean;
+  noteableType: string;
+  resolvable: boolean;
+  resolved?: boolean;
+}
+
+export interface CleanLabelEvent {
+  id: number;
+  labelName: string;
+  action: string;
+  createdAt: string;
+  username: string;
+}
+
+export interface ReviewThreads {
+  total: number;
+  unresolved: number;
+}
+
+export interface GroupedMergeRequest {
+  projectId: number;
+  iid: number;
+  title: string;
+  state: GitLabState;
+  mergedOnReportDate: boolean;
+  webUrl: string;
+  sourceBranch: string;
+  labels: string[];
+  createdAt: string;
+  lastCommitAt: string | null;
+  author: string | null;
+  assignee: string | null;
+  reviewers: string[];
+  events: CleanEvent[];
+  notes: CleanNote[];
+  labelEvents: CleanLabelEvent[];
+  reviewThreads: ReviewThreads;
+}
+
+export interface GroupedIssue {
+  projectId: number;
+  iid: number;
+  title: string;
+  state: GitLabState;
+  closedOnReportDate: boolean;
+  webUrl: string;
+  labels: string[];
+  createdAt: string;
+  assignee: string | null;
+  events: CleanEvent[];
+  notes: CleanNote[];
+  labelEvents: CleanLabelEvent[];
+  mergeRequests: GroupedMergeRequest[];
+}
+
+export interface StandalonePush {
+  projectId: number;
+  branch: string;
+  events: CleanEvent[];
+}
+
+export interface SourceProject {
+  id: number;
+  name: string;
+  path: string;
+  webUrl: string;
+}
+
+export interface GroupedDailyData {
+  projects: SourceProject[];
+  issues: GroupedIssue[];
+  standaloneMergeRequests: GroupedMergeRequest[];
+  standalonePushes: StandalonePush[];
+}

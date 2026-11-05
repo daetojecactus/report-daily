@@ -19,11 +19,7 @@ import {
 } from 'vitest';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { GitLabClient } from '../gitlab.client';
-import {
-  GitLabCertificateError,
-  GitLabRejectedError,
-  GitLabRetryableError,
-} from '../gitlab.error';
+import { GitLabCertificateError, GitLabRetryableError } from '../gitlab.error';
 
 const TOKEN = 'glpat-client-test-secret-token';
 
@@ -87,6 +83,13 @@ function createClient(gitlabUrl = serverUrl) {
   } as unknown as ConfigService<AppEnvs, true>);
 }
 
+async function closedUrl() {
+  const closed = createServer();
+  const url = await listen(closed);
+  await close(closed);
+  return url;
+}
+
 async function catchErrorWithoutToken<T extends Error>(
   call: Promise<unknown>,
   errorClass: new (...args: never[]) => T,
@@ -117,15 +120,20 @@ describe('GitLabClient', () => {
   });
 
   it('sends the token header and the query to the API path', async () => {
-    reply = replyWith(200, JSON.stringify([{ id: 1, username: 'anna' }]));
+    reply = replyWith(200, '[{"id":1}]', { 'x-next-page': '2' });
 
-    const result = await createClient().get('/users', {
+    const response = await createClient().get('/users', {
       search: 'Анна С',
       active: true,
       per_page: 10,
     });
 
-    expect(result).toEqual([{ id: 1, username: 'anna' }]);
+    expect(response).toMatchObject({
+      ok: true,
+      status: 200,
+      body: '[{"id":1}]',
+    });
+    expect(response.headers.get('x-next-page')).toBe('2');
     expect(received).toEqual([
       {
         method: 'GET',
@@ -141,70 +149,18 @@ describe('GitLabClient', () => {
     expect(received[0].url).toBe('/gitlab/api/v4/users/7');
   });
 
-  it('returns null when the resource is not found', async () => {
-    reply = replyWith(404, JSON.stringify({ message: '404 User Not Found' }));
-
-    expect(await createClient().get('/users/7')).toBeNull();
-  });
-
-  it.each([401, 403, 400])(
-    'rejects without retries on status %i',
+  it.each([404, 401, 502])(
+    'returns a response with status %i as it is',
     async (status) => {
-      reply = replyWith(status, JSON.stringify({ message: 'denied' }));
+      reply = replyWith(status, '<html>error</html>');
 
-      const error = await catchErrorWithoutToken(
-        createClient().get('/users'),
-        GitLabRejectedError,
-      );
-
-      expect(error).toBeInstanceOf(UnrecoverableError);
-      expect(error.status).toBe(status);
+      expect(await createClient().get('/users')).toMatchObject({
+        ok: false,
+        status,
+        body: '<html>error</html>',
+      });
     },
   );
-
-  it('reads Retry-After in seconds on 429', async () => {
-    reply = replyWith(429, '{}', { 'retry-after': '30' });
-
-    const error = await catchErrorWithoutToken(
-      createClient().get('/users'),
-      GitLabRetryableError,
-    );
-
-    expect(error.retryAfterSeconds).toBe(30);
-  });
-
-  it('ignores a Retry-After that is not a number of seconds', async () => {
-    reply = replyWith(429, '{}', {
-      'retry-after': 'Wed, 04 Nov 2026 12:00:00 GMT',
-    });
-
-    const error = await catchErrorWithoutToken(
-      createClient().get('/users'),
-      GitLabRetryableError,
-    );
-
-    expect(error.retryAfterSeconds).toBeNull();
-  });
-
-  it('retries a server error', async () => {
-    reply = replyWith(502, '<html>Bad Gateway</html>');
-
-    const error = await catchErrorWithoutToken(
-      createClient().get('/users'),
-      GitLabRetryableError,
-    );
-
-    expect(error.message).toContain('502');
-  });
-
-  it('retries a response that is not JSON', async () => {
-    reply = replyWith(200, '<html>Sign in</html>');
-
-    await catchErrorWithoutToken(
-      createClient().get('/users'),
-      GitLabRetryableError,
-    );
-  });
 
   it.each([
     'UNABLE_TO_VERIFY_LEAF_SIGNATURE',
@@ -229,15 +185,45 @@ describe('GitLabClient', () => {
   });
 
   it('retries when nothing listens on the port', async () => {
-    const closed = createServer();
-    const closedUrl = await listen(closed);
-    await close(closed);
-
     const error = await catchErrorWithoutToken(
-      createClient(closedUrl).get('/users'),
+      createClient(await closedUrl()).get('/users'),
       GitLabRetryableError,
     );
 
     expect(error.message).toContain('ECONNREFUSED');
+  });
+
+  it('runs at most eight requests at a time', async () => {
+    let active = 0;
+    let mostActive = 0;
+    reply = (response) => {
+      active += 1;
+      mostActive = Math.max(mostActive, active);
+      setTimeout(() => {
+        active -= 1;
+        replyWith(200, '[]')(response);
+      }, 20);
+    };
+    const client = createClient();
+
+    await Promise.all(Array.from({ length: 20 }, () => client.get('/users')));
+
+    expect(received).toHaveLength(20);
+    expect(mostActive).toBe(8);
+  });
+
+  it('frees the slot of a failed request', async () => {
+    const client = createClient(await closedUrl());
+
+    const results = await Promise.allSettled(
+      Array.from({ length: 10 }, () => client.get('/users')),
+    );
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(new Response('[]'));
+
+    expect(results.every(({ status }) => status === 'rejected')).toBe(true);
+    expect(await client.get('/users')).toMatchObject({ ok: true, body: '[]' });
+    fetchSpy.mockRestore();
   });
 });

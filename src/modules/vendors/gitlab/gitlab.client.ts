@@ -5,26 +5,21 @@ import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import {
   GITLAB_API_PATH,
   GITLAB_CERTIFICATE_ERROR_CODES,
-  GITLAB_NOT_FOUND,
+  GITLAB_MAX_CONCURRENT_REQUESTS,
   GITLAB_REQUEST_TIMEOUT_MS,
-  GITLAB_RETRY_AFTER_HEADER,
-  GITLAB_SERVER_ERROR,
   GITLAB_TOKEN_HEADER,
-  GITLAB_TOO_MANY_REQUESTS,
   GITLAB_URL_TRAILING_SLASHES,
 } from './constants/gitlab.constants';
 import { GitLabMessages } from './constants/gitlab.messages';
-import {
-  GitLabCertificateError,
-  GitLabRejectedError,
-  GitLabRetryableError,
-} from './gitlab.error';
-import type { GitLabQuery } from './gitlab.interface';
+import { GitLabCertificateError, GitLabRetryableError } from './gitlab.error';
+import type { GitLabHttpResponse, GitLabQuery } from './gitlab.interface';
 
 @Injectable()
 export class GitLabClient {
   private readonly apiUrl: string;
   private readonly token: string;
+  private activeRequests = 0;
+  private readonly waitingRequests: (() => void)[] = [];
 
   constructor(configService: ConfigService<AppEnvs, true>) {
     const url = configService
@@ -34,37 +29,35 @@ export class GitLabClient {
     this.token = configService.get('GITLAB_TOKEN', { infer: true });
   }
 
-  async get<T>(path: string, query: GitLabQuery = {}): Promise<T | null> {
-    const response = await this.request(path, query);
-    if (response.status === GITLAB_NOT_FOUND) {
-      await response.body?.cancel();
-      return null;
-    }
-    if (!response.ok) {
-      await response.body?.cancel();
-      throw this.toError(path, response);
-    }
-
+  async get(path: string, query: GitLabQuery = {}) {
+    await this.takeSlot();
     try {
-      return (await response.json()) as T;
-    } catch (error) {
-      throw new GitLabRetryableError(
-        `${GitLabMessages.INVALID_RESPONSE}: ${path}: ${getFailureReason(error)}`,
-      );
+      return await this.request(path, query);
+    } finally {
+      this.releaseSlot();
     }
   }
 
-  private async request(path: string, query: GitLabQuery) {
+  private async request(
+    path: string,
+    query: GitLabQuery,
+  ): Promise<GitLabHttpResponse> {
     const url = new URL(`${this.apiUrl}${path}`);
     for (const [key, value] of Object.entries(query)) {
       url.searchParams.set(key, String(value));
     }
 
     try {
-      return await fetch(url, {
+      const response = await fetch(url, {
         headers: { [GITLAB_TOKEN_HEADER]: this.token },
         signal: AbortSignal.timeout(GITLAB_REQUEST_TIMEOUT_MS),
       });
+      return {
+        ok: response.ok,
+        status: response.status,
+        headers: response.headers,
+        body: await response.text(),
+      };
     } catch (error) {
       const reason = getFailureReason(error);
       if (GITLAB_CERTIFICATE_ERROR_CODES.has(reason)) {
@@ -78,20 +71,20 @@ export class GitLabClient {
     }
   }
 
-  private toError(path: string, response: Response) {
-    const message = `${GitLabMessages.API_ERROR}: ${path}: ${response.status}`;
-    if (
-      response.status === GITLAB_TOO_MANY_REQUESTS ||
-      response.status >= GITLAB_SERVER_ERROR
-    ) {
-      const retryAfter = Number(
-        response.headers.get(GITLAB_RETRY_AFTER_HEADER),
-      );
-      return new GitLabRetryableError(
-        message,
-        Number.isInteger(retryAfter) && retryAfter > 0 ? retryAfter : null,
-      );
+  private async takeSlot() {
+    if (this.activeRequests < GITLAB_MAX_CONCURRENT_REQUESTS) {
+      this.activeRequests += 1;
+      return;
     }
-    return new GitLabRejectedError(message, response.status);
+    await new Promise<void>((resolve) => this.waitingRequests.push(resolve));
+  }
+
+  private releaseSlot() {
+    const next = this.waitingRequests.shift();
+    if (next) {
+      next();
+      return;
+    }
+    this.activeRequests -= 1;
   }
 }
