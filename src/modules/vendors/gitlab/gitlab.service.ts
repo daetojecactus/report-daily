@@ -24,6 +24,21 @@ export class GitLabService {
     return (await this.gitlabRepository.findLastUserEvent(userId)) !== null;
   }
 
+  async findRecentProjectIds(userId: number, date: string, days: number) {
+    const events = await this.gitlabRepository.findUserEvents(
+      userId,
+      addDays(date, -days),
+      addDays(date, GITLAB_EVENTS_MARGIN_DAYS),
+    );
+    return [
+      ...new Set(
+        events.flatMap((event) =>
+          event.project_id === null ? [] : [event.project_id],
+        ),
+      ),
+    ];
+  }
+
   findUserEventsAround(userId: number, date: string) {
     return this.gitlabRepository.findUserEvents(
       userId,
@@ -50,6 +65,18 @@ export class GitLabService {
 
   findIssuesClosedOnMerge(projectId: number, iid: number) {
     return this.gitlabRepository.findIssuesClosedOnMerge(projectId, iid);
+  }
+
+  findUpdatedItems(
+    issuable: GitLabIssuable,
+    projectId: number,
+    updatedAfter: string,
+  ) {
+    return this.gitlabRepository.findUpdatedItems(
+      issuable,
+      projectId,
+      updatedAfter,
+    );
   }
 
   findNotes(issuable: GitLabIssuable, projectId: number, iid: number) {

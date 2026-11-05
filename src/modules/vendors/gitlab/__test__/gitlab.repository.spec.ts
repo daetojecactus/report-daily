@@ -203,6 +203,26 @@ describe('GitLabRepository', () => {
     });
   });
 
+  it.each([
+    [GitLabIssuable.ISSUES, '/projects/3/issues'],
+    [GitLabIssuable.MERGE_REQUESTS, '/projects/3/merge_requests'],
+  ])('reads every %s updated after a moment', async (issuable, path) => {
+    client.get.mockResolvedValue(respond(200, [{ iid: 1, project_id: 3 }]));
+
+    expect(
+      await repository.findUpdatedItems(
+        issuable,
+        3,
+        '2026-11-03T19:00:00.000Z',
+      ),
+    ).toEqual([{ iid: 1, project_id: 3 }]);
+    expect(client.get).toHaveBeenCalledWith(path, {
+      updated_after: '2026-11-03T19:00:00.000Z',
+      per_page: 100,
+      page: 1,
+    });
+  });
+
   it('reads the commits of a ref up to a limit', async () => {
     client.get.mockResolvedValueOnce(respond(200, [{ id: 'bbb' }]));
     client.get.mockResolvedValueOnce(respond(404, { message: 'Not Found' }));

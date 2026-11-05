@@ -79,3 +79,13 @@ export interface SourceBuildContext {
   userId: number;
   pushCommits: Map<number, GitLabCommit[]>;
 }
+
+export type SourceDayIndex = Record<
+  string,
+  { issues: number[]; mergeRequests: number[] }
+>;
+
+export interface SourceHiddenItems {
+  issues: SourceItem[];
+  mergeRequests: SourceItem[];
+}
