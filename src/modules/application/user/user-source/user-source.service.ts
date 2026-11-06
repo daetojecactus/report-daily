@@ -33,6 +33,10 @@ export class UserSourceService {
     return this.find(eq(userSources.userId, userId));
   }
 
+  findBySource(source: Source) {
+    return this.find(eq(userSources.source, source));
+  }
+
   findOneByExternalId(source: Source, externalId: string) {
     return this.findOne(
       and(eq(userSources.source, source), eq(userSources.externalId, externalId))!,

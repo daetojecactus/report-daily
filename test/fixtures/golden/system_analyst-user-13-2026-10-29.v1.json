@@ -1,0 +1,36 @@
+{
+  "issues": [
+    {
+      "projectId": 6,
+      "iid": 2659,
+      "status": "CREATED",
+      "taskType": "CHORE"
+    },
+    {
+      "projectId": 6,
+      "iid": 2658,
+      "status": "CREATED",
+      "taskType": "CHORE"
+    },
+    {
+      "projectId": 6,
+      "iid": 2614,
+      "status": "COMMENTED",
+      "taskType": "CHORE"
+    },
+    {
+      "projectId": 7,
+      "iid": 1472,
+      "status": "DELEGATED_TASK",
+      "taskType": "FEATURE"
+    },
+    {
+      "projectId": 8,
+      "iid": 686,
+      "status": "UNKNOWN",
+      "taskType": "FEATURE"
+    }
+  ],
+  "standaloneMergeRequests": [],
+  "standalonePushes": []
+}

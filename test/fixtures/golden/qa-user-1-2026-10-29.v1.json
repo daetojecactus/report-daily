@@ -1,0 +1,54 @@
+{
+  "issues": [
+    {
+      "projectId": 1,
+      "iid": 770,
+      "status": "TESTED_AND_APPROVED",
+      "taskType": "FEATURE"
+    },
+    {
+      "projectId": 1,
+      "iid": 771,
+      "status": "TESTED_AND_APPROVED",
+      "taskType": "BUG"
+    },
+    {
+      "projectId": 1,
+      "iid": 772,
+      "status": "QA_AUTOMATION_DEVELOPED",
+      "taskType": "QA_INTERNAL"
+    },
+    {
+      "projectId": 2,
+      "iid": 998,
+      "status": "TESTED_AND_APPROVED",
+      "taskType": "FEATURE"
+    },
+    {
+      "projectId": 3,
+      "iid": 1611,
+      "status": "TESTED_AND_APPROVED",
+      "taskType": "UNKNOWN"
+    },
+    {
+      "projectId": 4,
+      "iid": 128,
+      "status": "TESTED_AND_APPROVED",
+      "taskType": "FEATURE"
+    },
+    {
+      "projectId": 5,
+      "iid": 1061,
+      "status": "VERIFIED_FIX",
+      "taskType": "BUG"
+    },
+    {
+      "projectId": 5,
+      "iid": 1040,
+      "status": "TESTED_AND_APPROVED",
+      "taskType": "CHORE"
+    }
+  ],
+  "standaloneMergeRequests": [],
+  "standalonePushes": []
+}

@@ -130,6 +130,16 @@ describe('User module', () => {
       expect(await userService.findOneBySource(Source.GITLAB, String(nextId++))).toBeNull();
     });
 
+    it('finds accounts by source and by username', async () => {
+      const user = await insertUser();
+      const [account] = await userSourceService.findByUser(user.id);
+
+      expect(await userSourceService.findBySource(Source.GITLAB)).toContainEqual(account);
+      expect(await userSourceService.findOneByUsername(Source.GITLAB, account.username)).toEqual(
+        account,
+      );
+    });
+
     it('creates a user with the account in a source at once', async () => {
       const externalId = String(nextId++);
       const user = await userService.createWithSource(

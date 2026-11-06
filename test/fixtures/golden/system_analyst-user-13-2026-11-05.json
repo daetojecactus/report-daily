@@ -1,0 +1,346 @@
+{
+  "role": "system_analyst",
+  "username": "user-13",
+  "date": "2026-11-05",
+  "timeZone": "Asia/Almaty",
+  "day": {
+    "projects": [
+      {
+        "id": 7,
+        "name": "project-7",
+        "path": "group/project-7",
+        "webUrl": "https://gitlab.example.com/group/project-7"
+      },
+      {
+        "id": 6,
+        "name": "project-6",
+        "path": "group/project-6",
+        "webUrl": "https://gitlab.example.com/group/project-6"
+      }
+    ],
+    "issues": [
+      {
+        "projectId": 7,
+        "iid": 1510,
+        "title": "Issue 1510",
+        "state": "opened",
+        "closedOnReportDate": false,
+        "webUrl": "https://gitlab.example.com/group/project-7/-/issues/1510",
+        "labels": [
+          "label-1",
+          "priority::high",
+          "status::ready for QA",
+          "type::bug"
+        ],
+        "createdAt": "2026-11-05T17:38:27.333+05:00",
+        "assignees": [
+          "user-38",
+          "user-34"
+        ],
+        "status": "To do",
+        "actions": [
+          {
+            "kind": "opened",
+            "at": "2026-11-05T17:38:27.333+05:00",
+            "value": null,
+            "users": []
+          },
+          {
+            "kind": "status_set",
+            "at": "2026-11-05T17:38:27.473+05:00",
+            "value": "To do",
+            "users": []
+          },
+          {
+            "kind": "label_added",
+            "at": "2026-11-05T17:38:27.562+05:00",
+            "value": "status::todo",
+            "users": []
+          },
+          {
+            "kind": "label_added",
+            "at": "2026-11-05T17:38:27.562+05:00",
+            "value": "priority::high",
+            "users": []
+          },
+          {
+            "kind": "label_added",
+            "at": "2026-11-05T17:38:27.562+05:00",
+            "value": "type::bug",
+            "users": []
+          },
+          {
+            "kind": "label_added",
+            "at": "2026-11-05T17:38:27.562+05:00",
+            "value": "label-1",
+            "users": []
+          },
+          {
+            "kind": "assigned",
+            "at": "2026-11-05T17:38:27.606+05:00",
+            "value": null,
+            "users": [
+              "user-13",
+              "user-38",
+              "user-22"
+            ]
+          }
+        ],
+        "events": [
+          {
+            "id": 598769,
+            "projectId": 7,
+            "actionName": "opened",
+            "targetType": "WorkItem",
+            "targetTitle": "Title",
+            "createdAt": "2026-11-05T17:38:27.567+05:00"
+          }
+        ],
+        "notes": [
+          {
+            "id": 588547,
+            "body": "changed the description",
+            "authorUsername": "user-34",
+            "authorName": "user-34",
+            "createdAt": "2026-11-05T18:25:12.869+05:00",
+            "system": true,
+            "noteableType": "Issue",
+            "resolvable": false
+          },
+          {
+            "id": 588543,
+            "body": "system note",
+            "authorUsername": "user-34",
+            "authorName": "user-34",
+            "createdAt": "2026-11-05T18:22:38.926+05:00",
+            "system": true,
+            "noteableType": "Issue",
+            "resolvable": false
+          },
+          {
+            "id": 588528,
+            "body": "system note",
+            "authorUsername": "user-34",
+            "authorName": "user-34",
+            "createdAt": "2026-11-05T18:08:18.230+05:00",
+            "system": true,
+            "noteableType": "Issue",
+            "resolvable": false
+          },
+          {
+            "id": 588519,
+            "body": "unassigned @user-22 and @user-13",
+            "authorUsername": "user-22",
+            "authorName": "user-22",
+            "createdAt": "2026-11-05T18:02:34.216+05:00",
+            "system": true,
+            "noteableType": "Issue",
+            "resolvable": false
+          },
+          {
+            "id": 588516,
+            "body": "system note",
+            "authorUsername": "user-34",
+            "authorName": "user-34",
+            "createdAt": "2026-11-05T17:58:57.090+05:00",
+            "system": true,
+            "noteableType": "Issue",
+            "resolvable": false
+          },
+          {
+            "id": 588515,
+            "body": "created branch [`1510-branch-50`](https://gitlab.example.com)",
+            "authorUsername": "user-34",
+            "authorName": "user-34",
+            "createdAt": "2026-11-05T17:58:45.370+05:00",
+            "system": true,
+            "noteableType": "Issue",
+            "resolvable": false
+          },
+          {
+            "id": 588513,
+            "body": "assigned to @user-34",
+            "authorUsername": "user-34",
+            "authorName": "user-34",
+            "createdAt": "2026-11-05T17:58:18.793+05:00",
+            "system": true,
+            "noteableType": "Issue",
+            "resolvable": false
+          },
+          {
+            "id": 588482,
+            "body": "assigned to @user-13, @user-38, and @user-22",
+            "authorUsername": "user-13",
+            "authorName": "user-13",
+            "createdAt": "2026-11-05T17:38:27.606+05:00",
+            "system": true,
+            "noteableType": "Issue",
+            "resolvable": false
+          },
+          {
+            "id": 588481,
+            "body": "set status to **To do**",
+            "authorUsername": "user-13",
+            "authorName": "user-13",
+            "createdAt": "2026-11-05T17:38:27.473+05:00",
+            "system": true,
+            "noteableType": "Issue",
+            "resolvable": false
+          }
+        ],
+        "labelEvents": [
+          {
+            "id": 265370,
+            "labelName": "status::todo",
+            "action": "add",
+            "createdAt": "2026-11-05T17:38:27.562+05:00",
+            "username": "user-13"
+          },
+          {
+            "id": 265371,
+            "labelName": "priority::high",
+            "action": "add",
+            "createdAt": "2026-11-05T17:38:27.562+05:00",
+            "username": "user-13"
+          },
+          {
+            "id": 265372,
+            "labelName": "type::bug",
+            "action": "add",
+            "createdAt": "2026-11-05T17:38:27.562+05:00",
+            "username": "user-13"
+          },
+          {
+            "id": 265373,
+            "labelName": "label-1",
+            "action": "add",
+            "createdAt": "2026-11-05T17:38:27.562+05:00",
+            "username": "user-13"
+          },
+          {
+            "id": 265407,
+            "labelName": "status::ready for QA",
+            "action": "add",
+            "createdAt": "2026-11-05T18:28:34.273+05:00",
+            "username": "user-34"
+          },
+          {
+            "id": 265408,
+            "labelName": "status::todo",
+            "action": "remove",
+            "createdAt": "2026-11-05T18:28:34.273+05:00",
+            "username": "user-34"
+          }
+        ],
+        "mergeRequests": []
+      },
+      {
+        "projectId": 6,
+        "iid": 2660,
+        "title": "Issue 2660",
+        "state": "closed",
+        "closedOnReportDate": true,
+        "webUrl": "https://gitlab.example.com/group/project-6/-/issues/2660",
+        "labels": [
+          "label-1",
+          "priority::high",
+          "label-6",
+          "status::review",
+          "type::maintenance"
+        ],
+        "createdAt": "2026-10-30T04:12:33.094+05:00",
+        "assignees": [
+          "user-19"
+        ],
+        "status": "Done",
+        "actions": [
+          {
+            "kind": "commented",
+            "at": "2026-11-05T16:14:03.084+05:00",
+            "value": null,
+            "users": []
+          },
+          {
+            "kind": "description_changed",
+            "at": "2026-11-05T16:26:14.414+05:00",
+            "value": null,
+            "users": []
+          }
+        ],
+        "events": [
+          {
+            "id": 598689,
+            "projectId": 6,
+            "actionName": "commented on",
+            "targetType": "DiscussionNote",
+            "targetTitle": "Title",
+            "createdAt": "2026-11-05T16:14:03.326+05:00",
+            "noteBody": "comment"
+          }
+        ],
+        "notes": [
+          {
+            "id": 588401,
+            "body": "changed the description",
+            "authorUsername": "user-13",
+            "authorName": "user-13",
+            "createdAt": "2026-11-05T16:26:14.414+05:00",
+            "system": true,
+            "noteableType": "Issue",
+            "resolvable": false
+          },
+          {
+            "id": 588373,
+            "body": "system note",
+            "authorUsername": "user-19",
+            "authorName": "user-19",
+            "createdAt": "2026-11-05T16:16:15.607+05:00",
+            "system": true,
+            "noteableType": "Issue",
+            "resolvable": false
+          },
+          {
+            "id": 588372,
+            "body": "set status to **Done**",
+            "authorUsername": "user-19",
+            "authorName": "user-19",
+            "createdAt": "2026-11-05T16:16:11.299+05:00",
+            "system": true,
+            "noteableType": "Issue",
+            "resolvable": false
+          },
+          {
+            "id": 588367,
+            "body": "comment",
+            "authorUsername": "user-13",
+            "authorName": "user-13",
+            "createdAt": "2026-11-05T16:14:03.084+05:00",
+            "system": false,
+            "noteableType": "Issue",
+            "resolvable": true,
+            "resolved": false
+          }
+        ],
+        "labelEvents": [
+          {
+            "id": 265265,
+            "labelName": "status::review",
+            "action": "add",
+            "createdAt": "2026-11-05T15:16:06.636+05:00",
+            "username": "user-20"
+          },
+          {
+            "id": 265266,
+            "labelName": "status::todo",
+            "action": "remove",
+            "createdAt": "2026-11-05T15:16:06.636+05:00",
+            "username": "user-20"
+          }
+        ],
+        "mergeRequests": []
+      }
+    ],
+    "standaloneMergeRequests": [],
+    "standalonePushes": []
+  }
+}

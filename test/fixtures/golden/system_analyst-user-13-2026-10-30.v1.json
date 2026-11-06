@@ -1,0 +1,42 @@
+{
+  "issues": [
+    {
+      "projectId": 10,
+      "iid": 176,
+      "status": "CREATED",
+      "taskType": "CHORE"
+    },
+    {
+      "projectId": 10,
+      "iid": 175,
+      "status": "PLANNED_FEATURE",
+      "taskType": "FEATURE"
+    },
+    {
+      "projectId": 6,
+      "iid": 2660,
+      "status": "CREATED",
+      "taskType": "CHORE"
+    },
+    {
+      "projectId": 11,
+      "iid": 609,
+      "status": "PROVIDED_REQUIREMENTS",
+      "taskType": "CHORE"
+    },
+    {
+      "projectId": 6,
+      "iid": 2658,
+      "status": "COMMENTED",
+      "taskType": "CHORE"
+    },
+    {
+      "projectId": 6,
+      "iid": 2659,
+      "status": "COMMENTED",
+      "taskType": "CHORE"
+    }
+  ],
+  "standaloneMergeRequests": [],
+  "standalonePushes": []
+}

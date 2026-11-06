@@ -1,0 +1,42 @@
+{
+  "issues": [
+    {
+      "projectId": 16,
+      "iid": 42,
+      "status": "PUT_ON_HOLD",
+      "taskType": "FEATURE"
+    },
+    {
+      "projectId": 12,
+      "iid": 86,
+      "status": "CLOSED_WITHOUT_MERGE",
+      "taskType": "UNKNOWN"
+    },
+    {
+      "projectId": 12,
+      "iid": 87,
+      "status": "COMPLETED_BY_MERGE",
+      "taskType": "CHORE"
+    },
+    {
+      "projectId": 20,
+      "iid": 13,
+      "status": "IMPLEMENTED_FEATURE",
+      "taskType": "FEATURE"
+    },
+    {
+      "projectId": 8,
+      "iid": 685,
+      "status": "MERGED_OTHERS_WORK",
+      "taskType": "CHORE"
+    },
+    {
+      "projectId": 2,
+      "iid": 1002,
+      "status": "MERGED_OTHERS_WORK",
+      "taskType": "CHORE"
+    }
+  ],
+  "standaloneMergeRequests": [],
+  "standalonePushes": []
+}

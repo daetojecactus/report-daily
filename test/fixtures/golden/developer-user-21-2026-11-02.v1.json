@@ -1,0 +1,36 @@
+{
+  "issues": [
+    {
+      "projectId": 2,
+      "iid": 1001,
+      "status": "FIXED_BUG",
+      "taskType": "BUG"
+    },
+    {
+      "projectId": 12,
+      "iid": 78,
+      "status": "COMMENTED",
+      "taskType": "FEATURE"
+    },
+    {
+      "projectId": 12,
+      "iid": 85,
+      "status": "PUT_ON_HOLD",
+      "taskType": "FEATURE"
+    },
+    {
+      "projectId": 8,
+      "iid": 686,
+      "status": "APPROVED_MR",
+      "taskType": "FEATURE"
+    },
+    {
+      "projectId": 12,
+      "iid": 74,
+      "status": "PUT_ON_HOLD",
+      "taskType": "FEATURE"
+    }
+  ],
+  "standaloneMergeRequests": [],
+  "standalonePushes": []
+}
