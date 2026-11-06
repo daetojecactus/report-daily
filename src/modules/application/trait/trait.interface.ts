@@ -36,3 +36,19 @@ export interface TraitMappingInput {
   dimension: TraitDimension;
   value: TraitValue;
 }
+
+export interface TraitPair {
+  dimension: TraitDimension;
+  value: TraitValue;
+}
+
+export type TraitIndex = Map<string, TraitPair[]>;
+
+export interface TaskTraits {
+  workflowStates: WorkflowState[];
+  kinds: TaskKind[];
+  priority: Priority | null;
+  severity: Severity | null;
+  areas: TaskArea[];
+  flags: TaskFlag[];
+}
