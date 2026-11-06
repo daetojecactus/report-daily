@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ReportModule } from 'src/modules/application/report/report.module';
 import { SourceModule } from 'src/modules/application/source/source.module';
 import { UserModule } from 'src/modules/application/user/user.module';
 import { AppConfigModule } from 'src/modules/infrastructure/config/config.module';
@@ -9,7 +10,7 @@ import { PreviewRecorder } from './preview.recorder';
 import { PreviewService } from './preview.service';
 
 @Module({
-  imports: [AppConfigModule, DatabaseModule, RedisModule, UserModule, SourceModule],
+  imports: [AppConfigModule, DatabaseModule, RedisModule, UserModule, SourceModule, ReportModule],
   providers: [PreviewService, PreviewRecorder, PreviewAnonymizer],
 })
 export class PreviewModule {}

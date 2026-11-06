@@ -11,6 +11,10 @@ export const CLASSIFICATION_DATE_LENGTH = 10;
 
 export const CLASSIFICATION_APPROVED_NOTE = 'approved';
 
+export const CLASSIFICATION_NEW_BRANCH_ACTION = 'created';
+
+export const CLASSIFICATION_BRANCH_REF_TYPE = 'branch';
+
 export const CLASSIFICATION_TEST_COMMIT_PATTERN =
   /\b(test|tests|testing|e2e|spec|specs|autotest|autotests|pom|fixture|fixtures|cypress|playwright|selenium|тест|тесты|автотест|автотесты)\b/i;
 

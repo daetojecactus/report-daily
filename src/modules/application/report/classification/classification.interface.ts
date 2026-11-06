@@ -1,12 +1,18 @@
 import type { ItemState } from 'src/modules/application/source/source.enums';
 import type {
+  GroupedIssue,
+  GroupedMergeRequest,
+  SourceProject,
+  StandalonePush,
+} from 'src/modules/application/source/source.interface';
+import type {
   Priority,
   TaskFlag,
   TaskKind,
   WorkflowState,
 } from 'src/modules/application/trait/trait.enums';
 import type { JobRole } from 'src/modules/application/user/user.enums';
-import type { EngagementLevel, TaskRole } from './classification.enums';
+import type { ActivityAction, EngagementLevel, TaskRole } from './classification.enums';
 
 export interface ClassificationEmployee {
   username: string;
@@ -67,4 +73,28 @@ export interface TaskContextData {
 export interface EngagementResult {
   score: number;
   level: EngagementLevel;
+}
+
+export interface ClassificationResult {
+  action: ActivityAction;
+  kind: TaskKind | null;
+}
+
+export interface ClassifiedIssue extends GroupedIssue {
+  classification: ClassificationResult;
+}
+
+export interface ClassifiedMergeRequest extends GroupedMergeRequest {
+  classification: ClassificationResult;
+}
+
+export interface ClassifiedPush extends StandalonePush {
+  classification: ClassificationResult;
+}
+
+export interface ClassifiedDay {
+  projects: SourceProject[];
+  issues: ClassifiedIssue[];
+  standaloneMergeRequests: ClassifiedMergeRequest[];
+  standalonePushes: ClassifiedPush[];
 }

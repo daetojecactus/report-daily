@@ -23,6 +23,11 @@ import type { TraitRepository } from 'src/modules/application/trait/trait.reposi
 import { TraitService } from 'src/modules/application/trait/trait.service';
 import { JobRole } from 'src/modules/application/user/user.enums';
 import { ClassificationBuilder } from '../classification.builder';
+import { ClassificationResolver } from '../classification.resolver';
+import { DeveloperRules } from '../rules/developer.rules';
+import { ManagerRules } from '../rules/manager.rules';
+import { QaInternalRules } from '../rules/qa-internal.rules';
+import { QaRules } from '../rules/qa.rules';
 import { TaskContext } from '../classification.context';
 import { TaskRole } from '../classification.enums';
 import type { TaskContextData } from '../classification.interface';
@@ -79,6 +84,17 @@ export function createV1TraitIndex(): TraitIndex {
 
 export function createBuilder() {
   return new ClassificationBuilder(new TraitService({} as TraitRepository));
+}
+
+export function createResolver() {
+  const qaInternalRules = new QaInternalRules();
+  const developerRules = new DeveloperRules(qaInternalRules);
+  return new ClassificationResolver(
+    new ManagerRules(),
+    new QaRules(qaInternalRules, developerRules),
+    developerRules,
+    qaInternalRules,
+  );
 }
 
 export function createEvent(overrides: Partial<CleanEvent> = {}): CleanEvent {

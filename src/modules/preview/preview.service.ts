@@ -1,9 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import type {
+  ClassificationResult,
+  ClassifiedDay,
+  ClassifiedIssue,
+} from 'src/modules/application/report/classification/classification.interface';
+import { ClassificationService } from 'src/modules/application/report/classification/classification.service';
 import { Source } from 'src/modules/application/source/source.enums';
 import type {
   CleanEvent,
-  GroupedDailyData,
   GroupedIssue,
   GroupedMergeRequest,
   SourceAction,
@@ -21,6 +26,7 @@ export class PreviewService {
     private readonly userService: UserService,
     private readonly userSourceService: UserSourceService,
     private readonly sourceService: SourceService,
+    private readonly classificationService: ClassificationService,
   ) {}
 
   async describe(username: string, date: string) {
@@ -30,7 +36,12 @@ export class PreviewService {
       return null;
     }
     const timeZone = user.timezone ?? this.configService.get('APP_TIMEZONE', { infer: true });
-    const day = await this.sourceService.collect(account, date, timeZone);
+    const day = await this.classificationService.classify(
+      await this.sourceService.collect(account, date, timeZone),
+      account,
+      user.role,
+      date,
+    );
     return [
       [account.username, user.role, date, timeZone].join(' · '),
       `issues: ${day.issues.length}, merge requests without an issue: ${day.standaloneMergeRequests.length}, pushes without a merge request: ${day.standalonePushes.length}`,
@@ -38,7 +49,7 @@ export class PreviewService {
     ].join('\n');
   }
 
-  private describeDay(day: GroupedDailyData) {
+  private describeDay(day: ClassifiedDay) {
     const items = [...day.issues, ...day.standaloneMergeRequests, ...day.standalonePushes];
     return [...new Set(items.map((item) => item.projectId))].flatMap((projectId) => [
       '',
@@ -48,12 +59,15 @@ export class PreviewService {
         .flatMap((issue) => this.describeIssue(issue, PREVIEW_INDENT)),
       ...day.standaloneMergeRequests
         .filter((mergeRequest) => mergeRequest.projectId === projectId)
-        .flatMap((mergeRequest) => this.describeMergeRequest(mergeRequest, PREVIEW_INDENT)),
+        .flatMap((mergeRequest) =>
+          this.describeMergeRequest(mergeRequest, PREVIEW_INDENT, mergeRequest.classification),
+        ),
       ...day.standalonePushes
         .filter((push) => push.projectId === projectId)
         .flatMap((push) =>
           [
             `${PREVIEW_INDENT}Push ${push.branch}`,
+            `${PREVIEW_INDENT.repeat(2)}${this.describeClassification(push.classification)}`,
             `${PREVIEW_INDENT.repeat(2)}events: ${this.describeEvents(push.events)}`,
             this.describeCommits(push.events) &&
               `${PREVIEW_INDENT.repeat(2)}${this.describeCommits(push.events)}`,
@@ -62,10 +76,11 @@ export class PreviewService {
     ]);
   }
 
-  private describeIssue(issue: GroupedIssue, indent: string): string[] {
+  private describeIssue(issue: ClassifiedIssue, indent: string): string[] {
     const closed = issue.closedOnReportDate ? ', closed on the day' : '';
     return [
       `${indent}Issue #${issue.iid} ${issue.title} · ${issue.state}${closed}`,
+      `${indent}${PREVIEW_INDENT}${this.describeClassification(issue.classification)}`,
       ...this.describeDetails(issue, indent + PREVIEW_INDENT),
       ...issue.mergeRequests.flatMap((mergeRequest) =>
         this.describeMergeRequest(mergeRequest, indent + PREVIEW_INDENT),
@@ -73,13 +88,24 @@ export class PreviewService {
     ];
   }
 
-  private describeMergeRequest(mergeRequest: GroupedMergeRequest, indent: string): string[] {
+  private describeMergeRequest(
+    mergeRequest: GroupedMergeRequest,
+    indent: string,
+    classification?: ClassificationResult,
+  ): string[] {
     const draft = mergeRequest.draft ? ', draft' : '';
     const merged = mergeRequest.mergedOnReportDate ? ', merged on the day' : '';
     return [
       `${indent}MR !${mergeRequest.iid} ${mergeRequest.title} · ${mergeRequest.state}${draft}${merged} · ${mergeRequest.sourceBranch}`,
+      ...(classification
+        ? [`${indent}${PREVIEW_INDENT}${this.describeClassification(classification)}`]
+        : []),
       ...this.describeDetails(mergeRequest, indent + PREVIEW_INDENT),
     ];
+  }
+
+  private describeClassification({ action, kind }: ClassificationResult) {
+    return kind ? `action: ${action} (${kind})` : `action: ${action}`;
   }
 
   private describeDetails(item: GroupedIssue | GroupedMergeRequest, indent: string) {
