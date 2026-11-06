@@ -10,11 +10,7 @@ export function getFailureReason(error: unknown): string {
     return typeof error;
   }
   const { cause } = error;
-  if (
-    cause instanceof Error &&
-    'code' in cause &&
-    typeof cause.code === 'string'
-  ) {
+  if (cause instanceof Error && 'code' in cause && typeof cause.code === 'string') {
     return cause.code;
   }
   return error.name;

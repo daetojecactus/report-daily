@@ -13,15 +13,11 @@ export const ADMIN_MENU_DATA = [BotNamespace.ADMIN, AdminAction.MENU].join(
 export const ADMIN_SECTIONS = [
   {
     permission: Permission.USERS,
-    data: [BotNamespace.EMPLOYEES, EmployeesAction.LIST, 0].join(
-      BOT_BUTTON_DATA_SEPARATOR,
-    ),
+    data: [BotNamespace.EMPLOYEES, EmployeesAction.LIST, 0].join(BOT_BUTTON_DATA_SEPARATOR),
   },
   {
     permission: Permission.TRAITS,
-    data: [BotNamespace.TRAITS, TraitsAction.LIST, 0].join(
-      BOT_BUTTON_DATA_SEPARATOR,
-    ),
+    data: [BotNamespace.TRAITS, TraitsAction.LIST, 0].join(BOT_BUTTON_DATA_SEPARATOR),
   },
 ];
 

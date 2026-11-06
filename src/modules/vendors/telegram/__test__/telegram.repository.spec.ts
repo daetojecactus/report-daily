@@ -2,10 +2,7 @@ import { UnrecoverableError } from 'bullmq';
 import { assert, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { TelegramClient } from '../telegram.client';
 import { TelegramScopeType } from '../telegram.enums';
-import {
-  TelegramRejectedError,
-  TelegramRetryableError,
-} from '../telegram.error';
+import { TelegramRejectedError, TelegramRetryableError } from '../telegram.error';
 import type { TelegramMessageContent } from '../telegram.interface';
 import { TelegramRepository } from '../telegram.repository';
 import { TelegramParseMode } from '../telegram.enums';
@@ -41,9 +38,7 @@ async function catchError<T extends Error>(
 
 describe('TelegramRepository', () => {
   const client = { post: vi.fn<TelegramClient['post']>() };
-  const repository = new TelegramRepository(
-    client as unknown as TelegramClient,
-  );
+  const repository = new TelegramRepository(client as unknown as TelegramClient);
 
   beforeEach(() => {
     client.post.mockReset();
@@ -51,9 +46,7 @@ describe('TelegramRepository', () => {
   });
 
   it('sends a message to the chat and returns it', async () => {
-    client.post.mockResolvedValue(
-      respond(200, { ok: true, result: { message_id: 7 } }),
-    );
+    client.post.mockResolvedValue(respond(200, { ok: true, result: { message_id: 7 } }));
 
     expect(await repository.sendMessage(CHAT_ID, CONTENT)).toEqual({
       message_id: 7,
@@ -86,11 +79,7 @@ describe('TelegramRepository', () => {
   });
 
   it('sets commands for a scope in a language', async () => {
-    await repository.setMyCommands(
-      COMMANDS,
-      { type: TelegramScopeType.ALL_PRIVATE_CHATS },
-      'ru',
-    );
+    await repository.setMyCommands(COMMANDS, { type: TelegramScopeType.ALL_PRIVATE_CHATS }, 'ru');
 
     expect(client.post).toHaveBeenCalledExactlyOnceWith(
       'setMyCommands',
@@ -139,11 +128,7 @@ describe('TelegramRepository', () => {
   it('deletes the webhook', async () => {
     await repository.deleteWebhook();
 
-    expect(client.post).toHaveBeenCalledExactlyOnceWith(
-      'deleteWebhook',
-      {},
-      undefined,
-    );
+    expect(client.post).toHaveBeenCalledExactlyOnceWith('deleteWebhook', {}, undefined);
   });
 
   it('rejects a bad request with code and description', async () => {
@@ -155,10 +140,7 @@ describe('TelegramRepository', () => {
       }),
     );
 
-    const error = await catchError(
-      repository.sendMessage(CHAT_ID, CONTENT),
-      TelegramRejectedError,
-    );
+    const error = await catchError(repository.sendMessage(CHAT_ID, CONTENT), TelegramRejectedError);
 
     expect(error).toBeInstanceOf(UnrecoverableError);
     expect(error.code).toBe(400);
@@ -175,24 +157,16 @@ describe('TelegramRepository', () => {
       }),
     );
 
-    const error = await catchError(
-      repository.sendMessage(CHAT_ID, CONTENT),
-      TelegramRejectedError,
-    );
+    const error = await catchError(repository.sendMessage(CHAT_ID, CONTENT), TelegramRejectedError);
 
     expect(error.code).toBe(403);
     expect(error.description).toBe('Forbidden: bot was blocked by the user');
   });
 
   it('uses the HTTP status when the error code is missing', async () => {
-    client.post.mockResolvedValue(
-      respond(401, { ok: false, description: 'Unauthorized' }),
-    );
+    client.post.mockResolvedValue(respond(401, { ok: false, description: 'Unauthorized' }));
 
-    const error = await catchError(
-      repository.deleteWebhook(),
-      TelegramRejectedError,
-    );
+    const error = await catchError(repository.deleteWebhook(), TelegramRejectedError);
 
     expect(error.code).toBe(401);
     expect(error.description).toBe('Unauthorized');
@@ -235,9 +209,7 @@ describe('TelegramRepository', () => {
   });
 
   it('throws a retryable error on a 502 with an HTML body', async () => {
-    client.post.mockResolvedValue(
-      respond(502, '<html><body>502 Bad Gateway</body></html>'),
-    );
+    client.post.mockResolvedValue(respond(502, '<html><body>502 Bad Gateway</body></html>'));
 
     const error = await catchError(
       repository.sendMessage(CHAT_ID, CONTENT),

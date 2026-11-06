@@ -5,10 +5,7 @@ import {
 } from 'src/modules/vendors/gitlab/gitlab.enums';
 import { z } from 'zod';
 import { ItemState, LabelAction, SourceActionKind } from '../../source.enums';
-import type {
-  SourceNoteAction,
-  SourceUserChange,
-} from '../gitlab-source.interface';
+import type { SourceNoteAction, SourceUserChange } from '../gitlab-source.interface';
 
 export const GITLAB_SOURCE_ISSUE_TARGET_TYPES = new Set<string>([
   GitLabTargetType.ISSUE,
@@ -17,11 +14,7 @@ export const GITLAB_SOURCE_ISSUE_TARGET_TYPES = new Set<string>([
 
 export const GITLAB_SOURCE_BRANCH_ISSUE_PATTERN = /^(\d+)-/;
 
-export const GITLAB_SOURCE_MAIN_BRANCHES = new Set([
-  'main',
-  'master',
-  'develop',
-]);
+export const GITLAB_SOURCE_MAIN_BRANCHES = new Set(['main', 'master', 'develop']);
 
 export const GITLAB_SOURCE_KEY_SEPARATOR = ':';
 
@@ -94,10 +87,7 @@ export const GITLAB_SOURCE_ITEM_STATES: Record<GitLabState, ItemState> = {
   [GitLabState.REOPENED]: ItemState.OPENED,
 };
 
-export const GITLAB_SOURCE_LABEL_ACTIONS: Record<
-  GitLabLabelAction,
-  LabelAction
-> = {
+export const GITLAB_SOURCE_LABEL_ACTIONS: Record<GitLabLabelAction, LabelAction> = {
   [GitLabLabelAction.ADD]: LabelAction.ADD,
   [GitLabLabelAction.REMOVE]: LabelAction.REMOVE,
 };

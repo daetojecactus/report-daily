@@ -61,17 +61,10 @@ describe('Trait module', () => {
       toMapping('type::e2e', TraitDimension.TASK_KIND, TaskKind.MAINTENANCE),
     );
     await traitService.create(
-      toMapping(
-        'Type::E2E',
-        TraitDimension.TASK_KIND,
-        TaskKind.TEST_AUTOMATION,
-        JobRole.QA,
-      ),
+      toMapping('Type::E2E', TraitDimension.TASK_KIND, TaskKind.TEST_AUTOMATION, JobRole.QA),
     );
 
-    expect(
-      await traitService.find(eq(traitMappings.sourceKey, 'type::e2e')),
-    ).toHaveLength(2);
+    expect(await traitService.find(eq(traitMappings.sourceKey, 'type::e2e'))).toHaveLength(2);
   });
 
   it('keeps one row per label, dimension and role', async () => {
@@ -79,18 +72,11 @@ describe('Trait module', () => {
       toMapping('type::e2e', TraitDimension.TASK_KIND, TaskKind.MAINTENANCE),
     );
     await traitService.create(
-      toMapping(
-        'type::e2e',
-        TraitDimension.TASK_KIND,
-        TaskKind.TEST_AUTOMATION,
-        JobRole.QA,
-      ),
+      toMapping('type::e2e', TraitDimension.TASK_KIND, TaskKind.TEST_AUTOMATION, JobRole.QA),
     );
 
     await expect(
-      traitService.create(
-        toMapping('Type::E2E', TraitDimension.TASK_KIND, TaskKind.FEATURE),
-      ),
+      traitService.create(toMapping('Type::E2E', TraitDimension.TASK_KIND, TaskKind.FEATURE)),
     ).rejects.toMatchObject({
       cause: {
         constraint: 'trait_mappings_source_source_key_dimension_role_unique',
@@ -98,12 +84,7 @@ describe('Trait module', () => {
     });
     await expect(
       traitService.create(
-        toMapping(
-          'type::e2e',
-          TraitDimension.TASK_KIND,
-          TaskKind.FEATURE,
-          JobRole.QA,
-        ),
+        toMapping('type::e2e', TraitDimension.TASK_KIND, TaskKind.FEATURE, JobRole.QA),
       ),
     ).rejects.toMatchObject({
       cause: {
@@ -119,9 +100,7 @@ describe('Trait module', () => {
       ),
     ).toMatchObject({ value: Severity.CRITICAL });
     expect(
-      await traitService.create(
-        toMapping('frontend', TraitDimension.AREA, TaskArea.FRONTEND),
-      ),
+      await traitService.create(toMapping('frontend', TraitDimension.AREA, TaskArea.FRONTEND)),
     ).toMatchObject({ value: TaskArea.FRONTEND });
 
     for (const [dimension, value] of [
@@ -139,31 +118,18 @@ describe('Trait module', () => {
 
   it('lists every label once with its value for everyone first', async () => {
     await traitService.create(
-      toMapping(
-        'Status::Easy',
-        TraitDimension.FLAG,
-        TaskFlag.REGRESSION,
-        JobRole.QA,
-      ),
+      toMapping('Status::Easy', TraitDimension.FLAG, TaskFlag.REGRESSION, JobRole.QA),
     );
-    await traitService.create(
-      toMapping('status::easy', TraitDimension.PRIORITY, Priority.LOW),
-    );
-    await traitService.create(
-      toMapping('type::bug', TraitDimension.TASK_KIND, TaskKind.BUG),
-    );
+    await traitService.create(toMapping('status::easy', TraitDimension.PRIORITY, Priority.LOW));
+    await traitService.create(toMapping('type::bug', TraitDimension.TASK_KIND, TaskKind.BUG));
 
     expect(await traitService.countSourceNames()).toBe(2);
     expect(await traitService.findSourceNamePage(8, 0)).toMatchObject([
       { sourceKey: 'status::easy', role: null, value: Priority.LOW },
       { sourceKey: 'type::bug', value: TaskKind.BUG },
     ]);
-    expect(await traitService.findSourceNamePage(1, 1)).toMatchObject([
-      { sourceKey: 'type::bug' },
-    ]);
-    expect(
-      await traitService.findByKey(Source.GITLAB, 'status::easy'),
-    ).toHaveLength(2);
+    expect(await traitService.findSourceNamePage(1, 1)).toMatchObject([{ sourceKey: 'type::bug' }]);
+    expect(await traitService.findByKey(Source.GITLAB, 'status::easy')).toHaveLength(2);
   });
 
   it('adds a value once and keeps the label as entered', async () => {
@@ -181,9 +147,7 @@ describe('Trait module', () => {
       sourceKey: 'status::easy',
     });
     expect(await traitService.addValue(input)).toBeNull();
-    expect(
-      await traitService.findByKey(Source.GITLAB, 'status::easy'),
-    ).toHaveLength(1);
+    expect(await traitService.findByKey(Source.GITLAB, 'status::easy')).toHaveLength(1);
   });
 
   it('changes a value only to one of its group', async () => {
@@ -191,12 +155,10 @@ describe('Trait module', () => {
       toMapping('status::easy', TraitDimension.PRIORITY, Priority.LOW),
     );
 
-    expect(
-      await traitService.changeValue(mapping.id, Priority.HIGH),
-    ).toMatchObject({ value: Priority.HIGH });
-    await expect(
-      traitService.changeValue(mapping.id, WorkflowState.REVIEW),
-    ).rejects.toMatchObject({
+    expect(await traitService.changeValue(mapping.id, Priority.HIGH)).toMatchObject({
+      value: Priority.HIGH,
+    });
+    await expect(traitService.changeValue(mapping.id, WorkflowState.REVIEW)).rejects.toMatchObject({
       cause: { constraint: 'trait_mappings_dimension_value' },
     });
   });
@@ -206,48 +168,29 @@ describe('Trait module', () => {
       toMapping('status::easy', TraitDimension.PRIORITY, Priority.LOW),
     );
     await traitService.create(
-      toMapping(
-        'status::easy',
-        TraitDimension.FLAG,
-        TaskFlag.REGRESSION,
-        JobRole.QA,
-      ),
+      toMapping('status::easy', TraitDimension.FLAG, TaskFlag.REGRESSION, JobRole.QA),
     );
-    await traitService.create(
-      toMapping('type::bug', TraitDimension.TASK_KIND, TaskKind.BUG),
-    );
+    await traitService.create(toMapping('type::bug', TraitDimension.TASK_KIND, TaskKind.BUG));
 
     expect(await traitService.deleteById(first.id)).toMatchObject({
       id: first.id,
     });
-    expect(
-      await traitService.findByKey(Source.GITLAB, 'status::easy'),
-    ).toHaveLength(1);
-    expect(
-      await traitService.deleteByKey(Source.GITLAB, 'status::easy'),
-    ).toHaveLength(1);
-    expect(await traitService.findByKey(Source.GITLAB, 'status::easy')).toEqual(
-      [],
-    );
-    expect(
-      await traitService.findByKey(Source.GITLAB, 'type::bug'),
-    ).toHaveLength(1);
+    expect(await traitService.findByKey(Source.GITLAB, 'status::easy')).toHaveLength(1);
+    expect(await traitService.deleteByKey(Source.GITLAB, 'status::easy')).toHaveLength(1);
+    expect(await traitService.findByKey(Source.GITLAB, 'status::easy')).toEqual([]);
+    expect(await traitService.findByKey(Source.GITLAB, 'type::bug')).toHaveLength(1);
   });
 
   it('limits the label to 1-255 characters', async () => {
     for (const label of ['', 'a'.repeat(256)]) {
       await expect(
-        traitService.create(
-          toMapping(label, TraitDimension.TASK_KIND, TaskKind.BUG),
-        ),
+        traitService.create(toMapping(label, TraitDimension.TASK_KIND, TaskKind.BUG)),
       ).rejects.toMatchObject({
         cause: { constraint: 'trait_mappings_source_name_length' },
       });
     }
     expect(
-      await traitService.create(
-        toMapping('a'.repeat(255), TraitDimension.TASK_KIND, TaskKind.BUG),
-      ),
+      await traitService.create(toMapping('a'.repeat(255), TraitDimension.TASK_KIND, TaskKind.BUG)),
     ).toMatchObject({ sourceName: 'a'.repeat(255) });
   });
 });

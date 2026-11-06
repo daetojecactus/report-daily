@@ -15,14 +15,9 @@ import { TraitAddAction } from '../trait-add.enums';
 
 export const TRAIT_ADD_EVERYONE = 'all';
 
-export const TRAIT_ADD_BUTTONS_PER_ROW = 2;
-
 const NAMESPACE_SCHEMA = z.literal(BotNamespace.TRAIT_ADD);
 
-export const TRAIT_ADD_VALUE_SCHEMAS: Record<
-  TraitDimension,
-  z.ZodType<TraitValue>
-> = {
+export const TRAIT_ADD_VALUE_SCHEMAS: Record<TraitDimension, z.ZodType<TraitValue>> = {
   [TraitDimension.WORKFLOW_STATE]: z.enum(WorkflowState),
   [TraitDimension.TASK_KIND]: z.enum(TaskKind),
   [TraitDimension.PRIORITY]: z.enum(Priority),
@@ -52,18 +47,10 @@ export const TRAIT_ADD_BUTTON_SCHEMA = z.union([
     .tuple([NAMESPACE_SCHEMA, z.literal(TraitAddAction.DIMENSIONS)])
     .transform(([, action]) => ({ action })),
   z
-    .tuple([
-      NAMESPACE_SCHEMA,
-      z.literal(TraitAddAction.DIMENSION),
-      z.enum(TraitDimension),
-    ])
+    .tuple([NAMESPACE_SCHEMA, z.literal(TraitAddAction.DIMENSION), z.enum(TraitDimension)])
     .transform(([, action, dimension]) => ({ action, dimension })),
   z
-    .tuple([
-      NAMESPACE_SCHEMA,
-      z.literal(TraitAddAction.VALUE),
-      z.string().min(1),
-    ])
+    .tuple([NAMESPACE_SCHEMA, z.literal(TraitAddAction.VALUE), z.string().min(1)])
     .transform(([, action, value]) => ({ action, value })),
   z
     .tuple([NAMESPACE_SCHEMA, z.literal(TraitAddAction.CANCEL)])

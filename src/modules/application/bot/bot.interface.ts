@@ -3,10 +3,7 @@ import type { Channel } from 'src/common/enums/channel.enums';
 import type { Permission } from 'src/modules/application/user/user.enums';
 import type { Language } from 'src/modules/application/i18n/i18n.enums';
 import type { Locale } from 'src/modules/application/i18n/i18n.interface';
-import type {
-  ChatInput,
-  Screen,
-} from 'src/common/interfaces/chat-channel.interface';
+import type { ChatInput, Screen } from 'src/common/interfaces/chat-channel.interface';
 import type { User } from 'src/modules/application/user/user.interface';
 import type { BotAccess } from './bot.enums';
 

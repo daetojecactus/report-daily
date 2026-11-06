@@ -80,10 +80,7 @@ export interface SourceBuildContext {
   pushCommits: Map<number, GitLabCommit[]>;
 }
 
-export type SourceDayIndex = Record<
-  string,
-  { issues: number[]; mergeRequests: number[] }
->;
+export type SourceDayIndex = Record<string, { issues: number[]; mergeRequests: number[] }>;
 
 export interface SourceHiddenItems {
   issues: SourceItem[];

@@ -31,15 +31,12 @@ describe('GitLabService', () => {
   it.each([
     [{ id: 1 }, true],
     [null, false],
-  ])(
-    'reports visible activity for the last event %j',
-    async (event, isVisible) => {
-      repository.findLastUserEvent.mockResolvedValue(event);
+  ])('reports visible activity for the last event %j', async (event, isVisible) => {
+    repository.findLastUserEvent.mockResolvedValue(event);
 
-      expect(await service.hasVisibleActivity(7)).toBe(isVisible);
-      expect(repository.findLastUserEvent).toHaveBeenCalledWith(7);
-    },
-  );
+    expect(await service.hasVisibleActivity(7)).toBe(isVisible);
+    expect(repository.findLastUserEvent).toHaveBeenCalledWith(7);
+  });
 
   function push(overrides: Partial<GitLabPushData> = {}): GitLabPushData {
     return {
@@ -55,25 +52,19 @@ describe('GitLabService', () => {
   }
 
   it('finds the commits of a push from the oldest to the newest', async () => {
-    repository.findCommits.mockResolvedValue([
-      { id: 'ccc' },
-      { id: 'bbb' },
-      { id: 'aaa' },
-    ]);
+    repository.findCommits.mockResolvedValue([{ id: 'ccc' }, { id: 'bbb' }, { id: 'aaa' }]);
 
-    expect(await service.findPushCommits(3, push())).toEqual([
-      { id: 'bbb' },
-      { id: 'ccc' },
-    ]);
+    expect(await service.findPushCommits(3, push())).toEqual([{ id: 'bbb' }, { id: 'ccc' }]);
     expect(repository.findCommits).toHaveBeenCalledWith(3, 'ccc', 2);
   });
 
   it('takes the commits of a new branch up to the count', async () => {
     repository.findCommits.mockResolvedValue([{ id: 'ccc' }, { id: 'bbb' }]);
 
-    expect(
-      await service.findPushCommits(3, push({ commit_from: null })),
-    ).toEqual([{ id: 'bbb' }, { id: 'ccc' }]);
+    expect(await service.findPushCommits(3, push({ commit_from: null }))).toEqual([
+      { id: 'bbb' },
+      { id: 'ccc' },
+    ]);
   });
 
   it('asks for at most one page of commits', async () => {
@@ -100,14 +91,8 @@ describe('GitLabService', () => {
       { project_id: 3 },
     ]);
 
-    expect(await service.findRecentProjectIds(7, '2026-11-05', 30)).toEqual([
-      3, 4,
-    ]);
-    expect(repository.findUserEvents).toHaveBeenCalledWith(
-      7,
-      '2026-10-06',
-      '2026-11-07',
-    );
+    expect(await service.findRecentProjectIds(7, '2026-11-05', 30)).toEqual([3, 4]);
+    expect(repository.findUserEvents).toHaveBeenCalledWith(7, '2026-10-06', '2026-11-07');
   });
 
   it('asks for the events from two days before to two days after the date', async () => {
@@ -115,11 +100,7 @@ describe('GitLabService', () => {
     repository.findUserEvents.mockResolvedValue(events);
 
     expect(await service.findUserEventsAround(7, '2026-11-01')).toBe(events);
-    expect(repository.findUserEvents).toHaveBeenCalledWith(
-      7,
-      '2026-10-30',
-      '2026-11-03',
-    );
+    expect(repository.findUserEvents).toHaveBeenCalledWith(7, '2026-10-30', '2026-11-03');
   });
 
   it.each([
@@ -133,19 +114,10 @@ describe('GitLabService', () => {
       () => service.findMergeRequestByBranch(3, '12-login'),
       [3, '12-login'],
     ],
-    [
-      'findIssuesClosedOnMerge',
-      () => service.findIssuesClosedOnMerge(3, 5),
-      [3, 5],
-    ],
+    ['findIssuesClosedOnMerge', () => service.findIssuesClosedOnMerge(3, 5), [3, 5]],
     [
       'findUpdatedItems',
-      () =>
-        service.findUpdatedItems(
-          GitLabIssuable.ISSUES,
-          3,
-          '2026-11-03T19:00:00.000Z',
-        ),
+      () => service.findUpdatedItems(GitLabIssuable.ISSUES, 3, '2026-11-03T19:00:00.000Z'),
       [GitLabIssuable.ISSUES, 3, '2026-11-03T19:00:00.000Z'],
     ],
     [
@@ -163,11 +135,7 @@ describe('GitLabService', () => {
       () => service.findStateEvents(GitLabIssuable.MERGE_REQUESTS, 3, 5),
       [GitLabIssuable.MERGE_REQUESTS, 3, 5],
     ],
-    [
-      'findMergeRequestCommits',
-      () => service.findMergeRequestCommits(3, 5),
-      [3, 5],
-    ],
+    ['findMergeRequestCommits', () => service.findMergeRequestCommits(3, 5), [3, 5]],
   ] as const)('passes %s to the repository', async (method, call, args) => {
     const result = { found: method };
     repository[method].mockResolvedValue(result);

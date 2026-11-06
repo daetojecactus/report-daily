@@ -22,11 +22,7 @@ export class DialogService {
   }
 
   save(actor: BotActor, dialog: BotDialog) {
-    return this.redisService.set(
-      this.getKey(actor),
-      JSON.stringify(dialog),
-      BOT_DIALOG_TTL_MS,
-    );
+    return this.redisService.set(this.getKey(actor), JSON.stringify(dialog), BOT_DIALOG_TTL_MS);
   }
 
   delete(actor: BotActor) {
@@ -34,8 +30,6 @@ export class DialogService {
   }
 
   private getKey(actor: BotActor) {
-    return [BOT_DIALOG_KEY_PREFIX, actor.channel, actor.externalId].join(
-      BOT_KEY_SEPARATOR,
-    );
+    return [BOT_DIALOG_KEY_PREFIX, actor.channel, actor.externalId].join(BOT_KEY_SEPARATOR);
   }
 }

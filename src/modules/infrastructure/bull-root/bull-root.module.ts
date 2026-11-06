@@ -2,10 +2,7 @@ import { BullModule } from '@nestjs/bullmq';
 import { Global, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { AppEnvs } from '../config/config.env';
-import {
-  QUEUE_DEFAULT_JOB_OPTIONS,
-  QUEUE_KEY_PREFIX,
-} from './constants/bull-root.constants';
+import { QUEUE_DEFAULT_JOB_OPTIONS, QUEUE_KEY_PREFIX } from './constants/bull-root.constants';
 
 @Global()
 @Module({

@@ -6,11 +6,7 @@ import { Language } from 'src/modules/application/i18n/i18n.enums';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
 import type { UserChannel } from 'src/modules/application/user/channel/channel.interface';
 import type { ChannelService } from 'src/modules/application/user/channel/channel.service';
-import {
-  JobRole,
-  Permission,
-  UserStatus,
-} from 'src/modules/application/user/user.enums';
+import { JobRole, Permission, UserStatus } from 'src/modules/application/user/user.enums';
 import type { User } from 'src/modules/application/user/user.interface';
 import type { UserService } from 'src/modules/application/user/user.service';
 import type { UserSource } from 'src/modules/application/user/user-source/user-source.interface';
@@ -18,10 +14,7 @@ import type { UserSourceService } from 'src/modules/application/user/user-source
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { AccessService } from '../../access/access.service';
 import type { BotActor, BotDialog } from '../../bot.interface';
-import {
-  createEmployee,
-  createSourceAccount,
-} from '../../__test__/bot.fixture';
+import { createEmployee, createSourceAccount } from '../../__test__/bot.fixture';
 import { EmployeesHandler } from '../employees.handler';
 
 const locale = new I18nService().getLocale(Language.EN);
@@ -68,11 +61,7 @@ describe('EmployeesHandler', () => {
     ),
   );
 
-  function open(
-    input: ChatInput,
-    dialog: BotDialog | null = null,
-    actor: Partial<BotActor> = {},
-  ) {
+  function open(input: ChatInput, dialog: BotDialog | null = null, actor: Partial<BotActor> = {}) {
     return handler.handle({
       actor: {
         channel: Channel.TELEGRAM,
@@ -133,9 +122,7 @@ describe('EmployeesHandler', () => {
 
     expect(userService.findPage).toHaveBeenCalledWith(8, 8);
     expect(screen.text).toBe('**Employees** · 10\nPage 2 of 2');
-    expect(screen.buttons?.[2]).toEqual([
-      { text: '‹ Back', data: 'emp:list:0' },
-    ]);
+    expect(screen.buttons?.[2]).toEqual([{ text: '‹ Back', data: 'emp:list:0' }]);
   });
 
   it('shows an empty list', async () => {
@@ -222,9 +209,7 @@ describe('EmployeesHandler', () => {
 
     const { screen } = await open(button(`emp:card:${user.id}:3`));
 
-    expect(screen.buttons?.[0]).toEqual([
-      { text: 'Bind Telegram', data: `bind:start:${user.id}` },
-    ]);
+    expect(screen.buttons?.[0]).toEqual([{ text: 'Bind Telegram', data: `bind:start:${user.id}` }]);
   });
 
   it('offers to unblock a blocked employee', async () => {
@@ -255,11 +240,7 @@ describe('EmployeesHandler', () => {
     userService.findById.mockResolvedValue(user);
     channelService.findByUser.mockResolvedValue([createEmployee().channel]);
 
-    const { screen } = await open(
-      button(`emp:card:${user.id}:0`),
-      null,
-      toActor(user),
-    );
+    const { screen } = await open(button(`emp:card:${user.id}:0`), null, toActor(user));
 
     expect(screen.buttons).toEqual([
       [{ text: 'Change role', data: `mng:role:${user.id}` }],
@@ -318,38 +299,28 @@ describe('EmployeesHandler', () => {
   });
 
   it('shows the first ten matches and asks to refine the query', async () => {
-    userService.search.mockResolvedValue(
-      Array.from({ length: 11 }, (_, index) => employee(index)),
-    );
+    userService.search.mockResolvedValue(Array.from({ length: 11 }, (_, index) => employee(index)));
 
     const { screen } = await open(text('employee'), SEARCH_DIALOG);
 
-    expect(screen.text).toBe(
-      '**Search:** employee\nShowing the first 10, refine the search.',
-    );
+    expect(screen.text).toBe('**Search:** employee\nShowing the first 10, refine the search.');
     expect(screen.buttons).toHaveLength(11);
   });
 
-  it.each(['   ', '@', 'x'.repeat(65)])(
-    'asks again for the query %j',
-    async (query) => {
-      const { screen, dialog } = await open(text(query), SEARCH_DIALOG);
+  it.each(['   ', '@', 'x'.repeat(65)])('asks again for the query %j', async (query) => {
+    const { screen, dialog } = await open(text(query), SEARCH_DIALOG);
 
-      expect(userService.search).not.toHaveBeenCalled();
-      expect(screen.text).toBe(locale.employees.searchPrompt);
-      expect(dialog).toEqual(SEARCH_DIALOG);
+    expect(userService.search).not.toHaveBeenCalled();
+    expect(screen.text).toBe(locale.employees.searchPrompt);
+    expect(dialog).toEqual(SEARCH_DIALOG);
+  });
+
+  it.each(['emp:card:not-a-uuid:0', 'emp:list:x', 'emp:list:', 'emp:list:1:2', 'emp:delete:1'])(
+    'answers the outdated button %s',
+    async (data) => {
+      expect((await open(button(data))).screen).toEqual({
+        text: locale.bot.expired,
+      });
     },
   );
-
-  it.each([
-    'emp:card:not-a-uuid:0',
-    'emp:list:x',
-    'emp:list:',
-    'emp:list:1:2',
-    'emp:delete:1',
-  ])('answers the outdated button %s', async (data) => {
-    expect((await open(button(data))).screen).toEqual({
-      text: locale.bot.expired,
-    });
-  });
 });

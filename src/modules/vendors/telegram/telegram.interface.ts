@@ -85,9 +85,7 @@ export interface TelegramMessageContent {
   parse_mode: TelegramParseMode;
   link_preview_options: { is_disabled: boolean };
   reply_markup?:
-    | TelegramInlineKeyboardMarkup
-    | TelegramReplyKeyboardMarkup
-    | TelegramReplyKeyboardRemove;
+    TelegramInlineKeyboardMarkup | TelegramReplyKeyboardMarkup | TelegramReplyKeyboardRemove;
 }
 
 export interface TelegramBotCommand {
@@ -96,5 +94,4 @@ export interface TelegramBotCommand {
 }
 
 export type TelegramCommandScope =
-  | { type: TelegramScopeType.ALL_PRIVATE_CHATS }
-  | { type: TelegramScopeType.CHAT; chat_id: string };
+  { type: TelegramScopeType.ALL_PRIVATE_CHATS } | { type: TelegramScopeType.CHAT; chat_id: string };

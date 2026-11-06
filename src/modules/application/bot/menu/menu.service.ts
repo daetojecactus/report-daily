@@ -1,15 +1,7 @@
-import {
-  Inject,
-  Injectable,
-  Logger,
-  type OnApplicationBootstrap,
-} from '@nestjs/common';
+import { Inject, Injectable, Logger, type OnApplicationBootstrap } from '@nestjs/common';
 import { Language } from 'src/modules/application/i18n/i18n.enums';
 import type { Locale } from 'src/modules/application/i18n/i18n.interface';
-import type {
-  ChatChannel,
-  ChatCommand,
-} from 'src/common/interfaces/chat-channel.interface';
+import type { ChatChannel, ChatCommand } from 'src/common/interfaces/chat-channel.interface';
 import { getErrorMessage } from 'src/common/utils/error.util';
 import { DEFAULT_LANGUAGE } from 'src/modules/application/i18n/constants/i18n.constants';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
@@ -53,18 +45,13 @@ export class MenuService implements OnApplicationBootstrap {
   }
 
   async syncChat(actor: BotActor) {
-    const commands = this.listCommands(
-      actor,
-      this.i18nService.getLocale(actor.language),
-    );
+    const commands = this.listCommands(actor, this.i18nService.getLocale(actor.language));
     try {
       await this.channels
         .find((channel) => channel.channel === actor.channel)
         ?.setChatCommands(actor.chatId, commands);
     } catch (error) {
-      this.logger.warn(
-        `${BotMessages.MENU_SYNC_FAILED}: ${getErrorMessage(error)}`,
-      );
+      this.logger.warn(`${BotMessages.MENU_SYNC_FAILED}: ${getErrorMessage(error)}`);
     }
   }
 
@@ -79,17 +66,13 @@ export class MenuService implements OnApplicationBootstrap {
         }
       }
     } catch (error) {
-      this.logger.warn(
-        `${BotMessages.MENU_SYNC_FAILED}: ${getErrorMessage(error)}`,
-      );
+      this.logger.warn(`${BotMessages.MENU_SYNC_FAILED}: ${getErrorMessage(error)}`);
     }
   }
 
   private listPublicCommands(locale: Locale) {
     return this.toCommands(
-      this.routerService
-        .listMenu()
-        .filter(({ access }) => access === BotAccess.ANYONE),
+      this.routerService.listMenu().filter(({ access }) => access === BotAccess.ANYONE),
       locale,
     );
   }

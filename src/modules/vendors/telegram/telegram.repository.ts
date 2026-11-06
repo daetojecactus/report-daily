@@ -10,10 +10,7 @@ import {
 import { TelegramMessages } from './constants/telegram.messages';
 import { TelegramClient } from './telegram.client';
 import { TelegramMethod } from './telegram.enums';
-import {
-  TelegramRejectedError,
-  TelegramRetryableError,
-} from './telegram.error';
+import { TelegramRejectedError, TelegramRetryableError } from './telegram.error';
 import type {
   TelegramBotCommand,
   TelegramCallOptions,
@@ -39,8 +36,7 @@ export class TelegramRepository {
       },
       {
         signal,
-        timeoutMs:
-          TELEGRAM_POLL_TIMEOUT_SECONDS * 1000 + TELEGRAM_REQUEST_TIMEOUT_MS,
+        timeoutMs: TELEGRAM_POLL_TIMEOUT_SECONDS * 1000 + TELEGRAM_REQUEST_TIMEOUT_MS,
       },
     );
   }
@@ -56,11 +52,7 @@ export class TelegramRepository {
     });
   }
 
-  async editMessageText(
-    chatId: string,
-    messageId: number,
-    content: TelegramMessageContent,
-  ) {
+  async editMessageText(chatId: string, messageId: number, content: TelegramMessageContent) {
     await this.call(TelegramMethod.EDIT_MESSAGE_TEXT, {
       chat_id: chatId,
       message_id: messageId,
@@ -100,10 +92,7 @@ export class TelegramRepository {
     const code = body.error_code ?? response.status;
     const message = `${TelegramMessages.API_ERROR}: ${method}: ${code} ${body.description ?? ''}`;
     if (code === TELEGRAM_TOO_MANY_REQUESTS || code >= TELEGRAM_SERVER_ERROR) {
-      throw new TelegramRetryableError(
-        message,
-        body.parameters?.retry_after ?? null,
-      );
+      throw new TelegramRetryableError(message, body.parameters?.retry_after ?? null);
     }
     throw new TelegramRejectedError(message, code, body.description ?? '');
   }

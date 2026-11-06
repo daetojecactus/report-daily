@@ -21,7 +21,7 @@ export interface TraitValueText {
   description: string;
 }
 
-export interface Locale {
+export interface CommonLocale {
   channels: Record<Channel, string>;
   sources: Record<Source, string>;
   languages: Record<Language, string>;
@@ -74,13 +74,13 @@ export interface Locale {
     on: string;
     off: string;
   };
+}
+
+export interface TraitsLocale {
   traits: {
     dimensions: Record<TraitDimension, string>;
     values: {
-      [Dimension in TraitDimension]: Record<
-        TraitDimensionValueMap[Dimension],
-        TraitValueText
-      >;
+      [Dimension in TraitDimension]: Record<TraitDimensionValueMap[Dimension], TraitValueText>;
     };
   };
   traitList: {
@@ -98,12 +98,7 @@ export interface Locale {
     drop: string;
   };
   traitManage: {
-    askValue: (
-      label: string,
-      whom: string,
-      dimension: string,
-      value: string,
-    ) => string;
+    askValue: (label: string, whom: string, dimension: string, value: string) => string;
     deleteValue: string;
     back: string;
     changed: (label: string, whom: string, value: string) => string;
@@ -132,6 +127,9 @@ export interface Locale {
     cancel: string;
     cancelled: string;
   };
+}
+
+export interface EmployeesLocale {
   employees: {
     title: (count: number) => string;
     page: (page: number, pages: number) => string;
@@ -213,3 +211,5 @@ export interface Locale {
     cancelled: string;
   };
 }
+
+export type Locale = CommonLocale & TraitsLocale & EmployeesLocale;

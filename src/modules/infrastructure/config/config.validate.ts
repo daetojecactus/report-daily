@@ -8,12 +8,8 @@ export function validateEnv(config: Record<string, unknown>): AppEnvs {
   const errors = validateSync(env, { whitelist: true });
 
   if (errors.length > 0) {
-    const messages = errors.flatMap((error) =>
-      Object.values(error.constraints ?? {}),
-    );
-    throw new Error(
-      `${ConfigMessages.ENV_VALIDATION_FAILED}:\n${messages.join('\n')}`,
-    );
+    const messages = errors.flatMap((error) => Object.values(error.constraints ?? {}));
+    throw new Error(`${ConfigMessages.ENV_VALIDATION_FAILED}:\n${messages.join('\n')}`);
   }
 
   return env;

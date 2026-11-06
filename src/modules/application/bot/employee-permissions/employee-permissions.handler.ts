@@ -8,12 +8,7 @@ import type { User } from 'src/modules/application/user/user.interface';
 import { UserService } from 'src/modules/application/user/user.service';
 import { BotSection } from '../bot.decorator';
 import { BotAccess, BotNamespace } from '../bot.enums';
-import type {
-  BotActor,
-  BotContext,
-  BotHandler,
-  BotReply,
-} from '../bot.interface';
+import type { BotActor, BotContext, BotHandler, BotReply } from '../bot.interface';
 import { BOT_BUTTON_DATA_SEPARATOR } from '../constants/bot.constants';
 import { EmployeesAction } from '../employees/employees.enums';
 import { MenuService } from '../menu/menu.service';
@@ -73,17 +68,11 @@ export class EmployeePermissionsHandler implements BotHandler {
       ? await this.userService.grantPermission(user.id, permission)
       : await this.userService.revokePermission(user.id, permission);
     if (!updated) {
-      return this.show(
-        locale,
-        (await this.userService.findById(user.id)) ?? user,
-      );
+      return this.show(locale, (await this.userService.findById(user.id)) ?? user);
     }
 
     this.log(actor, updated, permission, isGrant);
-    await this.menuService.syncEmployee(
-      updated,
-      await this.channelService.findByUser(updated.id),
-    );
+    await this.menuService.syncEmployee(updated, await this.channelService.findByUser(updated.id));
     return this.show(locale, updated);
   }
 
@@ -108,9 +97,7 @@ export class EmployeePermissionsHandler implements BotHandler {
                 text: `${locale.permissions[permission]}: ${isGranted ? employeePermissions.granted : employeePermissions.revoked}`,
                 data: [
                   BotNamespace.EMPLOYEE_PERMISSIONS,
-                  isGranted
-                    ? EmployeePermissionsAction.REVOKE
-                    : EmployeePermissionsAction.GRANT,
+                  isGranted ? EmployeePermissionsAction.REVOKE : EmployeePermissionsAction.GRANT,
                   user.id,
                   permission,
                 ].join(BOT_BUTTON_DATA_SEPARATOR),
@@ -129,12 +116,7 @@ export class EmployeePermissionsHandler implements BotHandler {
     };
   }
 
-  private log(
-    actor: BotActor,
-    user: User,
-    permission: Permission,
-    isGrant: boolean,
-  ) {
+  private log(actor: BotActor, user: User, permission: Permission, isGrant: boolean) {
     this.logger.log(
       {
         userId: user.id,

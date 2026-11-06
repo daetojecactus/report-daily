@@ -7,10 +7,7 @@ import { I18nService } from 'src/modules/application/i18n/i18n.service';
 import type { UserChannel } from 'src/modules/application/user/channel/channel.interface';
 import type { ChannelService } from 'src/modules/application/user/channel/channel.service';
 import { Gender } from 'src/modules/application/user/user.enums';
-import type {
-  User,
-  UserSettingsUpdate,
-} from 'src/modules/application/user/user.interface';
+import type { User, UserSettingsUpdate } from 'src/modules/application/user/user.interface';
 import type { UserService } from 'src/modules/application/user/user.service';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import type { BotDialog } from '../../bot.interface';
@@ -43,8 +40,7 @@ function button(data: string): ChatInput {
 
 describe('SettingsHandler', () => {
   const userService = {
-    updateSettings:
-      vi.fn<(id: string, update: UserSettingsUpdate) => Promise<User | null>>(),
+    updateSettings: vi.fn<(id: string, update: UserSettingsUpdate) => Promise<User | null>>(),
   };
   const channelService = {
     findByUser: vi.fn<(userId: string) => Promise<UserChannel[]>>(),
@@ -58,11 +54,7 @@ describe('SettingsHandler', () => {
     i18nService,
   );
 
-  function open(
-    input: ChatInput,
-    dialog: BotDialog | null = null,
-    user: User | null = USER,
-  ) {
+  function open(input: ChatInput, dialog: BotDialog | null = null, user: User | null = USER) {
     return handler.handle({
       actor: {
         channel: Channel.TELEGRAM,
@@ -84,9 +76,7 @@ describe('SettingsHandler', () => {
   });
 
   it('shows the current settings on /settings', async () => {
-    expect(
-      await open({ type: ChatInputType.COMMAND, command: 'settings' }),
-    ).toEqual({
+    expect(await open({ type: ChatInputType.COMMAND, command: 'settings' })).toEqual({
       screen: {
         text: [
           '**My settings**',
@@ -113,13 +103,8 @@ describe('SettingsHandler', () => {
     expect(userService.updateSettings).toHaveBeenCalledWith(USER.id, {
       language: Language.RU,
     });
-    expect(menuService.syncEmployee).toHaveBeenCalledWith(updated, [
-      FOUND.channel,
-    ]);
-    expect(screen.text.split('\n').slice(0, 2)).toEqual([
-      ru.settings.title,
-      'Язык: Русский',
-    ]);
+    expect(menuService.syncEmployee).toHaveBeenCalledWith(updated, [FOUND.channel]);
+    expect(screen.text.split('\n').slice(0, 2)).toEqual([ru.settings.title, 'Язык: Русский']);
   });
 
   it('offers the languages', async () => {
@@ -199,10 +184,7 @@ describe('SettingsHandler', () => {
   });
 
   it('asks again for an unknown time zone', async () => {
-    const reply = await open(
-      { type: ChatInputType.TEXT, text: 'Moscow time' },
-      TIME_ZONE_DIALOG,
-    );
+    const reply = await open({ type: ChatInputType.TEXT, text: 'Moscow time' }, TIME_ZONE_DIALOG);
 
     expect(userService.updateSettings).not.toHaveBeenCalled();
     expect(reply.screen.text).toBe(en.settings.timeZoneInvalid);
@@ -220,11 +202,11 @@ describe('SettingsHandler', () => {
   });
 
   it('shows the switched off values with the buttons to switch them on', async () => {
-    const { screen } = await open(
-      { type: ChatInputType.COMMAND, command: 'settings' },
-      null,
-      { ...USER, aiEnabled: false, aiDataOptOut: true },
-    );
+    const { screen } = await open({ type: ChatInputType.COMMAND, command: 'settings' }, null, {
+      ...USER,
+      aiEnabled: false,
+      aiDataOptOut: true,
+    });
 
     expect(screen.buttons?.slice(2)).toEqual([
       [{ text: 'AI: no', data: 'set:ai:on' }],

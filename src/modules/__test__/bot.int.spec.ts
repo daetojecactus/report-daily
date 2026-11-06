@@ -3,12 +3,7 @@ import { eq } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { Channel } from 'src/common/enums/channel.enums';
-import {
-  Gender,
-  JobRole,
-  Permission,
-  UserStatus,
-} from 'src/modules/application/user/user.enums';
+import { Gender, JobRole, Permission, UserStatus } from 'src/modules/application/user/user.enums';
 import { Language } from 'src/modules/application/i18n/i18n.enums';
 import { en } from 'src/modules/application/i18n/locales/en.locale';
 import { ru } from 'src/modules/application/i18n/locales/ru.locale';
@@ -18,19 +13,11 @@ import { users } from 'src/modules/application/user/user.schema';
 import { userSources } from 'src/modules/application/user/user-source/user-source.schema';
 import { Source } from 'src/modules/application/source/source.enums';
 import { traitMappings } from 'src/modules/application/trait/trait.schema';
-import {
-  TraitDimension,
-  Priority,
-} from 'src/modules/application/trait/trait.enums';
+import { TraitDimension, Priority } from 'src/modules/application/trait/trait.enums';
 import { DATABASE_INSTANCE } from 'src/modules/infrastructure/database/constants/database.constants';
 import { RedisService } from 'src/modules/infrastructure/redis/redis.service';
 import { TEST_OWNER_TELEGRAM_ID } from 'test/setup/env';
-import {
-  buttonPress,
-  fakeBotApi,
-  pickedUser,
-  privateMessage,
-} from 'test/setup/fake-bot-api';
+import { buttonPress, fakeBotApi, pickedUser, privateMessage } from 'test/setup/fake-bot-api';
 import { fakeGitLab } from 'test/setup/fake-gitlab';
 import { createTestApp } from 'test/setup/test-app';
 
@@ -50,10 +37,7 @@ describe('Telegram bot', () => {
     await app.close();
   });
 
-  async function createEmployee(
-    values: Partial<UserInsert> = {},
-    reachable = true,
-  ) {
+  async function createEmployee(values: Partial<UserInsert> = {}, reachable = true) {
     const telegramId = nextTelegramId++;
     const [user] = await db
       .insert(users)
@@ -82,18 +66,12 @@ describe('Telegram bot', () => {
   }
 
   function replyTo(telegramId: number) {
-    return fakeBotApi.waitForRequest(
-      'sendMessage',
-      (body) => body.chat_id === String(telegramId),
-    );
+    return fakeBotApi.waitForRequest('sendMessage', (body) => body.chat_id === String(telegramId));
   }
 
   async function press(telegramId: number, data: string, messageId: number) {
     await fakeBotApi.pushUpdate(buttonPress(telegramId, data, messageId));
-    return fakeBotApi.waitForRequest(
-      'editMessageText',
-      (body) => body.message_id === messageId,
-    );
+    return fakeBotApi.waitForRequest('editMessageText', (body) => body.message_id === messageId);
   }
 
   it('sets the default command menus on start', async () => {
@@ -142,43 +120,29 @@ describe('Telegram bot', () => {
 
     await fakeBotApi.pushUpdate(privateMessage(strangerId, 'hello'));
 
-    expect((await replyTo(strangerId)).text).toContain(
-      `<code>${strangerId}</code>`,
-    );
+    expect((await replyTo(strangerId)).text).toContain(`<code>${strangerId}</code>`);
   });
 
   it('greets an owner and sets the owner menu', async () => {
-    await fakeBotApi.pushUpdate(
-      privateMessage(TEST_OWNER_TELEGRAM_ID, '/start'),
-    );
+    await fakeBotApi.pushUpdate(privateMessage(TEST_OWNER_TELEGRAM_ID, '/start'));
 
     expect((await replyTo(TEST_OWNER_TELEGRAM_ID)).text).toBe(en.start.owner);
     expect(
       await fakeBotApi.waitForRequest(
         'setMyCommands',
-        (body) =>
-          (body.scope as { chat_id?: string }).chat_id ===
-          String(TEST_OWNER_TELEGRAM_ID),
+        (body) => (body.scope as { chat_id?: string }).chat_id === String(TEST_OWNER_TELEGRAM_ID),
       ),
     ).toMatchObject({ scope: { type: 'chat' } });
   });
 
   it('greets an employee, records the language and marks the chat reachable', async () => {
-    const { user, telegramId } = await createEmployee(
-      { language: null },
-      false,
-    );
+    const { user, telegramId } = await createEmployee({ language: null }, false);
 
     await fakeBotApi.pushUpdate(privateMessage(telegramId, '/start', 'ru'));
 
-    expect((await replyTo(telegramId)).text).toBe(
-      ru.start.employee('Ivan_Petrov'),
-    );
+    expect((await replyTo(telegramId)).text).toBe(ru.start.employee('Ivan_Petrov'));
     const [stored] = await db.select().from(users).where(eq(users.id, user.id));
-    const [channel] = await db
-      .select()
-      .from(userChannels)
-      .where(eq(userChannels.userId, user.id));
+    const [channel] = await db.select().from(userChannels).where(eq(userChannels.userId, user.id));
     expect(stored.language).toBe(Language.RU);
     expect(channel.reachable).toBe(true);
   });
@@ -214,9 +178,7 @@ describe('Telegram bot', () => {
 
     await fakeBotApi.pushUpdate(privateMessage(telegramId, '/start'));
 
-    expect((await replyTo(telegramId)).text).toContain(
-      `<code>${telegramId}</code>`,
-    );
+    expect((await replyTo(telegramId)).text).toContain(`<code>${telegramId}</code>`);
   });
 
   it('answers an unknown command', async () => {
@@ -268,14 +230,11 @@ describe('Telegram bot', () => {
     const { user } = await createEmployee({ displayName: `${tag} Admin` });
     const ownerChat = String(TEST_OWNER_TELEGRAM_ID);
 
-    await fakeBotApi.pushUpdate(
-      privateMessage(TEST_OWNER_TELEGRAM_ID, '/admin'),
-    );
+    await fakeBotApi.pushUpdate(privateMessage(TEST_OWNER_TELEGRAM_ID, '/admin'));
     expect(
       await fakeBotApi.waitForRequest(
         'sendMessage',
-        (body) =>
-          body.chat_id === ownerChat && body.text === '<b>Management</b>',
+        (body) => body.chat_id === ownerChat && body.text === '<b>Management</b>',
       ),
     ).toMatchObject({
       reply_markup: {
@@ -286,33 +245,22 @@ describe('Telegram bot', () => {
       },
     });
 
-    await fakeBotApi.pushUpdate(
-      buttonPress(TEST_OWNER_TELEGRAM_ID, 'emp:list:0', 501),
-    );
+    await fakeBotApi.pushUpdate(buttonPress(TEST_OWNER_TELEGRAM_ID, 'emp:list:0', 501));
     const list = await fakeBotApi.waitForRequest(
       'editMessageText',
       (body) => body.message_id === 501,
     );
     expect(list.text).toMatch(/^<b>Employees<\/b> · \d+/);
 
-    await fakeBotApi.pushUpdate(
-      buttonPress(TEST_OWNER_TELEGRAM_ID, 'emp:search', 502),
-    );
+    await fakeBotApi.pushUpdate(buttonPress(TEST_OWNER_TELEGRAM_ID, 'emp:search', 502));
     expect(
-      await fakeBotApi.waitForRequest(
-        'editMessageText',
-        (body) => body.message_id === 502,
-      ),
+      await fakeBotApi.waitForRequest('editMessageText', (body) => body.message_id === 502),
     ).toMatchObject({ text: en.employees.searchPrompt });
 
-    await fakeBotApi.pushUpdate(
-      privateMessage(TEST_OWNER_TELEGRAM_ID, tag.toLowerCase()),
-    );
+    await fakeBotApi.pushUpdate(privateMessage(TEST_OWNER_TELEGRAM_ID, tag.toLowerCase()));
     const results = await fakeBotApi.waitForRequest(
       'sendMessage',
-      (body) =>
-        body.chat_id === ownerChat &&
-        String(body.text).includes(tag.toLowerCase()),
+      (body) => body.chat_id === ownerChat && String(body.text).includes(tag.toLowerCase()),
     );
     expect(results.reply_markup).toMatchObject({
       inline_keyboard: [
@@ -326,9 +274,7 @@ describe('Telegram bot', () => {
       ],
     });
 
-    await fakeBotApi.pushUpdate(
-      buttonPress(TEST_OWNER_TELEGRAM_ID, `emp:card:${user.id}:0`, 503),
-    );
+    await fakeBotApi.pushUpdate(buttonPress(TEST_OWNER_TELEGRAM_ID, `emp:card:${user.id}:0`, 503));
     const card = await fakeBotApi.waitForRequest(
       'editMessageText',
       (body) => body.message_id === 503,
@@ -375,22 +321,15 @@ describe('Telegram bot', () => {
       hasActivity: false,
     });
     const step = (messageId: number) =>
-      fakeBotApi.waitForRequest(
-        'editMessageText',
-        (body) => body.message_id === messageId,
-      );
+      fakeBotApi.waitForRequest('editMessageText', (body) => body.message_id === messageId);
 
-    await fakeBotApi.pushUpdate(
-      buttonPress(TEST_OWNER_TELEGRAM_ID, 'add:start', 601),
-    );
+    await fakeBotApi.pushUpdate(buttonPress(TEST_OWNER_TELEGRAM_ID, 'add:start', 601));
     expect((await step(601)).text).toBe(en.employeeAdd.prompt);
 
     await fakeBotApi.pushUpdate(privateMessage(TEST_OWNER_TELEGRAM_ID, tag));
     const matches = await fakeBotApi.waitForRequest(
       'sendMessage',
-      (body) =>
-        body.chat_id === ownerChat &&
-        String(body.text).startsWith(`<b>GitLab:</b> ${tag}`),
+      (body) => body.chat_id === ownerChat && String(body.text).startsWith(`<b>GitLab:</b> ${tag}`),
     );
     expect(matches.reply_markup).toEqual({
       inline_keyboard: [
@@ -408,13 +347,9 @@ describe('Telegram bot', () => {
       buttonPress(TEST_OWNER_TELEGRAM_ID, `add:pick:${gitlabUserId}`, 602),
     );
     expect((await step(602)).text).toContain('Choose the role.');
-    await fakeBotApi.pushUpdate(
-      buttonPress(TEST_OWNER_TELEGRAM_ID, 'add:role:qa', 603),
-    );
+    await fakeBotApi.pushUpdate(buttonPress(TEST_OWNER_TELEGRAM_ID, 'add:role:qa', 603));
     expect((await step(603)).text).toContain('Choose the gender.');
-    await fakeBotApi.pushUpdate(
-      buttonPress(TEST_OWNER_TELEGRAM_ID, 'add:gender:female', 604),
-    );
+    await fakeBotApi.pushUpdate(buttonPress(TEST_OWNER_TELEGRAM_ID, 'add:gender:female', 604));
 
     const added = await step(604);
     expect(added.text).toContain(`Employee added: <b>Olga ${tag}</b>.`);
@@ -447,27 +382,16 @@ describe('Telegram bot', () => {
     const employeeId = nextTelegramId++;
     const ownerChat = String(TEST_OWNER_TELEGRAM_ID);
 
-    await fakeBotApi.pushUpdate(
-      buttonPress(TEST_OWNER_TELEGRAM_ID, `bind:start:${user.id}`, 701),
-    );
+    await fakeBotApi.pushUpdate(buttonPress(TEST_OWNER_TELEGRAM_ID, `bind:start:${user.id}`, 701));
     expect(
-      (
-        await fakeBotApi.waitForRequest(
-          'editMessageText',
-          (body) => body.message_id === 701,
-        )
-      ).text,
+      (await fakeBotApi.waitForRequest('editMessageText', (body) => body.message_id === 701)).text,
     ).toContain('Telegram ID');
 
-    await fakeBotApi.pushUpdate(
-      privateMessage(TEST_OWNER_TELEGRAM_ID, String(employeeId)),
-    );
+    await fakeBotApi.pushUpdate(privateMessage(TEST_OWNER_TELEGRAM_ID, String(employeeId)));
     expect(
       await fakeBotApi.waitForRequest(
         'sendMessage',
-        (body) =>
-          body.chat_id === ownerChat &&
-          String(body.text).startsWith('Telegram bound:'),
+        (body) => body.chat_id === ownerChat && String(body.text).startsWith('Telegram bound:'),
       ),
     ).toMatchObject({
       text: expect.stringContaining(`<b>Pending`) as unknown,
@@ -476,9 +400,7 @@ describe('Telegram bot', () => {
     expect(stored.status).toBe(UserStatus.ACTIVE);
 
     await fakeBotApi.pushUpdate(privateMessage(employeeId, '/start', 'ru'));
-    expect((await replyTo(employeeId)).text).toBe(
-      ru.start.employee(user.displayName),
-    );
+    expect((await replyTo(employeeId)).text).toBe(ru.start.employee(user.displayName));
   });
 
   it('binds an employee picked in Telegram', async () => {
@@ -490,9 +412,7 @@ describe('Telegram bot', () => {
     const pickedId = nextTelegramId++;
     const ownerChat = String(TEST_OWNER_TELEGRAM_ID);
 
-    await fakeBotApi.pushUpdate(
-      buttonPress(TEST_OWNER_TELEGRAM_ID, `bind:pick:${user.id}`, 801),
-    );
+    await fakeBotApi.pushUpdate(buttonPress(TEST_OWNER_TELEGRAM_ID, `bind:pick:${user.id}`, 801));
     expect(
       await fakeBotApi.waitForRequest(
         'sendMessage',
@@ -522,10 +442,7 @@ describe('Telegram bot', () => {
         String(body.text).includes(`<b>${user.displayName}</b>`) &&
         String(body.text).startsWith('Telegram bound:'),
     );
-    const [channel] = await db
-      .select()
-      .from(userChannels)
-      .where(eq(userChannels.userId, user.id));
+    const [channel] = await db.select().from(userChannels).where(eq(userChannels.userId, user.id));
     expect(channel.externalId).toBe(String(pickedId));
   });
 
@@ -534,41 +451,21 @@ describe('Telegram bot', () => {
       displayName: `Managed${nextTelegramId}`,
     });
     const press = async (data: string, messageId: number) => {
-      await fakeBotApi.pushUpdate(
-        buttonPress(TEST_OWNER_TELEGRAM_ID, data, messageId),
-      );
-      return fakeBotApi.waitForRequest(
-        'editMessageText',
-        (body) => body.message_id === messageId,
-      );
+      await fakeBotApi.pushUpdate(buttonPress(TEST_OWNER_TELEGRAM_ID, data, messageId));
+      return fakeBotApi.waitForRequest('editMessageText', (body) => body.message_id === messageId);
     };
 
-    expect((await press(`mng:block:${user.id}`, 901)).text).toContain(
-      'Employee blocked',
-    );
+    expect((await press(`mng:block:${user.id}`, 901)).text).toContain('Employee blocked');
     await fakeBotApi.pushUpdate(privateMessage(telegramId, '/start'));
-    expect((await replyTo(telegramId)).text).toContain(
-      `<code>${telegramId}</code>`,
-    );
+    expect((await replyTo(telegramId)).text).toContain(`<code>${telegramId}</code>`);
 
-    expect((await press(`mng:unblock:${user.id}`, 902)).text).toContain(
-      'Employee unblocked',
-    );
-    const [unblocked] = await db
-      .select()
-      .from(users)
-      .where(eq(users.id, user.id));
+    expect((await press(`mng:unblock:${user.id}`, 902)).text).toContain('Employee unblocked');
+    const [unblocked] = await db.select().from(users).where(eq(users.id, user.id));
     expect(unblocked.status).toBe(UserStatus.ACTIVE);
 
-    expect((await press(`mng:delete:${user.id}`, 903)).text).toContain(
-      'Delete the employee',
-    );
-    expect((await press(`mng:confirm:${user.id}`, 904)).text).toContain(
-      'Employee deleted',
-    );
-    expect(await db.select().from(users).where(eq(users.id, user.id))).toEqual(
-      [],
-    );
+    expect((await press(`mng:delete:${user.id}`, 903)).text).toContain('Delete the employee');
+    expect((await press(`mng:confirm:${user.id}`, 904)).text).toContain('Employee deleted');
+    expect(await db.select().from(users).where(eq(users.id, user.id))).toEqual([]);
   });
 
   it('lets an owner grant and revoke permissions with the menu following', async () => {
@@ -581,20 +478,19 @@ describe('Telegram bot', () => {
       buttonPress(TEST_OWNER_TELEGRAM_ID, `perm:grant:${user.id}:users`, 1001),
     );
     expect(
-      (
-        await fakeBotApi.waitForRequest(
-          'editMessageText',
-          (body) => body.message_id === 1001,
-        )
-      ).text,
+      (await fakeBotApi.waitForRequest('editMessageText', (body) => body.message_id === 1001)).text,
     ).toContain('Permissions in the bot');
     const menu = await fakeBotApi.waitForRequest(
       'setMyCommands',
       (body) => (body.scope as { chat_id?: string }).chat_id === chatId,
     );
-    expect(
-      (menu.commands as { command: string }[]).map((item) => item.command),
-    ).toEqual(['start', 'settings', 'admin', 'help', 'cancel']);
+    expect((menu.commands as { command: string }[]).map((item) => item.command)).toEqual([
+      'start',
+      'settings',
+      'admin',
+      'help',
+      'cancel',
+    ]);
 
     await fakeBotApi.pushUpdate(privateMessage(telegramId, '/admin'));
     expect((await replyTo(telegramId)).text).toBe('<b>Management</b>');
@@ -602,10 +498,7 @@ describe('Telegram bot', () => {
     await fakeBotApi.pushUpdate(
       buttonPress(TEST_OWNER_TELEGRAM_ID, `perm:revoke:${user.id}:users`, 1002),
     );
-    await fakeBotApi.waitForRequest(
-      'editMessageText',
-      (body) => body.message_id === 1002,
-    );
+    await fakeBotApi.waitForRequest('editMessageText', (body) => body.message_id === 1002);
     await fakeBotApi.pushUpdate(privateMessage(telegramId, '/admin'));
     await fakeBotApi.waitForRequest(
       'sendMessage',
@@ -619,15 +512,10 @@ describe('Telegram bot', () => {
     });
     const { user } = await createEmployee();
 
-    await fakeBotApi.pushUpdate(
-      buttonPress(telegramId, `perm:open:${user.id}`, 1003),
-    );
+    await fakeBotApi.pushUpdate(buttonPress(telegramId, `perm:open:${user.id}`, 1003));
 
     expect(
-      await fakeBotApi.waitForRequest(
-        'editMessageText',
-        (body) => body.message_id === 1003,
-      ),
+      await fakeBotApi.waitForRequest('editMessageText', (body) => body.message_id === 1003),
     ).toMatchObject({ text: en.bot.forbidden });
   });
 
@@ -638,9 +526,7 @@ describe('Telegram bot', () => {
     await fakeBotApi.pushUpdate(privateMessage(telegramId, '/settings'));
     expect((await replyTo(telegramId)).text).toContain('<b>My settings</b>');
 
-    expect((await press(telegramId, 'set:lang:ru', 1101)).text).toContain(
-      '<b>Мои настройки</b>',
-    );
+    expect((await press(telegramId, 'set:lang:ru', 1101)).text).toContain('<b>Мои настройки</b>');
     const menu = await fakeBotApi.waitForRequest(
       'setMyCommands',
       (body) => (body.scope as { chat_id?: string }).chat_id === chatId,
@@ -650,16 +536,12 @@ describe('Telegram bot', () => {
       description: ru.commands.settings,
     });
 
-    expect((await press(telegramId, 'set:time:09:30', 1102)).text).toContain(
-      'Время отчёта: 09:30',
-    );
+    expect((await press(telegramId, 'set:time:09:30', 1102)).text).toContain('Время отчёта: 09:30');
     await press(telegramId, 'set:tz', 1103);
     await fakeBotApi.pushUpdate(privateMessage(telegramId, 'europe/moscow'));
     await fakeBotApi.waitForRequest(
       'sendMessage',
-      (body) =>
-        body.chat_id === chatId &&
-        String(body.text).includes('<code>Europe/Moscow</code>'),
+      (body) => body.chat_id === chatId && String(body.text).includes('<code>Europe/Moscow</code>'),
     );
 
     const [stored] = await db.select().from(users).where(eq(users.id, user.id));
@@ -678,13 +560,10 @@ describe('Telegram bot', () => {
 
     const switched = await press(telegramId, 'set:ai:off', 1201);
     expect(
-      (switched.reply_markup as { inline_keyboard: unknown[][] })
-        .inline_keyboard,
+      (switched.reply_markup as { inline_keyboard: unknown[][] }).inline_keyboard,
     ).toContainEqual([{ text: 'AI: no', callback_data: 'set:ai:on' }]);
     await press(telegramId, 'set:aidata:off', 1202);
-    expect((await press(telegramId, 'set:gender:female', 1203)).text).toContain(
-      'Gender: female',
-    );
+    expect((await press(telegramId, 'set:gender:female', 1203)).text).toContain('Gender: female');
 
     const [stored] = await db.select().from(users).where(eq(users.id, user.id));
     expect(stored).toMatchObject({
@@ -716,8 +595,7 @@ describe('Telegram bot', () => {
     await fakeBotApi.waitForRequest(
       'sendMessage',
       (body) =>
-        body.chat_id === String(telegramId) &&
-        String(body.text).endsWith('Who is the trait for?'),
+        body.chat_id === String(telegramId) && String(body.text).endsWith('Who is the trait for?'),
     );
     await press(telegramId, 'trtadd:role:all', 1403);
     await press(telegramId, 'trtadd:dim:priority', 1404);
@@ -726,10 +604,7 @@ describe('Telegram bot', () => {
     );
 
     expect(
-      await db
-        .select()
-        .from(traitMappings)
-        .where(eq(traitMappings.sourceName, label)),
+      await db.select().from(traitMappings).where(eq(traitMappings.sourceName, label)),
     ).toMatchObject([
       {
         sourceKey: label,
@@ -743,9 +618,7 @@ describe('Telegram bot', () => {
   it('keeps labels closed without the labels permission', async () => {
     const { telegramId } = await createEmployee();
 
-    expect((await press(telegramId, 'trt:list:0', 1406)).text).toBe(
-      en.bot.forbidden,
-    );
+    expect((await press(telegramId, 'trt:list:0', 1406)).text).toBe(en.bot.forbidden);
   });
 
   it('lets an admin change a label value and delete the label', async () => {
@@ -767,19 +640,19 @@ describe('Telegram bot', () => {
     const findStored = () =>
       db.select().from(traitMappings).where(eq(traitMappings.sourceKey, label));
 
-    expect(
-      (await press(telegramId, `trt:card:${mapping.id}:0`, 1501)).text,
-    ).toBe(`<b>${label}</b>\n\nFor everyone:\n• Priority: Low`);
+    expect((await press(telegramId, `trt:card:${mapping.id}:0`, 1501)).text).toBe(
+      `<b>${label}</b>\n\nFor everyone:\n• Priority: Low`,
+    );
     await press(telegramId, `trtmng:open:${mapping.id}`, 1502);
-    expect(
-      (await press(telegramId, `trtmng:set:${mapping.id}:1`, 1503)).text,
-    ).toBe(`Done: <b>${label}</b> for everyone — now Priority: High.`);
+    expect((await press(telegramId, `trtmng:set:${mapping.id}:1`, 1503)).text).toBe(
+      `Done: <b>${label}</b> for everyone — now Priority: High.`,
+    );
     expect(await findStored()).toMatchObject([{ value: Priority.HIGH }]);
 
     await press(telegramId, `trtmng:drop:${mapping.id}`, 1504);
-    expect(
-      (await press(telegramId, `trtmng:dropok:${mapping.id}`, 1505)).text,
-    ).toBe(`The label <b>${label}</b> is deleted.`);
+    expect((await press(telegramId, `trtmng:dropok:${mapping.id}`, 1505)).text).toBe(
+      `The label <b>${label}</b> is deleted.`,
+    );
     expect(await findStored()).toEqual([]);
   });
 });

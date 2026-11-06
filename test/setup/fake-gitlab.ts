@@ -1,8 +1,4 @@
-import {
-  createServer,
-  type IncomingMessage,
-  type ServerResponse,
-} from 'node:http';
+import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import type { GitLabUser } from 'src/modules/vendors/gitlab/gitlab.interface';
 
@@ -52,9 +48,7 @@ export async function startFakeGitLab() {
     const path = url.pathname.slice(API_PREFIX.length);
     if (path === USERS_PATH) {
       const search = (url.searchParams.get('search') ?? '').toLowerCase();
-      const perPage = Number(
-        url.searchParams.get('per_page') ?? DEFAULT_PER_PAGE,
-      );
+      const perPage = Number(url.searchParams.get('per_page') ?? DEFAULT_PER_PAGE);
       send(
         response,
         200,

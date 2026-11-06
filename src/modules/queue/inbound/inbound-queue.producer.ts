@@ -12,9 +12,7 @@ import type { InboundEventJobData } from './inbound-queue.interface';
 
 @Injectable()
 export class InboundQueueProducer {
-  constructor(
-    @InjectQueue(INBOUND_QUEUE) private readonly inboundQueue: Queue,
-  ) {}
+  constructor(@InjectQueue(INBOUND_QUEUE) private readonly inboundQueue: Queue) {}
 
   async addTelegramEvent(updateId: number, event: ChatEvent) {
     const data: InboundEventJobData = { event };

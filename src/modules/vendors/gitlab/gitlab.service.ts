@@ -1,9 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { addDays } from 'src/common/utils/date.util';
-import {
-  GITLAB_EVENTS_MARGIN_DAYS,
-  GITLAB_PAGE_SIZE,
-} from './constants/gitlab.constants';
+import { GITLAB_EVENTS_MARGIN_DAYS, GITLAB_PAGE_SIZE } from './constants/gitlab.constants';
 import type { GitLabIssuable } from './gitlab.enums';
 import type { GitLabPushData } from './gitlab.interface';
 import { GitLabRepository } from './gitlab.repository';
@@ -31,11 +28,7 @@ export class GitLabService {
       addDays(date, GITLAB_EVENTS_MARGIN_DAYS),
     );
     return [
-      ...new Set(
-        events.flatMap((event) =>
-          event.project_id === null ? [] : [event.project_id],
-        ),
-      ),
+      ...new Set(events.flatMap((event) => (event.project_id === null ? [] : [event.project_id]))),
     ];
   }
 
@@ -67,16 +60,8 @@ export class GitLabService {
     return this.gitlabRepository.findIssuesClosedOnMerge(projectId, iid);
   }
 
-  findUpdatedItems(
-    issuable: GitLabIssuable,
-    projectId: number,
-    updatedAfter: string,
-  ) {
-    return this.gitlabRepository.findUpdatedItems(
-      issuable,
-      projectId,
-      updatedAfter,
-    );
+  findUpdatedItems(issuable: GitLabIssuable, projectId: number, updatedAfter: string) {
+    return this.gitlabRepository.findUpdatedItems(issuable, projectId, updatedAfter);
   }
 
   findNotes(issuable: GitLabIssuable, projectId: number, iid: number) {
@@ -108,8 +93,6 @@ export class GitLabService {
       Math.min(count, GITLAB_PAGE_SIZE),
     );
     const fromIndex = commits.findIndex((commit) => commit.id === from);
-    return (
-      fromIndex === -1 ? commits : commits.slice(0, fromIndex)
-    ).toReversed();
+    return (fromIndex === -1 ? commits : commits.slice(0, fromIndex)).toReversed();
   }
 }

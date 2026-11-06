@@ -10,12 +10,7 @@ import { UserService } from 'src/modules/application/user/user.service';
 import { AccessService } from '../access/access.service';
 import { BotSection } from '../bot.decorator';
 import { BotAccess, BotNamespace } from '../bot.enums';
-import type {
-  BotActor,
-  BotContext,
-  BotHandler,
-  BotReply,
-} from '../bot.interface';
+import type { BotActor, BotContext, BotHandler, BotReply } from '../bot.interface';
 import { BOT_BUTTON_DATA_SEPARATOR } from '../constants/bot.constants';
 import { EmployeesAction } from '../employees/employees.enums';
 import { MenuService } from '../menu/menu.service';
@@ -51,9 +46,7 @@ export class EmployeeManageHandler implements BotHandler {
 
     const user = await this.userService.findById(button.data.userId);
     if (!user) {
-      return this.reply(locale.employees.notFound, [
-        [this.toListButton(locale)],
-      ]);
+      return this.reply(locale.employees.notFound, [[this.toListButton(locale)]]);
     }
     switch (button.data.action) {
       case EmployeeManageAction.ROLE:
@@ -76,9 +69,7 @@ export class EmployeeManageHandler implements BotHandler {
   ): Promise<BotReply> {
     if (!this.accessService.canManage(actor, user)) {
       return this.reply(
-        actor.user?.id === user.id
-          ? locale.employeeManage.self
-          : locale.employeeManage.ownerOnly,
+        actor.user?.id === user.id ? locale.employeeManage.self : locale.employeeManage.ownerOnly,
         [[this.toCardButton(locale, user.id)]],
       );
     }
@@ -111,28 +102,20 @@ export class EmployeeManageHandler implements BotHandler {
         await this.userService.deleteById(user.id);
         await this.menuService.syncEmployee(null, channels);
         this.log(actor, user, EmployeeManageMessages.DELETED);
-        return this.reply(locale.employeeManage.deleted(name), [
-          [this.toListButton(locale)],
-        ]);
+        return this.reply(locale.employeeManage.deleted(name), [[this.toListButton(locale)]]);
       }
     }
   }
 
   private async syncMenu(user: User | null) {
     if (user) {
-      await this.menuService.syncEmployee(
-        user,
-        await this.channelService.findByUser(user.id),
-      );
+      await this.menuService.syncEmployee(user, await this.channelService.findByUser(user.id));
     }
   }
 
   private askRole(locale: Locale, user: User): BotReply {
     return this.reply(
-      locale.employeeManage.chooseRole(
-        escapeMarkdown(user.displayName),
-        locale.roles[user.role],
-      ),
+      locale.employeeManage.chooseRole(escapeMarkdown(user.displayName), locale.roles[user.role]),
       [
         ...Object.values(JobRole)
           .filter((role) => role !== user.role)
@@ -170,18 +153,12 @@ export class EmployeeManageHandler implements BotHandler {
     return this.done(
       locale,
       user,
-      locale.employeeManage.roleChanged(
-        escapeMarkdown(user.displayName),
-        locale.roles[role],
-      ),
+      locale.employeeManage.roleChanged(escapeMarkdown(user.displayName), locale.roles[role]),
     );
   }
 
   private done(locale: Locale, user: User, text: string): BotReply {
-    return this.reply(text, [
-      [this.toCardButton(locale, user.id)],
-      [this.toListButton(locale)],
-    ]);
+    return this.reply(text, [[this.toCardButton(locale, user.id)], [this.toListButton(locale)]]);
   }
 
   private reply(text: string, buttons: ScreenButton[][]): BotReply {
@@ -189,16 +166,11 @@ export class EmployeeManageHandler implements BotHandler {
   }
 
   private log(actor: BotActor, user: User, message: EmployeeManageMessages) {
-    this.logger.log(
-      { userId: user.id, actorId: actor.user?.id ?? BotAccess.OWNER },
-      message,
-    );
+    this.logger.log({ userId: user.id, actorId: actor.user?.id ?? BotAccess.OWNER }, message);
   }
 
   private toData(...parts: string[]) {
-    return [BotNamespace.EMPLOYEE_MANAGE, ...parts].join(
-      BOT_BUTTON_DATA_SEPARATOR,
-    );
+    return [BotNamespace.EMPLOYEE_MANAGE, ...parts].join(BOT_BUTTON_DATA_SEPARATOR);
   }
 
   private toCardData(userId: string) {
@@ -214,9 +186,7 @@ export class EmployeeManageHandler implements BotHandler {
   private toListButton(locale: Locale) {
     return {
       text: locale.employees.backToList,
-      data: [BotNamespace.EMPLOYEES, EmployeesAction.LIST, 0].join(
-        BOT_BUTTON_DATA_SEPARATOR,
-      ),
+      data: [BotNamespace.EMPLOYEES, EmployeesAction.LIST, 0].join(BOT_BUTTON_DATA_SEPARATOR),
     };
   }
 }

@@ -38,10 +38,7 @@ export class GitLabClient {
     }
   }
 
-  private async request(
-    path: string,
-    query: GitLabQuery,
-  ): Promise<GitLabHttpResponse> {
+  private async request(path: string, query: GitLabQuery): Promise<GitLabHttpResponse> {
     const url = new URL(`${this.apiUrl}${path}`);
     for (const [key, value] of Object.entries(query)) {
       url.searchParams.set(key, String(value));
@@ -65,9 +62,7 @@ export class GitLabClient {
           `${GitLabMessages.CERTIFICATE_UNTRUSTED}: ${path}: ${reason}`,
         );
       }
-      throw new GitLabRetryableError(
-        `${GitLabMessages.REQUEST_FAILED}: ${path}: ${reason}`,
-      );
+      throw new GitLabRetryableError(`${GitLabMessages.REQUEST_FAILED}: ${path}: ${reason}`);
     }
   }
 

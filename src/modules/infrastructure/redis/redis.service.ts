@@ -1,8 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import {
-  REDIS_ACQUIRE_LOCK_SCRIPT,
-  REDIS_RELEASE_LOCK_SCRIPT,
-} from './constants/redis.constants';
+import { REDIS_ACQUIRE_LOCK_SCRIPT, REDIS_RELEASE_LOCK_SCRIPT } from './constants/redis.constants';
 import { RedisClient } from './redis.client';
 
 @Injectable()
@@ -41,11 +38,6 @@ export class RedisService {
   }
 
   async releaseLock(key: string, token: string) {
-    await this.redisClient.instance.eval(
-      REDIS_RELEASE_LOCK_SCRIPT,
-      1,
-      key,
-      token,
-    );
+    await this.redisClient.instance.eval(REDIS_RELEASE_LOCK_SCRIPT, 1, key, token);
   }
 }

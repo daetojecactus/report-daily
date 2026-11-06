@@ -20,11 +20,6 @@ export const EMPLOYEE_MANAGE_BUTTON_SCHEMA = z.union([
     ])
     .transform(([, action, userId]) => ({ action, userId })),
   z
-    .tuple([
-      NAMESPACE_SCHEMA,
-      z.literal(EmployeeManageAction.SET_ROLE),
-      z.uuid(),
-      z.enum(JobRole),
-    ])
+    .tuple([NAMESPACE_SCHEMA, z.literal(EmployeeManageAction.SET_ROLE), z.uuid(), z.enum(JobRole)])
     .transform(([, action, userId, role]) => ({ action, userId, role })),
 ]);

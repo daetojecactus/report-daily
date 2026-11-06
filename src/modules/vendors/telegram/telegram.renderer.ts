@@ -45,9 +45,7 @@ export class TelegramRenderer {
     };
   }
 
-  private toInlineKeyboard(
-    buttons: ScreenButton[][],
-  ): TelegramInlineKeyboardMarkup {
+  private toInlineKeyboard(buttons: ScreenButton[][]): TelegramInlineKeyboardMarkup {
     return {
       inline_keyboard: buttons.map((row) =>
         row.map((button) => ({

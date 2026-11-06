@@ -83,12 +83,9 @@ describe('AdminHandler', () => {
     });
   });
 
-  it.each(['adm:other', 'adm:menu:1'])(
-    'answers the outdated button %s',
-    (data) => {
-      expect(open(actor({ isOwner: true }), button(data)).screen).toEqual({
-        text: locale.bot.expired,
-      });
-    },
-  );
+  it.each(['adm:other', 'adm:menu:1'])('answers the outdated button %s', (data) => {
+    expect(open(actor({ isOwner: true }), button(data)).screen).toEqual({
+      text: locale.bot.expired,
+    });
+  });
 });

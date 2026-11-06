@@ -29,10 +29,7 @@ export class DatabaseClient implements OnModuleDestroy {
     });
     try {
       await migrate(drizzle({ client: pool }), {
-        migrationsFolder: path.join(
-          import.meta.dirname,
-          DATABASE_MIGRATIONS_FOLDER,
-        ),
+        migrationsFolder: path.join(import.meta.dirname, DATABASE_MIGRATIONS_FOLDER),
       });
     } finally {
       await pool.end();

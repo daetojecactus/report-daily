@@ -3,10 +3,7 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getDayRange } from 'src/common/utils/date.util';
 import type { RedisService } from 'src/modules/infrastructure/redis/redis.service';
 import { GitLabIssuable } from 'src/modules/vendors/gitlab/gitlab.enums';
-import type {
-  GitLabLabelEvent,
-  GitLabNote,
-} from 'src/modules/vendors/gitlab/gitlab.interface';
+import type { GitLabLabelEvent, GitLabNote } from 'src/modules/vendors/gitlab/gitlab.interface';
 import type { GitLabService } from 'src/modules/vendors/gitlab/gitlab.service';
 import { GitLabSourceScanner } from '../gitlab-source.scanner';
 import {
@@ -45,8 +42,8 @@ describe('GitLabSourceScanner', () => {
     gitlabService.findNotes.mockImplementation((_issuable, _projectId, iid) =>
       Promise.resolve(notes[iid] ?? []),
     );
-    gitlabService.findLabelEvents.mockImplementation(
-      (_issuable, _projectId, iid) => Promise.resolve(labelEvents[iid] ?? []),
+    gitlabService.findLabelEvents.mockImplementation((_issuable, _projectId, iid) =>
+      Promise.resolve(labelEvents[iid] ?? []),
     );
   }
 
@@ -82,27 +79,19 @@ describe('GitLabSourceScanner', () => {
             created_at: '2026-08-01T10:00:00.000Z',
           }),
         ],
-        5: [
-          createNote({ author: EMPLOYEE, body: 'approved this merge request' }),
-        ],
+        5: [createNote({ author: EMPLOYEE, body: 'approved this merge request' })],
       },
       { 14: [createLabelEvent({ user: EMPLOYEE })] },
     );
 
-    expect(
-      await scanner.findHiddenItems(EMPLOYEE.id, REPORT_DATE, DAY),
-    ).toEqual({
+    expect(await scanner.findHiddenItems(EMPLOYEE.id, REPORT_DATE, DAY)).toEqual({
       issues: [
         { projectId: PROJECT_ID, iid: 12 },
         { projectId: PROJECT_ID, iid: 14 },
       ],
       mergeRequests: [{ projectId: PROJECT_ID, iid: 5 }],
     });
-    expect(gitlabService.findRecentProjectIds).toHaveBeenCalledWith(
-      EMPLOYEE.id,
-      REPORT_DATE,
-      30,
-    );
+    expect(gitlabService.findRecentProjectIds).toHaveBeenCalledWith(EMPLOYEE.id, REPORT_DATE, 30);
     expect(gitlabService.findUpdatedItems).toHaveBeenCalledWith(
       GitLabIssuable.ISSUES,
       PROJECT_ID,
@@ -129,9 +118,7 @@ describe('GitLabSourceScanner', () => {
       JSON.stringify({ [EMPLOYEE.id]: { issues: [3], mergeRequests: [9] } }),
     );
 
-    expect(
-      await scanner.findHiddenItems(EMPLOYEE.id, REPORT_DATE, DAY),
-    ).toEqual({
+    expect(await scanner.findHiddenItems(EMPLOYEE.id, REPORT_DATE, DAY)).toEqual({
       issues: [{ projectId: PROJECT_ID, iid: 3 }],
       mergeRequests: [{ projectId: PROJECT_ID, iid: 9 }],
     });
@@ -143,9 +130,9 @@ describe('GitLabSourceScanner', () => {
     redisService.get.mockResolvedValue('{"broken":');
     history({ 12: [createNote({ author: EMPLOYEE })] });
 
-    expect(
-      (await scanner.findHiddenItems(EMPLOYEE.id, REPORT_DATE, DAY)).issues,
-    ).toEqual([{ projectId: PROJECT_ID, iid: 12 }]);
+    expect((await scanner.findHiddenItems(EMPLOYEE.id, REPORT_DATE, DAY)).issues).toEqual([
+      { projectId: PROJECT_ID, iid: 12 },
+    ]);
   });
 
   it('scans at most 300 items of a project and warns about the rest', async () => {
@@ -175,9 +162,10 @@ describe('GitLabSourceScanner', () => {
   it('asks nothing more without recent projects', async () => {
     gitlabService.findRecentProjectIds.mockResolvedValue([]);
 
-    expect(
-      await scanner.findHiddenItems(EMPLOYEE.id, REPORT_DATE, DAY),
-    ).toEqual({ issues: [], mergeRequests: [] });
+    expect(await scanner.findHiddenItems(EMPLOYEE.id, REPORT_DATE, DAY)).toEqual({
+      issues: [],
+      mergeRequests: [],
+    });
     expect(redisService.get).not.toHaveBeenCalled();
   });
 });

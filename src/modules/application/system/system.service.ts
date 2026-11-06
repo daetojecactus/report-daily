@@ -17,18 +17,11 @@ export class SystemService {
 
   async getHealth(): Promise<SystemHealth> {
     const [database, redis] = await Promise.all([
-      this.checkDependency(
-        () => this.databaseService.ping(),
-        SystemMessages.DATABASE_UNAVAILABLE,
-      ),
-      this.checkDependency(
-        () => this.redisService.ping(),
-        SystemMessages.REDIS_UNAVAILABLE,
-      ),
+      this.checkDependency(() => this.databaseService.ping(), SystemMessages.DATABASE_UNAVAILABLE),
+      this.checkDependency(() => this.redisService.ping(), SystemMessages.REDIS_UNAVAILABLE),
     ]);
     const isHealthy =
-      database === DependencyStatus.CONNECTED &&
-      redis === DependencyStatus.CONNECTED;
+      database === DependencyStatus.CONNECTED && redis === DependencyStatus.CONNECTED;
 
     return {
       status: isHealthy ? HealthStatus.OK : HealthStatus.DEGRADED,
@@ -37,10 +30,7 @@ export class SystemService {
     };
   }
 
-  private async checkDependency(
-    ping: () => Promise<unknown>,
-    failureMessage: SystemMessages,
-  ) {
+  private async checkDependency(ping: () => Promise<unknown>, failureMessage: SystemMessages) {
     try {
       await ping();
       return DependencyStatus.CONNECTED;

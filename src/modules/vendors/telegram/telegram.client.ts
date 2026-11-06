@@ -9,10 +9,7 @@ import {
 import { TelegramMessages } from './constants/telegram.messages';
 import type { TelegramMethod } from './telegram.enums';
 import { TelegramRetryableError } from './telegram.error';
-import type {
-  TelegramCallOptions,
-  TelegramHttpResponse,
-} from './telegram.interface';
+import type { TelegramCallOptions, TelegramHttpResponse } from './telegram.interface';
 
 @Injectable()
 export class TelegramClient {
@@ -29,10 +26,7 @@ export class TelegramClient {
   async post(
     method: TelegramMethod,
     params: object,
-    {
-      timeoutMs = TELEGRAM_REQUEST_TIMEOUT_MS,
-      signal,
-    }: TelegramCallOptions = {},
+    { timeoutMs = TELEGRAM_REQUEST_TIMEOUT_MS, signal }: TelegramCallOptions = {},
   ): Promise<TelegramHttpResponse> {
     const timeout = AbortSignal.timeout(timeoutMs);
     try {

@@ -9,8 +9,6 @@ describe('escapeMarkdown', () => {
   });
 
   it('keeps plain text', () => {
-    expect(escapeMarkdown('Иван Петров <dev> & co.')).toBe(
-      'Иван Петров <dev> & co.',
-    );
+    expect(escapeMarkdown('Иван Петров <dev> & co.')).toBe('Иван Петров <dev> & co.');
   });
 });

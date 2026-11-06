@@ -8,10 +8,7 @@ import type {
   ChatInput,
   Screen,
 } from 'src/common/interfaces/chat-channel.interface';
-import {
-  TelegramRejectedError,
-  TelegramRetryableError,
-} from '../telegram.error';
+import { TelegramRejectedError, TelegramRetryableError } from '../telegram.error';
 import { TelegramFormatter } from '../telegram.formatter';
 import type {
   TelegramCallbackQuery,
@@ -75,17 +72,10 @@ const QUERY_TOO_OLD_DESCRIPTION = [
 const BLOCKED_DESCRIPTION = 'Forbidden: bot was blocked by the user';
 
 function rejected(code: number, description: string) {
-  return new TelegramRejectedError(
-    `Telegram API error: ${code} ${description}`,
-    code,
-    description,
-  );
+  return new TelegramRejectedError(`Telegram API error: ${code} ${description}`, code, description);
 }
 
-const RETRYABLE_ERROR = new TelegramRetryableError(
-  'Telegram API error: 429 Too Many Requests',
-  3,
-);
+const RETRYABLE_ERROR = new TelegramRetryableError('Telegram API error: 429 Too Many Requests', 3);
 
 const UNAUTHORIZED_ERROR = rejected(401, 'Unauthorized');
 
@@ -121,9 +111,7 @@ function commandUpdate(text: string) {
   });
 }
 
-function buttonUpdate(
-  values: Partial<TelegramCallbackQuery> = {},
-): TelegramUpdate {
+function buttonUpdate(values: Partial<TelegramCallbackQuery> = {}): TelegramUpdate {
   return {
     update_id: UPDATE_ID,
     callback_query: {
@@ -204,9 +192,9 @@ describe('TelegramService', () => {
     });
 
     it('maps plain text', () => {
-      expect(
-        service.toChatEvent(messageUpdate({ text: 'Ivan Petrov' })),
-      ).toEqual(chatEvent({ type: ChatInputType.TEXT, text: 'Ivan Petrov' }));
+      expect(service.toChatEvent(messageUpdate({ text: 'Ivan Petrov' }))).toEqual(
+        chatEvent({ type: ChatInputType.TEXT, text: 'Ivan Petrov' }),
+      );
     });
 
     it('maps a command after other text as text', () => {
@@ -255,9 +243,9 @@ describe('TelegramService', () => {
     it('maps a missing language code to null', () => {
       const from = sender({ language_code: undefined });
 
-      expect(
-        service.toChatEvent(messageUpdate({ text: 'hi', from })),
-      ).toMatchObject({ languageCode: null });
+      expect(service.toChatEvent(messageUpdate({ text: 'hi', from }))).toMatchObject({
+        languageCode: null,
+      });
       expect(service.toChatEvent(buttonUpdate({ from }))).toMatchObject({
         languageCode: null,
       });
@@ -268,13 +256,9 @@ describe('TelegramService', () => {
       const chat = { id: 300_000_006, type: 'private' };
       const ids = { userId: '300000005', chatId: '300000006' };
 
+      expect(service.toChatEvent(messageUpdate({ text: 'hi', from, chat }))).toMatchObject(ids);
       expect(
-        service.toChatEvent(messageUpdate({ text: 'hi', from, chat })),
-      ).toMatchObject(ids);
-      expect(
-        service.toChatEvent(
-          buttonUpdate({ from, message: { message_id: MESSAGE_ID, chat } }),
-        ),
+        service.toChatEvent(buttonUpdate({ from, message: { message_id: MESSAGE_ID, chat } })),
       ).toMatchObject(ids);
     });
 
@@ -325,13 +309,8 @@ describe('TelegramService', () => {
     it('sends an HTML message with a keyboard and returns its id', async () => {
       repository.sendMessage.mockResolvedValueOnce(sentMessage(300_000_007));
 
-      await expect(service.sendScreen(CHAT_ID, SCREEN)).resolves.toBe(
-        '300000007',
-      );
-      expect(repository.sendMessage).toHaveBeenCalledExactlyOnceWith(
-        CHAT_ID,
-        RENDERED_SCREEN,
-      );
+      await expect(service.sendScreen(CHAT_ID, SCREEN)).resolves.toBe('300000007');
+      expect(repository.sendMessage).toHaveBeenCalledExactlyOnceWith(CHAT_ID, RENDERED_SCREEN);
     });
 
     it.each([
@@ -378,13 +357,9 @@ describe('TelegramService', () => {
     });
 
     it('throws ChatUnreachableError when the bot is blocked', async () => {
-      repository.sendMessage.mockRejectedValueOnce(
-        rejected(403, BLOCKED_DESCRIPTION),
-      );
+      repository.sendMessage.mockRejectedValueOnce(rejected(403, BLOCKED_DESCRIPTION));
 
-      await expect(service.sendScreen(CHAT_ID, SCREEN)).rejects.toThrow(
-        ChatUnreachableError,
-      );
+      await expect(service.sendScreen(CHAT_ID, SCREEN)).rejects.toThrow(ChatUnreachableError);
     });
 
     it.each([
@@ -417,9 +392,7 @@ describe('TelegramService', () => {
     it('edits the message by its numeric id', async () => {
       repository.editMessageText.mockResolvedValueOnce();
 
-      await expect(
-        service.editScreen(CHAT_ID, '300000003', SCREEN),
-      ).resolves.toBeUndefined();
+      await expect(service.editScreen(CHAT_ID, '300000003', SCREEN)).resolves.toBeUndefined();
       expect(repository.editMessageText).toHaveBeenCalledExactlyOnceWith(
         CHAT_ID,
         300_000_003,
@@ -428,13 +401,9 @@ describe('TelegramService', () => {
     });
 
     it('ignores an unchanged message', async () => {
-      repository.editMessageText.mockRejectedValueOnce(
-        rejected(400, NOT_MODIFIED_DESCRIPTION),
-      );
+      repository.editMessageText.mockRejectedValueOnce(rejected(400, NOT_MODIFIED_DESCRIPTION));
 
-      await expect(
-        service.editScreen(CHAT_ID, '300000003', SCREEN),
-      ).resolves.toBeUndefined();
+      await expect(service.editScreen(CHAT_ID, '300000003', SCREEN)).resolves.toBeUndefined();
       expect(repository.sendMessage).not.toHaveBeenCalled();
     });
 
@@ -444,23 +413,16 @@ describe('TelegramService', () => {
       );
       repository.sendMessage.mockResolvedValueOnce(sentMessage(300_000_008));
 
-      await expect(
-        service.editScreen(CHAT_ID, '300000003', SCREEN),
-      ).resolves.toBeUndefined();
-      expect(repository.sendMessage).toHaveBeenCalledExactlyOnceWith(
-        CHAT_ID,
-        RENDERED_SCREEN,
-      );
+      await expect(service.editScreen(CHAT_ID, '300000003', SCREEN)).resolves.toBeUndefined();
+      expect(repository.sendMessage).toHaveBeenCalledExactlyOnceWith(CHAT_ID, RENDERED_SCREEN);
     });
 
     it('throws ChatUnreachableError when the bot is blocked', async () => {
-      repository.editMessageText.mockRejectedValueOnce(
-        rejected(403, BLOCKED_DESCRIPTION),
-      );
+      repository.editMessageText.mockRejectedValueOnce(rejected(403, BLOCKED_DESCRIPTION));
 
-      await expect(
-        service.editScreen(CHAT_ID, '300000003', SCREEN),
-      ).rejects.toThrow(ChatUnreachableError);
+      await expect(service.editScreen(CHAT_ID, '300000003', SCREEN)).rejects.toThrow(
+        ChatUnreachableError,
+      );
       expect(repository.sendMessage).not.toHaveBeenCalled();
     });
 
@@ -468,13 +430,11 @@ describe('TelegramService', () => {
       repository.editMessageText.mockRejectedValueOnce(
         rejected(400, "Bad Request: message can't be edited"),
       );
-      repository.sendMessage.mockRejectedValueOnce(
-        rejected(403, BLOCKED_DESCRIPTION),
-      );
+      repository.sendMessage.mockRejectedValueOnce(rejected(403, BLOCKED_DESCRIPTION));
 
-      await expect(
-        service.editScreen(CHAT_ID, '300000003', SCREEN),
-      ).rejects.toThrow(ChatUnreachableError);
+      await expect(service.editScreen(CHAT_ID, '300000003', SCREEN)).rejects.toThrow(
+        ChatUnreachableError,
+      );
     });
 
     it.each([
@@ -484,9 +444,7 @@ describe('TelegramService', () => {
     ])('propagates $name without sending', async ({ error }) => {
       repository.editMessageText.mockRejectedValueOnce(error);
 
-      await expect(
-        service.editScreen(CHAT_ID, '300000003', SCREEN),
-      ).rejects.toBe(error);
+      await expect(service.editScreen(CHAT_ID, '300000003', SCREEN)).rejects.toBe(error);
       expect(repository.sendMessage).not.toHaveBeenCalled();
     });
   });
@@ -497,9 +455,7 @@ describe('TelegramService', () => {
 
       await service.answerButton(CALLBACK_ID);
 
-      expect(repository.answerCallbackQuery).toHaveBeenCalledExactlyOnceWith(
-        CALLBACK_ID,
-      );
+      expect(repository.answerCallbackQuery).toHaveBeenCalledExactlyOnceWith(CALLBACK_ID);
     });
 
     it('ignores a bad request', async () => {
@@ -564,13 +520,8 @@ describe('TelegramService', () => {
       const { signal } = new AbortController();
       repository.getUpdates.mockResolvedValueOnce(updates);
 
-      await expect(service.getUpdates(300_000_009, signal)).resolves.toBe(
-        updates,
-      );
-      expect(repository.getUpdates).toHaveBeenCalledExactlyOnceWith(
-        300_000_009,
-        signal,
-      );
+      await expect(service.getUpdates(300_000_009, signal)).resolves.toBe(updates);
+      expect(repository.getUpdates).toHaveBeenCalledExactlyOnceWith(300_000_009, signal);
     });
 
     it('deletes the webhook', async () => {

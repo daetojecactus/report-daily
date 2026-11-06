@@ -30,9 +30,7 @@ export class BotService {
     private readonly i18nService: I18nService,
     @Inject(BOT_CHANNELS) channels: ChatChannel[],
   ) {
-    this.channels = new Map(
-      channels.map((channel) => [channel.channel, channel]),
-    );
+    this.channels = new Map(channels.map((channel) => [channel.channel, channel]));
   }
 
   async handle(event: ChatEvent) {
@@ -47,20 +45,14 @@ export class BotService {
 
   async replyFailure(event: ChatEvent) {
     const channel = this.getChannel(event.channel);
-    const locale = this.i18nService.getLocale(
-      this.i18nService.resolveLanguage(event.languageCode),
-    );
+    const locale = this.i18nService.getLocale(this.i18nService.resolveLanguage(event.languageCode));
     if (event.input.type === ChatInputType.BUTTON) {
       await channel.answerButton(event.input.callbackId);
     }
     await channel.sendScreen(event.chatId, { text: locale.bot.error });
   }
 
-  private async dispatch(
-    actor: BotActor,
-    input: ChatInput,
-    locale: Locale,
-  ): Promise<Screen> {
+  private async dispatch(actor: BotActor, input: ChatInput, locale: Locale): Promise<Screen> {
     const isKnown = this.accessService.isKnown(actor);
     const dialog = isKnown ? await this.dialogService.find(actor) : null;
     const route = this.findRoute(input, dialog);
@@ -88,10 +80,7 @@ export class BotService {
     return reply.screen;
   }
 
-  private findRoute(
-    input: ChatInput,
-    dialog: BotDialog | null,
-  ): BotRoute | null {
+  private findRoute(input: ChatInput, dialog: BotDialog | null): BotRoute | null {
     switch (input.type) {
       case ChatInputType.COMMAND:
         return this.routerService.findByCommand(input.command);
@@ -99,9 +88,7 @@ export class BotService {
         return this.routerService.findByButton(input.data);
       case ChatInputType.TEXT:
       case ChatInputType.PICKED_USER:
-        return dialog
-          ? this.routerService.findByNamespace(dialog.namespace)
-          : null;
+        return dialog ? this.routerService.findByNamespace(dialog.namespace) : null;
       default:
         return null;
     }
@@ -122,10 +109,7 @@ export class BotService {
   }
 
   private denyText(actor: BotActor, locale: Locale) {
-    return locale.bot.noAccess(
-      locale.channels[actor.channel],
-      actor.externalId,
-    );
+    return locale.bot.noAccess(locale.channels[actor.channel], actor.externalId);
   }
 
   private async reply(event: ChatEvent, screen: Screen, actor: BotActor) {
@@ -142,14 +126,8 @@ export class BotService {
         throw error;
       }
       if (actor.user) {
-        await this.channelService.updateReachable(
-          event.channel,
-          event.userId,
-          false,
-        );
-        this.logger.warn(
-          `${BotMessages.CHANNEL_UNREACHABLE}: ${actor.user.id}`,
-        );
+        await this.channelService.updateReachable(event.channel, event.userId, false);
+        this.logger.warn(`${BotMessages.CHANNEL_UNREACHABLE}: ${actor.user.id}`);
       }
     }
   }

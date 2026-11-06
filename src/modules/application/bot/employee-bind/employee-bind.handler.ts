@@ -9,16 +9,8 @@ import type { User } from 'src/modules/application/user/user.interface';
 import { UserService } from 'src/modules/application/user/user.service';
 import { BotSection } from '../bot.decorator';
 import { BotAccess, BotNamespace } from '../bot.enums';
-import type {
-  BotActor,
-  BotContext,
-  BotHandler,
-  BotReply,
-} from '../bot.interface';
-import {
-  BOT_BUTTON_DATA_SEPARATOR,
-  BOT_CHANNELS,
-} from '../constants/bot.constants';
+import type { BotActor, BotContext, BotHandler, BotReply } from '../bot.interface';
+import { BOT_BUTTON_DATA_SEPARATOR, BOT_CHANNELS } from '../constants/bot.constants';
 import { BotMessages } from '../constants/bot.messages';
 import { EmployeesAction } from '../employees/employees.enums';
 import { MenuService } from '../menu/menu.service';
@@ -41,16 +33,8 @@ export class EmployeeBindHandler implements BotHandler {
     @Inject(BOT_CHANNELS) private readonly channels: ChatChannel[],
   ) {}
 
-  async handle({
-    actor,
-    input,
-    dialog,
-    locale,
-  }: BotContext): Promise<BotReply> {
-    if (
-      input.type === ChatInputType.TEXT ||
-      input.type === ChatInputType.PICKED_USER
-    ) {
+  async handle({ actor, input, dialog, locale }: BotContext): Promise<BotReply> {
+    if (input.type === ChatInputType.TEXT || input.type === ChatInputType.PICKED_USER) {
       const draft = EMPLOYEE_BIND_DRAFT_SCHEMA.safeParse(dialog?.data);
       if (dialog?.step !== EmployeeBindStep.ID || !draft.success) {
         return { screen: { text: locale.bot.expired }, dialog: null };
@@ -59,9 +43,7 @@ export class EmployeeBindHandler implements BotHandler {
         actor,
         locale,
         draft.data.userId,
-        input.type === ChatInputType.TEXT
-          ? input.text.trim()
-          : input.externalId,
+        input.type === ChatInputType.TEXT ? input.text.trim() : input.externalId,
       );
     }
     if (input.type !== ChatInputType.BUTTON) {
@@ -109,10 +91,7 @@ export class EmployeeBindHandler implements BotHandler {
             userPicker: { text: locale.employeeBind.pickButton },
           }
         : {
-            text: locale.employeeBind.prompt(
-              channelName,
-              escapeMarkdown(user.displayName),
-            ),
+            text: locale.employeeBind.prompt(channelName, escapeMarkdown(user.displayName)),
             buttons: [
               [
                 {
@@ -139,16 +118,9 @@ export class EmployeeBindHandler implements BotHandler {
   ): Promise<BotReply> {
     const channelName = locale.channels[actor.channel];
     if (!this.getChannel(actor).isUserId(externalId)) {
-      return this.askAgain(
-        locale,
-        userId,
-        locale.employeeBind.invalid(channelName),
-      );
+      return this.askAgain(locale, userId, locale.employeeBind.invalid(channelName));
     }
-    const taken = await this.userService.findOneByChannel(
-      actor.channel,
-      externalId,
-    );
+    const taken = await this.userService.findOneByChannel(actor.channel, externalId);
     if (taken) {
       return this.askAgain(
         locale,
@@ -161,11 +133,7 @@ export class EmployeeBindHandler implements BotHandler {
       return this.refuse(actor, locale, user);
     }
 
-    const channel = await this.userService.bindChannel(
-      user.id,
-      actor.channel,
-      externalId,
-    );
+    const channel = await this.userService.bindChannel(user.id, actor.channel, externalId);
     await this.menuService.syncEmployee(user, [channel]);
     this.logger.log(
       { userId: user.id, actorId: actor.user?.id ?? BotAccess.OWNER },
@@ -174,10 +142,7 @@ export class EmployeeBindHandler implements BotHandler {
     return {
       screen: {
         text: [
-          locale.employeeBind.bound(
-            channelName,
-            escapeMarkdown(user.displayName),
-          ),
+          locale.employeeBind.bound(channelName, escapeMarkdown(user.displayName)),
           locale.employeeBind.hint,
         ].join('\n\n'),
         buttons: [
@@ -207,9 +172,7 @@ export class EmployeeBindHandler implements BotHandler {
     return {
       screen: user
         ? {
-            text: locale.employeeBind.alreadyBound(
-              locale.channels[actor.channel],
-            ),
+            text: locale.employeeBind.alreadyBound(locale.channels[actor.channel]),
             buttons: [[this.toCardButton(locale, user.id)]],
           }
         : {
@@ -234,13 +197,9 @@ export class EmployeeBindHandler implements BotHandler {
   }
 
   private getChannel(actor: BotActor) {
-    const channel = this.channels.find(
-      (item) => item.channel === actor.channel,
-    );
+    const channel = this.channels.find((item) => item.channel === actor.channel);
     if (!channel) {
-      throw new Error(
-        `${BotMessages.CHANNEL_NOT_REGISTERED}: ${actor.channel}`,
-      );
+      throw new Error(`${BotMessages.CHANNEL_NOT_REGISTERED}: ${actor.channel}`);
     }
     return channel;
   }
@@ -253,9 +212,7 @@ export class EmployeeBindHandler implements BotHandler {
   }
 
   private toBindData(action: EmployeeBindAction, userId: string) {
-    return [BotNamespace.EMPLOYEE_BIND, action, userId].join(
-      BOT_BUTTON_DATA_SEPARATOR,
-    );
+    return [BotNamespace.EMPLOYEE_BIND, action, userId].join(BOT_BUTTON_DATA_SEPARATOR);
   }
 
   private toCardButton(locale: Locale, userId: string) {

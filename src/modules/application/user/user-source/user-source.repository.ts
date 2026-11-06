@@ -22,10 +22,7 @@ export class UserSourceRepository {
   }
 
   async create(values: UserSourceInsert) {
-    const [account] = await this.databaseService.db
-      .insert(userSources)
-      .values(values)
-      .returning();
+    const [account] = await this.databaseService.db.insert(userSources).values(values).returning();
     return account;
   }
 
@@ -39,10 +36,7 @@ export class UserSourceRepository {
   }
 
   async deleteOne(filter: SQL) {
-    const [account] = await this.databaseService.db
-      .delete(userSources)
-      .where(filter)
-      .returning();
+    const [account] = await this.databaseService.db.delete(userSources).where(filter).returning();
     return account ?? null;
   }
 }

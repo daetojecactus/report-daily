@@ -1,18 +1,7 @@
 import { sql } from 'drizzle-orm';
-import {
-  check,
-  pgEnum,
-  pgTable,
-  text,
-  unique,
-  uuid,
-} from 'drizzle-orm/pg-core';
+import { check, pgEnum, pgTable, text, unique, uuid } from 'drizzle-orm/pg-core';
 import { Source } from '../../source/source.enums';
-import {
-  createdAt,
-  primaryId,
-  updatedAt,
-} from '../../../infrastructure/database/database.columns';
+import { createdAt, primaryId, updatedAt } from '../../../infrastructure/database/database.columns';
 import { users } from '../user.schema';
 
 export const source = pgEnum('source', Source);
@@ -32,13 +21,7 @@ export const userSources = pgTable(
   },
   (table) => [
     unique('user_sources_user_id_source_unique').on(table.userId, table.source),
-    unique('user_sources_source_external_id_unique').on(
-      table.source,
-      table.externalId,
-    ),
-    check(
-      'user_sources_external_id_length',
-      sql`char_length(${table.externalId}) > 0`,
-    ),
+    unique('user_sources_source_external_id_unique').on(table.source, table.externalId),
+    check('user_sources_external_id_length', sql`char_length(${table.externalId}) > 0`),
   ],
 );

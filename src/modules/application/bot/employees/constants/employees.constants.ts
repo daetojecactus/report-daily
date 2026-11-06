@@ -19,11 +19,7 @@ const PAGE_SCHEMA = z
 
 export const EMPLOYEES_BUTTON_SCHEMA = z.union([
   z
-    .tuple([
-      z.literal(BotNamespace.EMPLOYEES),
-      z.literal(EmployeesAction.LIST),
-      PAGE_SCHEMA,
-    ])
+    .tuple([z.literal(BotNamespace.EMPLOYEES), z.literal(EmployeesAction.LIST), PAGE_SCHEMA])
     .transform(([, action, page]) => ({ action, page })),
   z
     .tuple([
@@ -34,9 +30,6 @@ export const EMPLOYEES_BUTTON_SCHEMA = z.union([
     ])
     .transform(([, action, id, page]) => ({ action, id, page })),
   z
-    .tuple([
-      z.literal(BotNamespace.EMPLOYEES),
-      z.literal(EmployeesAction.SEARCH),
-    ])
+    .tuple([z.literal(BotNamespace.EMPLOYEES), z.literal(EmployeesAction.SEARCH)])
     .transform(([, action]) => ({ action })),
 ]);

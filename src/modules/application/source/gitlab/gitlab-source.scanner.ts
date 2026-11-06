@@ -12,10 +12,7 @@ import {
   GITLAB_SOURCE_SCAN_LIMIT,
 } from './constants/gitlab-source.constants';
 import { GitLabSourceMessages } from './constants/gitlab-source.messages';
-import type {
-  SourceDayIndex,
-  SourceHiddenItems,
-} from './gitlab-source.interface';
+import type { SourceDayIndex, SourceHiddenItems } from './gitlab-source.interface';
 
 @Injectable()
 export class GitLabSourceScanner {
@@ -38,19 +35,14 @@ export class GitLabSourceScanner {
     );
     const indexes = await Promise.all(
       projectIds.map(
-        async (projectId) =>
-          [projectId, await this.loadIndex(projectId, day)] as const,
+        async (projectId) => [projectId, await this.loadIndex(projectId, day)] as const,
       ),
     );
     const found: SourceHiddenItems = { issues: [], mergeRequests: [] };
     for (const [projectId, index] of indexes) {
       const own = index[String(gitlabUserId)];
-      found.issues.push(
-        ...(own?.issues ?? []).map((iid) => ({ projectId, iid })),
-      );
-      found.mergeRequests.push(
-        ...(own?.mergeRequests ?? []).map((iid) => ({ projectId, iid })),
-      );
+      found.issues.push(...(own?.issues ?? []).map((iid) => ({ projectId, iid })));
+      found.mergeRequests.push(...(own?.mergeRequests ?? []).map((iid) => ({ projectId, iid })));
     }
     return found;
   }
@@ -59,36 +51,22 @@ export class GitLabSourceScanner {
     const key = [GITLAB_SOURCE_INDEX_KEY, projectId, day.start].join(':');
     const cached = await this.redisService.get(key);
     if (cached) {
-      const parsed = GITLAB_SOURCE_INDEX_SCHEMA.safeParse(
-        this.parseJson(cached),
-      );
+      const parsed = GITLAB_SOURCE_INDEX_SCHEMA.safeParse(this.parseJson(cached));
       if (parsed.success) {
         return parsed.data;
       }
       this.logger.warn({ projectId }, GitLabSourceMessages.INDEX_INVALID);
     }
     const index = await this.buildIndex(projectId, day);
-    await this.redisService.set(
-      key,
-      JSON.stringify(index),
-      GITLAB_SOURCE_INDEX_TTL_MS,
-    );
+    await this.redisService.set(key, JSON.stringify(index), GITLAB_SOURCE_INDEX_TTL_MS);
     return index;
   }
 
   private async buildIndex(projectId: number, day: DayRange) {
     const updatedAfter = new Date(day.start).toISOString();
     const [issues, mergeRequests] = await Promise.all([
-      this.gitlabService.findUpdatedItems(
-        GitLabIssuable.ISSUES,
-        projectId,
-        updatedAfter,
-      ),
-      this.gitlabService.findUpdatedItems(
-        GitLabIssuable.MERGE_REQUESTS,
-        projectId,
-        updatedAfter,
-      ),
+      this.gitlabService.findUpdatedItems(GitLabIssuable.ISSUES, projectId, updatedAfter),
+      this.gitlabService.findUpdatedItems(GitLabIssuable.MERGE_REQUESTS, projectId, updatedAfter),
     ]);
     const items = [
       ...issues.map(({ iid }) => ({ issuable: GitLabIssuable.ISSUES, iid })),
@@ -98,40 +76,32 @@ export class GitLabSourceScanner {
       })),
     ];
     if (items.length > GITLAB_SOURCE_SCAN_LIMIT) {
-      this.logger.warn(
-        { projectId, items: items.length },
-        GitLabSourceMessages.SCAN_LIMIT_REACHED,
-      );
+      this.logger.warn({ projectId, items: items.length }, GitLabSourceMessages.SCAN_LIMIT_REACHED);
     }
 
     const index: SourceDayIndex = {};
     await Promise.all(
-      items
-        .slice(0, GITLAB_SOURCE_SCAN_LIMIT)
-        .map(async ({ issuable, iid }) => {
-          const [notes, labelEvents] = await Promise.all([
-            this.gitlabService.findNotes(issuable, projectId, iid),
-            this.gitlabService.findLabelEvents(issuable, projectId, iid),
-          ]);
-          const userIds = new Set([
-            ...notes
-              .filter((note) => isWithinDay(note.created_at, day))
-              .map((note) => note.author.id),
-            ...labelEvents
-              .filter((event) => isWithinDay(event.created_at, day))
-              .map((event) => event.user.id),
-          ]);
-          for (const userId of userIds) {
-            const own = (index[String(userId)] ??= {
-              issues: [],
-              mergeRequests: [],
-            });
-            (issuable === GitLabIssuable.ISSUES
-              ? own.issues
-              : own.mergeRequests
-            ).push(iid);
-          }
-        }),
+      items.slice(0, GITLAB_SOURCE_SCAN_LIMIT).map(async ({ issuable, iid }) => {
+        const [notes, labelEvents] = await Promise.all([
+          this.gitlabService.findNotes(issuable, projectId, iid),
+          this.gitlabService.findLabelEvents(issuable, projectId, iid),
+        ]);
+        const userIds = new Set([
+          ...notes
+            .filter((note) => isWithinDay(note.created_at, day))
+            .map((note) => note.author.id),
+          ...labelEvents
+            .filter((event) => isWithinDay(event.created_at, day))
+            .map((event) => event.user.id),
+        ]);
+        for (const userId of userIds) {
+          const own = (index[String(userId)] ??= {
+            issues: [],
+            mergeRequests: [],
+          });
+          (issuable === GitLabIssuable.ISSUES ? own.issues : own.mergeRequests).push(iid);
+        }
+      }),
     );
     for (const own of Object.values(index)) {
       own.issues.sort((left, right) => left - right);

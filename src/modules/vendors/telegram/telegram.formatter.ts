@@ -76,9 +76,7 @@ export class TelegramFormatter {
 
     const text = this.format(markdown.slice(index + 1, textEnd));
     const url = markdown.slice(textEnd + 2, urlEnd);
-    const isSafe =
-      URL.canParse(url) &&
-      TELEGRAM_LINK_PROTOCOLS.includes(new URL(url).protocol);
+    const isSafe = URL.canParse(url) && TELEGRAM_LINK_PROTOCOLS.includes(new URL(url).protocol);
     return {
       html: isSafe ? `<a href="${this.escape(url)}">${text}</a>` : text,
       end: urlEnd + 1,
@@ -99,9 +97,6 @@ export class TelegramFormatter {
   }
 
   private escape(text: string) {
-    return text.replace(
-      TELEGRAM_HTML_SPECIAL_CHARACTERS,
-      (char) => TELEGRAM_HTML_ESCAPES[char],
-    );
+    return text.replace(TELEGRAM_HTML_SPECIAL_CHARACTERS, (char) => TELEGRAM_HTML_ESCAPES[char]);
   }
 }

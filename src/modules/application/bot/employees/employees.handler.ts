@@ -5,21 +5,13 @@ import { escapeMarkdown } from 'src/common/utils/markdown.util';
 import type { Locale } from 'src/modules/application/i18n/i18n.interface';
 import { ChannelService } from 'src/modules/application/user/channel/channel.service';
 import { UserSourceService } from 'src/modules/application/user/user-source/user-source.service';
-import {
-  Permission,
-  UserStatus,
-} from 'src/modules/application/user/user.enums';
+import { Permission, UserStatus } from 'src/modules/application/user/user.enums';
 import type { User } from 'src/modules/application/user/user.interface';
 import { UserService } from 'src/modules/application/user/user.service';
 import { ADMIN_MENU_DATA } from '../admin/constants/admin.constants';
 import { BotSection } from '../bot.decorator';
 import { BotNamespace } from '../bot.enums';
-import type {
-  BotActor,
-  BotContext,
-  BotHandler,
-  BotReply,
-} from '../bot.interface';
+import type { BotActor, BotContext, BotHandler, BotReply } from '../bot.interface';
 import { BOT_BUTTON_DATA_SEPARATOR } from '../constants/bot.constants';
 import {
   EMPLOYEES_BUTTON_SCHEMA,
@@ -46,25 +38,15 @@ export class EmployeesHandler implements BotHandler {
     private readonly accessService: AccessService,
   ) {}
 
-  async handle({
-    actor,
-    input,
-    dialog,
-    locale,
-  }: BotContext): Promise<BotReply> {
-    if (
-      input.type === ChatInputType.TEXT &&
-      dialog?.step === EmployeesStep.SEARCH
-    ) {
+  async handle({ actor, input, dialog, locale }: BotContext): Promise<BotReply> {
+    if (input.type === ChatInputType.TEXT && dialog?.step === EmployeesStep.SEARCH) {
       return this.search(locale, input.text);
     }
     if (input.type !== ChatInputType.BUTTON) {
       return { screen: { text: locale.bot.unknownInput } };
     }
 
-    const button = EMPLOYEES_BUTTON_SCHEMA.safeParse(
-      input.data.split(BOT_BUTTON_DATA_SEPARATOR),
-    );
+    const button = EMPLOYEES_BUTTON_SCHEMA.safeParse(input.data.split(BOT_BUTTON_DATA_SEPARATOR));
     if (!button.success) {
       return { screen: { text: locale.bot.expired } };
     }
@@ -111,9 +93,7 @@ export class EmployeesHandler implements BotHandler {
       screen: {
         text: lines.join('\n'),
         buttons: [
-          ...employees.map((user) => [
-            this.toCardButton(locale, user, current),
-          ]),
+          ...employees.map((user) => [this.toCardButton(locale, user, current)]),
           ...(navigation.length > 0 ? [navigation] : []),
           [
             {
@@ -164,8 +144,7 @@ export class EmployeesHandler implements BotHandler {
     const lines = [
       `**${escapeMarkdown(user.displayName)}**`,
       ...accounts.map(
-        (account) =>
-          `${locale.sources[account.source]}: @${escapeMarkdown(account.username)}`,
+        (account) => `${locale.sources[account.source]}: @${escapeMarkdown(account.username)}`,
       ),
       `${card.role}: ${locale.roles[user.role]}`,
       `${card.gender}: ${locale.genders[user.gender]}`,
@@ -192,22 +171,14 @@ export class EmployeesHandler implements BotHandler {
       actions.push([
         {
           text: locale.employees.bind(locale.channels[actor.channel]),
-          data: this.toSectionData(
-            BotNamespace.EMPLOYEE_BIND,
-            EmployeeBindAction.START,
-            user.id,
-          ),
+          data: this.toSectionData(BotNamespace.EMPLOYEE_BIND, EmployeeBindAction.START, user.id),
         },
       ]);
     }
     actions.push([
       {
         text: locale.employeeManage.changeRole,
-        data: this.toSectionData(
-          BotNamespace.EMPLOYEE_MANAGE,
-          EmployeeManageAction.ROLE,
-          user.id,
-        ),
+        data: this.toSectionData(BotNamespace.EMPLOYEE_MANAGE, EmployeeManageAction.ROLE, user.id),
       },
     ]);
     if (actor.isOwner) {
@@ -226,14 +197,10 @@ export class EmployeesHandler implements BotHandler {
       const isBlocked = user.status === UserStatus.BLOCKED;
       actions.push([
         {
-          text: isBlocked
-            ? locale.employeeManage.unblock
-            : locale.employeeManage.block,
+          text: isBlocked ? locale.employeeManage.unblock : locale.employeeManage.block,
           data: this.toSectionData(
             BotNamespace.EMPLOYEE_MANAGE,
-            isBlocked
-              ? EmployeeManageAction.UNBLOCK
-              : EmployeeManageAction.BLOCK,
+            isBlocked ? EmployeeManageAction.UNBLOCK : EmployeeManageAction.BLOCK,
             user.id,
           ),
         },
@@ -280,10 +247,7 @@ export class EmployeesHandler implements BotHandler {
       return this.askQuery(locale);
     }
 
-    const found = await this.userService.search(
-      query,
-      EMPLOYEES_SEARCH_LIMIT + 1,
-    );
+    const found = await this.userService.search(query, EMPLOYEES_SEARCH_LIMIT + 1);
     const lines = [locale.employees.searchTitle(escapeMarkdown(query))];
     if (found.length === 0) {
       lines.push(locale.employees.searchEmpty);

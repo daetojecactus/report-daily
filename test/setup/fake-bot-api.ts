@@ -1,8 +1,4 @@
-import {
-  createServer,
-  type IncomingMessage,
-  type ServerResponse,
-} from 'node:http';
+import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { setTimeout as sleep } from 'node:timers/promises';
 import type {
@@ -58,19 +54,14 @@ export async function startFakeBotApi() {
 
   const flushPolls = () => {
     for (const poll of polls) {
-      const available = updates.filter(
-        (update) => update.update_id >= poll.offset,
-      );
+      const available = updates.filter((update) => update.update_id >= poll.offset);
       if (available.length > 0) {
         answerPoll(poll, available);
       }
     }
   };
 
-  const getUpdates = (
-    body: Record<string, unknown>,
-    response: ServerResponse,
-  ) => {
+  const getUpdates = (body: Record<string, unknown>, response: ServerResponse) => {
     const offset = Number(body.offset ?? 0);
     updates = updates.filter((update) => update.update_id >= offset);
     if (updates.length > 0) {
@@ -78,10 +69,7 @@ export async function startFakeBotApi() {
       return;
     }
 
-    const timeoutMs = Math.min(
-      Number(body.timeout ?? 0) * 1000,
-      MAX_POLL_TIMEOUT_MS,
-    );
+    const timeoutMs = Math.min(Number(body.timeout ?? 0) * 1000, MAX_POLL_TIMEOUT_MS);
     const poll: PendingPoll = {
       offset,
       response,
@@ -105,18 +93,12 @@ export async function startFakeBotApi() {
       error_code: failure.code,
       description: failure.description,
       parameters:
-        failure.retryAfter === undefined
-          ? undefined
-          : { retry_after: failure.retryAfter },
+        failure.retryAfter === undefined ? undefined : { retry_after: failure.retryAfter },
     });
     return true;
   };
 
-  const callMethod = (
-    method: string,
-    body: Record<string, unknown>,
-    response: ServerResponse,
-  ) => {
+  const callMethod = (method: string, body: Record<string, unknown>, response: ServerResponse) => {
     requests.push({ method, body });
     const isMessage = method === 'sendMessage' || method === 'editMessageText';
     const result: TelegramMessage | boolean = isMessage
@@ -129,11 +111,7 @@ export async function startFakeBotApi() {
     send(response, 200, { ok: true, result });
   };
 
-  const control = (
-    action: string,
-    body: Record<string, unknown>,
-    response: ServerResponse,
-  ) => {
+  const control = (action: string, body: Record<string, unknown>, response: ServerResponse) => {
     switch (action) {
       case 'updates': {
         const update = { ...body, update_id: nextUpdateId++ };
@@ -209,27 +187,22 @@ export async function startFakeBotApi() {
 }
 
 async function callControl<T>(action: string, body?: unknown): Promise<T> {
-  const response = await fetch(
-    `${process.env.TELEGRAM_API_URL}${CONTROL_PREFIX}${action}`,
-    { method: 'POST', body: JSON.stringify(body ?? {}) },
-  );
+  const response = await fetch(`${process.env.TELEGRAM_API_URL}${CONTROL_PREFIX}${action}`, {
+    method: 'POST',
+    body: JSON.stringify(body ?? {}),
+  });
   return (await response.json()) as T;
 }
 
 export const fakeBotApi = {
   async pushUpdate(update: FakeUpdate) {
-    const { update_id } = await callControl<{ update_id: number }>(
-      'updates',
-      update,
-    );
+    const { update_id } = await callControl<{ update_id: number }>('updates', update);
     return update_id;
   },
 
   async requests(method?: string) {
     const requests = await callControl<FakeBotApiRequest[]>('requests');
-    return method
-      ? requests.filter((request) => request.method === method)
-      : requests;
+    return method ? requests.filter((request) => request.method === method) : requests;
   },
 
   async waitForRequest(
@@ -238,9 +211,7 @@ export const fakeBotApi = {
   ) {
     const deadline = Date.now() + WAIT_TIMEOUT_MS;
     while (Date.now() < deadline) {
-      const request = (await this.requests(method)).find((item) =>
-        predicate(item.body),
-      );
+      const request = (await this.requests(method)).find((item) => predicate(item.body));
       if (request) {
         return request.body;
       }
@@ -258,11 +229,7 @@ export const fakeBotApi = {
   },
 };
 
-export function privateMessage(
-  userId: number,
-  text: string,
-  languageCode = 'en',
-): FakeUpdate {
+export function privateMessage(userId: number, text: string, languageCode = 'en'): FakeUpdate {
   const command = text.startsWith('/') ? text.split(' ')[0] : null;
   return {
     message: {
@@ -275,18 +242,12 @@ export function privateMessage(
       },
       chat: { id: userId, type: 'private' },
       text,
-      entities: command
-        ? [{ type: 'bot_command', offset: 0, length: command.length }]
-        : undefined,
+      entities: command ? [{ type: 'bot_command', offset: 0, length: command.length }] : undefined,
     },
   };
 }
 
-export function pickedUser(
-  userId: number,
-  pickedUserId: number,
-  languageCode = 'en',
-): FakeUpdate {
+export function pickedUser(userId: number, pickedUserId: number, languageCode = 'en'): FakeUpdate {
   return {
     message: {
       message_id: nextMessageId++,

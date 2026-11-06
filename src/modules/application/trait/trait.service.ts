@@ -76,9 +76,6 @@ export class TraitService {
   }
 
   private toKeyFilter(source: Source, sourceKey: string) {
-    return and(
-      eq(traitMappings.source, source),
-      eq(traitMappings.sourceKey, sourceKey),
-    )!;
+    return and(eq(traitMappings.source, source), eq(traitMappings.sourceKey, sourceKey))!;
   }
 }

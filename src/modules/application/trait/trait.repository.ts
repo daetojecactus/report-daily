@@ -39,18 +39,12 @@ export class TraitRepository {
   }
 
   async deleteOne(filter: SQL) {
-    const [mapping] = await this.databaseService.db
-      .delete(traitMappings)
-      .where(filter)
-      .returning();
+    const [mapping] = await this.databaseService.db.delete(traitMappings).where(filter).returning();
     return mapping ?? null;
   }
 
   deleteMany(filter: SQL) {
-    return this.databaseService.db
-      .delete(traitMappings)
-      .where(filter)
-      .returning();
+    return this.databaseService.db.delete(traitMappings).where(filter).returning();
   }
 
   async countSourceNames() {

@@ -34,9 +34,7 @@ const SWITCH_SCHEMA = z
 
 const HOUR_SCHEMA = z.string().refine((hour) => SETTINGS_HOURS.includes(hour));
 
-const MINUTE_SCHEMA = z
-  .string()
-  .refine((minute) => SETTINGS_MINUTES.includes(minute));
+const MINUTE_SCHEMA = z.string().refine((minute) => SETTINGS_MINUTES.includes(minute));
 
 export const SETTINGS_BUTTON_SCHEMA = z.union([
   z
@@ -46,11 +44,7 @@ export const SETTINGS_BUTTON_SCHEMA = z.union([
     .tuple([NAMESPACE_SCHEMA, z.literal(SettingsAction.LANGUAGE)])
     .transform(([, action]) => ({ action, language: null })),
   z
-    .tuple([
-      NAMESPACE_SCHEMA,
-      z.literal(SettingsAction.LANGUAGE),
-      z.enum(Language),
-    ])
+    .tuple([NAMESPACE_SCHEMA, z.literal(SettingsAction.LANGUAGE), z.enum(Language)])
     .transform(([, action, language]) => ({ action, language })),
   z
     .tuple([NAMESPACE_SCHEMA, z.literal(SettingsAction.TIME)])
@@ -59,12 +53,7 @@ export const SETTINGS_BUTTON_SCHEMA = z.union([
     .tuple([NAMESPACE_SCHEMA, z.literal(SettingsAction.TIME), HOUR_SCHEMA])
     .transform(([, action, hour]) => ({ action, hour, minute: null })),
   z
-    .tuple([
-      NAMESPACE_SCHEMA,
-      z.literal(SettingsAction.TIME),
-      HOUR_SCHEMA,
-      MINUTE_SCHEMA,
-    ])
+    .tuple([NAMESPACE_SCHEMA, z.literal(SettingsAction.TIME), HOUR_SCHEMA, MINUTE_SCHEMA])
     .transform(([, action, hour, minute]) => ({ action, hour, minute })),
   z
     .tuple([NAMESPACE_SCHEMA, z.literal(SettingsAction.TIME_ZONE)])
@@ -83,10 +72,6 @@ export const SETTINGS_BUTTON_SCHEMA = z.union([
     .tuple([NAMESPACE_SCHEMA, z.literal(SettingsAction.GENDER), z.enum(Gender)])
     .transform(([, action, gender]) => ({ action, gender })),
   z
-    .tuple([
-      NAMESPACE_SCHEMA,
-      z.enum([SettingsAction.AI, SettingsAction.AI_DATA]),
-      SWITCH_SCHEMA,
-    ])
+    .tuple([NAMESPACE_SCHEMA, z.enum([SettingsAction.AI, SettingsAction.AI_DATA]), SWITCH_SCHEMA])
     .transform(([, action, isOn]) => ({ action, isOn })),
 ]);

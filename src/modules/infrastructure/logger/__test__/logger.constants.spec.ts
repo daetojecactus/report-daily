@@ -1,10 +1,7 @@
 import { Writable } from 'node:stream';
 import { pino } from 'pino';
 import { describe, expect, it } from 'vitest';
-import {
-  LOGGER_REDACT_CENSOR,
-  LOGGER_REDACT_PATHS,
-} from '../constants/logger.constants';
+import { LOGGER_REDACT_CENSOR, LOGGER_REDACT_PATHS } from '../constants/logger.constants';
 
 function writeLog(data: Record<string, unknown>) {
   let output = '';
@@ -15,10 +12,7 @@ function writeLog(data: Record<string, unknown>) {
     },
   });
 
-  pino(
-    { redact: { paths: LOGGER_REDACT_PATHS, censor: LOGGER_REDACT_CENSOR } },
-    stream,
-  ).info(data);
+  pino({ redact: { paths: LOGGER_REDACT_PATHS, censor: LOGGER_REDACT_CENSOR } }, stream).info(data);
 
   return JSON.parse(output) as Record<string, unknown>;
 }

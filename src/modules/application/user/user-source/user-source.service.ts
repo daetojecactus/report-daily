@@ -35,16 +35,11 @@ export class UserSourceService {
 
   findOneByExternalId(source: Source, externalId: string) {
     return this.findOne(
-      and(
-        eq(userSources.source, source),
-        eq(userSources.externalId, externalId),
-      )!,
+      and(eq(userSources.source, source), eq(userSources.externalId, externalId))!,
     );
   }
 
   findOneByUsername(source: Source, username: string) {
-    return this.findOne(
-      and(eq(userSources.source, source), eq(userSources.username, username))!,
-    );
+    return this.findOne(and(eq(userSources.source, source), eq(userSources.username, username))!);
   }
 }

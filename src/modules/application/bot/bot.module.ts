@@ -22,20 +22,14 @@ import { HelpHandler } from './handlers/help.handler';
 import { TraitAddHandler } from './trait-add/trait-add.handler';
 import { TraitManageHandler } from './trait-manage/trait-manage.handler';
 import { TraitsHandler } from './traits/traits.handler';
+import { TraitsView } from './traits/traits.view';
 import { StartHandler } from './handlers/start.handler';
 import { MenuService } from './menu/menu.service';
 import { RouterService } from './router/router.service';
 import { SettingsHandler } from './settings/settings.handler';
 
 @Module({
-  imports: [
-    DiscoveryModule,
-    I18nModule,
-    TraitModule,
-    UserModule,
-    GitLabModule,
-    TelegramModule,
-  ],
+  imports: [DiscoveryModule, I18nModule, TraitModule, UserModule, GitLabModule, TelegramModule],
   providers: [
     BotService,
     AccessService,
@@ -55,11 +49,10 @@ import { SettingsHandler } from './settings/settings.handler';
     TraitsHandler,
     TraitAddHandler,
     TraitManageHandler,
+    TraitsView,
     {
       provide: BOT_CHANNELS,
-      useFactory: (telegramService: TelegramService): ChatChannel[] => [
-        telegramService,
-      ],
+      useFactory: (telegramService: TelegramService): ChatChannel[] => [telegramService],
       inject: [TelegramService],
     },
   ],

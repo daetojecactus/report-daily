@@ -72,9 +72,7 @@ describe('RedisService', () => {
   it('acquires a free lock with its ttl', async () => {
     const key = uniqueKey();
 
-    expect(await redisService.acquireLock(key, OWNER_TOKEN, LOCK_TTL_MS)).toBe(
-      true,
-    );
+    expect(await redisService.acquireLock(key, OWNER_TOKEN, LOCK_TTL_MS)).toBe(true);
 
     expect(await redisService.get(key)).toBe(OWNER_TOKEN);
     const ttl = await ttlOf(key);
@@ -86,9 +84,7 @@ describe('RedisService', () => {
     const key = uniqueKey();
     await redisService.acquireLock(key, OWNER_TOKEN, LOCK_TTL_MS);
 
-    expect(
-      await redisService.acquireLock(key, OTHER_TOKEN, EXTENDED_LOCK_TTL_MS),
-    ).toBe(false);
+    expect(await redisService.acquireLock(key, OTHER_TOKEN, EXTENDED_LOCK_TTL_MS)).toBe(false);
 
     expect(await redisService.get(key)).toBe(OWNER_TOKEN);
     expect(await ttlOf(key)).toBeLessThanOrEqual(LOCK_TTL_MS);
@@ -98,9 +94,7 @@ describe('RedisService', () => {
     const key = uniqueKey();
     await redisService.acquireLock(key, OWNER_TOKEN, LOCK_TTL_MS);
 
-    expect(
-      await redisService.acquireLock(key, OWNER_TOKEN, EXTENDED_LOCK_TTL_MS),
-    ).toBe(true);
+    expect(await redisService.acquireLock(key, OWNER_TOKEN, EXTENDED_LOCK_TTL_MS)).toBe(true);
 
     expect(await redisService.get(key)).toBe(OWNER_TOKEN);
     const ttl = await ttlOf(key);
@@ -115,9 +109,7 @@ describe('RedisService', () => {
     await redisService.releaseLock(key, OTHER_TOKEN);
 
     expect(await redisService.get(key)).toBe(OWNER_TOKEN);
-    expect(await redisService.acquireLock(key, OTHER_TOKEN, LOCK_TTL_MS)).toBe(
-      false,
-    );
+    expect(await redisService.acquireLock(key, OTHER_TOKEN, LOCK_TTL_MS)).toBe(false);
   });
 
   it('deletes a lock released by its owner', async () => {
@@ -127,9 +119,7 @@ describe('RedisService', () => {
     await redisService.releaseLock(key, OWNER_TOKEN);
 
     expect(await redisService.get(key)).toBeNull();
-    expect(await redisService.acquireLock(key, OTHER_TOKEN, LOCK_TTL_MS)).toBe(
-      true,
-    );
+    expect(await redisService.acquireLock(key, OTHER_TOKEN, LOCK_TTL_MS)).toBe(true);
   });
 
   it('hands an expired lock to another token', async () => {
@@ -138,12 +128,8 @@ describe('RedisService', () => {
 
     await sleep(EXPIRY_WAIT_MS);
 
-    expect(await redisService.acquireLock(key, OTHER_TOKEN, LOCK_TTL_MS)).toBe(
-      true,
-    );
-    expect(await redisService.acquireLock(key, OWNER_TOKEN, LOCK_TTL_MS)).toBe(
-      false,
-    );
+    expect(await redisService.acquireLock(key, OTHER_TOKEN, LOCK_TTL_MS)).toBe(true);
+    expect(await redisService.acquireLock(key, OWNER_TOKEN, LOCK_TTL_MS)).toBe(false);
     expect(await redisService.get(key)).toBe(OTHER_TOKEN);
   });
 });
