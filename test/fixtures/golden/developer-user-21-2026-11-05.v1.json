@@ -1,0 +1,31 @@
+{
+  "issues": [
+    {
+      "projectId": 8,
+      "iid": 686,
+      "status": "MERGED_OTHERS_WORK",
+      "taskType": "FEATURE"
+    }
+  ],
+  "standaloneMergeRequests": [
+    {
+      "projectId": 8,
+      "iid": 525,
+      "status": "REFACTORED_CODE",
+      "taskType": "CHORE"
+    },
+    {
+      "projectId": 16,
+      "iid": 14,
+      "status": "REFACTORED_CODE",
+      "taskType": "CHORE"
+    },
+    {
+      "projectId": 21,
+      "iid": 51,
+      "status": "REFACTORED_CODE",
+      "taskType": "CHORE"
+    }
+  ],
+  "standalonePushes": []
+}

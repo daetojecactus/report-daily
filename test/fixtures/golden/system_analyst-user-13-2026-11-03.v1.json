@@ -1,0 +1,30 @@
+{
+  "issues": [
+    {
+      "projectId": 6,
+      "iid": 2660,
+      "status": "COMMENTED",
+      "taskType": "CHORE"
+    },
+    {
+      "projectId": 6,
+      "iid": 2645,
+      "status": "ACCEPTED_WORK",
+      "taskType": "CHORE"
+    },
+    {
+      "projectId": 2,
+      "iid": 1002,
+      "status": "CREATED",
+      "taskType": "CHORE"
+    },
+    {
+      "projectId": 19,
+      "iid": 430,
+      "status": "COMMENTED",
+      "taskType": "FEATURE"
+    }
+  ],
+  "standaloneMergeRequests": [],
+  "standalonePushes": []
+}

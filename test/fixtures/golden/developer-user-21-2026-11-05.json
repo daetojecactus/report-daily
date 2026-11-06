@@ -1,0 +1,554 @@
+{
+  "role": "developer",
+  "username": "user-21",
+  "date": "2026-11-05",
+  "timeZone": "Asia/Almaty",
+  "day": {
+    "projects": [
+      {
+        "id": 8,
+        "name": "project-8",
+        "path": "group/project-8",
+        "webUrl": "https://gitlab.example.com/group/project-8"
+      },
+      {
+        "id": 16,
+        "name": "project-16",
+        "path": "group/project-16",
+        "webUrl": "https://gitlab.example.com/group/project-16"
+      },
+      {
+        "id": 21,
+        "name": "project-21",
+        "path": "group/project-21",
+        "webUrl": "https://gitlab.example.com/group/project-21"
+      }
+    ],
+    "issues": [
+      {
+        "projectId": 8,
+        "iid": 686,
+        "title": "Issue 686",
+        "state": "closed",
+        "closedOnReportDate": true,
+        "webUrl": "https://gitlab.example.com/group/project-8/-/issues/686",
+        "labels": [
+          "label-5",
+          "priority::high",
+          "label-2",
+          "status::QA passed",
+          "test::e2e required",
+          "type::feature"
+        ],
+        "createdAt": "2026-10-06T12:26:52.129+05:00",
+        "assignees": [
+          "user-4"
+        ],
+        "status": "Done",
+        "actions": [
+          {
+            "kind": "status_set",
+            "at": "2026-11-05T15:18:17.214+05:00",
+            "value": "Done",
+            "users": []
+          },
+          {
+            "kind": "closed",
+            "at": "2026-11-05T15:18:17.418+05:00",
+            "value": null,
+            "users": []
+          }
+        ],
+        "events": [
+          {
+            "id": 598592,
+            "projectId": 8,
+            "actionName": "closed",
+            "targetType": "Issue",
+            "targetTitle": "Title",
+            "createdAt": "2026-11-05T15:18:17.332+05:00"
+          }
+        ],
+        "notes": [
+          {
+            "id": 588226,
+            "body": "set status to **Done**",
+            "authorUsername": "user-21",
+            "authorName": "user-21",
+            "createdAt": "2026-11-05T15:18:17.214+05:00",
+            "system": true,
+            "noteableType": "Issue",
+            "resolvable": false
+          },
+          {
+            "id": 588224,
+            "body": "system note",
+            "authorUsername": "user-21",
+            "authorName": "user-21",
+            "createdAt": "2026-11-05T15:18:16.128+05:00",
+            "system": true,
+            "noteableType": "Issue",
+            "resolvable": false
+          },
+          {
+            "id": 588178,
+            "body": "system note",
+            "authorUsername": "user-5",
+            "authorName": "user-5",
+            "createdAt": "2026-11-05T15:02:18.425+05:00",
+            "system": true,
+            "noteableType": "Issue",
+            "resolvable": false
+          },
+          {
+            "id": 588177,
+            "body": "system note",
+            "authorUsername": "user-5",
+            "authorName": "user-5",
+            "createdAt": "2026-11-05T15:02:18.294+05:00",
+            "system": true,
+            "noteableType": "Issue",
+            "resolvable": false
+          },
+          {
+            "id": 588176,
+            "body": "system note",
+            "authorUsername": "user-5",
+            "authorName": "user-5",
+            "createdAt": "2026-11-05T15:02:18.109+05:00",
+            "system": true,
+            "noteableType": "Issue",
+            "resolvable": false
+          },
+          {
+            "id": 588175,
+            "body": "system note",
+            "authorUsername": "user-5",
+            "authorName": "user-5",
+            "createdAt": "2026-11-05T15:02:18.090+05:00",
+            "system": true,
+            "noteableType": "Issue",
+            "resolvable": false
+          },
+          {
+            "id": 588174,
+            "body": "system note",
+            "authorUsername": "user-5",
+            "authorName": "user-5",
+            "createdAt": "2026-11-05T15:02:18.001+05:00",
+            "system": true,
+            "noteableType": "Issue",
+            "resolvable": false
+          },
+          {
+            "id": 588173,
+            "body": "system note",
+            "authorUsername": "user-5",
+            "authorName": "user-5",
+            "createdAt": "2026-11-05T15:02:17.745+05:00",
+            "system": true,
+            "noteableType": "Issue",
+            "resolvable": false
+          }
+        ],
+        "labelEvents": [
+          {
+            "id": 265255,
+            "labelName": "test::e2e required",
+            "action": "add",
+            "createdAt": "2026-11-05T15:02:36.135+05:00",
+            "username": "user-5"
+          }
+        ],
+        "mergeRequests": [
+          {
+            "projectId": 8,
+            "iid": 573,
+            "title": "Merge request 573",
+            "state": "merged",
+            "mergedOnReportDate": true,
+            "draft": false,
+            "webUrl": "https://gitlab.example.com/group/project-8/-/merge_requests/573",
+            "sourceBranch": "686-branch-18",
+            "labels": [
+              "label-5",
+              "priority::high",
+              "label-2",
+              "status::QA passed",
+              "test::e2e required",
+              "type::feature"
+            ],
+            "createdAt": "2026-11-02T12:28:13.121+05:00",
+            "lastCommitAt": "2026-11-02T07:29:17.000Z",
+            "author": "user-4",
+            "assignees": [
+              "user-4"
+            ],
+            "reviewers": [
+              "user-21",
+              "user-5"
+            ],
+            "closesIssues": [
+              {
+                "projectId": 8,
+                "iid": 686,
+                "title": "Issue 686",
+                "webUrl": "https://gitlab.example.com/group/project-8/-/issues/686"
+              }
+            ],
+            "actions": [
+              {
+                "kind": "merged",
+                "at": "2026-11-05T15:18:15.931+05:00",
+                "value": null,
+                "users": []
+              }
+            ],
+            "events": [
+              {
+                "id": 598590,
+                "projectId": 8,
+                "actionName": "accepted",
+                "targetType": "MergeRequest",
+                "targetTitle": "Title",
+                "createdAt": "2026-11-05T15:18:15.151+05:00"
+              },
+              {
+                "id": 598593,
+                "projectId": 8,
+                "actionName": "deleted",
+                "targetType": "Project",
+                "targetTitle": "Title",
+                "createdAt": "2026-11-05T15:18:24.740+05:00",
+                "pushData": {
+                  "commitCount": 0,
+                  "action": "removed",
+                  "refType": "branch",
+                  "ref": "686-branch-18",
+                  "commitTitle": null,
+                  "commits": []
+                }
+              }
+            ],
+            "notes": [
+              {
+                "id": 588225,
+                "body": "system note",
+                "authorUsername": "user-21",
+                "authorName": "user-21",
+                "createdAt": "2026-11-05T15:18:16.228+05:00",
+                "system": true,
+                "noteableType": "MergeRequest",
+                "resolvable": false
+              },
+              {
+                "id": 588183,
+                "body": "approved this merge request",
+                "authorUsername": "user-5",
+                "authorName": "user-5",
+                "createdAt": "2026-11-05T15:02:54.024+05:00",
+                "system": true,
+                "noteableType": "MergeRequest",
+                "resolvable": false
+              },
+              {
+                "id": 588181,
+                "body": "system note",
+                "authorUsername": "user-5",
+                "authorName": "user-5",
+                "createdAt": "2026-11-05T15:02:35.530+05:00",
+                "system": true,
+                "noteableType": "MergeRequest",
+                "resolvable": false
+              },
+              {
+                "id": 588180,
+                "body": "comment",
+                "authorUsername": "user-5",
+                "authorName": "user-5",
+                "createdAt": "2026-11-05T15:02:27.881+05:00",
+                "system": false,
+                "noteableType": "MergeRequest",
+                "resolvable": false
+              },
+              {
+                "id": 588179,
+                "body": "system note",
+                "authorUsername": "user-5",
+                "authorName": "user-5",
+                "createdAt": "2026-11-05T15:02:20.461+05:00",
+                "system": true,
+                "noteableType": "MergeRequest",
+                "resolvable": false
+              }
+            ],
+            "labelEvents": [
+              {
+                "id": 265254,
+                "labelName": "test::e2e required",
+                "action": "add",
+                "createdAt": "2026-11-05T15:02:31.729+05:00",
+                "username": "user-5"
+              }
+            ],
+            "reviewThreads": {
+              "total": 0,
+              "unresolved": 0
+            }
+          }
+        ]
+      }
+    ],
+    "standaloneMergeRequests": [
+      {
+        "projectId": 8,
+        "iid": 525,
+        "title": "Merge request 525",
+        "state": "opened",
+        "mergedOnReportDate": false,
+        "draft": false,
+        "webUrl": "https://gitlab.example.com/group/project-8/-/merge_requests/525",
+        "sourceBranch": "renovate/branch-45",
+        "labels": [
+          "type::maintenance"
+        ],
+        "createdAt": "2026-06-11T13:18:43.805+05:00",
+        "lastCommitAt": "2026-11-04T15:47:46.000Z",
+        "author": "user-36",
+        "assignees": [
+          "user-21"
+        ],
+        "reviewers": [],
+        "closesIssues": [],
+        "actions": [],
+        "events": [
+          {
+            "id": 598613,
+            "projectId": 8,
+            "actionName": "pushed to",
+            "targetType": "Project",
+            "targetTitle": "Title",
+            "createdAt": "2026-11-05T15:29:38.800+05:00",
+            "pushData": {
+              "commitCount": 1,
+              "action": "pushed",
+              "refType": "branch",
+              "ref": "renovate/branch-45",
+              "commitTitle": "commit 37",
+              "commits": [
+                {
+                  "id": "sha-37",
+                  "title": "commit 37"
+                }
+              ]
+            }
+          },
+          {
+            "id": 598588,
+            "projectId": 8,
+            "actionName": "pushed to",
+            "targetType": "Project",
+            "targetTitle": "Title",
+            "createdAt": "2026-11-05T15:15:02.279+05:00",
+            "pushData": {
+              "commitCount": 1,
+              "action": "pushed",
+              "refType": "branch",
+              "ref": "renovate/branch-45",
+              "commitTitle": "commit 38",
+              "commits": [
+                {
+                  "id": "sha-38",
+                  "title": "commit 38"
+                }
+              ]
+            }
+          }
+        ],
+        "notes": [
+          {
+            "id": 588260,
+            "body": "system note",
+            "authorUsername": "user-21",
+            "authorName": "user-21",
+            "createdAt": "2026-11-05T15:29:39.952+05:00",
+            "system": true,
+            "noteableType": "MergeRequest",
+            "resolvable": false
+          },
+          {
+            "id": 588218,
+            "body": "system note",
+            "authorUsername": "user-21",
+            "authorName": "user-21",
+            "createdAt": "2026-11-05T15:15:03.483+05:00",
+            "system": true,
+            "noteableType": "MergeRequest",
+            "resolvable": false
+          }
+        ],
+        "labelEvents": [],
+        "reviewThreads": {
+          "total": 0,
+          "unresolved": 0
+        }
+      },
+      {
+        "projectId": 16,
+        "iid": 14,
+        "title": "Merge request 14",
+        "state": "opened",
+        "mergedOnReportDate": false,
+        "draft": false,
+        "webUrl": "https://gitlab.example.com/group/project-16/-/merge_requests/14",
+        "sourceBranch": "renovate/branch-45",
+        "labels": [
+          "type::maintenance"
+        ],
+        "createdAt": "2026-06-11T12:50:52.172+05:00",
+        "lastCommitAt": "2026-11-04T15:13:56.000Z",
+        "author": "user-36",
+        "assignees": [
+          "user-21"
+        ],
+        "reviewers": [],
+        "closesIssues": [],
+        "actions": [],
+        "events": [
+          {
+            "id": 598615,
+            "projectId": 16,
+            "actionName": "pushed to",
+            "targetType": "Project",
+            "targetTitle": "Title",
+            "createdAt": "2026-11-05T15:30:45.778+05:00",
+            "pushData": {
+              "commitCount": 1,
+              "action": "pushed",
+              "refType": "branch",
+              "ref": "renovate/branch-45",
+              "commitTitle": "commit 39",
+              "commits": [
+                {
+                  "id": "sha-39",
+                  "title": "commit 39"
+                }
+              ]
+            }
+          },
+          {
+            "id": 598577,
+            "projectId": 16,
+            "actionName": "pushed to",
+            "targetType": "Project",
+            "targetTitle": "Title",
+            "createdAt": "2026-11-05T15:06:39.264+05:00",
+            "pushData": {
+              "commitCount": 1,
+              "action": "pushed",
+              "refType": "branch",
+              "ref": "renovate/branch-45",
+              "commitTitle": "commit 40",
+              "commits": [
+                {
+                  "id": "sha-40",
+                  "title": "commit 40"
+                }
+              ]
+            }
+          }
+        ],
+        "notes": [
+          {
+            "id": 588265,
+            "body": "system note",
+            "authorUsername": "user-21",
+            "authorName": "user-21",
+            "createdAt": "2026-11-05T15:30:46.908+05:00",
+            "system": true,
+            "noteableType": "MergeRequest",
+            "resolvable": false
+          },
+          {
+            "id": 588195,
+            "body": "system note",
+            "authorUsername": "user-21",
+            "authorName": "user-21",
+            "createdAt": "2026-11-05T15:06:40.917+05:00",
+            "system": true,
+            "noteableType": "MergeRequest",
+            "resolvable": false
+          }
+        ],
+        "labelEvents": [],
+        "reviewThreads": {
+          "total": 0,
+          "unresolved": 0
+        }
+      },
+      {
+        "projectId": 21,
+        "iid": 51,
+        "title": "Merge request 51",
+        "state": "opened",
+        "mergedOnReportDate": false,
+        "draft": false,
+        "webUrl": "https://gitlab.example.com/group/project-21/-/merge_requests/51",
+        "sourceBranch": "renovate/branch-45",
+        "labels": [
+          "type::maintenance"
+        ],
+        "createdAt": "2026-06-11T13:01:39.084+05:00",
+        "lastCommitAt": "2026-11-04T15:26:07.000Z",
+        "author": "user-36",
+        "assignees": [
+          "user-21"
+        ],
+        "reviewers": [],
+        "closesIssues": [],
+        "actions": [],
+        "events": [
+          {
+            "id": 598584,
+            "projectId": 21,
+            "actionName": "pushed to",
+            "targetType": "Project",
+            "targetTitle": "Title",
+            "createdAt": "2026-11-05T15:09:50.382+05:00",
+            "pushData": {
+              "commitCount": 1,
+              "action": "pushed",
+              "refType": "branch",
+              "ref": "renovate/branch-45",
+              "commitTitle": "commit 41",
+              "commits": [
+                {
+                  "id": "sha-41",
+                  "title": "commit 41"
+                }
+              ]
+            }
+          }
+        ],
+        "notes": [
+          {
+            "id": 588207,
+            "body": "system note",
+            "authorUsername": "user-21",
+            "authorName": "user-21",
+            "createdAt": "2026-11-05T15:09:51.469+05:00",
+            "system": true,
+            "noteableType": "MergeRequest",
+            "resolvable": false
+          }
+        ],
+        "labelEvents": [],
+        "reviewThreads": {
+          "total": 0,
+          "unresolved": 0
+        }
+      }
+    ],
+    "standalonePushes": []
+  }
+}

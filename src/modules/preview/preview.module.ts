@@ -4,10 +4,12 @@ import { UserModule } from 'src/modules/application/user/user.module';
 import { AppConfigModule } from 'src/modules/infrastructure/config/config.module';
 import { DatabaseModule } from 'src/modules/infrastructure/database/database.module';
 import { RedisModule } from 'src/modules/infrastructure/redis/redis.module';
+import { PreviewAnonymizer } from './preview.anonymizer';
+import { PreviewRecorder } from './preview.recorder';
 import { PreviewService } from './preview.service';
 
 @Module({
   imports: [AppConfigModule, DatabaseModule, RedisModule, UserModule, SourceModule],
-  providers: [PreviewService],
+  providers: [PreviewService, PreviewRecorder, PreviewAnonymizer],
 })
 export class PreviewModule {}

@@ -1,0 +1,37 @@
+{
+  "issues": [
+    {
+      "projectId": 13,
+      "iid": 84,
+      "status": "QA_AUTOMATION_DEVELOPED",
+      "taskType": "QA_INTERNAL"
+    },
+    {
+      "projectId": 2,
+      "iid": 999,
+      "status": "TESTED_AND_APPROVED",
+      "taskType": "UNKNOWN"
+    },
+    {
+      "projectId": 7,
+      "iid": 1506,
+      "status": "TESTED_AND_APPROVED",
+      "taskType": "BUG"
+    },
+    {
+      "projectId": 14,
+      "iid": 909,
+      "status": "TESTED_WITH_COMMENTS",
+      "taskType": "UNKNOWN"
+    }
+  ],
+  "standaloneMergeRequests": [
+    {
+      "projectId": 15,
+      "iid": 626,
+      "status": "REVIEW_COMMENT",
+      "taskType": "UNKNOWN"
+    }
+  ],
+  "standalonePushes": []
+}

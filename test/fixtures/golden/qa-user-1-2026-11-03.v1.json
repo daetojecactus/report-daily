@@ -1,0 +1,109 @@
+{
+  "issues": [
+    {
+      "projectId": 1,
+      "iid": 777,
+      "status": "QA_AUTOMATION_DEVELOPED",
+      "taskType": "QA_INTERNAL"
+    },
+    {
+      "projectId": 1,
+      "iid": 758,
+      "status": "TESTED_AND_APPROVED",
+      "taskType": "BUG"
+    },
+    {
+      "projectId": 13,
+      "iid": 84,
+      "status": "QA_AUTOMATION_DEVELOPED",
+      "taskType": "QA_INTERNAL"
+    },
+    {
+      "projectId": 15,
+      "iid": 626,
+      "status": "TESTED_AND_APPROVED",
+      "taskType": "CHORE"
+    },
+    {
+      "projectId": 15,
+      "iid": 660,
+      "status": "TESTED_AND_APPROVED",
+      "taskType": "BUG"
+    },
+    {
+      "projectId": 15,
+      "iid": 662,
+      "status": "TESTED_AND_APPROVED",
+      "taskType": "CHORE"
+    },
+    {
+      "projectId": 15,
+      "iid": 670,
+      "status": "TESTED_AND_APPROVED",
+      "taskType": "UNKNOWN"
+    },
+    {
+      "projectId": 1,
+      "iid": 759,
+      "status": "REVIEW_COMMENT",
+      "taskType": "BUG"
+    },
+    {
+      "projectId": 14,
+      "iid": 909,
+      "status": "REVIEW_COMMENT",
+      "taskType": "UNKNOWN"
+    },
+    {
+      "projectId": 17,
+      "iid": 251,
+      "status": "VERIFIED_FIX",
+      "taskType": "CHORE"
+    },
+    {
+      "projectId": 18,
+      "iid": 233,
+      "status": "VERIFIED_FIX",
+      "taskType": "FEATURE"
+    },
+    {
+      "projectId": 5,
+      "iid": 1063,
+      "status": "TESTED_AND_APPROVED",
+      "taskType": "BUG"
+    },
+    {
+      "projectId": 5,
+      "iid": 1062,
+      "status": "TESTED_AND_APPROVED",
+      "taskType": "BUG"
+    },
+    {
+      "projectId": 14,
+      "iid": 826,
+      "status": "QA_AWAITING_TESTING",
+      "taskType": "CHORE"
+    },
+    {
+      "projectId": 8,
+      "iid": 693,
+      "status": "QA_AWAITING_TESTING",
+      "taskType": "FEATURE"
+    }
+  ],
+  "standaloneMergeRequests": [
+    {
+      "projectId": 15,
+      "iid": 626,
+      "status": "TESTED_AND_APPROVED",
+      "taskType": "UNKNOWN"
+    },
+    {
+      "projectId": 17,
+      "iid": 266,
+      "status": "TESTED_AND_APPROVED",
+      "taskType": "CHORE"
+    }
+  ],
+  "standalonePushes": []
+}

@@ -1,0 +1,54 @@
+{
+  "issues": [
+    {
+      "projectId": 1,
+      "iid": 766,
+      "status": "TESTED_AND_APPROVED",
+      "taskType": "CHORE"
+    },
+    {
+      "projectId": 7,
+      "iid": 1495,
+      "status": "TESTED_AND_APPROVED",
+      "taskType": "CHORE"
+    },
+    {
+      "projectId": 8,
+      "iid": 685,
+      "status": "TESTED_AND_APPROVED",
+      "taskType": "CHORE"
+    },
+    {
+      "projectId": 8,
+      "iid": 692,
+      "status": "TESTED_AND_APPROVED",
+      "taskType": "CHORE"
+    },
+    {
+      "projectId": 2,
+      "iid": 994,
+      "status": "TESTED_AND_APPROVED",
+      "taskType": "FEATURE"
+    },
+    {
+      "projectId": 9,
+      "iid": 98,
+      "status": "TESTED_AND_APPROVED",
+      "taskType": "FEATURE"
+    },
+    {
+      "projectId": 1,
+      "iid": 749,
+      "status": "TESTED_WITH_COMMENTS",
+      "taskType": "FEATURE"
+    },
+    {
+      "projectId": 1,
+      "iid": 748,
+      "status": "QA_AWAITING_TESTING",
+      "taskType": "FEATURE"
+    }
+  ],
+  "standaloneMergeRequests": [],
+  "standalonePushes": []
+}

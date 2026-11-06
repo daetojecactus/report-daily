@@ -1,0 +1,31 @@
+{
+  "issues": [
+    {
+      "projectId": 12,
+      "iid": 87,
+      "status": "TASK_SENT_TO_QA",
+      "taskType": "CHORE"
+    },
+    {
+      "projectId": 9,
+      "iid": 123,
+      "status": "CLOSED_WITHOUT_MERGE",
+      "taskType": "CHORE"
+    },
+    {
+      "projectId": 16,
+      "iid": 42,
+      "status": "STARTED_IMPLEMENTATION",
+      "taskType": "FEATURE"
+    }
+  ],
+  "standaloneMergeRequests": [],
+  "standalonePushes": [
+    {
+      "projectId": 9,
+      "branch": "123-branch-25",
+      "status": "STARTED",
+      "taskType": "UNKNOWN"
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "issues": [
+    {
+      "projectId": 7,
+      "iid": 1489,
+      "status": "COMMENTED",
+      "taskType": "BUG"
+    },
+    {
+      "projectId": 19,
+      "iid": 445,
+      "status": "PLANNED_FEATURE",
+      "taskType": "FEATURE"
+    },
+    {
+      "projectId": 8,
+      "iid": 694,
+      "status": "PLANNED_FOR_SPRINT",
+      "taskType": "FEATURE"
+    },
+    {
+      "projectId": 10,
+      "iid": 178,
+      "status": "ACCEPTED_WORK",
+      "taskType": "CHORE"
+    },
+    {
+      "projectId": 9,
+      "iid": 66,
+      "status": "UNKNOWN",
+      "taskType": "FEATURE"
+    },
+    {
+      "projectId": 11,
+      "iid": 609,
+      "status": "UNKNOWN",
+      "taskType": "CHORE"
+    },
+    {
+      "projectId": 19,
+      "iid": 430,
+      "status": "COMMENTED",
+      "taskType": "FEATURE"
+    }
+  ],
+  "standaloneMergeRequests": [],
+  "standalonePushes": []
+}

@@ -1,0 +1,1578 @@
+{
+  "role": "qa",
+  "username": "user-1",
+  "date": "2026-11-05",
+  "timeZone": "Asia/Almaty",
+  "day": {
+    "projects": [
+      {
+        "id": 22,
+        "name": "project-22",
+        "path": "group/project-22",
+        "webUrl": "https://gitlab.example.com/group/project-22"
+      },
+      {
+        "id": 23,
+        "name": "project-23",
+        "path": "group/project-23",
+        "webUrl": "https://gitlab.example.com/group/project-23"
+      },
+      {
+        "id": 14,
+        "name": "project-14",
+        "path": "group/project-14",
+        "webUrl": "https://gitlab.example.com/group/project-14"
+      },
+      {
+        "id": 8,
+        "name": "project-8",
+        "path": "group/project-8",
+        "webUrl": "https://gitlab.example.com/group/project-8"
+      },
+      {
+        "id": 1,
+        "name": "project-1",
+        "path": "group/project-1",
+        "webUrl": "https://gitlab.example.com/group/project-1"
+      },
+      {
+        "id": 13,
+        "name": "project-13",
+        "path": "group/project-13",
+        "webUrl": "https://gitlab.example.com/group/project-13"
+      },
+      {
+        "id": 5,
+        "name": "project-5",
+        "path": "group/project-5",
+        "webUrl": "https://gitlab.example.com/group/project-5"
+      }
+    ],
+    "issues": [
+      {
+        "projectId": 22,
+        "iid": 144,
+        "title": "Issue 144",
+        "state": "opened",
+        "closedOnReportDate": false,
+        "webUrl": "https://gitlab.example.com/group/project-22/-/issues/144",
+        "labels": [
+          "type::qa"
+        ],
+        "createdAt": "2026-11-05T17:51:36.360+05:00",
+        "assignees": [],
+        "status": "To do",
+        "actions": [
+          {
+            "kind": "opened",
+            "at": "2026-11-05T17:51:36.360+05:00",
+            "value": null,
+            "users": []
+          },
+          {
+            "kind": "status_set",
+            "at": "2026-11-05T17:51:36.434+05:00",
+            "value": "To do",
+            "users": []
+          },
+          {
+            "kind": "label_added",
+            "at": "2026-11-05T17:51:36.507+05:00",
+            "value": "type::qa",
+            "users": []
+          },
+          {
+            "kind": "branch_created",
+            "at": "2026-11-05T17:52:00.928+05:00",
+            "value": "144-branch-46",
+            "users": []
+          }
+        ],
+        "events": [
+          {
+            "id": 598779,
+            "projectId": 22,
+            "actionName": "opened",
+            "targetType": "WorkItem",
+            "targetTitle": "Title",
+            "createdAt": "2026-11-05T17:51:36.535+05:00"
+          }
+        ],
+        "notes": [
+          {
+            "id": 588510,
+            "body": "system note",
+            "authorUsername": "user-1",
+            "authorName": "user-1",
+            "createdAt": "2026-11-05T17:56:21.103+05:00",
+            "system": true,
+            "noteableType": "Issue",
+            "resolvable": false
+          },
+          {
+            "id": 588509,
+            "body": "system note",
+            "authorUsername": "user-1",
+            "authorName": "user-1",
+            "createdAt": "2026-11-05T17:56:20.983+05:00",
+            "system": true,
+            "noteableType": "Issue",
+            "resolvable": false
+          },
+          {
+            "id": 588508,
+            "body": "system note",
+            "authorUsername": "user-1",
+            "authorName": "user-1",
+            "createdAt": "2026-11-05T17:56:20.939+05:00",
+            "system": true,
+            "noteableType": "Issue",
+            "resolvable": false
+          },
+          {
+            "id": 588507,
+            "body": "system note",
+            "authorUsername": "user-1",
+            "authorName": "user-1",
+            "createdAt": "2026-11-05T17:56:20.886+05:00",
+            "system": true,
+            "noteableType": "Issue",
+            "resolvable": false
+          },
+          {
+            "id": 588506,
+            "body": "system note",
+            "authorUsername": "user-1",
+            "authorName": "user-1",
+            "createdAt": "2026-11-05T17:56:20.914+05:00",
+            "system": true,
+            "noteableType": "Issue",
+            "resolvable": false
+          },
+          {
+            "id": 588496,
+            "body": "system note",
+            "authorUsername": "user-1",
+            "authorName": "user-1",
+            "createdAt": "2026-11-05T17:52:12.154+05:00",
+            "system": true,
+            "noteableType": "Issue",
+            "resolvable": false
+          },
+          {
+            "id": 588495,
+            "body": "created branch [`144-branch-46`](https://gitlab.example.com)",
+            "authorUsername": "user-1",
+            "authorName": "user-1",
+            "createdAt": "2026-11-05T17:52:00.928+05:00",
+            "system": true,
+            "noteableType": "Issue",
+            "resolvable": false
+          },
+          {
+            "id": 588494,
+            "body": "set status to **To do**",
+            "authorUsername": "user-1",
+            "authorName": "user-1",
+            "createdAt": "2026-11-05T17:51:36.434+05:00",
+            "system": true,
+            "noteableType": "Issue",
+            "resolvable": false
+          }
+        ],
+        "labelEvents": [
+          {
+            "id": 265384,
+            "labelName": "type::qa",
+            "action": "add",
+            "createdAt": "2026-11-05T17:51:36.507+05:00",
+            "username": "user-1"
+          }
+        ],
+        "mergeRequests": [
+          {
+            "projectId": 22,
+            "iid": 107,
+            "title": "Merge request 107",
+            "state": "opened",
+            "mergedOnReportDate": false,
+            "draft": true,
+            "webUrl": "https://gitlab.example.com/group/project-22/-/merge_requests/107",
+            "sourceBranch": "144-branch-46",
+            "labels": [
+              "type::qa"
+            ],
+            "createdAt": "2026-11-05T17:52:09.044+05:00",
+            "lastCommitAt": null,
+            "author": "user-1",
+            "assignees": [],
+            "reviewers": [],
+            "closesIssues": [
+              {
+                "projectId": 22,
+                "iid": 144,
+                "title": "Issue 144",
+                "webUrl": "https://gitlab.example.com/group/project-22/-/issues/144"
+              }
+            ],
+            "actions": [
+              {
+                "kind": "opened",
+                "at": "2026-11-05T17:52:09.044+05:00",
+                "value": null,
+                "users": []
+              },
+              {
+                "kind": "label_added",
+                "at": "2026-11-05T17:52:09.157+05:00",
+                "value": "type::qa",
+                "users": []
+              }
+            ],
+            "events": [
+              {
+                "id": 598781,
+                "projectId": 22,
+                "actionName": "opened",
+                "targetType": "MergeRequest",
+                "targetTitle": "Title",
+                "createdAt": "2026-11-05T17:52:11.163+05:00"
+              },
+              {
+                "id": 598789,
+                "projectId": 22,
+                "actionName": "pushed to",
+                "targetType": "Project",
+                "targetTitle": "Title",
+                "createdAt": "2026-11-05T17:56:20.648+05:00",
+                "pushData": {
+                  "commitCount": 5,
+                  "action": "pushed",
+                  "refType": "branch",
+                  "ref": "144-branch-46",
+                  "commitTitle": "test: commit 42",
+                  "commits": [
+                    {
+                      "id": "sha-42",
+                      "title": "test: commit 43"
+                    },
+                    {
+                      "id": "sha-43",
+                      "title": "test: commit 44"
+                    },
+                    {
+                      "id": "sha-44",
+                      "title": "test: commit 45"
+                    },
+                    {
+                      "id": "sha-45",
+                      "title": "test: commit 46"
+                    },
+                    {
+                      "id": "sha-46",
+                      "title": "test: commit 42"
+                    }
+                  ]
+                }
+              },
+              {
+                "id": 598780,
+                "projectId": 22,
+                "actionName": "pushed new",
+                "targetType": "Project",
+                "targetTitle": "Title",
+                "createdAt": "2026-11-05T17:52:01.396+05:00",
+                "pushData": {
+                  "commitCount": 0,
+                  "action": "created",
+                  "refType": "branch",
+                  "ref": "144-branch-46",
+                  "commitTitle": null,
+                  "commits": []
+                }
+              }
+            ],
+            "notes": [
+              {
+                "id": 588511,
+                "body": "system note",
+                "authorUsername": "user-1",
+                "authorName": "user-1",
+                "createdAt": "2026-11-05T17:56:22.399+05:00",
+                "system": true,
+                "noteableType": "MergeRequest",
+                "resolvable": false
+              }
+            ],
+            "labelEvents": [
+              {
+                "id": 265385,
+                "labelName": "type::qa",
+                "action": "add",
+                "createdAt": "2026-11-05T17:52:09.157+05:00",
+                "username": "user-1"
+              }
+            ],
+            "reviewThreads": {
+              "total": 0,
+              "unresolved": 0
+            }
+          }
+        ]
+      },
+      {
+        "projectId": 22,
+        "iid": 143,
+        "title": "Issue 143",
+        "state": "opened",
+        "closedOnReportDate": false,
+        "webUrl": "https://gitlab.example.com/group/project-22/-/issues/143",
+        "labels": [
+          "type::bug"
+        ],
+        "createdAt": "2026-11-05T17:19:51.785+05:00",
+        "assignees": [
+          "user-37",
+          "user-9"
+        ],
+        "status": "To do",
+        "actions": [
+          {
+            "kind": "opened",
+            "at": "2026-11-05T17:19:51.785+05:00",
+            "value": null,
+            "users": []
+          },
+          {
+            "kind": "status_set",
+            "at": "2026-11-05T17:19:51.898+05:00",
+            "value": "To do",
+            "users": []
+          },
+          {
+            "kind": "label_added",
+            "at": "2026-11-05T17:19:51.976+05:00",
+            "value": "type::bug",
+            "users": []
+          },
+          {
+            "kind": "assigned",
+            "at": "2026-11-05T17:19:51.989+05:00",
+            "value": null,
+            "users": [
+              "user-9",
+              "user-37"
+            ]
+          }
+        ],
+        "events": [
+          {
+            "id": 598761,
+            "projectId": 22,
+            "actionName": "opened",
+            "targetType": "WorkItem",
+            "targetTitle": "Title",
+            "createdAt": "2026-11-05T17:19:51.990+05:00"
+          }
+        ],
+        "notes": [
+          {
+            "id": 588473,
+            "body": "assigned to @user-9 and @user-37",
+            "authorUsername": "user-1",
+            "authorName": "user-1",
+            "createdAt": "2026-11-05T17:19:51.989+05:00",
+            "system": true,
+            "noteableType": "Issue",
+            "resolvable": false
+          },
+          {
+            "id": 588472,
+            "body": "set status to **To do**",
+            "authorUsername": "user-1",
+            "authorName": "user-1",
+            "createdAt": "2026-11-05T17:19:51.898+05:00",
+            "system": true,
+            "noteableType": "Issue",
+            "resolvable": false
+          }
+        ],
+        "labelEvents": [
+          {
+            "id": 265369,
+            "labelName": "type::bug",
+            "action": "add",
+            "createdAt": "2026-11-05T17:19:51.976+05:00",
+            "username": "user-1"
+          }
+        ],
+        "mergeRequests": []
+      },
+      {
+        "projectId": 23,
+        "iid": 318,
+        "title": "Issue 318",
+        "state": "closed",
+        "closedOnReportDate": true,
+        "webUrl": "https://gitlab.example.com/group/project-23/-/issues/318",
+        "labels": [
+          "type::ignore"
+        ],
+        "createdAt": "2026-07-01T18:26:15.351+05:00",
+        "assignees": [],
+        "status": "Done",
+        "actions": [
+          {
+            "kind": "label_added",
+            "at": "2026-11-05T14:49:49.891+05:00",
+            "value": "type::ignore",
+            "users": []
+          },
+          {
+            "kind": "status_set",
+            "at": "2026-11-05T14:49:52.100+05:00",
+            "value": "Done",
+            "users": []
+          },
+          {
+            "kind": "closed",
+            "at": "2026-11-05T14:49:52.160+05:00",
+            "value": null,
+            "users": []
+          }
+        ],
+        "events": [
+          {
+            "id": 598541,
+            "projectId": 23,
+            "actionName": "closed",
+            "targetType": "WorkItem",
+            "targetTitle": "Title",
+            "createdAt": "2026-11-05T14:49:52.138+05:00"
+          }
+        ],
+        "notes": [
+          {
+            "id": 588130,
+            "body": "set status to **Done**",
+            "authorUsername": "user-1",
+            "authorName": "user-1",
+            "createdAt": "2026-11-05T14:49:52.100+05:00",
+            "system": true,
+            "noteableType": "Issue",
+            "resolvable": false
+          }
+        ],
+        "labelEvents": [
+          {
+            "id": 265232,
+            "labelName": "type::ignore",
+            "action": "add",
+            "createdAt": "2026-11-05T14:49:49.891+05:00",
+            "username": "user-1"
+          }
+        ],
+        "mergeRequests": []
+      },
+      {
+        "projectId": 14,
+        "iid": 826,
+        "title": "Issue 826",
+        "state": "opened",
+        "closedOnReportDate": false,
+        "webUrl": "https://gitlab.example.com/group/project-14/-/issues/826",
+        "labels": [
+          "label-1",
+          "priority::low",
+          "type::maintenance",
+          "status::QA passed"
+        ],
+        "createdAt": "2026-06-08T20:31:43.039+05:00",
+        "assignees": [
+          "user-12"
+        ],
+        "status": "To do",
+        "actions": [
+          {
+            "kind": "label_added",
+            "at": "2026-11-05T17:09:58.268+05:00",
+            "value": "status::QA passed",
+            "users": []
+          },
+          {
+            "kind": "label_removed",
+            "at": "2026-11-05T17:09:58.268+05:00",
+            "value": "status::ready for QA",
+            "users": []
+          }
+        ],
+        "events": [],
+        "notes": [],
+        "labelEvents": [
+          {
+            "id": 265365,
+            "labelName": "status::QA passed",
+            "action": "add",
+            "createdAt": "2026-11-05T17:09:58.268+05:00",
+            "username": "user-1"
+          },
+          {
+            "id": 265366,
+            "labelName": "status::ready for QA",
+            "action": "remove",
+            "createdAt": "2026-11-05T17:09:58.268+05:00",
+            "username": "user-1"
+          }
+        ],
+        "mergeRequests": [
+          {
+            "projectId": 14,
+            "iid": 681,
+            "title": "Merge request 681",
+            "state": "opened",
+            "mergedOnReportDate": false,
+            "draft": false,
+            "webUrl": "https://gitlab.example.com/group/project-14/-/merge_requests/681",
+            "sourceBranch": "826-branch-35",
+            "labels": [
+              "label-1",
+              "priority::low",
+              "status::QA passed",
+              "type::maintenance"
+            ],
+            "createdAt": "2026-11-02T18:54:12.918+05:00",
+            "lastCommitAt": "2026-11-04T08:15:04.000Z",
+            "author": "user-12",
+            "assignees": [
+              "user-24"
+            ],
+            "reviewers": [
+              "user-1",
+              "user-5"
+            ],
+            "closesIssues": [
+              {
+                "projectId": 14,
+                "iid": 826,
+                "title": "Issue 826",
+                "webUrl": "https://gitlab.example.com/group/project-14/-/issues/826"
+              }
+            ],
+            "actions": [
+              {
+                "kind": "label_added",
+                "at": "2026-11-05T17:10:03.513+05:00",
+                "value": "status::QA passed",
+                "users": []
+              },
+              {
+                "kind": "label_removed",
+                "at": "2026-11-05T17:10:03.513+05:00",
+                "value": "status::ready for QA",
+                "users": []
+              },
+              {
+                "kind": "approved",
+                "at": "2026-11-05T17:10:05.733+05:00",
+                "value": null,
+                "users": []
+              }
+            ],
+            "events": [
+              {
+                "id": 598751,
+                "projectId": 14,
+                "actionName": "approved",
+                "targetType": "MergeRequest",
+                "targetTitle": "Title",
+                "createdAt": "2026-11-05T17:10:05.704+05:00"
+              }
+            ],
+            "notes": [
+              {
+                "id": 588466,
+                "body": "approved this merge request",
+                "authorUsername": "user-1",
+                "authorName": "user-1",
+                "createdAt": "2026-11-05T17:10:05.733+05:00",
+                "system": true,
+                "noteableType": "MergeRequest",
+                "resolvable": false
+              }
+            ],
+            "labelEvents": [
+              {
+                "id": 265367,
+                "labelName": "status::QA passed",
+                "action": "add",
+                "createdAt": "2026-11-05T17:10:03.513+05:00",
+                "username": "user-1"
+              },
+              {
+                "id": 265368,
+                "labelName": "status::ready for QA",
+                "action": "remove",
+                "createdAt": "2026-11-05T17:10:03.513+05:00",
+                "username": "user-1"
+              }
+            ],
+            "reviewThreads": {
+              "total": 0,
+              "unresolved": 0
+            }
+          }
+        ]
+      },
+      {
+        "projectId": 8,
+        "iid": 693,
+        "title": "Issue 693",
+        "state": "opened",
+        "closedOnReportDate": false,
+        "webUrl": "https://gitlab.example.com/group/project-8/-/issues/693",
+        "labels": [
+          "label-3",
+          "priority::high",
+          "label-6",
+          "type::feature",
+          "status::QA passed"
+        ],
+        "createdAt": "2026-11-02T12:45:22.198+05:00",
+        "assignees": [
+          "user-4"
+        ],
+        "status": "To do",
+        "actions": [
+          {
+            "kind": "label_added",
+            "at": "2026-11-05T16:24:07.104+05:00",
+            "value": "status::QA passed",
+            "users": []
+          },
+          {
+            "kind": "label_removed",
+            "at": "2026-11-05T16:24:07.104+05:00",
+            "value": "status::ready for QA",
+            "users": []
+          }
+        ],
+        "events": [],
+        "notes": [],
+        "labelEvents": [
+          {
+            "id": 265326,
+            "labelName": "status::QA passed",
+            "action": "add",
+            "createdAt": "2026-11-05T16:24:07.104+05:00",
+            "username": "user-1"
+          },
+          {
+            "id": 265327,
+            "labelName": "status::ready for QA",
+            "action": "remove",
+            "createdAt": "2026-11-05T16:24:07.104+05:00",
+            "username": "user-1"
+          }
+        ],
+        "mergeRequests": [
+          {
+            "projectId": 8,
+            "iid": 574,
+            "title": "Merge request 574",
+            "state": "opened",
+            "mergedOnReportDate": false,
+            "draft": false,
+            "webUrl": "https://gitlab.example.com/group/project-8/-/merge_requests/574",
+            "sourceBranch": "693-branch-36",
+            "labels": [
+              "label-3",
+              "priority::high",
+              "label-6",
+              "status::QA passed",
+              "type::feature"
+            ],
+            "createdAt": "2026-11-02T13:23:26.710+05:00",
+            "lastCommitAt": "2026-11-02T08:43:06.000Z",
+            "author": "user-4",
+            "assignees": [
+              "user-4"
+            ],
+            "reviewers": [
+              "user-1",
+              "user-5"
+            ],
+            "closesIssues": [
+              {
+                "projectId": 8,
+                "iid": 693,
+                "title": "Issue 693",
+                "webUrl": "https://gitlab.example.com/group/project-8/-/issues/693"
+              }
+            ],
+            "actions": [
+              {
+                "kind": "label_added",
+                "at": "2026-11-05T16:23:59.656+05:00",
+                "value": "status::QA passed",
+                "users": []
+              },
+              {
+                "kind": "label_removed",
+                "at": "2026-11-05T16:23:59.656+05:00",
+                "value": "status::ready for QA",
+                "users": []
+              },
+              {
+                "kind": "approved",
+                "at": "2026-11-05T16:24:02.028+05:00",
+                "value": null,
+                "users": []
+              }
+            ],
+            "events": [
+              {
+                "id": 598706,
+                "projectId": 8,
+                "actionName": "approved",
+                "targetType": "MergeRequest",
+                "targetTitle": "Title",
+                "createdAt": "2026-11-05T16:24:01.913+05:00"
+              }
+            ],
+            "notes": [
+              {
+                "id": 588395,
+                "body": "approved this merge request",
+                "authorUsername": "user-1",
+                "authorName": "user-1",
+                "createdAt": "2026-11-05T16:24:02.028+05:00",
+                "system": true,
+                "noteableType": "MergeRequest",
+                "resolvable": false
+              }
+            ],
+            "labelEvents": [
+              {
+                "id": 265324,
+                "labelName": "status::QA passed",
+                "action": "add",
+                "createdAt": "2026-11-05T16:23:59.656+05:00",
+                "username": "user-1"
+              },
+              {
+                "id": 265325,
+                "labelName": "status::ready for QA",
+                "action": "remove",
+                "createdAt": "2026-11-05T16:23:59.656+05:00",
+                "username": "user-1"
+              }
+            ],
+            "reviewThreads": {
+              "total": 0,
+              "unresolved": 0
+            }
+          }
+        ]
+      },
+      {
+        "projectId": 23,
+        "iid": 334,
+        "title": "Issue 334",
+        "state": "opened",
+        "closedOnReportDate": false,
+        "webUrl": "https://gitlab.example.com/group/project-23/-/issues/334",
+        "labels": [
+          "label-1",
+          "priority::high",
+          "status::QA passed",
+          "type::feature"
+        ],
+        "createdAt": "2026-11-04T11:58:51.633+05:00",
+        "assignees": [
+          "user-37"
+        ],
+        "status": "To do",
+        "actions": [
+          {
+            "kind": "label_added",
+            "at": "2026-11-05T15:08:35.581+05:00",
+            "value": "status::QA passed",
+            "users": []
+          }
+        ],
+        "events": [],
+        "notes": [
+          {
+            "id": 587980,
+            "body": "changed the description",
+            "authorUsername": "user-9",
+            "authorName": "user-9",
+            "createdAt": "2026-11-05T12:28:24.237+05:00",
+            "system": true,
+            "noteableType": "Issue",
+            "resolvable": false
+          }
+        ],
+        "labelEvents": [
+          {
+            "id": 265260,
+            "labelName": "status::QA passed",
+            "action": "add",
+            "createdAt": "2026-11-05T15:08:35.581+05:00",
+            "username": "user-1"
+          }
+        ],
+        "mergeRequests": [
+          {
+            "projectId": 23,
+            "iid": 281,
+            "title": "Merge request 281",
+            "state": "opened",
+            "mergedOnReportDate": false,
+            "draft": false,
+            "webUrl": "https://gitlab.example.com/group/project-23/-/merge_requests/281",
+            "sourceBranch": "334-branch-47",
+            "labels": [
+              "label-1",
+              "priority::high",
+              "status::QA passed",
+              "type::feature"
+            ],
+            "createdAt": "2026-11-04T15:38:50.833+05:00",
+            "lastCommitAt": "2026-11-04T10:31:42.000Z",
+            "author": "user-37",
+            "assignees": [
+              "user-37"
+            ],
+            "reviewers": [
+              "user-1"
+            ],
+            "closesIssues": [
+              {
+                "projectId": 23,
+                "iid": 334,
+                "title": "Issue 334",
+                "webUrl": "https://gitlab.example.com/group/project-23/-/issues/334"
+              }
+            ],
+            "actions": [
+              {
+                "kind": "label_added",
+                "at": "2026-11-05T15:08:28.136+05:00",
+                "value": "status::QA passed",
+                "users": []
+              },
+              {
+                "kind": "approved",
+                "at": "2026-11-05T15:08:30.376+05:00",
+                "value": null,
+                "users": []
+              }
+            ],
+            "events": [
+              {
+                "id": 598581,
+                "projectId": 23,
+                "actionName": "approved",
+                "targetType": "MergeRequest",
+                "targetTitle": "Title",
+                "createdAt": "2026-11-05T15:08:30.366+05:00"
+              }
+            ],
+            "notes": [
+              {
+                "id": 588198,
+                "body": "approved this merge request",
+                "authorUsername": "user-1",
+                "authorName": "user-1",
+                "createdAt": "2026-11-05T15:08:30.376+05:00",
+                "system": true,
+                "noteableType": "MergeRequest",
+                "resolvable": false
+              }
+            ],
+            "labelEvents": [
+              {
+                "id": 265259,
+                "labelName": "status::QA passed",
+                "action": "add",
+                "createdAt": "2026-11-05T15:08:28.136+05:00",
+                "username": "user-1"
+              }
+            ],
+            "reviewThreads": {
+              "total": 0,
+              "unresolved": 0
+            }
+          }
+        ]
+      },
+      {
+        "projectId": 1,
+        "iid": 759,
+        "title": "Issue 759",
+        "state": "opened",
+        "closedOnReportDate": false,
+        "webUrl": "https://gitlab.example.com/group/project-1/-/issues/759",
+        "labels": [
+          "label-1",
+          "priority::medium",
+          "status::ready for QA",
+          "type::bug"
+        ],
+        "createdAt": "2026-10-02T13:56:10.348+05:00",
+        "assignees": [
+          "user-2"
+        ],
+        "status": "In progress",
+        "actions": [],
+        "events": [],
+        "notes": [],
+        "labelEvents": [],
+        "mergeRequests": [
+          {
+            "projectId": 1,
+            "iid": 706,
+            "title": "Merge request 706",
+            "state": "opened",
+            "mergedOnReportDate": false,
+            "draft": false,
+            "webUrl": "https://gitlab.example.com/group/project-1/-/merge_requests/706",
+            "sourceBranch": "759-branch-30",
+            "labels": [
+              "label-1",
+              "priority::medium",
+              "status:: after review",
+              "type::bug"
+            ],
+            "createdAt": "2026-10-30T13:55:28.724+05:00",
+            "lastCommitAt": "2026-11-04T07:36:24.000Z",
+            "author": "user-2",
+            "assignees": [
+              "user-2"
+            ],
+            "reviewers": [
+              "user-3",
+              "user-1"
+            ],
+            "closesIssues": [
+              {
+                "projectId": 1,
+                "iid": 759,
+                "title": "Issue 759",
+                "webUrl": "https://gitlab.example.com/group/project-1/-/issues/759"
+              }
+            ],
+            "actions": [
+              {
+                "kind": "commented",
+                "at": "2026-11-05T18:37:38.903+05:00",
+                "value": null,
+                "users": []
+              },
+              {
+                "kind": "commented",
+                "at": "2026-11-05T18:38:59.147+05:00",
+                "value": null,
+                "users": []
+              },
+              {
+                "kind": "commented",
+                "at": "2026-11-05T18:39:17.527+05:00",
+                "value": null,
+                "users": []
+              },
+              {
+                "kind": "label_removed",
+                "at": "2026-11-05T18:39:22.081+05:00",
+                "value": "status:: after review",
+                "users": []
+              },
+              {
+                "kind": "label_added",
+                "at": "2026-11-05T18:39:24.370+05:00",
+                "value": "status:: after review",
+                "users": []
+              },
+              {
+                "kind": "review_request_removed",
+                "at": "2026-11-05T18:39:26.747+05:00",
+                "value": null,
+                "users": [
+                  "user-1"
+                ]
+              }
+            ],
+            "events": [
+              {
+                "id": 598841,
+                "projectId": 1,
+                "actionName": "commented on",
+                "targetType": "Note",
+                "targetTitle": "Title",
+                "createdAt": "2026-11-05T18:39:17.784+05:00",
+                "noteBody": "comment"
+              },
+              {
+                "id": 598839,
+                "projectId": 1,
+                "actionName": "commented on",
+                "targetType": "Note",
+                "targetTitle": "Title",
+                "createdAt": "2026-11-05T18:38:59.708+05:00",
+                "noteBody": "comment"
+              },
+              {
+                "id": 598835,
+                "projectId": 1,
+                "actionName": "commented on",
+                "targetType": "Note",
+                "targetTitle": "Title",
+                "createdAt": "2026-11-05T18:37:39.126+05:00",
+                "noteBody": "comment"
+              }
+            ],
+            "notes": [
+              {
+                "id": 588590,
+                "body": "comment",
+                "authorUsername": "user-3",
+                "authorName": "user-3",
+                "createdAt": "2026-11-05T18:55:50.212+05:00",
+                "system": false,
+                "noteableType": "MergeRequest",
+                "resolvable": false
+              },
+              {
+                "id": 588571,
+                "body": "removed review request for @user-1",
+                "authorUsername": "user-1",
+                "authorName": "user-1",
+                "createdAt": "2026-11-05T18:39:26.747+05:00",
+                "system": true,
+                "noteableType": "MergeRequest",
+                "resolvable": false
+              },
+              {
+                "id": 588570,
+                "body": "comment",
+                "authorUsername": "user-1",
+                "authorName": "user-1",
+                "createdAt": "2026-11-05T18:39:17.527+05:00",
+                "system": false,
+                "noteableType": "MergeRequest",
+                "resolvable": false
+              },
+              {
+                "id": 588569,
+                "body": "comment",
+                "authorUsername": "user-1",
+                "authorName": "user-1",
+                "createdAt": "2026-11-05T18:38:59.147+05:00",
+                "system": false,
+                "noteableType": "MergeRequest",
+                "resolvable": false
+              },
+              {
+                "id": 588562,
+                "body": "comment",
+                "authorUsername": "user-1",
+                "authorName": "user-1",
+                "createdAt": "2026-11-05T18:37:38.903+05:00",
+                "system": false,
+                "noteableType": "MergeRequest",
+                "resolvable": false
+              },
+              {
+                "id": 588514,
+                "body": "requested review from @user-1",
+                "authorUsername": "user-3",
+                "authorName": "user-3",
+                "createdAt": "2026-11-05T17:58:29.468+05:00",
+                "system": true,
+                "noteableType": "MergeRequest",
+                "resolvable": false
+              },
+              {
+                "id": 588512,
+                "body": "approved this merge request",
+                "authorUsername": "user-3",
+                "authorName": "user-3",
+                "createdAt": "2026-11-05T17:57:10.847+05:00",
+                "system": true,
+                "noteableType": "MergeRequest",
+                "resolvable": false
+              },
+              {
+                "id": 588290,
+                "body": "system note",
+                "authorUsername": "user-2",
+                "authorName": "user-2",
+                "createdAt": "2026-11-05T15:42:33.450+05:00",
+                "system": true,
+                "noteableType": "MergeRequest",
+                "resolvable": false
+              },
+              {
+                "id": 588256,
+                "body": "system note",
+                "authorUsername": "user-2",
+                "authorName": "user-2",
+                "createdAt": "2026-11-05T15:27:12.442+05:00",
+                "system": true,
+                "noteableType": "MergeRequest",
+                "resolvable": false
+              },
+              {
+                "id": 587982,
+                "body": "comment",
+                "authorUsername": "user-3",
+                "authorName": "user-3",
+                "createdAt": "2026-11-05T12:36:48.109+05:00",
+                "system": false,
+                "noteableType": "MergeRequest",
+                "resolvable": false
+              }
+            ],
+            "labelEvents": [
+              {
+                "id": 265413,
+                "labelName": "status:: after review",
+                "action": "remove",
+                "createdAt": "2026-11-05T18:39:22.081+05:00",
+                "username": "user-1"
+              },
+              {
+                "id": 265414,
+                "labelName": "status:: after review",
+                "action": "add",
+                "createdAt": "2026-11-05T18:39:24.370+05:00",
+                "username": "user-1"
+              }
+            ],
+            "reviewThreads": {
+              "total": 2,
+              "unresolved": 0
+            }
+          }
+        ]
+      },
+      {
+        "projectId": 13,
+        "iid": 91,
+        "title": "Issue 91",
+        "state": "closed",
+        "closedOnReportDate": true,
+        "webUrl": "https://gitlab.example.com/group/project-13/-/issues/91",
+        "labels": [
+          "label-5",
+          "priority::critical"
+        ],
+        "createdAt": "2026-11-05T11:24:03.268+05:00",
+        "assignees": [
+          "user-3",
+          "user-19"
+        ],
+        "status": "Done",
+        "actions": [],
+        "events": [],
+        "notes": [
+          {
+            "id": 587939,
+            "body": "set status to **Done**",
+            "authorUsername": "user-3",
+            "authorName": "user-3",
+            "createdAt": "2026-11-05T11:46:32.517+05:00",
+            "system": true,
+            "noteableType": "Issue",
+            "resolvable": false
+          },
+          {
+            "id": 587937,
+            "body": "system note",
+            "authorUsername": "user-3",
+            "authorName": "user-3",
+            "createdAt": "2026-11-05T11:46:31.449+05:00",
+            "system": true,
+            "noteableType": "Issue",
+            "resolvable": false
+          },
+          {
+            "id": 587901,
+            "body": "system note",
+            "authorUsername": "user-19",
+            "authorName": "user-19",
+            "createdAt": "2026-11-05T11:24:22.491+05:00",
+            "system": true,
+            "noteableType": "Issue",
+            "resolvable": false
+          },
+          {
+            "id": 587899,
+            "body": "created branch [`91-branch-48`](https://gitlab.example.com)",
+            "authorUsername": "user-19",
+            "authorName": "user-19",
+            "createdAt": "2026-11-05T11:24:17.498+05:00",
+            "system": true,
+            "noteableType": "Issue",
+            "resolvable": false
+          },
+          {
+            "id": 587896,
+            "body": "assigned to @user-19 and @user-3",
+            "authorUsername": "user-19",
+            "authorName": "user-19",
+            "createdAt": "2026-11-05T11:24:03.467+05:00",
+            "system": true,
+            "noteableType": "Issue",
+            "resolvable": false
+          },
+          {
+            "id": 587895,
+            "body": "set status to **To do**",
+            "authorUsername": "user-19",
+            "authorName": "user-19",
+            "createdAt": "2026-11-05T11:24:03.352+05:00",
+            "system": true,
+            "noteableType": "Issue",
+            "resolvable": false
+          }
+        ],
+        "labelEvents": [
+          {
+            "id": 265120,
+            "labelName": "priority::critical",
+            "action": "add",
+            "createdAt": "2026-11-05T11:24:03.439+05:00",
+            "username": "user-19"
+          },
+          {
+            "id": 265121,
+            "labelName": "label-5",
+            "action": "add",
+            "createdAt": "2026-11-05T11:24:03.439+05:00",
+            "username": "user-19"
+          }
+        ],
+        "mergeRequests": [
+          {
+            "projectId": 13,
+            "iid": 90,
+            "title": "Merge request 90",
+            "state": "merged",
+            "mergedOnReportDate": true,
+            "draft": false,
+            "webUrl": "https://gitlab.example.com/group/project-13/-/merge_requests/90",
+            "sourceBranch": "91-branch-48",
+            "labels": [
+              "label-5",
+              "priority::critical"
+            ],
+            "createdAt": "2026-11-05T11:24:21.605+05:00",
+            "lastCommitAt": null,
+            "author": "user-19",
+            "assignees": [
+              "user-3",
+              "user-19"
+            ],
+            "reviewers": [
+              "user-1"
+            ],
+            "closesIssues": [
+              {
+                "projectId": 13,
+                "iid": 91,
+                "title": "Issue 91",
+                "webUrl": "https://gitlab.example.com/group/project-13/-/issues/91"
+              }
+            ],
+            "actions": [
+              {
+                "kind": "approved",
+                "at": "2026-11-05T11:46:26.677+05:00",
+                "value": null,
+                "users": []
+              }
+            ],
+            "events": [
+              {
+                "id": 598392,
+                "projectId": 13,
+                "actionName": "approved",
+                "targetType": "MergeRequest",
+                "targetTitle": "Title",
+                "createdAt": "2026-11-05T11:46:26.674+05:00"
+              }
+            ],
+            "notes": [
+              {
+                "id": 587938,
+                "body": "system note",
+                "authorUsername": "user-3",
+                "authorName": "user-3",
+                "createdAt": "2026-11-05T11:46:31.655+05:00",
+                "system": true,
+                "noteableType": "MergeRequest",
+                "resolvable": false
+              },
+              {
+                "id": 587936,
+                "body": "approved this merge request",
+                "authorUsername": "user-1",
+                "authorName": "user-1",
+                "createdAt": "2026-11-05T11:46:26.677+05:00",
+                "system": true,
+                "noteableType": "MergeRequest",
+                "resolvable": false
+              },
+              {
+                "id": 587933,
+                "body": "assigned to @user-3",
+                "authorUsername": "user-19",
+                "authorName": "user-19",
+                "createdAt": "2026-11-05T11:43:55.140+05:00",
+                "system": true,
+                "noteableType": "MergeRequest",
+                "resolvable": false
+              },
+              {
+                "id": 587922,
+                "body": "requested review from @user-1",
+                "authorUsername": "user-19",
+                "authorName": "user-19",
+                "createdAt": "2026-11-05T11:38:24.435+05:00",
+                "system": true,
+                "noteableType": "MergeRequest",
+                "resolvable": false
+              },
+              {
+                "id": 587918,
+                "body": "marked this merge request as **ready**",
+                "authorUsername": "user-3",
+                "authorName": "user-3",
+                "createdAt": "2026-11-05T11:34:32.681+05:00",
+                "system": true,
+                "noteableType": "MergeRequest",
+                "resolvable": false
+              },
+              {
+                "id": 587917,
+                "body": "approved this merge request",
+                "authorUsername": "user-3",
+                "authorName": "user-3",
+                "createdAt": "2026-11-05T11:34:31.576+05:00",
+                "system": true,
+                "noteableType": "MergeRequest",
+                "resolvable": false
+              },
+              {
+                "id": 587908,
+                "body": "system note",
+                "authorUsername": "user-19",
+                "authorName": "user-19",
+                "createdAt": "2026-11-05T11:31:37.073+05:00",
+                "system": true,
+                "noteableType": "MergeRequest",
+                "resolvable": false
+              },
+              {
+                "id": 587900,
+                "body": "assigned to @user-19",
+                "authorUsername": "user-19",
+                "authorName": "user-19",
+                "createdAt": "2026-11-05T11:24:21.731+05:00",
+                "system": true,
+                "noteableType": "MergeRequest",
+                "resolvable": false
+              }
+            ],
+            "labelEvents": [
+              {
+                "id": 265122,
+                "labelName": "priority::critical",
+                "action": "add",
+                "createdAt": "2026-11-05T11:24:21.695+05:00",
+                "username": "user-19"
+              },
+              {
+                "id": 265123,
+                "labelName": "label-5",
+                "action": "add",
+                "createdAt": "2026-11-05T11:24:21.695+05:00",
+                "username": "user-19"
+              }
+            ],
+            "reviewThreads": {
+              "total": 0,
+              "unresolved": 0
+            }
+          }
+        ]
+      },
+      {
+        "projectId": 5,
+        "iid": 1066,
+        "title": "Issue 1066",
+        "state": "closed",
+        "closedOnReportDate": true,
+        "webUrl": "https://gitlab.example.com/group/project-5/-/issues/1066",
+        "labels": [
+          "label-1",
+          "status::doing"
+        ],
+        "createdAt": "2026-11-04T14:09:04.791+05:00",
+        "assignees": [],
+        "status": "Done",
+        "actions": [],
+        "events": [],
+        "notes": [
+          {
+            "id": 587822,
+            "body": "set status to **Done**",
+            "authorUsername": "user-10",
+            "authorName": "user-10",
+            "createdAt": "2026-11-05T10:17:15.223+05:00",
+            "system": true,
+            "noteableType": "Issue",
+            "resolvable": false
+          },
+          {
+            "id": 587820,
+            "body": "system note",
+            "authorUsername": "user-10",
+            "authorName": "user-10",
+            "createdAt": "2026-11-05T10:17:14.437+05:00",
+            "system": true,
+            "noteableType": "Issue",
+            "resolvable": false
+          }
+        ],
+        "labelEvents": [],
+        "mergeRequests": [
+          {
+            "projectId": 5,
+            "iid": 951,
+            "title": "Merge request 951",
+            "state": "merged",
+            "mergedOnReportDate": true,
+            "draft": false,
+            "webUrl": "https://gitlab.example.com/group/project-5/-/merge_requests/951",
+            "sourceBranch": "1066-branch-49",
+            "labels": [
+              "label-1",
+              "priority::medium",
+              "status::ready for QA",
+              "type::bug"
+            ],
+            "createdAt": "2026-11-04T14:09:30.483+05:00",
+            "lastCommitAt": "2026-11-04T10:30:41.000Z",
+            "author": "user-10",
+            "assignees": [
+              "user-10"
+            ],
+            "reviewers": [
+              "user-1"
+            ],
+            "closesIssues": [
+              {
+                "projectId": 5,
+                "iid": 1066,
+                "title": "Issue 1066",
+                "webUrl": "https://gitlab.example.com/group/project-5/-/issues/1066"
+              }
+            ],
+            "actions": [
+              {
+                "kind": "approved",
+                "at": "2026-11-05T10:10:02.655+05:00",
+                "value": null,
+                "users": []
+              }
+            ],
+            "events": [
+              {
+                "id": 598308,
+                "projectId": 5,
+                "actionName": "approved",
+                "targetType": "MergeRequest",
+                "targetTitle": "Title",
+                "createdAt": "2026-11-05T10:10:02.605+05:00"
+              }
+            ],
+            "notes": [
+              {
+                "id": 587821,
+                "body": "system note",
+                "authorUsername": "user-10",
+                "authorName": "user-10",
+                "createdAt": "2026-11-05T10:17:14.531+05:00",
+                "system": true,
+                "noteableType": "MergeRequest",
+                "resolvable": false
+              },
+              {
+                "id": 587813,
+                "body": "approved this merge request",
+                "authorUsername": "user-1",
+                "authorName": "user-1",
+                "createdAt": "2026-11-05T10:10:02.655+05:00",
+                "system": true,
+                "noteableType": "MergeRequest",
+                "resolvable": false
+              },
+              {
+                "id": 587811,
+                "body": "marked this merge request as **ready**",
+                "authorUsername": "user-10",
+                "authorName": "user-10",
+                "createdAt": "2026-11-05T10:06:30.824+05:00",
+                "system": true,
+                "noteableType": "MergeRequest",
+                "resolvable": false
+              },
+              {
+                "id": 587810,
+                "body": "requested review from @user-1",
+                "authorUsername": "user-10",
+                "authorName": "user-10",
+                "createdAt": "2026-11-05T10:04:43.443+05:00",
+                "system": true,
+                "noteableType": "MergeRequest",
+                "resolvable": false
+              }
+            ],
+            "labelEvents": [
+              {
+                "id": 265070,
+                "labelName": "priority::medium",
+                "action": "add",
+                "createdAt": "2026-11-05T10:05:16.859+05:00",
+                "username": "user-10"
+              },
+              {
+                "id": 265071,
+                "labelName": "type::bug",
+                "action": "add",
+                "createdAt": "2026-11-05T10:05:16.859+05:00",
+                "username": "user-10"
+              },
+              {
+                "id": 265072,
+                "labelName": "status::ready for QA",
+                "action": "add",
+                "createdAt": "2026-11-05T10:05:23.295+05:00",
+                "username": "user-10"
+              }
+            ],
+            "reviewThreads": {
+              "total": 0,
+              "unresolved": 0
+            }
+          }
+        ]
+      }
+    ],
+    "standaloneMergeRequests": [],
+    "standalonePushes": []
+  }
+}

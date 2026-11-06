@@ -1,0 +1,18 @@
+{
+  "issues": [
+    {
+      "projectId": 7,
+      "iid": 1510,
+      "status": "REPORTED_BUG",
+      "taskType": "BUG"
+    },
+    {
+      "projectId": 6,
+      "iid": 2660,
+      "status": "ACCEPTED_WORK",
+      "taskType": "CHORE"
+    }
+  ],
+  "standaloneMergeRequests": [],
+  "standalonePushes": []
+}
