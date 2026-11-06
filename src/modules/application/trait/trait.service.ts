@@ -112,6 +112,14 @@ export class TraitService {
     return index.get(toSourceKey(sourceName)) ?? [];
   }
 
+  findValues<Dimension extends TraitDimension>(
+    index: TraitIndex,
+    sourceName: string,
+    dimension: Dimension,
+  ): TraitDimensionValueMap[Dimension][] {
+    return this.collect(this.findTraits(index, sourceName), dimension);
+  }
+
   toTaskTraits(index: TraitIndex, sourceNames: string[]): TaskTraits {
     const pairs = sourceNames.flatMap((sourceName) => this.findTraits(index, sourceName));
     return {
