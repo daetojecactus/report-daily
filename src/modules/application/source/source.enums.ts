@@ -14,6 +14,17 @@ export enum LabelAction {
   REMOVE = 'remove',
 }
 
+export enum SourceEventAction {
+  OPENED = 'opened',
+  CREATED = 'created',
+  CLOSED = 'closed',
+  REOPENED = 'reopened',
+  ACCEPTED = 'accepted',
+  APPROVED = 'approved',
+  PUSHED_TO = 'pushed to',
+  PUSHED_NEW = 'pushed new',
+}
+
 export enum SourceActionKind {
   OPENED = 'opened',
   COMMENTED = 'commented',
