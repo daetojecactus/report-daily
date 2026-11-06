@@ -193,4 +193,39 @@ describe('Trait module', () => {
       await traitService.create(toMapping('a'.repeat(255), TraitDimension.TASK_KIND, TaskKind.BUG)),
     ).toMatchObject({ sourceName: 'a'.repeat(255) });
   });
+
+  it('loads the traits that apply to a role, the role row first', async () => {
+    await db
+      .insert(traitMappings)
+      .values([
+        toMapping('status::review', TraitDimension.WORKFLOW_STATE, WorkflowState.REVIEW),
+        toMapping(
+          'status::review',
+          TraitDimension.WORKFLOW_STATE,
+          WorkflowState.TESTING,
+          JobRole.QA,
+        ),
+        toMapping('bug::performance', TraitDimension.TASK_KIND, TaskKind.BUG),
+        toMapping('bug::performance', TraitDimension.AREA, TaskArea.PERFORMANCE, JobRole.QA),
+        toMapping('priority::low', TraitDimension.PRIORITY, Priority.LOW, JobRole.DEVELOPER),
+      ]);
+
+    const qa = await traitService.loadIndex(Source.GITLAB, JobRole.QA);
+    const developer = await traitService.loadIndex(Source.GITLAB, JobRole.DEVELOPER);
+
+    expect(traitService.findTraits(qa, 'Status::Review')).toEqual([
+      { dimension: TraitDimension.WORKFLOW_STATE, value: WorkflowState.TESTING },
+    ]);
+    expect(traitService.findTraits(developer, 'status::review')).toEqual([
+      { dimension: TraitDimension.WORKFLOW_STATE, value: WorkflowState.REVIEW },
+    ]);
+    expect(traitService.findTraits(qa, 'bug::performance')).toHaveLength(2);
+    expect(traitService.findTraits(developer, 'bug::performance')).toEqual([
+      { dimension: TraitDimension.TASK_KIND, value: TaskKind.BUG },
+    ]);
+    expect(traitService.findTraits(qa, 'priority::low')).toEqual([]);
+    expect(traitService.findTraits(developer, 'priority::low')).toEqual([
+      { dimension: TraitDimension.PRIORITY, value: Priority.LOW },
+    ]);
+  });
 });

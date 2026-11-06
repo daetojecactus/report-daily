@@ -20,7 +20,7 @@ const SECRETS = [
   'billing-api',
   'Починить оплату картой',
   'Fix card payments in checkout',
-  'region::KZ',
+  'region::EU',
   'app::server',
   'fix-card-payments',
   'acme-packages',
@@ -123,7 +123,7 @@ function createMergeRequest(overrides: Partial<GroupedMergeRequest> = {}): Group
     labelEvents: [
       {
         id: 20,
-        labelName: 'region::KZ',
+        labelName: 'region::EU',
         action: LabelAction.ADD,
         createdAt: '2026-11-05T08:00:00.000Z',
         username: 'anna.petrova',
@@ -159,7 +159,7 @@ function createDay(): GroupedDailyData {
         state: ItemState.OPENED,
         closedOnReportDate: false,
         webUrl: 'https://acme.example.org/acme-corp/billing-api/-/issues/12',
-        labels: ['type::bug', 'region::KZ'],
+        labels: ['type::bug', 'region::EU'],
         createdAt: '2026-11-01T09:00:00.000Z',
         assignees: ['anna.petrova', 'ivan.sidorov'],
         status: 'Custom review',
