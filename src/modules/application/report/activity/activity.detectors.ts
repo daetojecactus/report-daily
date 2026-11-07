@@ -91,7 +91,7 @@ export class ActivityDetectors {
     return candidates;
   }
 
-  private detectChanges({ changes }: ActivityLineSignals): ActivityCandidate[] {
+  private detectChanges({ changes, returnedAt }: ActivityLineSignals): ActivityCandidate[] {
     return changes.flatMap(({ fact, state, flags, priority }) => [
       ...(state === WorkflowState.CHANGES_REQUESTED
         ? [
@@ -108,7 +108,11 @@ export class ActivityDetectors {
                 ActivityAction.STATE_SET,
                 TRAIT_STATE_WEIGHTS[state],
                 [fact],
-                [],
+                state === WorkflowState.READY_FOR_QA &&
+                  returnedAt !== null &&
+                  returnedAt < fact.time
+                  ? [ActivityDetail.AFTER_QA]
+                  : [],
                 state,
               ),
             ]
@@ -208,8 +212,21 @@ export class ActivityDetectors {
       (fact) => fact.kind === SourceActionKind.DESCRIPTION_CHANGED && fact.mergeRequestIid === null,
     );
     if (requirements.length) {
+      const edited = Math.max(...requirements.map((fact) => fact.time));
       candidates.push(
-        this.toCandidate(ActivityAction.REQUIREMENTS, ACTIVITY_WEIGHTS.REQUIREMENTS, requirements),
+        this.toCandidate(
+          ActivityAction.REQUIREMENTS,
+          ACTIVITY_WEIGHTS.REQUIREMENTS,
+          requirements,
+          signals.others.some(
+            (fact) =>
+              fact.kind === SourceActionKind.COMMENTED &&
+              fact.mergeRequestIid === null &&
+              fact.time < edited,
+          )
+            ? [ActivityDetail.AFTER_DISCUSSION]
+            : [],
+        ),
       );
     }
     const assignments = own.filter(
@@ -284,6 +301,7 @@ export class ActivityDetectors {
       state,
       details,
       facts,
+      parts: [],
     };
   }
 }

@@ -25,7 +25,7 @@ function candidate(
   time = 0,
   state: WorkflowState | null = null,
 ): ActivityCandidate {
-  return { action, weight, time, state, details: [], facts: [] };
+  return { action, weight, time, state, details: [], facts: [], parts: [] };
 }
 
 function select(candidates: ActivityCandidate[], role = JobRole.DEVELOPER) {
@@ -187,8 +187,8 @@ describe('ActivitySelector', () => {
   it('explains the choice with every candidate, its tier and its weight', () => {
     const mergeRequest = createMergeRequest({
       facts: [
+        fact(SourceActionKind.REVIEW_REQUESTED, at(9), { users: [OTHER] }),
         fact(SourceActionKind.COMMENTED, at(10)),
-        fact(SourceActionKind.REVIEW_REQUESTED, at(16), { users: [OTHER] }),
       ],
       events: [pushEvent(at(15))],
     });

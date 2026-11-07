@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { SourceActionKind } from 'src/modules/application/source/source.enums';
-import { TaskFlag, TaskKind, WorkflowState } from 'src/modules/application/trait/trait.enums';
+import { TaskFlag, TaskKind } from 'src/modules/application/trait/trait.enums';
 import {
   ACTIVITY_BRANCH_PUSH_ACTION,
   ACTIVITY_CODE_CHANGE_FACTS,
@@ -79,7 +79,7 @@ export class ActivityCodeDetector {
   }
 
   private toCodeDetails(signals: ActivityLineSignals, facts: ActivityFact[]) {
-    const { pushes, others, startFlags, startStates, removedFlags, line, kind } = signals;
+    const { pushes, others, removedFlags, line, kind } = signals;
     const has = (sourceKind: SourceActionKind) => facts.some((fact) => fact.kind === sourceKind);
     const firstPush = Math.min(
       ...pushes.map((push) => push.time),
@@ -100,10 +100,7 @@ export class ActivityCodeDetector {
     if (has(SourceActionKind.THREADS_RESOLVED)) {
       details.push(ActivityDetail.RESOLVED);
     }
-    if (
-      startFlags.includes(TaskFlag.RETURNED_FROM_QA) ||
-      startStates.includes(WorkflowState.CHANGES_REQUESTED)
-    ) {
+    if (signals.returnedAt !== null && signals.returnedAt < firstPush) {
       details.push(ActivityDetail.AFTER_QA);
     }
     if (removedFlags.includes(TaskFlag.NEEDS_REBASE)) {
@@ -173,6 +170,7 @@ export class ActivityCodeDetector {
       state: null,
       details,
       facts,
+      parts: [],
     };
   }
 }

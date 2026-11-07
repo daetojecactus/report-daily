@@ -243,6 +243,29 @@ describe('ActivityDetectors', () => {
       ]);
     });
 
+    it('marks ready for QA again after a return', () => {
+      const ready = fact(SourceActionKind.LABEL_ADDED, at(12), { value: 'status::ready for qa' });
+      const returned = (time: string) =>
+        otherFact(SourceActionKind.LABEL_ADDED, time, { value: 'qa::returned' });
+      const details = (issue: ReturnType<typeof createIssue>) =>
+        summarize(detect(issueLine(issue))).find(
+          (candidate) => candidate.state === WorkflowState.READY_FOR_QA,
+        )?.details;
+
+      expect(details(createIssue({ facts: [returned(at(10)), ready] }))).toEqual([
+        ActivityDetail.AFTER_QA,
+      ]);
+      expect(
+        details(
+          createIssue({
+            startOfDay: { ...createIssue().startOfDay, labels: ['qa::returned'] },
+            facts: [ready],
+          }),
+        ),
+      ).toEqual([ActivityDetail.AFTER_QA]);
+      expect(details(createIssue({ facts: [ready, returned(at(14))] }))).toEqual([]);
+    });
+
     it('reads the Status field like a label', () => {
       const issue = createIssue({
         facts: [fact(SourceActionKind.STATUS_SET, at(11), { value: 'Done' })],
@@ -357,6 +380,22 @@ describe('ActivityDetectors', () => {
           details: [ActivityDetail.TITLE],
         },
       ]);
+    });
+
+    it('refines the requirements after a discussion in the issue', () => {
+      const edit = fact(SourceActionKind.DESCRIPTION_CHANGED, at(10));
+      const requirements = (issue: ReturnType<typeof createIssue>) =>
+        summarize(detect(issueLine(issue), JobRole.SYSTEM_ANALYST))[0];
+
+      expect(
+        requirements(createIssue({ facts: [otherFact(SourceActionKind.COMMENTED, at(9)), edit] })),
+      ).toMatchObject({
+        action: ActivityAction.REQUIREMENTS,
+        details: [ActivityDetail.AFTER_DISCUSSION],
+      });
+      expect(
+        requirements(createIssue({ facts: [edit, otherFact(SourceActionKind.COMMENTED, at(11))] })),
+      ).toMatchObject({ action: ActivityAction.REQUIREMENTS, details: [] });
     });
 
     it('assigns, reassigns in one step and unassigns', () => {
@@ -518,6 +557,7 @@ describe('ActivityDetectors', () => {
         state: WorkflowState.TESTING,
         details: [],
         facts: [],
+        parts: [],
       },
     ]);
   });

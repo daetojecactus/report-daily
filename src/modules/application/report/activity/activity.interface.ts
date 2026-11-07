@@ -74,6 +74,7 @@ export interface ActivityLineSignals {
   closedToday: boolean;
   mergedToday: boolean;
   lastCommitAt: number | null;
+  returnedAt: number | null;
   dependencies: boolean;
   dialog: boolean;
   engagement: EngagementLevel;
@@ -86,6 +87,14 @@ export interface ActivityCandidate {
   state: WorkflowState | null;
   details: ActivityDetail[];
   facts: ActivityFact[];
+  parts: ActivityCandidate[];
+}
+
+export interface ActivityChain {
+  isHead: (candidate: ActivityCandidate) => boolean;
+  isPart: (candidate: ActivityCandidate, head: ActivityCandidate) => boolean;
+  details: (parts: ActivityCandidate[]) => ActivityDetail[];
+  state?: (parts: ActivityCandidate[]) => WorkflowState | null;
 }
 
 export interface ActivityRoleFocus {
