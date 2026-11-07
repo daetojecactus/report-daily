@@ -21,3 +21,24 @@ export const TRAIT_DICTIONARY: {
   [TraitDimension.AREA]: Object.values(TaskArea),
   [TraitDimension.FLAG]: Object.values(TaskFlag),
 };
+
+export const TRAIT_STATE_WEIGHTS: Record<WorkflowState, number> = {
+  [WorkflowState.BACKLOG]: 280,
+  [WorkflowState.PLANNED]: 285,
+  [WorkflowState.ANALYSIS]: 295,
+  [WorkflowState.DESIGN]: 295,
+  [WorkflowState.IN_PROGRESS]: 290,
+  [WorkflowState.REVIEW]: 550,
+  [WorkflowState.CHANGES_REQUESTED]: 770,
+  [WorkflowState.READY_FOR_QA]: 560,
+  [WorkflowState.TESTING]: 710,
+  [WorkflowState.QA_PASSED]: 790,
+  [WorkflowState.READY_FOR_RELEASE]: 650,
+  [WorkflowState.STAGING]: 920,
+  [WorkflowState.RELEASED]: 930,
+  [WorkflowState.DONE]: 935,
+  [WorkflowState.CANCELLED]: 925,
+  [WorkflowState.BLOCKED]: 860,
+  [WorkflowState.NEEDS_INFO]: 530,
+  [WorkflowState.HANDOFF]: 540,
+};
