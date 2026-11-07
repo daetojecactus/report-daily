@@ -41,6 +41,8 @@ export const OTHER = 'dev.other';
 
 const MAPPINGS: [string, TraitDimension, TraitValue][] = [
   ['status::todo', TraitDimension.WORKFLOW_STATE, WorkflowState.PLANNED],
+  ['status::sprint backlog', TraitDimension.WORKFLOW_STATE, WorkflowState.PLANNED],
+  ['status::need information', TraitDimension.WORKFLOW_STATE, WorkflowState.NEEDS_INFO],
   ['status::doing', TraitDimension.WORKFLOW_STATE, WorkflowState.IN_PROGRESS],
   ['status::review', TraitDimension.WORKFLOW_STATE, WorkflowState.REVIEW],
   ['status::after review', TraitDimension.WORKFLOW_STATE, WorkflowState.CHANGES_REQUESTED],
@@ -51,6 +53,8 @@ const MAPPINGS: [string, TraitDimension, TraitValue][] = [
   ['In progress', TraitDimension.WORKFLOW_STATE, WorkflowState.IN_PROGRESS],
   ['Done', TraitDimension.WORKFLOW_STATE, WorkflowState.DONE],
   ['type::bug', TraitDimension.TASK_KIND, TaskKind.BUG],
+  ['type::feature', TraitDimension.TASK_KIND, TaskKind.FEATURE],
+  ['type::qa', TraitDimension.TASK_KIND, TaskKind.QA_INTERNAL],
   ['type::hotfix', TraitDimension.TASK_KIND, TaskKind.HOTFIX],
   ['type::maintenance', TraitDimension.TASK_KIND, TaskKind.MAINTENANCE],
   ['type::dependency', TraitDimension.TASK_KIND, TaskKind.DEPENDENCY],
@@ -58,6 +62,8 @@ const MAPPINGS: [string, TraitDimension, TraitValue][] = [
   ['priority::high', TraitDimension.PRIORITY, Priority.HIGH],
   ['qa::returned', TraitDimension.FLAG, TaskFlag.RETURNED_FROM_QA],
   ['needs-rebase', TraitDimension.FLAG, TaskFlag.NEEDS_REBASE],
+  ['test::e2e required', TraitDimension.FLAG, TaskFlag.E2E_REQUIRED],
+  ['test::unit', TraitDimension.FLAG, TaskFlag.UNIT_TESTS_REQUIRED],
 ];
 
 export function createIndex(): TraitIndex {
