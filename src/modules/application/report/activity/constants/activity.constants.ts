@@ -1,5 +1,8 @@
 import { SourceActionKind } from 'src/modules/application/source/source.enums';
-import { ActivityDetail } from '../activity.enums';
+import { WorkflowState } from 'src/modules/application/trait/trait.enums';
+import { JobRole } from 'src/modules/application/user/user.enums';
+import { ActivityAction, ActivityDetail, ActivityTier } from '../activity.enums';
+import type { ActivityRoleFocus } from '../activity.interface';
 
 export const ACTIVITY_WEIGHTS = {
   MERGED: 950,
@@ -35,6 +38,42 @@ export const ACTIVITY_CODE_WEIGHTS: Partial<Record<ActivityDetail, number>> = {
   [ActivityDetail.STARTED]: 320,
   [ActivityDetail.RESUMED]: 315,
   [ActivityDetail.REFACTORING]: 310,
+};
+
+export const ACTIVITY_TIERS: { tier: ActivityTier; from: number }[] = [
+  { tier: ActivityTier.OUTCOME, from: 800 },
+  { tier: ActivityTier.CHECK, from: 700 },
+  { tier: ActivityTier.TRANSITION, from: 500 },
+  { tier: ActivityTier.WORK, from: 250 },
+  { tier: ActivityTier.PARTICIPATION, from: 100 },
+  { tier: ActivityTier.CONTEXT, from: 1 },
+];
+
+export const ACTIVITY_ROLE_BONUS = 30;
+
+export const ACTIVITY_ROLE_FOCUS: Record<JobRole, ActivityRoleFocus> = {
+  [JobRole.DEVELOPER]: { actions: [ActivityAction.CODE, ActivityAction.MERGED], states: [] },
+  [JobRole.QA]: {
+    actions: [
+      ActivityAction.APPROVED,
+      ActivityAction.RETURNED,
+      ActivityAction.REVIEWED,
+      ActivityAction.BUG_FOUND,
+    ],
+    states: [WorkflowState.TESTING, WorkflowState.QA_PASSED],
+  },
+  [JobRole.PROJECT_MANAGER]: {
+    actions: [ActivityAction.CLOSED, ActivityAction.CREATED, ActivityAction.ESCALATED],
+    states: [WorkflowState.PLANNED],
+  },
+  [JobRole.SYSTEM_ANALYST]: {
+    actions: [ActivityAction.REQUIREMENTS, ActivityAction.CREATED],
+    states: [WorkflowState.ANALYSIS, WorkflowState.DESIGN, WorkflowState.NEEDS_INFO],
+  },
+  [JobRole.DEVOPS]: {
+    actions: [],
+    states: [WorkflowState.STAGING, WorkflowState.RELEASED, WorkflowState.READY_FOR_RELEASE],
+  },
 };
 
 export const ACTIVITY_UNDO_MS = 2 * 60 * 1000;

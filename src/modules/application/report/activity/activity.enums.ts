@@ -55,3 +55,30 @@ export enum EngagementLevel {
   MINOR = 'minor',
   OBSERVER = 'observer',
 }
+
+export enum ActivityTier {
+  OUTCOME = 'outcome',
+  CHECK = 'check',
+  TRANSITION = 'transition',
+  WORK = 'work',
+  PARTICIPATION = 'participation',
+  CONTEXT = 'context',
+}
+
+export enum ActivityReason {
+  ONLY = 'only',
+  TIER = 'tier',
+  WEIGHT = 'weight',
+  TIME = 'time',
+}
+
+export enum ActivityRule {
+  UNDONE = 'undone',
+  REPLACED = 'replaced',
+  SETUP = 'setup',
+  AUTOMATIC_STATUS = 'automatic_status',
+  CLOSED_BY_MERGE = 'closed_by_merge',
+  SELF_APPROVAL = 'self_approval',
+  SELF_REVIEW_REMOVAL = 'self_review_removal',
+  REPEATED = 'repeated',
+}

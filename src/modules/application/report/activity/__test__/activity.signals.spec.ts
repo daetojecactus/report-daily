@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { SourceActionKind } from 'src/modules/application/source/source.enums';
 import { TaskFlag, TaskKind, WorkflowState } from 'src/modules/application/trait/trait.enums';
-import { EngagementLevel } from '../activity.enums';
+import { ActivityRule, EngagementLevel } from '../activity.enums';
 import {
   at,
   createIssue,
@@ -165,6 +165,45 @@ describe('ActivitySignals', () => {
 
       expect(signals.changes).toHaveLength(1);
       expect(signals.changes[0].fact.mergeRequestIid).toBeNull();
+    });
+
+    it('names the rule that dropped each fact', () => {
+      const mergeRequest = createMergeRequest({
+        facts: [
+          fact(SourceActionKind.OPENED, at(9)),
+          fact(SourceActionKind.LABEL_ADDED, at(9, 1), { value: 'status::doing' }),
+          fact(SourceActionKind.APPROVED, at(12)),
+          fact(SourceActionKind.REVIEW_REQUEST_REMOVED, at(13), { users: [ME] }),
+          fact(SourceActionKind.LABEL_ADDED, at(14, 0, 5), { value: 'status::qa passed' }),
+          fact(SourceActionKind.MERGED, at(16, 59)),
+        ],
+      });
+      const issue = createIssue({
+        facts: [
+          fact(SourceActionKind.LABEL_ADDED, at(10), { value: 'status::testing' }),
+          fact(SourceActionKind.LABEL_REMOVED, at(10, 0, 3), { value: 'status::testing' }),
+          fact(SourceActionKind.LABEL_REMOVED, at(11), { value: 'status::doing' }),
+          fact(SourceActionKind.LABEL_ADDED, at(11), { value: 'status::review' }),
+          fact(SourceActionKind.LABEL_ADDED, at(14), { value: 'status::qa passed' }),
+          fact(SourceActionKind.CLOSED, at(17)),
+          fact(SourceActionKind.STATUS_SET, at(17, 0, 2), { value: 'Done' }),
+        ],
+        mergeRequests: [mergeRequest],
+      });
+
+      expect(
+        toSignals(issueLine(issue)).dropped.map(({ fact: item, rule }) => [item.kind, rule]),
+      ).toEqual([
+        [SourceActionKind.LABEL_ADDED, ActivityRule.SETUP],
+        [SourceActionKind.LABEL_ADDED, ActivityRule.UNDONE],
+        [SourceActionKind.LABEL_REMOVED, ActivityRule.UNDONE],
+        [SourceActionKind.LABEL_REMOVED, ActivityRule.REPLACED],
+        [SourceActionKind.APPROVED, ActivityRule.SELF_APPROVAL],
+        [SourceActionKind.REVIEW_REQUEST_REMOVED, ActivityRule.SELF_REVIEW_REMOVAL],
+        [SourceActionKind.LABEL_ADDED, ActivityRule.REPEATED],
+        [SourceActionKind.CLOSED, ActivityRule.CLOSED_BY_MERGE],
+        [SourceActionKind.STATUS_SET, ActivityRule.AUTOMATIC_STATUS],
+      ]);
     });
   });
 

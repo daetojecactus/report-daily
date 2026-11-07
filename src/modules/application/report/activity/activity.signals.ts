@@ -8,18 +8,8 @@ import { TaskKind, TraitDimension } from 'src/modules/application/trait/trait.en
 import type { TraitIndex } from 'src/modules/application/trait/trait.interface';
 import { TraitService } from 'src/modules/application/trait/trait.service';
 import {
-  ACTIVITY_AUTO_STATUS_MS,
   ACTIVITY_DEPENDENCY_BRANCH_PATTERN,
-  ACTIVITY_EDIT_FACTS,
-  ACTIVITY_LIFECYCLE_FACTS,
-  ACTIVITY_MERGE_CLOSE_MS,
-  ACTIVITY_OPPOSITE_FACTS,
   ACTIVITY_PUSH_ACTIONS,
-  ACTIVITY_SETUP_FACTS,
-  ACTIVITY_SETUP_MS,
-  ACTIVITY_SWAP_FACTS,
-  ACTIVITY_SWAP_MS,
-  ACTIVITY_UNDO_MS,
 } from './constants/activity.constants';
 import { EngagementLevel } from './activity.enums';
 import { ActivityEngagement } from './activity.engagement';
@@ -31,12 +21,14 @@ import type {
   ActivityLineSignals,
   ActivityPush,
 } from './activity.interface';
+import { ActivityRules } from './activity.rules';
 
 @Injectable()
 export class ActivitySignals {
   constructor(
     private readonly traitService: TraitService,
     private readonly activityEngagement: ActivityEngagement,
+    private readonly activityRules: ActivityRules,
   ) {}
 
   build(line: ActivityLine, employee: ActivityEmployee, index: TraitIndex): ActivityLineSignals {
@@ -53,7 +45,7 @@ export class ActivitySignals {
           mergeRequest.assignees.includes(employee.username),
       )
       .map((mergeRequest) => mergeRequest.iid);
-    const own = this.cleanOwnFacts(
+    const { own, dropped } = this.activityRules.clean(
       facts.filter((fact) => fact.own),
       employee,
       ownMergeRequests,
@@ -73,6 +65,7 @@ export class ActivitySignals {
       line,
       employee,
       own,
+      dropped,
       others,
       changes,
       pushes,
@@ -118,127 +111,6 @@ export class ActivitySignals {
 
   private toStatus(item: GroupedIssue | GroupedMergeRequest) {
     return 'status' in item && item.status ? [item.status] : [];
-  }
-
-  private cleanOwnFacts(
-    facts: ActivityFact[],
-    employee: ActivityEmployee,
-    ownMergeRequests: number[],
-  ) {
-    const undone = this.findUndone(facts);
-    const active = facts.filter((fact) => !undone.has(fact));
-    const creations = facts.filter((fact) => fact.kind === SourceActionKind.OPENED);
-    const merges = facts.filter((fact) => fact.kind === SourceActionKind.MERGED);
-    const kept = active.filter(
-      (fact) =>
-        !this.isSetup(fact, creations) &&
-        !this.isAutomaticStatus(fact, facts) &&
-        !this.isClosedByMerge(fact, merges) &&
-        !this.isSelfApproval(fact, ownMergeRequests) &&
-        !this.isSelfReviewRemoval(fact, employee) &&
-        !this.isReplaced(fact, active),
-    );
-    return kept.filter((fact, index) => !this.isRepeated(fact, kept.slice(0, index)));
-  }
-
-  private findUndone(facts: ActivityFact[]) {
-    const undone = new Set<ActivityFact>();
-    for (const [index, fact] of facts.entries()) {
-      const opposite = ACTIVITY_OPPOSITE_FACTS.get(fact.kind);
-      if (!opposite || undone.has(fact)) {
-        continue;
-      }
-      const reverse = facts
-        .slice(index + 1)
-        .find(
-          (other) =>
-            !undone.has(other) &&
-            other.kind === opposite &&
-            other.mergeRequestIid === fact.mergeRequestIid &&
-            this.toUndoKey(other) === this.toUndoKey(fact) &&
-            other.time - fact.time <= ACTIVITY_UNDO_MS,
-        );
-      if (reverse) {
-        undone.add(fact);
-        undone.add(reverse);
-      }
-    }
-    return undone;
-  }
-
-  private toUndoKey(fact: ActivityFact) {
-    return [fact.value ?? '', ...fact.users.toSorted()].join('|');
-  }
-
-  private isSetup(fact: ActivityFact, creations: ActivityFact[]) {
-    return creations.some(
-      (creation) =>
-        creation.mergeRequestIid === fact.mergeRequestIid &&
-        fact.time >= creation.time &&
-        ((ACTIVITY_SETUP_FACTS.has(fact.kind) && fact.time - creation.time <= ACTIVITY_SETUP_MS) ||
-          ACTIVITY_EDIT_FACTS.has(fact.kind)),
-    );
-  }
-
-  private isAutomaticStatus(fact: ActivityFact, facts: ActivityFact[]) {
-    return (
-      fact.kind === SourceActionKind.STATUS_SET &&
-      facts.some(
-        (other) =>
-          ACTIVITY_LIFECYCLE_FACTS.has(other.kind) &&
-          other.mergeRequestIid === fact.mergeRequestIid &&
-          Math.abs(other.time - fact.time) <= ACTIVITY_AUTO_STATUS_MS,
-      )
-    );
-  }
-
-  private isClosedByMerge(fact: ActivityFact, merges: ActivityFact[]) {
-    return (
-      fact.kind === SourceActionKind.CLOSED &&
-      fact.mergeRequestIid === null &&
-      merges.some(
-        (merge) => fact.time >= merge.time && fact.time - merge.time <= ACTIVITY_MERGE_CLOSE_MS,
-      )
-    );
-  }
-
-  private isSelfApproval(fact: ActivityFact, ownMergeRequests: number[]) {
-    return (
-      fact.kind === SourceActionKind.APPROVED &&
-      fact.mergeRequestIid !== null &&
-      ownMergeRequests.includes(fact.mergeRequestIid)
-    );
-  }
-
-  private isSelfReviewRemoval(fact: ActivityFact, employee: ActivityEmployee) {
-    return (
-      fact.kind === SourceActionKind.REVIEW_REQUEST_REMOVED &&
-      fact.users.length === 1 &&
-      fact.users[0] === employee.username
-    );
-  }
-
-  private isReplaced(fact: ActivityFact, facts: ActivityFact[]) {
-    const addition = ACTIVITY_SWAP_FACTS.get(fact.kind);
-    return facts.some(
-      (other) =>
-        other.kind === addition &&
-        other.mergeRequestIid === fact.mergeRequestIid &&
-        Math.abs(other.time - fact.time) <= ACTIVITY_SWAP_MS,
-    );
-  }
-
-  private isRepeated(fact: ActivityFact, before: ActivityFact[]) {
-    return (
-      ACTIVITY_SETUP_FACTS.has(fact.kind) &&
-      before.some(
-        (other) =>
-          other.kind === fact.kind &&
-          other.value === fact.value &&
-          other.mergeRequestIid !== fact.mergeRequestIid &&
-          fact.time - other.time <= ACTIVITY_UNDO_MS,
-      )
-    );
   }
 
   private toChanges(own: ActivityFact[], index: TraitIndex): ActivityChange[] {
