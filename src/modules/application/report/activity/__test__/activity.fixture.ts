@@ -27,6 +27,8 @@ import { ActivityDetectors } from '../activity.detectors';
 import { ActivityEngagement } from '../activity.engagement';
 import { ActivityAction } from '../activity.enums';
 import type { ActivityCandidate, ActivityEmployee, ActivityLine } from '../activity.interface';
+import { ActivityRules } from '../activity.rules';
+import { ActivitySelector } from '../activity.selector';
 import { ActivitySignals } from '../activity.signals';
 
 export const REPORT_DATE = '2026-08-02';
@@ -169,7 +171,11 @@ export function createIssue(overrides: Partial<GroupedIssue> = {}): GroupedIssue
 }
 
 export function createSignals() {
-  return new ActivitySignals(new TraitService({} as TraitRepository), new ActivityEngagement());
+  return new ActivitySignals(
+    new TraitService({} as TraitRepository),
+    new ActivityEngagement(),
+    new ActivityRules(),
+  );
 }
 
 export function createDetectors() {
@@ -183,6 +189,11 @@ export function toSignals(line: ActivityLine, role = JobRole.DEVELOPER) {
 
 export function detect(line: ActivityLine, role = JobRole.DEVELOPER) {
   return createDetectors().detect(toSignals(line, role));
+}
+
+export function choose(line: ActivityLine, role = JobRole.DEVELOPER) {
+  const signals = toSignals(line, role);
+  return new ActivitySelector().select(signals, createDetectors().detect(signals));
 }
 
 export function issueLine(issue = createIssue()): ActivityLine {

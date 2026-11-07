@@ -10,7 +10,14 @@ import type {
   WorkflowState,
 } from 'src/modules/application/trait/trait.enums';
 import type { JobRole } from 'src/modules/application/user/user.enums';
-import type { ActivityAction, ActivityDetail, EngagementLevel } from './activity.enums';
+import type {
+  ActivityAction,
+  ActivityDetail,
+  ActivityReason,
+  ActivityRule,
+  ActivityTier,
+  EngagementLevel,
+} from './activity.enums';
 
 export interface ActivityEmployee {
   username: string;
@@ -25,6 +32,11 @@ export interface ActivityLine {
 export interface ActivityFact extends SourceFact {
   time: number;
   mergeRequestIid: number | null;
+}
+
+export interface ActivityDropped {
+  fact: ActivityFact;
+  rule: ActivityRule;
 }
 
 export interface ActivityChange {
@@ -45,6 +57,7 @@ export interface ActivityLineSignals {
   line: ActivityLine;
   employee: ActivityEmployee;
   own: ActivityFact[];
+  dropped: ActivityDropped[];
   others: ActivityFact[];
   changes: ActivityChange[];
   pushes: ActivityPush[];
@@ -73,4 +86,27 @@ export interface ActivityCandidate {
   state: WorkflowState | null;
   details: ActivityDetail[];
   facts: ActivityFact[];
+}
+
+export interface ActivityRoleFocus {
+  actions: ActivityAction[];
+  states: WorkflowState[];
+}
+
+export interface ActivityRank {
+  candidate: ActivityCandidate;
+  tier: ActivityTier;
+  weight: number;
+}
+
+export interface ActivityTrace {
+  ranked: ActivityRank[];
+  reason: ActivityReason;
+  dropped: ActivityDropped[];
+}
+
+export interface ActivityChoice {
+  main: ActivityCandidate;
+  secondary: ActivityCandidate[];
+  trace: ActivityTrace;
 }
