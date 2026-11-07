@@ -1,4 +1,15 @@
+import { ActivityReason } from 'src/modules/application/report/activity/activity.enums';
+
 export const PREVIEW_INDENT = '  ';
+
+export const PREVIEW_TRACE_FLAG = '--trace';
+
+export const PREVIEW_REASONS: Record<ActivityReason, string> = {
+  [ActivityReason.ONLY]: 'the only action',
+  [ActivityReason.TIER]: 'a higher tier',
+  [ActivityReason.WEIGHT]: 'a higher weight',
+  [ActivityReason.TIME]: 'a later time',
+};
 
 export const PREVIEW_URL = 'https://gitlab.example.com';
 
