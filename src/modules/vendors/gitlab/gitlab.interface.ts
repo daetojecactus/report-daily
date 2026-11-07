@@ -91,6 +91,10 @@ export interface GitLabMergeRequest {
   web_url: string;
   created_at: string;
   source_branch: string;
+  target_branch: string;
+  sha: string | null;
+  merge_commit_sha: string | null;
+  squash_commit_sha: string | null;
   draft?: boolean;
   author?: GitLabAuthor | null;
   assignees?: GitLabAuthor[];

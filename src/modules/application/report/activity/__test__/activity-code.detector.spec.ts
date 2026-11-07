@@ -199,6 +199,23 @@ describe('ActivityCodeDetector', () => {
     });
   });
 
+  it('commits directly to a main branch', () => {
+    const [candidate] = summarize(
+      detect({
+        issue: null,
+        mergeRequests: [],
+        pushes: [{ projectId: 1, branch: 'main', mainBranch: true, events: [pushEvent(at(11))] }],
+      }),
+    );
+
+    expect(candidate).toEqual({
+      action: ActivityAction.CODE,
+      weight: 300,
+      state: null,
+      details: [ActivityDetail.DIRECT],
+    });
+  });
+
   it('helps with a task of someone else', () => {
     const mergeRequest = othersMergeRequest({
       facts: [

@@ -245,7 +245,7 @@ describe('GitLabSourceService', () => {
     expect(grouped.standalonePushes).toEqual([]);
   });
 
-  it('keeps pushes to a work branch and drops pushes to the main branches', async () => {
+  it('keeps pushes to a work branch and marks pushes to the main branches', async () => {
     const gitlab = createGitLab({
       events: [
         pushEvent('experiment'),
@@ -259,7 +259,43 @@ describe('GitLabSourceService', () => {
     const grouped = await collect(gitlab);
 
     expect(gitlab.findMergeRequestByBranch).toHaveBeenCalledTimes(1);
-    expect(grouped.standalonePushes.map((push) => push.branch)).toEqual(['experiment']);
+    expect(grouped.standalonePushes.map(({ branch, mainBranch }) => [branch, mainBranch])).toEqual([
+      ['experiment', false],
+      ['main', true],
+      ['develop', true],
+      ['release', true],
+    ]);
+  });
+
+  it('leaves out the push that GitLab writes when it merges a merge request', async () => {
+    const toMain = (id: number, commit: string) =>
+      createEvent({
+        id,
+        action_name: 'pushed to',
+        push_data: {
+          action: 'pushed',
+          ref_type: 'branch',
+          ref: 'main',
+          commit_count: 1,
+          commit_from: 'aaa',
+          commit_to: commit,
+          commit_title: 'a commit',
+        },
+      });
+    const gitlab = createGitLab({
+      events: [
+        createEvent({ action_name: 'accepted', target_type: 'MergeRequest', target_iid: 5 }),
+        toMain(2, 'merge-sha'),
+        toMain(3, 'direct-sha'),
+      ],
+      mergeRequests: [createMergeRequest({ iid: 5, merge_commit_sha: 'merge-sha' })],
+    });
+
+    const grouped = await collect(gitlab);
+
+    expect(
+      grouped.standalonePushes.map(({ branch, events }) => [branch, events.map(({ id }) => id)]),
+    ).toEqual([['main', [3]]]);
   });
 
   it('puts a push to an issue branch without a merge request into that issue', async () => {

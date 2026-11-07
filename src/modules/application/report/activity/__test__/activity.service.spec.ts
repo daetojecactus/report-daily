@@ -33,6 +33,7 @@ describe('ActivityService', () => {
         {
           projectId: 1,
           branch: '9-spike',
+          mainBranch: false,
           events: [{ ...pushEvent(at(12), []), actionName: 'pushed new' }],
         },
       ],
@@ -58,6 +59,7 @@ describe('ActivityService', () => {
             {
               projectId: 1,
               branch: '12-spike',
+              mainBranch: false,
               events: [{ ...pushEvent(at(12), []), actionName: 'pushed new' }],
             },
           ],

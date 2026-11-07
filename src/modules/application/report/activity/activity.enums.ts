@@ -59,6 +59,7 @@ export enum ActivityDetail {
   AFTER_APPROVAL = 'after_approval',
   URGENT = 'urgent',
   CLOSES = 'closes',
+  DIRECT = 'direct',
 }
 
 export enum EngagementLevel {

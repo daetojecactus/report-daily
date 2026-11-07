@@ -126,6 +126,7 @@ export interface GroupedIssue {
 export interface StandalonePush {
   projectId: number;
   branch: string;
+  mainBranch: boolean;
   events: CleanEvent[];
 }
 

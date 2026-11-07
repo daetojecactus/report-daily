@@ -89,7 +89,7 @@ export class PreviewRenderer {
 
   private describePush(push: StandalonePush, indent: string, result: string[] = []) {
     return [
-      `${indent}Push ${push.branch}`,
+      `${indent}Push ${push.branch}${push.mainBranch ? ' · main branch' : ''}`,
       ...result,
       `${indent}${PREVIEW_INDENT}events: ${this.describeEvents(push.events)}`,
       this.describeCommits(push.events) &&
