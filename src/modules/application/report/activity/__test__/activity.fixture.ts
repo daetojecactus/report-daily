@@ -178,6 +178,7 @@ export function createIssue(overrides: Partial<GroupedIssue> = {}): GroupedIssue
     notes: [],
     labelEvents: [],
     mergeRequests: [],
+    pushes: [],
     ...overrides,
   };
 }
@@ -224,7 +225,7 @@ export function choose(line: ActivityLine, role = JobRole.DEVELOPER) {
 }
 
 export function issueLine(issue = createIssue()): ActivityLine {
-  return { issue, mergeRequests: issue.mergeRequests, push: null };
+  return { issue, mergeRequests: issue.mergeRequests, pushes: issue.pushes };
 }
 
 export function summarize(candidates: ActivityCandidate[]) {

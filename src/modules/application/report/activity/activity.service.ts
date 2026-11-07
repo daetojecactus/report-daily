@@ -35,13 +35,17 @@ export class ActivityService {
 
   private toLines(day: GroupedDailyData): ActivityLine[] {
     return [
-      ...day.issues.map((issue) => ({ issue, mergeRequests: issue.mergeRequests, push: null })),
+      ...day.issues.map((issue) => ({
+        issue,
+        mergeRequests: issue.mergeRequests,
+        pushes: issue.pushes,
+      })),
       ...day.standaloneMergeRequests.map((mergeRequest) => ({
         issue: null,
         mergeRequests: [mergeRequest],
-        push: null,
+        pushes: [],
       })),
-      ...day.standalonePushes.map((push) => ({ issue: null, mergeRequests: [], push })),
+      ...day.standalonePushes.map((push) => ({ issue: null, mergeRequests: [], pushes: [push] })),
     ];
   }
 }

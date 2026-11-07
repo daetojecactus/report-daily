@@ -28,8 +28,15 @@ export class GitLabSourceKeys {
   }
 
   toBranchIssue(mergeRequest: GitLabMergeRequest): SourceItem | null {
-    const match = GITLAB_SOURCE_BRANCH_ISSUE_PATTERN.exec(mergeRequest.source_branch);
-    return match ? { projectId: mergeRequest.project_id, iid: Number(match[1]) } : null;
+    return this.toIssueOfBranch({
+      projectId: mergeRequest.project_id,
+      branch: mergeRequest.source_branch,
+    });
+  }
+
+  toIssueOfBranch({ projectId, branch }: SourceBranch): SourceItem | null {
+    const match = GITLAB_SOURCE_BRANCH_ISSUE_PATTERN.exec(branch);
+    return match ? { projectId, iid: Number(match[1]) } : null;
   }
 
   isWorkBranch({ projectId, branch }: SourceBranch, projects: Map<number, GitLabProject>) {

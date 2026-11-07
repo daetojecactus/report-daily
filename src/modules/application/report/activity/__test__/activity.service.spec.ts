@@ -43,7 +43,32 @@ describe('ActivityService', () => {
       [ActivityAction.MERGED, []],
       [ActivityAction.CODE, [ActivityDetail.STARTED]],
     ]);
-    expect(results.map(({ line }) => line.push?.branch ?? null)).toEqual([null, null, '9-spike']);
+    expect(results.map(({ line }) => line.pushes.map((push) => push.branch))).toEqual([
+      [],
+      [],
+      ['9-spike'],
+    ]);
+  });
+
+  it('counts a push to the branch of an issue as work on the line of the issue', () => {
+    const [result] = classify({
+      issues: [
+        createIssue({
+          pushes: [
+            {
+              projectId: 1,
+              branch: '12-spike',
+              events: [{ ...pushEvent(at(12), []), actionName: 'pushed new' }],
+            },
+          ],
+        }),
+      ],
+    });
+
+    expect(result.choice.main).toMatchObject({
+      action: ActivityAction.CODE,
+      details: [ActivityDetail.STARTED],
+    });
   });
 
   it('marks a task that the company keeps out of the report', () => {

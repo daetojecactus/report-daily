@@ -223,7 +223,8 @@
               "unresolved": 0
             }
           }
-        ]
+        ],
+        "pushes": []
       },
       {
         "projectId": 7,
@@ -427,7 +428,8 @@
               "unresolved": 0
             }
           }
-        ]
+        ],
+        "pushes": []
       },
       {
         "projectId": 8,
@@ -747,7 +749,8 @@
               "unresolved": 2
             }
           }
-        ]
+        ],
+        "pushes": []
       },
       {
         "projectId": 8,
@@ -994,7 +997,8 @@
               "unresolved": 0
             }
           }
-        ]
+        ],
+        "pushes": []
       },
       {
         "projectId": 2,
@@ -1250,7 +1254,8 @@
               "unresolved": 0
             }
           }
-        ]
+        ],
+        "pushes": []
       },
       {
         "projectId": 9,
@@ -1442,7 +1447,8 @@
               "unresolved": 0
             }
           }
-        ]
+        ],
+        "pushes": []
       },
       {
         "projectId": 1,
@@ -1917,7 +1923,8 @@
               "unresolved": 1
             }
           }
-        ]
+        ],
+        "pushes": []
       },
       {
         "projectId": 1,
@@ -2066,7 +2073,8 @@
               "unresolved": 0
             }
           }
-        ]
+        ],
+        "pushes": []
       }
     ],
     "standaloneMergeRequests": [],

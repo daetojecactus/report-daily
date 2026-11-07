@@ -23,7 +23,7 @@ describe('ActivityLifecycleDetector', () => {
     const own = createMergeRequest({ facts: [fact(SourceActionKind.MERGED, at(15))] });
     const other = othersMergeRequest({ iid: 6, facts: [fact(SourceActionKind.MERGED, at(16))] });
 
-    expect(summarize(detect({ issue: null, push: null, mergeRequests: [own, other] }))).toEqual([
+    expect(summarize(detect({ issue: null, pushes: [], mergeRequests: [own, other] }))).toEqual([
       { action: ActivityAction.MERGED, weight: 950, state: null, details: [] },
       { action: ActivityAction.MERGED_OTHER, weight: 900, state: null, details: [] },
     ]);
@@ -91,7 +91,7 @@ describe('ActivityLifecycleDetector', () => {
       facts: [fact(SourceActionKind.APPROVED, at(14))],
     });
 
-    expect(summarize(detect({ issue: null, push: null, mergeRequests: [merged] }))).toEqual([
+    expect(summarize(detect({ issue: null, pushes: [], mergeRequests: [merged] }))).toEqual([
       {
         action: ActivityAction.MERGED_OTHER,
         weight: 900,
@@ -99,7 +99,7 @@ describe('ActivityLifecycleDetector', () => {
         details: [ActivityDetail.DEPENDENCIES],
       },
     ]);
-    expect(summarize(detect({ issue: null, push: null, mergeRequests: [approved] }))).toEqual([
+    expect(summarize(detect({ issue: null, pushes: [], mergeRequests: [approved] }))).toEqual([
       {
         action: ActivityAction.APPROVED,
         weight: 780,

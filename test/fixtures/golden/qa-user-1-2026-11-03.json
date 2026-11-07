@@ -430,7 +430,8 @@
               "unresolved": 0
             }
           }
-        ]
+        ],
+        "pushes": []
       },
       {
         "projectId": 1,
@@ -812,7 +813,8 @@
               "unresolved": 0
             }
           }
-        ]
+        ],
+        "pushes": []
       },
       {
         "projectId": 13,
@@ -1250,7 +1252,8 @@
               "unresolved": 9
             }
           }
-        ]
+        ],
+        "pushes": []
       },
       {
         "projectId": 15,
@@ -1384,7 +1387,8 @@
             "username": "user-28"
           }
         ],
-        "mergeRequests": []
+        "mergeRequests": [],
+        "pushes": []
       },
       {
         "projectId": 15,
@@ -1518,7 +1522,8 @@
             "username": "user-28"
           }
         ],
-        "mergeRequests": []
+        "mergeRequests": [],
+        "pushes": []
       },
       {
         "projectId": 15,
@@ -1652,7 +1657,8 @@
             "username": "user-28"
           }
         ],
-        "mergeRequests": []
+        "mergeRequests": [],
+        "pushes": []
       },
       {
         "projectId": 15,
@@ -1786,7 +1792,8 @@
             "username": "user-28"
           }
         ],
-        "mergeRequests": []
+        "mergeRequests": [],
+        "pushes": []
       },
       {
         "projectId": 1,
@@ -2102,7 +2109,8 @@
               "unresolved": 1
             }
           }
-        ]
+        ],
+        "pushes": []
       },
       {
         "projectId": 14,
@@ -2363,7 +2371,8 @@
               "unresolved": 6
             }
           }
-        ]
+        ],
+        "pushes": []
       },
       {
         "projectId": 17,
@@ -2788,7 +2797,8 @@
               "unresolved": 0
             }
           }
-        ]
+        ],
+        "pushes": []
       },
       {
         "projectId": 18,
@@ -3035,7 +3045,8 @@
               "unresolved": 0
             }
           }
-        ]
+        ],
+        "pushes": []
       },
       {
         "projectId": 5,
@@ -3212,7 +3223,8 @@
               "unresolved": 0
             }
           }
-        ]
+        ],
+        "pushes": []
       },
       {
         "projectId": 5,
@@ -3371,7 +3383,8 @@
               "unresolved": 0
             }
           }
-        ]
+        ],
+        "pushes": []
       },
       {
         "projectId": 14,
@@ -3573,7 +3586,8 @@
               "unresolved": 0
             }
           }
-        ]
+        ],
+        "pushes": []
       },
       {
         "projectId": 8,
@@ -3704,7 +3718,8 @@
               "unresolved": 0
             }
           }
-        ]
+        ],
+        "pushes": []
       }
     ],
     "standaloneMergeRequests": [

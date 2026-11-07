@@ -30,7 +30,7 @@ function candidate(
 
 function select(candidates: ActivityCandidate[], role = JobRole.DEVELOPER) {
   return new ActivitySelector().select(
-    toSignals({ issue: null, push: null, mergeRequests: [] }, role),
+    toSignals({ issue: null, pushes: [], mergeRequests: [] }, role),
     candidates,
   );
 }
@@ -195,7 +195,7 @@ describe('ActivitySelector', () => {
       events: [pushEvent(at(15))],
     });
 
-    const choice = choose({ issue: null, push: null, mergeRequests: [mergeRequest] });
+    const choice = choose({ issue: null, pushes: [], mergeRequests: [mergeRequest] });
 
     expect(
       choice.trace.ranked.map(({ candidate: item, tier, weight }) => [item.action, tier, weight]),

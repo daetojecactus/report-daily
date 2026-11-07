@@ -45,6 +45,7 @@ export interface SourceEventGroups {
 export interface SourceLinks {
   issues: Map<string, GitLabIssue>;
   mainIssues: Map<string, string>;
+  pushIssues: Map<string, string>;
 }
 
 export interface MergeRequestActivity {
@@ -64,6 +65,7 @@ export interface IssueActivity {
   labelEvents: GitLabLabelEvent[];
   stateEvents: GitLabStateEvent[];
   mergeRequests: MergeRequestActivity[];
+  pushes: SourceEvents<SourceBranch>[];
 }
 
 export interface DayActivity {

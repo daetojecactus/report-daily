@@ -203,7 +203,8 @@
             "username": "user-13"
           }
         ],
-        "mergeRequests": []
+        "mergeRequests": [],
+        "pushes": []
       },
       {
         "projectId": 6,
@@ -385,7 +386,8 @@
             "username": "user-13"
           }
         ],
-        "mergeRequests": []
+        "mergeRequests": [],
+        "pushes": []
       },
       {
         "projectId": 6,
@@ -474,7 +476,8 @@
           }
         ],
         "labelEvents": [],
-        "mergeRequests": []
+        "mergeRequests": [],
+        "pushes": []
       },
       {
         "projectId": 7,
@@ -728,7 +731,8 @@
             "username": "user-15"
           }
         ],
-        "mergeRequests": []
+        "mergeRequests": [],
+        "pushes": []
       },
       {
         "projectId": 8,
@@ -867,7 +871,8 @@
             "username": "user-4"
           }
         ],
-        "mergeRequests": []
+        "mergeRequests": [],
+        "pushes": []
       }
     ],
     "standaloneMergeRequests": [],

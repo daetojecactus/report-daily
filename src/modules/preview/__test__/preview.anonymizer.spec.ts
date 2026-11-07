@@ -209,6 +209,7 @@ function createDay(): GroupedDailyData {
         notes: [],
         labelEvents: [],
         mergeRequests: [createMergeRequest()],
+        pushes: [{ projectId: 501, branch: '12-fix-card-payments', events: [] }],
       },
     ],
     standaloneMergeRequests: [
@@ -311,6 +312,7 @@ describe('PreviewAnonymizer', () => {
     expect(issue.facts[1].value).toBe('12-branch-1');
     expect(day.standaloneMergeRequests[0].sourceBranch).toBe('renovate-branch-2');
     expect(day.standalonePushes[0].branch).toBe('main');
+    expect(issue.pushes[0]).toMatchObject({ projectId: issue.projectId, branch: '12-branch-1' });
     expect(pushData?.ref).toBe('12-branch-1');
     expect(pushData?.commits).toEqual([
       { id: 'sha-1', title: 'commit 1' },

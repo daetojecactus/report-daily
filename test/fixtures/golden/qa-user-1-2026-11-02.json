@@ -538,7 +538,8 @@
               "unresolved": 6
             }
           }
-        ]
+        ],
+        "pushes": []
       },
       {
         "projectId": 2,
@@ -963,7 +964,8 @@
               "unresolved": 0
             }
           }
-        ]
+        ],
+        "pushes": []
       },
       {
         "projectId": 7,
@@ -1644,7 +1646,8 @@
               "unresolved": 0
             }
           }
-        ]
+        ],
+        "pushes": []
       },
       {
         "projectId": 14,
@@ -1945,7 +1948,8 @@
               "unresolved": 2
             }
           }
-        ]
+        ],
+        "pushes": []
       }
     ],
     "standaloneMergeRequests": [

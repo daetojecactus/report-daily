@@ -191,7 +191,7 @@ export class ActivitySignals {
         events: mergeRequest.events,
         mergeRequestIid: mergeRequest.iid,
       })),
-      ...(line.push ? [{ events: line.push.events, mergeRequestIid: null }] : []),
+      ...line.pushes.map((push) => ({ events: push.events, mergeRequestIid: null })),
     ];
     return sources.flatMap(({ events, mergeRequestIid }) =>
       events

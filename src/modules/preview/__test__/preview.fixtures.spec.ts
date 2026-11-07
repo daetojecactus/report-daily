@@ -106,7 +106,7 @@ function findLeaks(value: unknown, key: string, path: string): string[] {
 }
 
 interface ItemKeys {
-  issues: { projectId: number; iid: number }[];
+  issues: { projectId: number; iid: number; pushes?: { projectId: number; branch: string }[] }[];
   standaloneMergeRequests: { projectId: number; iid: number }[];
   standalonePushes: { projectId: number; branch: string }[];
 }
@@ -117,7 +117,9 @@ function toKeys(day: ItemKeys) {
     standaloneMergeRequests: day.standaloneMergeRequests.map(
       ({ projectId, iid }) => `${projectId}!${iid}`,
     ),
-    standalonePushes: day.standalonePushes.map(({ projectId, branch }) => `${projectId}:${branch}`),
+    standalonePushes: [...day.standalonePushes, ...day.issues.flatMap(({ pushes }) => pushes ?? [])]
+      .map(({ projectId, branch }) => `${projectId}:${branch}`)
+      .toSorted(),
   };
 }
 

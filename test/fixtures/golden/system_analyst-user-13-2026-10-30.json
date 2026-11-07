@@ -187,7 +187,8 @@
             "username": "user-13"
           }
         ],
-        "mergeRequests": []
+        "mergeRequests": [],
+        "pushes": []
       },
       {
         "projectId": 10,
@@ -351,7 +352,8 @@
             "username": "user-13"
           }
         ],
-        "mergeRequests": []
+        "mergeRequests": [],
+        "pushes": []
       },
       {
         "projectId": 6,
@@ -694,7 +696,8 @@
             "username": "user-20"
           }
         ],
-        "mergeRequests": []
+        "mergeRequests": [],
+        "pushes": []
       },
       {
         "projectId": 11,
@@ -815,7 +818,8 @@
           }
         ],
         "labelEvents": [],
-        "mergeRequests": []
+        "mergeRequests": [],
+        "pushes": []
       },
       {
         "projectId": 6,
@@ -950,7 +954,8 @@
           }
         ],
         "labelEvents": [],
-        "mergeRequests": []
+        "mergeRequests": [],
+        "pushes": []
       },
       {
         "projectId": 6,
@@ -1165,7 +1170,8 @@
             "username": "user-20"
           }
         ],
-        "mergeRequests": []
+        "mergeRequests": [],
+        "pushes": []
       }
     ],
     "standaloneMergeRequests": [],

@@ -305,7 +305,8 @@
             "username": "user-34"
           }
         ],
-        "mergeRequests": []
+        "mergeRequests": [],
+        "pushes": []
       },
       {
         "projectId": 6,
@@ -460,7 +461,8 @@
             "username": "user-20"
           }
         ],
-        "mergeRequests": []
+        "mergeRequests": [],
+        "pushes": []
       }
     ],
     "standaloneMergeRequests": [],

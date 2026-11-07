@@ -21,8 +21,7 @@ export class PreviewRenderer {
       results.find(
         ({ line }) =>
           line.issue === item ||
-          line.push === item ||
-          (line.issue === null && line.mergeRequests[0] === item),
+          (line.issue === null && (line.mergeRequests[0] ?? line.pushes[0]) === item),
       );
     const describe = (item: GroupedIssue | GroupedMergeRequest | StandalonePush) => {
       const result = resultOf(item);
@@ -41,15 +40,7 @@ export class PreviewRenderer {
         ),
       ...day.standalonePushes
         .filter((push) => push.projectId === projectId)
-        .flatMap((push) =>
-          [
-            `${PREVIEW_INDENT}Push ${push.branch}`,
-            ...describe(push),
-            `${PREVIEW_INDENT.repeat(2)}events: ${this.describeEvents(push.events)}`,
-            this.describeCommits(push.events) &&
-              `${PREVIEW_INDENT.repeat(2)}${this.describeCommits(push.events)}`,
-          ].filter(Boolean),
-        ),
+        .flatMap((push) => this.describePush(push, PREVIEW_INDENT, describe(push))),
     ]);
   }
 
@@ -92,7 +83,18 @@ export class PreviewRenderer {
       ...issue.mergeRequests.flatMap((mergeRequest) =>
         this.describeMergeRequest(mergeRequest, PREVIEW_INDENT.repeat(2)),
       ),
+      ...issue.pushes.flatMap((push) => this.describePush(push, PREVIEW_INDENT.repeat(2))),
     ];
+  }
+
+  private describePush(push: StandalonePush, indent: string, result: string[] = []) {
+    return [
+      `${indent}Push ${push.branch}`,
+      ...result,
+      `${indent}${PREVIEW_INDENT}events: ${this.describeEvents(push.events)}`,
+      this.describeCommits(push.events) &&
+        `${indent}${PREVIEW_INDENT}${this.describeCommits(push.events)}`,
+    ].filter(Boolean);
   }
 
   private describeMergeRequest(

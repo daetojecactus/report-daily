@@ -52,6 +52,8 @@ const ACCEPTED: Record<string, [ActivityAction, WorkflowState?][]> = {
   ],
 };
 
+const PUSHES_IN_ISSUES = ['developer-user-21-2026-11-03 push:9:123-branch-25'];
+
 const DIVERGENCES: Record<string, Reason> = {
   'qa-user-1-2026-10-29 1#772': 'composite',
   'qa-user-1-2026-10-29 5#1061': 'closed_by_others',
@@ -80,10 +82,10 @@ const DIVERGENCES: Record<string, Reason> = {
 };
 
 function toKey({ line }: ActivityResult) {
-  if (line.push) {
-    return `push:${line.push.projectId}:${line.push.branch}`;
+  const item = line.issue ?? line.mergeRequests.at(0);
+  if (!item) {
+    return `push:${line.pushes[0].projectId}:${line.pushes[0].branch}`;
   }
-  const item = line.issue ?? line.mergeRequests[0];
   return `${item.projectId}${line.issue ? '#' : '!'}${item.iid}`;
 }
 
@@ -96,6 +98,7 @@ function isAccepted(status: string, main: ActivityCandidate) {
 describe('the action engine on the golden days', () => {
   const index = createGoldenIndex();
   const service = createService();
+  const unused: string[] = [];
   const lines = loadGoldenDays().flatMap((golden) => {
     const verdicts = new Map<string, GoldenVerdict>([
       ...golden.verdicts.issues.map((verdict): [string, GoldenVerdict] => [
@@ -111,18 +114,29 @@ describe('the action engine on the golden days', () => {
         verdict,
       ]),
     ]);
-    return service
-      .classify(golden.day, { username: golden.username, role: golden.role }, index)
-      .map((result) => ({
-        key: `${golden.name} ${toKey(result)}`,
-        status: verdicts.get(toKey(result))?.status ?? null,
-        result,
-      }));
+    const results = service.classify(
+      golden.day,
+      { username: golden.username, role: golden.role },
+      index,
+    );
+    const keys = new Set(results.map(toKey));
+    unused.push(
+      ...[...verdicts.keys()].filter((key) => !keys.has(key)).map((key) => `${golden.name} ${key}`),
+    );
+    return results.map((result) => ({
+      key: `${golden.name} ${toKey(result)}`,
+      status: verdicts.get(toKey(result))?.status ?? null,
+      result,
+    }));
   });
 
   it('gives every golden line its V1 verdict', () => {
-    expect(lines).toHaveLength(103);
+    expect(lines).toHaveLength(102);
     expect(lines.filter((line) => line.status === null).map((line) => line.key)).toEqual([]);
+  });
+
+  it('leaves out only the V1 lines of pushes that are now part of their issue', () => {
+    expect(unused).toEqual(PUSHES_IN_ISSUES);
   });
 
   it('matches V1 on every line except the documented divergences', () => {
@@ -133,7 +147,7 @@ describe('the action engine on the golden days', () => {
 
     expect(diverged.filter((line) => !listed.has(line.key)).map((line) => line.key)).toEqual([]);
     expect([...listed].filter((key) => !diverged.some((line) => line.key === key))).toEqual([]);
-    expect(lines.length - diverged.length).toBe(79);
+    expect(lines.length - diverged.length).toBe(78);
     expect(
       Object.values(DIVERGENCES).reduce<Record<string, number>>(
         (total, reason) => ({ ...total, [reason]: (total[reason] ?? 0) + 1 }),
