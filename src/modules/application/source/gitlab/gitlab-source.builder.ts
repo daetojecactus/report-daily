@@ -19,26 +19,27 @@ import {
   GITLAB_SOURCE_ITEM_STATES,
   GITLAB_SOURCE_LABEL_ACTIONS,
 } from './constants/gitlab-source.constants';
-import { GitLabSourceActions } from './gitlab-source.actions';
+import { GitLabSourceFacts } from './gitlab-source.facts';
 import { GitLabSourceHistory } from './gitlab-source.history';
 import type {
   DayActivity,
   IssueActivity,
   MergeRequestActivity,
   SourceBuildContext,
+  SourceEmployee,
 } from './gitlab-source.interface';
 
 @Injectable()
 export class GitLabSourceBuilder {
   constructor(
     private readonly gitlabSourceHistory: GitLabSourceHistory,
-    private readonly gitlabSourceActions: GitLabSourceActions,
+    private readonly gitlabSourceFacts: GitLabSourceFacts,
   ) {}
 
-  build(activity: DayActivity, day: DayRange, userId: number): GroupedDailyData {
+  build(activity: DayActivity, day: DayRange, employee: SourceEmployee): GroupedDailyData {
     const context: SourceBuildContext = {
       day,
-      userId,
+      employee,
       pushCommits: activity.pushCommits,
     };
     return {
@@ -69,7 +70,7 @@ export class GitLabSourceBuilder {
       title: issue.title,
       state:
         GITLAB_SOURCE_ITEM_STATES[
-          this.gitlabSourceHistory.resolveStateAsOfDate(issue.state, stateEvents, day)
+          this.gitlabSourceHistory.resolveStateAt(issue.state, stateEvents, day.end)
         ],
       closedOnReportDate: this.gitlabSourceHistory.hasStateChangeOnDate(
         stateEvents,
@@ -77,11 +78,20 @@ export class GitLabSourceBuilder {
         GitLabState.CLOSED,
       ),
       webUrl: issue.web_url,
-      labels: this.gitlabSourceHistory.restoreLabels(issue.labels, labelEvents, day),
+      labels: this.gitlabSourceHistory.restoreLabels(issue.labels, labelEvents, day.end),
       createdAt: issue.created_at,
-      assignees: this.gitlabSourceHistory.restoreAssignees(issue.assignees, notes, day),
-      status: this.gitlabSourceHistory.resolveStatus(notes, day),
-      actions: this.gitlabSourceActions.resolve(issue, activity, context),
+      assignees: this.gitlabSourceHistory.restoreAssignees(issue.assignees, notes, day.end),
+      status: this.gitlabSourceHistory.resolveStatus(notes, day.end),
+      startOfDay: {
+        state:
+          GITLAB_SOURCE_ITEM_STATES[
+            this.gitlabSourceHistory.resolveStateAt(issue.state, stateEvents, day.start)
+          ],
+        labels: this.gitlabSourceHistory.restoreLabels(issue.labels, labelEvents, day.start),
+        assignees: this.gitlabSourceHistory.restoreAssignees(issue.assignees, notes, day.start),
+        status: this.gitlabSourceHistory.resolveStatus(notes, day.start),
+      },
+      facts: this.gitlabSourceFacts.resolve(issue, activity, context),
       events: this.cleanEvents(activity.events, context),
       notes: this.cleanNotes(notes, day),
       labelEvents: this.cleanLabelEvents(labelEvents, day),
@@ -103,33 +113,48 @@ export class GitLabSourceBuilder {
       title: mergeRequest.title,
       state:
         GITLAB_SOURCE_ITEM_STATES[
-          this.gitlabSourceHistory.resolveStateAsOfDate(mergeRequest.state, stateEvents, day)
+          this.gitlabSourceHistory.resolveStateAt(mergeRequest.state, stateEvents, day.end)
         ],
       mergedOnReportDate: this.gitlabSourceHistory.hasStateChangeOnDate(
         stateEvents,
         day,
         GitLabState.MERGED,
       ),
-      draft: this.gitlabSourceHistory.restoreDraft(mergeRequest.draft ?? false, notes, day),
+      draft: this.gitlabSourceHistory.restoreDraft(mergeRequest.draft ?? false, notes, day.end),
       webUrl: mergeRequest.web_url,
       sourceBranch: mergeRequest.source_branch,
-      labels: this.gitlabSourceHistory.restoreLabels(mergeRequest.labels, labelEvents, day),
+      labels: this.gitlabSourceHistory.restoreLabels(mergeRequest.labels, labelEvents, day.end),
       createdAt: mergeRequest.created_at,
       lastCommitAt: this.gitlabSourceHistory.resolveLastCommitBeforeDate(activity.commits, day),
       author: mergeRequest.author?.username ?? null,
-      assignees: this.gitlabSourceHistory.restoreAssignees(mergeRequest.assignees, notes, day),
-      reviewers: this.gitlabSourceHistory.resolveReviewers(mergeRequest, notes, day),
+      assignees: this.gitlabSourceHistory.restoreAssignees(mergeRequest.assignees, notes, day.end),
+      reviewers: this.gitlabSourceHistory.resolveReviewers(mergeRequest, notes, day.end),
       closesIssues: activity.closingIssues.map((issue) => ({
         projectId: issue.project_id,
         iid: issue.iid,
         title: issue.title,
         webUrl: issue.web_url,
       })),
-      actions: this.gitlabSourceActions.resolve(mergeRequest, activity, context),
+      startOfDay: {
+        state:
+          GITLAB_SOURCE_ITEM_STATES[
+            this.gitlabSourceHistory.resolveStateAt(mergeRequest.state, stateEvents, day.start)
+          ],
+        labels: this.gitlabSourceHistory.restoreLabels(mergeRequest.labels, labelEvents, day.start),
+        assignees: this.gitlabSourceHistory.restoreAssignees(
+          mergeRequest.assignees,
+          notes,
+          day.start,
+        ),
+        status: null,
+        reviewers: this.gitlabSourceHistory.restoreReviewers(mergeRequest, notes, day.start),
+        draft: this.gitlabSourceHistory.restoreDraft(mergeRequest.draft ?? false, notes, day.start),
+      },
+      facts: this.gitlabSourceFacts.resolve(mergeRequest, activity, context),
       events: this.cleanEvents(activity.events, context),
       notes: this.cleanNotes(notes, day),
       labelEvents: this.cleanLabelEvents(labelEvents, day),
-      reviewThreads: this.gitlabSourceHistory.resolveReviewThreads(notes, day),
+      reviewThreads: this.gitlabSourceHistory.resolveReviewThreads(notes, day.end),
     };
   }
 

@@ -74,7 +74,10 @@ export class GitLabSourceService implements ActivitySource {
       closingIssues,
       links,
     );
-    return this.gitlabSourceBuilder.build(activity, day, gitlabUserId);
+    return this.gitlabSourceBuilder.build(activity, day, {
+      id: gitlabUserId,
+      username: account.username,
+    });
   }
 
   private groupEvents(events: GitLabEvent[]): SourceEventGroups {

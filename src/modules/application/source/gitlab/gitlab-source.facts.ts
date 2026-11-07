@@ -8,7 +8,7 @@ import type {
   GitLabNote,
 } from 'src/modules/vendors/gitlab/gitlab.interface';
 import { SourceActionKind } from '../source.enums';
-import type { SourceAction } from '../source.interface';
+import type { SourceFact } from '../source.interface';
 import {
   GITLAB_SOURCE_ASSIGNEE_CHANGE,
   GITLAB_SOURCE_REVIEWER_CHANGE,
@@ -22,31 +22,33 @@ import type {
 import { GitLabSourceNotes } from './gitlab-source.notes';
 
 @Injectable()
-export class GitLabSourceActions {
+export class GitLabSourceFacts {
   constructor(private readonly gitlabSourceNotes: GitLabSourceNotes) {}
 
   resolve(
     item: GitLabIssue | GitLabMergeRequest,
-    { notes, labelEvents, stateEvents }: IssueActivity | MergeRequestActivity,
+    { events, notes, labelEvents, stateEvents }: IssueActivity | MergeRequestActivity,
     context: SourceBuildContext,
   ) {
-    const actions: SourceAction[] = [];
-    if (this.isOwn(item.author, item.created_at, context)) {
-      actions.push(this.toAction(SourceActionKind.OPENED, item.created_at));
+    const facts: SourceFact[] = [];
+    if (this.isOfDay(item.created_at, context)) {
+      facts.push(this.toFact(SourceActionKind.OPENED, item.created_at, item.author, context));
     }
     for (const note of notes) {
-      if (this.isOwn(note.author, note.created_at, context)) {
-        actions.push(...this.toNoteActions(note));
+      if (this.isOfDay(note.created_at, context)) {
+        facts.push(...this.toNoteFacts(note, context));
       }
     }
     for (const event of labelEvents) {
-      if (event.label && this.isOwn(event.user, event.created_at, context)) {
-        actions.push(
-          this.toAction(
+      if (event.label && this.isOfDay(event.created_at, context)) {
+        facts.push(
+          this.toFact(
             event.action === GitLabLabelAction.ADD
               ? SourceActionKind.LABEL_ADDED
               : SourceActionKind.LABEL_REMOVED,
             event.created_at,
+            event.user,
+            context,
             event.label.name,
           ),
         );
@@ -54,48 +56,70 @@ export class GitLabSourceActions {
     }
     for (const event of stateEvents) {
       const kind = GITLAB_SOURCE_STATE_ACTIONS.get(event.state);
-      if (kind && this.isOwn(event.user, event.created_at, context)) {
-        actions.push(this.toAction(kind, event.created_at));
+      if (kind && this.isOfDay(event.created_at, context)) {
+        facts.push(this.toFact(kind, event.created_at, event.user, context));
       }
     }
-    return actions.sort((left, right) => Date.parse(left.at) - Date.parse(right.at));
+    for (const event of events) {
+      if (event.push_data && this.isOfDay(event.created_at, context)) {
+        facts.push(
+          this.toFact(
+            SourceActionKind.PUSHED,
+            event.created_at,
+            context.employee,
+            context,
+            event.push_data.ref,
+          ),
+        );
+      }
+    }
+    return facts.sort((left, right) => Date.parse(left.at) - Date.parse(right.at));
   }
 
-  private toNoteActions(note: GitLabNote): SourceAction[] {
+  private toNoteFacts(note: GitLabNote, context: SourceBuildContext): SourceFact[] {
     if (!note.system) {
-      return [this.toAction(SourceActionKind.COMMENTED, note.created_at)];
+      return [this.toFact(SourceActionKind.COMMENTED, note.created_at, note.author, context)];
     }
     const assignees = this.gitlabSourceNotes.parseUserChange(note, GITLAB_SOURCE_ASSIGNEE_CHANGE);
     const reviewers = this.gitlabSourceNotes.parseUserChange(note, GITLAB_SOURCE_REVIEWER_CHANGE);
-    const userActions = [
+    const userFacts = [
       { kind: SourceActionKind.ASSIGNED, users: assignees.added },
       { kind: SourceActionKind.UNASSIGNED, users: assignees.removed },
       { kind: SourceActionKind.REVIEW_REQUESTED, users: reviewers.added },
       { kind: SourceActionKind.REVIEW_REQUEST_REMOVED, users: reviewers.removed },
     ]
       .filter(({ users }) => users.length)
-      .map(({ kind, users }) => this.toAction(kind, note.created_at, null, users));
-    if (userActions.length) {
-      return userActions;
+      .map(({ kind, users }) =>
+        this.toFact(kind, note.created_at, note.author, context, null, users),
+      );
+    if (userFacts.length) {
+      return userFacts;
     }
     const match = this.gitlabSourceNotes.match(note);
-    return match ? [this.toAction(match.kind, note.created_at, match.value)] : [];
+    return match
+      ? [this.toFact(match.kind, note.created_at, note.author, context, match.value)]
+      : [];
   }
 
-  private isOwn(
-    user: GitLabAuthor | null | undefined,
-    at: string,
-    { day, userId }: SourceBuildContext,
-  ) {
-    return user?.id === userId && isWithinDay(at, day);
+  private isOfDay(at: string, { day }: SourceBuildContext) {
+    return isWithinDay(at, day);
   }
 
-  private toAction(
+  private toFact(
     kind: SourceActionKind,
     at: string,
+    actor: Pick<GitLabAuthor, 'id' | 'username'> | null | undefined,
+    { employee }: SourceBuildContext,
     value: string | null = null,
     users: string[] = [],
-  ): SourceAction {
-    return { kind, at, value, users };
+  ): SourceFact {
+    return {
+      kind,
+      at,
+      actor: actor?.username ?? null,
+      own: actor?.id === employee.id,
+      value,
+      users,
+    };
   }
 }

@@ -55,16 +55,33 @@
           "user-2"
         ],
         "status": "In progress",
-        "actions": [
+        "startOfDay": {
+          "state": "opened",
+          "labels": [
+            "label-1",
+            "priority::high",
+            "type::feature",
+            "status::ready for QA"
+          ],
+          "assignees": [
+            "user-2"
+          ],
+          "status": "In progress"
+        },
+        "facts": [
           {
             "kind": "label_added",
             "at": "2026-10-29T17:17:55.573+05:00",
+            "actor": "user-1",
+            "own": true,
             "value": "status::QA passed",
             "users": []
           },
           {
             "kind": "label_removed",
             "at": "2026-10-29T17:17:55.573+05:00",
+            "actor": "user-1",
+            "own": true,
             "value": "status::ready for QA",
             "users": []
           }
@@ -120,22 +137,45 @@
                 "webUrl": "https://gitlab.example.com/group/project-1/-/issues/770"
               }
             ],
-            "actions": [
+            "startOfDay": {
+              "state": "opened",
+              "labels": [
+                "label-1",
+                "priority::high",
+                "type::feature",
+                "status::ready for QA"
+              ],
+              "assignees": [
+                "user-2"
+              ],
+              "status": null,
+              "reviewers": [
+                "user-1"
+              ],
+              "draft": false
+            },
+            "facts": [
               {
                 "kind": "label_added",
                 "at": "2026-10-29T17:17:51.217+05:00",
+                "actor": "user-1",
+                "own": true,
                 "value": "status::QA passed",
                 "users": []
               },
               {
                 "kind": "label_removed",
                 "at": "2026-10-29T17:17:51.217+05:00",
+                "actor": "user-1",
+                "own": true,
                 "value": "status::ready for QA",
                 "users": []
               },
               {
                 "kind": "approved",
                 "at": "2026-10-29T17:17:58.264+05:00",
+                "actor": "user-1",
+                "own": true,
                 "value": null,
                 "users": []
               }
@@ -203,17 +243,50 @@
           "user-2"
         ],
         "status": "Done",
-        "actions": [
+        "startOfDay": {
+          "state": "opened",
+          "labels": [
+            "label-1",
+            "priority::high",
+            "type::bug",
+            "status::ready for QA"
+          ],
+          "assignees": [
+            "user-2"
+          ],
+          "status": "In progress"
+        },
+        "facts": [
           {
             "kind": "label_added",
             "at": "2026-10-29T15:39:49.132+05:00",
+            "actor": "user-1",
+            "own": true,
             "value": "status::QA passed",
             "users": []
           },
           {
             "kind": "label_removed",
             "at": "2026-10-29T15:39:49.132+05:00",
+            "actor": "user-1",
+            "own": true,
             "value": "status::ready for QA",
+            "users": []
+          },
+          {
+            "kind": "status_set",
+            "at": "2026-10-29T16:15:17.157+05:00",
+            "actor": "user-3",
+            "own": false,
+            "value": "Done",
+            "users": []
+          },
+          {
+            "kind": "closed",
+            "at": "2026-10-29T16:15:17.690+05:00",
+            "actor": "user-3",
+            "own": false,
+            "value": null,
             "users": []
           }
         ],
@@ -289,22 +362,61 @@
                 "webUrl": "https://gitlab.example.com/group/project-1/-/issues/771"
               }
             ],
-            "actions": [
+            "startOfDay": {
+              "state": "opened",
+              "labels": [
+                "label-1",
+                "priority::high",
+                "type::bug",
+                "status::ready for QA"
+              ],
+              "assignees": [
+                "user-2"
+              ],
+              "status": null,
+              "reviewers": [
+                "user-1"
+              ],
+              "draft": false
+            },
+            "facts": [
+              {
+                "kind": "threads_resolved",
+                "at": "2026-10-29T14:46:08.846+05:00",
+                "actor": "user-2",
+                "own": false,
+                "value": null,
+                "users": []
+              },
               {
                 "kind": "label_added",
                 "at": "2026-10-29T15:39:45.310+05:00",
+                "actor": "user-1",
+                "own": true,
                 "value": "status::QA passed",
                 "users": []
               },
               {
                 "kind": "label_removed",
                 "at": "2026-10-29T15:39:45.310+05:00",
+                "actor": "user-1",
+                "own": true,
                 "value": "status::ready for QA",
                 "users": []
               },
               {
                 "kind": "approved",
                 "at": "2026-10-29T15:39:51.754+05:00",
+                "actor": "user-1",
+                "own": true,
+                "value": null,
+                "users": []
+              },
+              {
+                "kind": "merged",
+                "at": "2026-10-29T16:15:15.829+05:00",
+                "actor": "user-3",
+                "own": false,
                 "value": null,
                 "users": []
               }
@@ -387,7 +499,15 @@
         "createdAt": "2026-10-28T18:12:52.531+05:00",
         "assignees": [],
         "status": "To do",
-        "actions": [],
+        "startOfDay": {
+          "state": "opened",
+          "labels": [
+            "type::qa"
+          ],
+          "assignees": [],
+          "status": "To do"
+        },
+        "facts": [],
         "events": [],
         "notes": [
           {
@@ -428,16 +548,38 @@
                 "webUrl": "https://gitlab.example.com/group/project-1/-/issues/772"
               }
             ],
-            "actions": [
+            "startOfDay": {
+              "state": "opened",
+              "labels": [
+                "type::qa"
+              ],
+              "assignees": [],
+              "status": null,
+              "reviewers": [],
+              "draft": true
+            },
+            "facts": [
+              {
+                "kind": "pushed",
+                "at": "2026-10-29T13:48:04.608+05:00",
+                "actor": "user-1",
+                "own": true,
+                "value": "772-branch-3",
+                "users": []
+              },
               {
                 "kind": "approved",
                 "at": "2026-10-29T15:39:09.293+05:00",
+                "actor": "user-1",
+                "own": true,
                 "value": null,
                 "users": []
               },
               {
                 "kind": "marked_ready",
                 "at": "2026-10-29T15:39:34.284+05:00",
+                "actor": "user-1",
+                "own": true,
                 "value": null,
                 "users": []
               }
@@ -532,17 +674,51 @@
           "user-4"
         ],
         "status": "Done",
-        "actions": [
+        "startOfDay": {
+          "state": "opened",
+          "labels": [
+            "label-1",
+            "priority::high",
+            "label-2",
+            "type::feature",
+            "status::ready for QA"
+          ],
+          "assignees": [
+            "user-4"
+          ],
+          "status": "To do"
+        },
+        "facts": [
           {
             "kind": "label_added",
             "at": "2026-10-29T14:41:40.398+05:00",
+            "actor": "user-1",
+            "own": true,
             "value": "status::QA passed",
             "users": []
           },
           {
             "kind": "label_removed",
             "at": "2026-10-29T14:41:40.398+05:00",
+            "actor": "user-1",
+            "own": true,
             "value": "status::ready for QA",
+            "users": []
+          },
+          {
+            "kind": "status_set",
+            "at": "2026-10-29T16:06:31.498+05:00",
+            "actor": "user-3",
+            "own": false,
+            "value": "Done",
+            "users": []
+          },
+          {
+            "kind": "closed",
+            "at": "2026-10-29T16:06:32.250+05:00",
+            "actor": "user-3",
+            "own": false,
+            "value": null,
             "users": []
           }
         ],
@@ -620,22 +796,54 @@
                 "webUrl": "https://gitlab.example.com/group/project-2/-/issues/998"
               }
             ],
-            "actions": [
+            "startOfDay": {
+              "state": "opened",
+              "labels": [
+                "label-1",
+                "priority::high",
+                "label-2",
+                "type::feature",
+                "status::ready for QA"
+              ],
+              "assignees": [
+                "user-4"
+              ],
+              "status": null,
+              "reviewers": [
+                "user-1"
+              ],
+              "draft": false
+            },
+            "facts": [
               {
                 "kind": "label_added",
                 "at": "2026-10-29T14:41:33.641+05:00",
+                "actor": "user-1",
+                "own": true,
                 "value": "status::QA passed",
                 "users": []
               },
               {
                 "kind": "label_removed",
                 "at": "2026-10-29T14:41:33.641+05:00",
+                "actor": "user-1",
+                "own": true,
                 "value": "status::ready for QA",
                 "users": []
               },
               {
                 "kind": "approved",
                 "at": "2026-10-29T14:41:43.661+05:00",
+                "actor": "user-1",
+                "own": true,
+                "value": null,
+                "users": []
+              },
+              {
+                "kind": "merged",
+                "at": "2026-10-29T16:06:29.674+05:00",
+                "actor": "user-3",
+                "own": false,
                 "value": null,
                 "users": []
               }
@@ -711,16 +919,31 @@
           "user-6"
         ],
         "status": "To do",
-        "actions": [
+        "startOfDay": {
+          "state": "opened",
+          "labels": [
+            "priority::medium",
+            "status::ready for QA"
+          ],
+          "assignees": [
+            "user-6"
+          ],
+          "status": "To do"
+        },
+        "facts": [
           {
             "kind": "label_added",
             "at": "2026-10-29T18:17:45.778+05:00",
+            "actor": "user-1",
+            "own": true,
             "value": "status::QA passed",
             "users": []
           },
           {
             "kind": "label_removed",
             "at": "2026-10-29T18:17:45.778+05:00",
+            "actor": "user-1",
+            "own": true,
             "value": "status::ready for QA",
             "users": []
           }
@@ -775,22 +998,63 @@
                 "webUrl": "https://gitlab.example.com/group/project-3/-/issues/1611"
               }
             ],
-            "actions": [
+            "startOfDay": {
+              "state": "opened",
+              "labels": [
+                "priority::medium",
+                "status::ready for QA"
+              ],
+              "assignees": [
+                "user-6"
+              ],
+              "status": null,
+              "reviewers": [
+                "user-5"
+              ],
+              "draft": false
+            },
+            "facts": [
+              {
+                "kind": "review_requested",
+                "at": "2026-10-29T10:08:38.362+05:00",
+                "actor": "user-7",
+                "own": false,
+                "value": null,
+                "users": [
+                  "user-1"
+                ]
+              },
+              {
+                "kind": "review_request_removed",
+                "at": "2026-10-29T10:08:38.362+05:00",
+                "actor": "user-7",
+                "own": false,
+                "value": null,
+                "users": [
+                  "user-5"
+                ]
+              },
               {
                 "kind": "label_added",
                 "at": "2026-10-29T18:17:50.766+05:00",
+                "actor": "user-1",
+                "own": true,
                 "value": "status::QA passed",
                 "users": []
               },
               {
                 "kind": "label_removed",
                 "at": "2026-10-29T18:17:50.766+05:00",
+                "actor": "user-1",
+                "own": true,
                 "value": "status::ready for QA",
                 "users": []
               },
               {
                 "kind": "approved",
                 "at": "2026-10-29T18:17:53.296+05:00",
+                "actor": "user-1",
+                "own": true,
                 "value": null,
                 "users": []
               }
@@ -869,17 +1133,75 @@
           "user-8"
         ],
         "status": "Done",
-        "actions": [
+        "startOfDay": {
+          "state": "opened",
+          "labels": [
+            "label-3",
+            "priority::high",
+            "label-2",
+            "type::feature",
+            "status::doing"
+          ],
+          "assignees": [
+            "user-8"
+          ],
+          "status": "In progress"
+        },
+        "facts": [
+          {
+            "kind": "label_added",
+            "at": "2026-10-29T10:07:47.575+05:00",
+            "actor": "user-8",
+            "own": false,
+            "value": "status::review",
+            "users": []
+          },
+          {
+            "kind": "label_removed",
+            "at": "2026-10-29T10:07:47.575+05:00",
+            "actor": "user-8",
+            "own": false,
+            "value": "status::doing",
+            "users": []
+          },
+          {
+            "kind": "description_changed",
+            "at": "2026-10-29T10:18:03.247+05:00",
+            "actor": "user-9",
+            "own": false,
+            "value": null,
+            "users": []
+          },
           {
             "kind": "label_added",
             "at": "2026-10-29T13:29:09.663+05:00",
+            "actor": "user-1",
+            "own": true,
             "value": "status::QA passed",
             "users": []
           },
           {
             "kind": "label_removed",
             "at": "2026-10-29T13:29:09.663+05:00",
+            "actor": "user-1",
+            "own": true,
             "value": "status::review",
+            "users": []
+          },
+          {
+            "kind": "status_set",
+            "at": "2026-10-29T14:05:25.915+05:00",
+            "actor": "user-3",
+            "own": false,
+            "value": "Done",
+            "users": []
+          },
+          {
+            "kind": "closed",
+            "at": "2026-10-29T14:05:27.202+05:00",
+            "actor": "user-3",
+            "own": false,
+            "value": null,
             "users": []
           }
         ],
@@ -978,16 +1300,51 @@
                 "webUrl": "https://gitlab.example.com/group/project-4/-/issues/128"
               }
             ],
-            "actions": [
+            "startOfDay": {
+              "state": "opened",
+              "labels": [
+                "label-3",
+                "priority::high",
+                "label-2",
+                "type::feature"
+              ],
+              "assignees": [],
+              "status": null,
+              "reviewers": [],
+              "draft": false
+            },
+            "facts": [
+              {
+                "kind": "review_requested",
+                "at": "2026-10-29T10:11:07.094+05:00",
+                "actor": "user-8",
+                "own": false,
+                "value": null,
+                "users": [
+                  "user-1"
+                ]
+              },
               {
                 "kind": "label_added",
                 "at": "2026-10-29T13:29:05.493+05:00",
+                "actor": "user-1",
+                "own": true,
                 "value": "status::QA passed",
                 "users": []
               },
               {
                 "kind": "approved",
                 "at": "2026-10-29T13:29:12.845+05:00",
+                "actor": "user-1",
+                "own": true,
+                "value": null,
+                "users": []
+              },
+              {
+                "kind": "merged",
+                "at": "2026-10-29T14:05:24.576+05:00",
+                "actor": "user-3",
+                "own": false,
                 "value": null,
                 "users": []
               }
@@ -1066,7 +1423,122 @@
         "createdAt": "2026-10-29T16:43:13.422+05:00",
         "assignees": [],
         "status": "Done",
-        "actions": [],
+        "startOfDay": {
+          "state": "opened",
+          "labels": [],
+          "assignees": [],
+          "status": null
+        },
+        "facts": [
+          {
+            "kind": "opened",
+            "at": "2026-10-29T16:43:13.422+05:00",
+            "actor": "user-10",
+            "own": false,
+            "value": null,
+            "users": []
+          },
+          {
+            "kind": "status_set",
+            "at": "2026-10-29T16:43:13.472+05:00",
+            "actor": "user-10",
+            "own": false,
+            "value": "To do",
+            "users": []
+          },
+          {
+            "kind": "label_added",
+            "at": "2026-10-29T16:43:13.535+05:00",
+            "actor": "user-10",
+            "own": false,
+            "value": "priority::medium",
+            "users": []
+          },
+          {
+            "kind": "label_added",
+            "at": "2026-10-29T16:43:13.535+05:00",
+            "actor": "user-10",
+            "own": false,
+            "value": "type::bug",
+            "users": []
+          },
+          {
+            "kind": "label_added",
+            "at": "2026-10-29T16:43:13.535+05:00",
+            "actor": "user-10",
+            "own": false,
+            "value": "label-1",
+            "users": []
+          },
+          {
+            "kind": "branch_created",
+            "at": "2026-10-29T16:43:29.981+05:00",
+            "actor": "user-10",
+            "own": false,
+            "value": "1061-branch-7",
+            "users": []
+          },
+          {
+            "kind": "description_changed",
+            "at": "2026-10-29T17:07:11.702+05:00",
+            "actor": "user-10",
+            "own": false,
+            "value": null,
+            "users": []
+          },
+          {
+            "kind": "label_added",
+            "at": "2026-10-29T17:34:42.464+05:00",
+            "actor": "user-10",
+            "own": false,
+            "value": "status::ready for QA",
+            "users": []
+          },
+          {
+            "kind": "description_changed",
+            "at": "2026-10-29T17:35:36.732+05:00",
+            "actor": "user-10",
+            "own": false,
+            "value": null,
+            "users": []
+          },
+          {
+            "kind": "assigned",
+            "at": "2026-10-29T17:36:11.750+05:00",
+            "actor": "user-10",
+            "own": false,
+            "value": null,
+            "users": [
+              "user-10"
+            ]
+          },
+          {
+            "kind": "unassigned",
+            "at": "2026-10-29T17:36:17.494+05:00",
+            "actor": "user-10",
+            "own": false,
+            "value": null,
+            "users": [
+              "user-10"
+            ]
+          },
+          {
+            "kind": "status_set",
+            "at": "2026-10-29T17:39:50.806+05:00",
+            "actor": "user-10",
+            "own": false,
+            "value": "Done",
+            "users": []
+          },
+          {
+            "kind": "closed",
+            "at": "2026-10-29T17:39:51.268+05:00",
+            "actor": "user-10",
+            "own": false,
+            "value": null,
+            "users": []
+          }
+        ],
         "events": [],
         "notes": [
           {
@@ -1223,10 +1695,96 @@
                 "webUrl": "https://gitlab.example.com/group/project-5/-/issues/1061"
               }
             ],
-            "actions": [
+            "startOfDay": {
+              "state": "opened",
+              "labels": [],
+              "assignees": [],
+              "status": null,
+              "reviewers": [],
+              "draft": true
+            },
+            "facts": [
+              {
+                "kind": "opened",
+                "at": "2026-10-29T16:43:34.218+05:00",
+                "actor": "user-10",
+                "own": false,
+                "value": null,
+                "users": []
+              },
+              {
+                "kind": "label_added",
+                "at": "2026-10-29T16:43:34.305+05:00",
+                "actor": "user-10",
+                "own": false,
+                "value": "priority::medium",
+                "users": []
+              },
+              {
+                "kind": "label_added",
+                "at": "2026-10-29T16:43:34.305+05:00",
+                "actor": "user-10",
+                "own": false,
+                "value": "type::bug",
+                "users": []
+              },
+              {
+                "kind": "label_added",
+                "at": "2026-10-29T16:43:34.305+05:00",
+                "actor": "user-10",
+                "own": false,
+                "value": "label-1",
+                "users": []
+              },
+              {
+                "kind": "assigned",
+                "at": "2026-10-29T16:43:34.349+05:00",
+                "actor": "user-10",
+                "own": false,
+                "value": null,
+                "users": [
+                  "user-10"
+                ]
+              },
+              {
+                "kind": "label_added",
+                "at": "2026-10-29T17:35:04.372+05:00",
+                "actor": "user-10",
+                "own": false,
+                "value": "status::ready for QA",
+                "users": []
+              },
+              {
+                "kind": "review_requested",
+                "at": "2026-10-29T17:36:36.897+05:00",
+                "actor": "user-10",
+                "own": false,
+                "value": null,
+                "users": [
+                  "user-1"
+                ]
+              },
               {
                 "kind": "approved",
                 "at": "2026-10-29T17:38:47.114+05:00",
+                "actor": "user-1",
+                "own": true,
+                "value": null,
+                "users": []
+              },
+              {
+                "kind": "marked_ready",
+                "at": "2026-10-29T17:39:42.992+05:00",
+                "actor": "user-10",
+                "own": false,
+                "value": null,
+                "users": []
+              },
+              {
+                "kind": "merged",
+                "at": "2026-10-29T17:39:49.664+05:00",
+                "actor": "user-10",
+                "own": false,
                 "value": null,
                 "users": []
               }
@@ -1368,7 +1926,20 @@
           "user-11"
         ],
         "status": "To do",
-        "actions": [],
+        "startOfDay": {
+          "state": "opened",
+          "labels": [
+            "label-3",
+            "priority::low",
+            "type::maintenance",
+            "status::ready for QA"
+          ],
+          "assignees": [
+            "user-11"
+          ],
+          "status": "To do"
+        },
+        "facts": [],
         "events": [],
         "notes": [],
         "labelEvents": [],
@@ -1405,10 +1976,29 @@
                 "webUrl": "https://gitlab.example.com/group/project-5/-/issues/1040"
               }
             ],
-            "actions": [
+            "startOfDay": {
+              "state": "opened",
+              "labels": [
+                "label-3",
+                "priority::low",
+                "status::ready for QA",
+                "type::maintenance"
+              ],
+              "assignees": [
+                "user-12"
+              ],
+              "status": null,
+              "reviewers": [
+                "user-1"
+              ],
+              "draft": false
+            },
+            "facts": [
               {
                 "kind": "approved",
                 "at": "2026-10-29T12:30:44.527+05:00",
+                "actor": "user-1",
+                "own": true,
                 "value": null,
                 "users": []
               }

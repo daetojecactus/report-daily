@@ -63,10 +63,35 @@
           "user-13"
         ],
         "status": "To do",
-        "actions": [
+        "startOfDay": {
+          "state": "opened",
+          "labels": [
+            "priority::medium",
+            "label-7",
+            "status::sprint backlog",
+            "type::bug"
+          ],
+          "assignees": [
+            "user-34",
+            "user-22",
+            "user-13"
+          ],
+          "status": "To do"
+        },
+        "facts": [
           {
             "kind": "commented",
             "at": "2026-11-04T16:59:59.378+05:00",
+            "actor": "user-13",
+            "own": true,
+            "value": null,
+            "users": []
+          },
+          {
+            "kind": "commented",
+            "at": "2026-11-04T17:16:51.090+05:00",
+            "actor": "user-34",
+            "own": false,
             "value": null,
             "users": []
           }
@@ -149,58 +174,82 @@
           "user-13"
         ],
         "status": "To do",
-        "actions": [
+        "startOfDay": {
+          "state": "opened",
+          "labels": [],
+          "assignees": [],
+          "status": null
+        },
+        "facts": [
           {
             "kind": "opened",
             "at": "2026-11-04T02:49:45.558+05:00",
+            "actor": "user-13",
+            "own": true,
             "value": null,
             "users": []
           },
           {
             "kind": "status_set",
             "at": "2026-11-04T02:49:45.655+05:00",
+            "actor": "user-13",
+            "own": true,
             "value": "To do",
             "users": []
           },
           {
             "kind": "label_added",
             "at": "2026-11-04T02:49:45.732+05:00",
+            "actor": "user-13",
+            "own": true,
             "value": "priority::medium",
             "users": []
           },
           {
             "kind": "label_added",
             "at": "2026-11-04T02:49:45.732+05:00",
+            "actor": "user-13",
+            "own": true,
             "value": "type::feature",
             "users": []
           },
           {
             "kind": "label_added",
             "at": "2026-11-04T02:49:45.732+05:00",
+            "actor": "user-13",
+            "own": true,
             "value": "label-13",
             "users": []
           },
           {
             "kind": "label_added",
             "at": "2026-11-04T02:49:45.732+05:00",
+            "actor": "user-13",
+            "own": true,
             "value": "label-12",
             "users": []
           },
           {
             "kind": "label_added",
             "at": "2026-11-04T02:49:45.732+05:00",
+            "actor": "user-13",
+            "own": true,
             "value": "status::sprint backlog",
             "users": []
           },
           {
             "kind": "label_added",
             "at": "2026-11-04T02:49:45.732+05:00",
+            "actor": "user-13",
+            "own": true,
             "value": "label-7",
             "users": []
           },
           {
             "kind": "assigned",
             "at": "2026-11-04T02:49:45.773+05:00",
+            "actor": "user-13",
+            "own": true,
             "value": null,
             "users": [
               "user-13"
@@ -304,28 +353,51 @@
           "user-13"
         ],
         "status": "To do",
-        "actions": [
+        "startOfDay": {
+          "state": "opened",
+          "labels": [
+            "label-5",
+            "priority::medium",
+            "label-6",
+            "type::feature",
+            "status::need information",
+            "label-4"
+          ],
+          "assignees": [
+            "user-13"
+          ],
+          "status": "To do"
+        },
+        "facts": [
           {
             "kind": "description_changed",
             "at": "2026-11-04T03:30:47.330+05:00",
+            "actor": "user-13",
+            "own": true,
             "value": null,
             "users": []
           },
           {
             "kind": "label_removed",
             "at": "2026-11-04T03:30:50.733+05:00",
+            "actor": "user-13",
+            "own": true,
             "value": "label-4",
             "users": []
           },
           {
             "kind": "label_removed",
             "at": "2026-11-04T03:30:52.939+05:00",
+            "actor": "user-13",
+            "own": true,
             "value": "status::need information",
             "users": []
           },
           {
             "kind": "label_added",
             "at": "2026-11-04T03:31:06.372+05:00",
+            "actor": "user-13",
+            "own": true,
             "value": "status::sprint backlog",
             "users": []
           }
@@ -386,29 +458,73 @@
           "user-13"
         ],
         "status": "Done",
-        "actions": [
+        "startOfDay": {
+          "state": "opened",
+          "labels": [
+            "label-5",
+            "priority::high",
+            "label-8"
+          ],
+          "assignees": [
+            "user-13"
+          ],
+          "status": "To do"
+        },
+        "facts": [
           {
             "kind": "description_changed",
             "at": "2026-11-04T03:48:39.397+05:00",
+            "actor": "user-13",
+            "own": true,
             "value": null,
             "users": []
           },
           {
             "kind": "label_added",
             "at": "2026-11-04T03:48:57.137+05:00",
+            "actor": "user-13",
+            "own": true,
             "value": "type::maintenance",
             "users": []
           },
           {
             "kind": "label_added",
             "at": "2026-11-04T03:48:57.137+05:00",
+            "actor": "user-13",
+            "own": true,
             "value": "status::sprint backlog",
             "users": []
           },
           {
             "kind": "label_removed",
             "at": "2026-11-04T03:48:57.137+05:00",
+            "actor": "user-13",
+            "own": true,
             "value": "label-8",
+            "users": []
+          },
+          {
+            "kind": "branch_created",
+            "at": "2026-11-04T10:26:31.010+05:00",
+            "actor": "user-35",
+            "own": false,
+            "value": "178-branch-44",
+            "users": []
+          },
+          {
+            "kind": "status_set",
+            "at": "2026-11-04T11:45:37.680+05:00",
+            "actor": "user-35",
+            "own": false,
+            "value": "Done",
+            "users": []
+          },
+          {
+            "kind": "closed",
+            "at": "2026-11-04T11:45:38.078+05:00",
+            "actor": "user-35",
+            "own": false,
+            "value": null,
             "users": []
           }
         ],
@@ -510,40 +626,67 @@
           "user-13"
         ],
         "status": "To do",
-        "actions": [
+        "startOfDay": {
+          "state": "opened",
+          "labels": [
+            "label-1",
+            "priority::high",
+            "label-6",
+            "type::feature",
+            "status::need information",
+            "label-4"
+          ],
+          "assignees": [
+            "user-13"
+          ],
+          "status": "To do"
+        },
+        "facts": [
           {
             "kind": "description_changed",
             "at": "2026-11-04T03:07:10.425+05:00",
+            "actor": "user-13",
+            "own": true,
             "value": null,
             "users": []
           },
           {
             "kind": "label_removed",
             "at": "2026-11-04T03:07:21.439+05:00",
+            "actor": "user-13",
+            "own": true,
             "value": "label-4",
             "users": []
           },
           {
             "kind": "label_added",
             "at": "2026-11-04T03:07:31.572+05:00",
+            "actor": "user-13",
+            "own": true,
             "value": "label-7",
             "users": []
           },
           {
             "kind": "description_changed",
             "at": "2026-11-04T12:39:25.954+05:00",
+            "actor": "user-13",
+            "own": true,
             "value": null,
             "users": []
           },
           {
             "kind": "description_changed",
             "at": "2026-11-04T15:22:05.949+05:00",
+            "actor": "user-13",
+            "own": true,
             "value": null,
             "users": []
           },
           {
             "kind": "description_changed",
             "at": "2026-11-04T15:24:48.418+05:00",
+            "actor": "user-13",
+            "own": true,
             "value": null,
             "users": []
           }
@@ -630,10 +773,28 @@
           "user-13"
         ],
         "status": "To do",
-        "actions": [
+        "startOfDay": {
+          "state": "opened",
+          "labels": [
+            "label-1",
+            "priority::medium",
+            "label-6",
+            "label-8",
+            "status::need information",
+            "type::maintenance"
+          ],
+          "assignees": [
+            "user-4",
+            "user-13"
+          ],
+          "status": "To do"
+        },
+        "facts": [
           {
             "kind": "description_changed",
             "at": "2026-11-04T14:26:19.451+05:00",
+            "actor": "user-13",
+            "own": true,
             "value": null,
             "users": []
           }
@@ -672,7 +833,20 @@
           "user-15"
         ],
         "status": "In progress",
-        "actions": [],
+        "startOfDay": {
+          "state": "opened",
+          "labels": [
+            "label-5",
+            "priority::high",
+            "status::review",
+            "type::feature"
+          ],
+          "assignees": [
+            "user-15"
+          ],
+          "status": "In progress"
+        },
+        "facts": [],
         "events": [],
         "notes": [],
         "labelEvents": [],
@@ -707,10 +881,51 @@
                 "webUrl": "https://gitlab.example.com/group/project-19/-/issues/430"
               }
             ],
-            "actions": [
+            "startOfDay": {
+              "state": "opened",
+              "labels": [
+                "label-5",
+                "priority::high",
+                "status::review",
+                "type::feature"
+              ],
+              "assignees": [
+                "user-15"
+              ],
+              "status": null,
+              "reviewers": [],
+              "draft": true
+            },
+            "facts": [
+              {
+                "kind": "commented",
+                "at": "2026-11-04T12:45:38.108+05:00",
+                "actor": "user-15",
+                "own": false,
+                "value": null,
+                "users": []
+              },
+              {
+                "kind": "threads_resolved",
+                "at": "2026-11-04T12:46:45.386+05:00",
+                "actor": "user-15",
+                "own": false,
+                "value": null,
+                "users": []
+              },
               {
                 "kind": "commented",
                 "at": "2026-11-04T15:34:02.353+05:00",
+                "actor": "user-13",
+                "own": true,
+                "value": null,
+                "users": []
+              },
+              {
+                "kind": "commented",
+                "at": "2026-11-04T16:48:44.237+05:00",
+                "actor": "user-15",
+                "own": false,
                 "value": null,
                 "users": []
               }

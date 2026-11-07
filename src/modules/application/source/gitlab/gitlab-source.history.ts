@@ -24,12 +24,12 @@ import { GitLabSourceNotes } from './gitlab-source.notes';
 export class GitLabSourceHistory {
   constructor(private readonly gitlabSourceNotes: GitLabSourceNotes) {}
 
-  resolveStateAsOfDate(currentState: GitLabState, stateEvents: GitLabStateEvent[], day: DayRange) {
+  resolveStateAt(currentState: GitLabState, stateEvents: GitLabStateEvent[], moment: number) {
     if (!stateEvents.length) {
       return currentState;
     }
     const lastEvent = stateEvents
-      .filter((event) => Date.parse(event.created_at) < day.end)
+      .filter((event) => Date.parse(event.created_at) < moment)
       .sort((left, right) => Date.parse(left.created_at) - Date.parse(right.created_at))
       .at(-1);
     if (!lastEvent) {
@@ -42,10 +42,10 @@ export class GitLabSourceHistory {
     return stateEvents.some((event) => event.state === state && isWithinDay(event.created_at, day));
   }
 
-  restoreLabels(current: string[], labelEvents: GitLabLabelEvent[], day: DayRange) {
+  restoreLabels(current: string[], labelEvents: GitLabLabelEvent[], moment: number) {
     const labels = new Set(current);
     for (const event of this.toLatestFirst(labelEvents)) {
-      if (!event.label || Date.parse(event.created_at) < day.end) {
+      if (!event.label || Date.parse(event.created_at) < moment) {
         continue;
       }
       if (event.action === GitLabLabelAction.ADD) {
@@ -57,37 +57,41 @@ export class GitLabSourceHistory {
     return [...labels];
   }
 
-  restoreAssignees(assignees: GitLabAuthor[] | undefined, notes: GitLabNote[], day: DayRange) {
+  restoreAssignees(assignees: GitLabAuthor[] | undefined, notes: GitLabNote[], moment: number) {
     return this.restoreUsers(
       this.toUsernames(assignees),
       notes,
-      day,
+      moment,
       GITLAB_SOURCE_ASSIGNEE_CHANGE,
     );
   }
 
-  resolveReviewers(mergeRequest: GitLabMergeRequest, notes: GitLabNote[], day: DayRange) {
-    const atEndOfDay = this.restoreUsers(
+  restoreReviewers(mergeRequest: GitLabMergeRequest, notes: GitLabNote[], moment: number) {
+    return this.restoreUsers(
       this.toUsernames(mergeRequest.reviewers),
       notes,
-      day,
+      moment,
       GITLAB_SOURCE_REVIEWER_CHANGE,
     );
+  }
+
+  resolveReviewers(mergeRequest: GitLabMergeRequest, notes: GitLabNote[], moment: number) {
+    const atMoment = this.restoreReviewers(mergeRequest, notes, moment);
     const requested = notes
-      .filter((note) => Date.parse(note.created_at) < day.end)
+      .filter((note) => Date.parse(note.created_at) < moment)
       .flatMap(
         (note) => this.gitlabSourceNotes.parseUserChange(note, GITLAB_SOURCE_REVIEWER_CHANGE).added,
       );
-    return [...new Set([...atEndOfDay, ...requested])];
+    return [...new Set([...atMoment, ...requested])];
   }
 
-  restoreDraft(current: boolean, notes: GitLabNote[], day: DayRange) {
+  restoreDraft(current: boolean, notes: GitLabNote[], moment: number) {
     for (const note of this.toLatestFirst(notes).toReversed()) {
       const match = this.gitlabSourceNotes.match(note);
       if (
         match &&
         GITLAB_SOURCE_DRAFT_ACTIONS.has(match.kind) &&
-        Date.parse(note.created_at) >= day.end
+        Date.parse(note.created_at) >= moment
       ) {
         return match.kind === SourceActionKind.MARKED_READY;
       }
@@ -95,23 +99,23 @@ export class GitLabSourceHistory {
     return current;
   }
 
-  resolveReviewThreads(notes: GitLabNote[], day: DayRange): ReviewThreads {
+  resolveReviewThreads(notes: GitLabNote[], moment: number): ReviewThreads {
     const resolvable = notes.filter(
-      (note) => note.resolvable && Date.parse(note.created_at) < day.end,
+      (note) => note.resolvable && Date.parse(note.created_at) < moment,
     );
     return {
       total: resolvable.length,
       unresolved: resolvable.filter(
         (note) =>
-          note.resolved === false || (note.resolved_at && Date.parse(note.resolved_at) >= day.end),
+          note.resolved === false || (note.resolved_at && Date.parse(note.resolved_at) >= moment),
       ).length,
     };
   }
 
-  resolveStatus(notes: GitLabNote[], day: DayRange) {
+  resolveStatus(notes: GitLabNote[], moment: number) {
     for (const note of this.toLatestFirst(notes)) {
       const match = this.gitlabSourceNotes.match(note);
-      if (match?.kind === SourceActionKind.STATUS_SET && Date.parse(note.created_at) < day.end) {
+      if (match?.kind === SourceActionKind.STATUS_SET && Date.parse(note.created_at) < moment) {
         return match.value;
       }
     }
@@ -128,12 +132,12 @@ export class GitLabSourceHistory {
   private restoreUsers(
     current: string[],
     notes: GitLabNote[],
-    day: DayRange,
+    moment: number,
     change: SourceUserChange,
   ) {
     const users = new Set(current);
     for (const note of this.toLatestFirst(notes)) {
-      if (Date.parse(note.created_at) < day.end) {
+      if (Date.parse(note.created_at) < moment) {
         continue;
       }
       const { added, removed } = this.gitlabSourceNotes.parseUserChange(note, change);

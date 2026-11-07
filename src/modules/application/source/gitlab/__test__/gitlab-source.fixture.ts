@@ -10,8 +10,8 @@ import type {
   GitLabProject,
   GitLabStateEvent,
 } from 'src/modules/vendors/gitlab/gitlab.interface';
-import { GitLabSourceActions } from '../gitlab-source.actions';
 import { GitLabSourceBuilder } from '../gitlab-source.builder';
+import { GitLabSourceFacts } from '../gitlab-source.facts';
 import { GitLabSourceHistory } from '../gitlab-source.history';
 import { GitLabSourceNotes } from '../gitlab-source.notes';
 
@@ -120,5 +120,5 @@ export function createCommit(committedDate: string, title = 'feat: something'): 
 
 export function createBuilder() {
   const notes = new GitLabSourceNotes();
-  return new GitLabSourceBuilder(new GitLabSourceHistory(notes), new GitLabSourceActions(notes));
+  return new GitLabSourceBuilder(new GitLabSourceHistory(notes), new GitLabSourceFacts(notes));
 }

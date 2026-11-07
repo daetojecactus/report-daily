@@ -13,7 +13,9 @@ import type {
   GroupedDailyData,
   GroupedIssue,
   GroupedMergeRequest,
-  SourceAction,
+  ItemSnapshot,
+  MergeRequestSnapshot,
+  SourceFact,
   SourceProject,
 } from 'src/modules/application/source/source.interface';
 import {
@@ -107,7 +109,8 @@ export class PreviewAnonymizer {
       createdAt: issue.createdAt,
       assignees: issue.assignees.map((username) => this.toUser(username, aliases)),
       status: issue.status && this.toStatus(issue.status, aliases),
-      actions: issue.actions.map((action) => this.anonymizeAction(action, aliases)),
+      startOfDay: this.anonymizeSnapshot(issue.startOfDay, aliases),
+      facts: issue.facts.map((fact) => this.anonymizeFact(fact, aliases)),
       events: issue.events.map((event) => this.anonymizeEvent(event, aliases)),
       notes: issue.notes.map((note) => this.anonymizeNote(note, aliases)),
       labelEvents: issue.labelEvents.map((event) => ({
@@ -152,7 +155,14 @@ export class PreviewAnonymizer {
           webUrl: this.toItemUrl(issueProjectId, PREVIEW_ISSUES_PATH, issue.iid),
         };
       }),
-      actions: mergeRequest.actions.map((action) => this.anonymizeAction(action, aliases)),
+      startOfDay: {
+        ...this.anonymizeSnapshot(mergeRequest.startOfDay, aliases),
+        reviewers: mergeRequest.startOfDay.reviewers.map((username) =>
+          this.toUser(username, aliases),
+        ),
+        draft: mergeRequest.startOfDay.draft,
+      },
+      facts: mergeRequest.facts.map((fact) => this.anonymizeFact(fact, aliases)),
       events: mergeRequest.events.map((event) => this.anonymizeEvent(event, aliases)),
       notes: mergeRequest.notes.map((note) => this.anonymizeNote(note, aliases)),
       labelEvents: mergeRequest.labelEvents.map((event) => ({
@@ -166,12 +176,26 @@ export class PreviewAnonymizer {
     };
   }
 
-  private anonymizeAction(action: SourceAction, aliases: PreviewAliases): SourceAction {
+  private anonymizeSnapshot(
+    snapshot: ItemSnapshot | MergeRequestSnapshot,
+    aliases: PreviewAliases,
+  ): ItemSnapshot {
     return {
-      kind: action.kind,
-      at: action.at,
-      value: action.value && this.toActionValue(action.kind, action.value, aliases),
-      users: action.users.map((username) => this.toUser(username, aliases)),
+      state: snapshot.state,
+      labels: snapshot.labels.map((label) => this.toLabel(label, aliases)),
+      assignees: snapshot.assignees.map((username) => this.toUser(username, aliases)),
+      status: snapshot.status && this.toStatus(snapshot.status, aliases),
+    };
+  }
+
+  private anonymizeFact(fact: SourceFact, aliases: PreviewAliases): SourceFact {
+    return {
+      kind: fact.kind,
+      at: fact.at,
+      actor: fact.actor && this.toUser(fact.actor, aliases),
+      own: fact.own,
+      value: fact.value && this.toFactValue(fact.kind, fact.value, aliases),
+      users: fact.users.map((username) => this.toUser(username, aliases)),
     };
   }
 
@@ -246,7 +270,7 @@ export class PreviewAnonymizer {
     return PREVIEW_NOTE_PREFIXES.find((prefix) => body.startsWith(prefix)) ?? PREVIEW_SYSTEM_NOTE;
   }
 
-  private toActionValue(kind: SourceActionKind, value: string, aliases: PreviewAliases) {
+  private toFactValue(kind: SourceActionKind, value: string, aliases: PreviewAliases) {
     switch (kind) {
       case SourceActionKind.LABEL_ADDED:
       case SourceActionKind.LABEL_REMOVED:
@@ -254,6 +278,7 @@ export class PreviewAnonymizer {
       case SourceActionKind.STATUS_SET:
         return this.toStatus(value, aliases);
       case SourceActionKind.BRANCH_CREATED:
+      case SourceActionKind.PUSHED:
         return this.toBranch(value, aliases);
       default:
         return PREVIEW_ACTION_VALUE;

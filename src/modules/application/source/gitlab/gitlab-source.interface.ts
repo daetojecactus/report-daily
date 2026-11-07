@@ -74,9 +74,14 @@ export interface DayActivity {
   pushCommits: Map<number, GitLabCommit[]>;
 }
 
+export interface SourceEmployee {
+  id: number;
+  username: string;
+}
+
 export interface SourceBuildContext {
   day: DayRange;
-  userId: number;
+  employee: SourceEmployee;
   pushCommits: Map<number, GitLabCommit[]>;
 }
 
