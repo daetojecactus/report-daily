@@ -62,7 +62,9 @@ export class ActivityCodeDetector {
       !dependencies &&
       !assignee &&
       pushes.length > 0 &&
-      pushes.every((push) => !ownMergeRequests.includes(push.mergeRequestIid)) &&
+      pushes.every(
+        (push) => push.mergeRequestIid !== null && !ownMergeRequests.includes(push.mergeRequestIid),
+      ) &&
       (engagement === EngagementLevel.SECONDARY || engagement === EngagementLevel.MINOR)
     );
   }
@@ -137,8 +139,8 @@ export class ActivityCodeDetector {
     if (
       has(SourceActionKind.BRANCH_CREATED) ||
       has(SourceActionKind.OPENED) ||
-      line.mergeRequests.some((mergeRequest) =>
-        mergeRequest.events.some((event) => event.actionName === ACTIVITY_BRANCH_PUSH_ACTION),
+      [...line.mergeRequests, ...(line.push ? [line.push] : [])].some(({ events }) =>
+        events.some((event) => event.actionName === ACTIVITY_BRANCH_PUSH_ACTION),
       )
     ) {
       details.push(ActivityDetail.STARTED);

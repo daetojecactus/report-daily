@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { SourceActionKind } from 'src/modules/application/source/source.enums';
 import type {
+  CleanEvent,
   GroupedIssue,
   GroupedMergeRequest,
 } from 'src/modules/application/source/source.interface';
@@ -57,7 +58,7 @@ export class ActivitySignals {
       employee,
       ownMergeRequests,
     );
-    const pushes = this.toPushes(line.mergeRequests);
+    const pushes = this.toPushes(line);
     const endNames = items.flatMap(({ item }) => [...item.labels, ...this.toStatus(item)]);
     const startNames = items.flatMap(({ item }) => [
       ...item.startOfDay.labels,
@@ -184,13 +185,20 @@ export class ActivitySignals {
       .filter((change) => change.state || change.flags.length || change.priority);
   }
 
-  private toPushes(mergeRequests: GroupedMergeRequest[]): ActivityPush[] {
-    return mergeRequests.flatMap((mergeRequest) =>
-      mergeRequest.events
+  private toPushes(line: ActivityLine): ActivityPush[] {
+    const sources: { events: CleanEvent[]; mergeRequestIid: number | null }[] = [
+      ...line.mergeRequests.map((mergeRequest) => ({
+        events: mergeRequest.events,
+        mergeRequestIid: mergeRequest.iid,
+      })),
+      ...(line.push ? [{ events: line.push.events, mergeRequestIid: null }] : []),
+    ];
+    return sources.flatMap(({ events, mergeRequestIid }) =>
+      events
         .filter((event) => ACTIVITY_PUSH_ACTIONS.has(event.actionName) && event.pushData)
         .map((event) => ({
           time: Date.parse(event.createdAt),
-          mergeRequestIid: mergeRequest.iid,
+          mergeRequestIid,
           commitCount: event.pushData?.commitCount ?? 0,
           commitTitles: event.pushData?.commits.length
             ? event.pushData.commits.map((commit) => commit.title)

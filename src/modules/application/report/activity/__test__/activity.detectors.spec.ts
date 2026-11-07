@@ -104,7 +104,7 @@ function placeFact(place: Place, item: SourceFact): ActivityLine {
   }
   const mergeRequest =
     place === 'own' ? createMergeRequest({ facts: [item] }) : othersMergeRequest({ facts: [item] });
-  return { issue: null, mergeRequests: [mergeRequest] };
+  return { issue: null, push: null, mergeRequests: [mergeRequest] };
 }
 
 describe('ActivityDetectors', () => {
@@ -258,7 +258,7 @@ describe('ActivityDetectors', () => {
         facts: [fact(SourceActionKind.REVIEW_REQUESTED, at(16), { users: [OTHER] })],
       });
 
-      expect(summarize(detect({ issue: null, mergeRequests: [other, own] }))).toEqual([
+      expect(summarize(detect({ issue: null, push: null, mergeRequests: [other, own] }))).toEqual([
         { action: ActivityAction.TOOK_REVIEW, weight: 290, state: null, details: [] },
         {
           action: ActivityAction.APPROVED,
@@ -280,7 +280,11 @@ describe('ActivityDetectors', () => {
 
       expect(
         summarize(
-          detect({ issue: null, mergeRequests: [othersMergeRequest({ facts: comments })] }),
+          detect({
+            issue: null,
+            push: null,
+            mergeRequests: [othersMergeRequest({ facts: comments })],
+          }),
         ),
       ).toEqual([
         {
@@ -294,6 +298,7 @@ describe('ActivityDetectors', () => {
         summarize(
           detect({
             issue: null,
+            push: null,
             mergeRequests: [othersMergeRequest({ facts: comments.slice(0, 1) })],
           }),
         )[0].weight,
@@ -311,7 +316,7 @@ describe('ActivityDetectors', () => {
         ],
       });
 
-      const [reviewed] = detect({ issue: null, mergeRequests: [mergeRequest] });
+      const [reviewed] = detect({ issue: null, push: null, mergeRequests: [mergeRequest] });
 
       expect(reviewed).toMatchObject({
         action: ActivityAction.REVIEWED,
@@ -394,14 +399,16 @@ describe('ActivityDetectors', () => {
         ],
       });
 
-      expect(summarize(detect({ issue: null, mergeRequests: [mergeRequest] }))).toEqual([
-        {
-          action: ActivityAction.DISCUSSED,
-          weight: 200,
-          state: null,
-          details: [ActivityDetail.DIALOG],
-        },
-      ]);
+      expect(summarize(detect({ issue: null, push: null, mergeRequests: [mergeRequest] }))).toEqual(
+        [
+          {
+            action: ActivityAction.DISCUSSED,
+            weight: 200,
+            state: null,
+            details: [ActivityDetail.DIALOG],
+          },
+        ],
+      );
     });
   });
 
@@ -436,7 +443,7 @@ describe('ActivityDetectors', () => {
         ],
       });
 
-      expect(summarize(detect({ issue: null, mergeRequests: [mergeRequest] }))).toEqual(
+      expect(summarize(detect({ issue: null, push: null, mergeRequests: [mergeRequest] }))).toEqual(
         [ActivityDetail.DESCRIPTION, ActivityDetail.DRAFT, ActivityDetail.REVIEWERS].map(
           (detail) => ({
             action: ActivityAction.EDITED,

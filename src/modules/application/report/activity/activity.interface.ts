@@ -2,6 +2,7 @@ import type {
   GroupedIssue,
   GroupedMergeRequest,
   SourceFact,
+  StandalonePush,
 } from 'src/modules/application/source/source.interface';
 import type {
   Priority,
@@ -27,6 +28,7 @@ export interface ActivityEmployee {
 export interface ActivityLine {
   issue: GroupedIssue | null;
   mergeRequests: GroupedMergeRequest[];
+  push: StandalonePush | null;
 }
 
 export interface ActivityFact extends SourceFact {
@@ -49,7 +51,7 @@ export interface ActivityChange {
 
 export interface ActivityPush {
   time: number;
-  mergeRequestIid: number;
+  mergeRequestIid: number | null;
   commitCount: number;
   commitTitles: string[];
 }
@@ -121,4 +123,11 @@ export interface ActivityChoice {
   main: ActivityCandidate;
   secondary: ActivityCandidate[];
   trace: ActivityTrace;
+}
+
+export interface ActivityResult {
+  line: ActivityLine;
+  signals: ActivityLineSignals;
+  choice: ActivityChoice;
+  excluded: boolean;
 }

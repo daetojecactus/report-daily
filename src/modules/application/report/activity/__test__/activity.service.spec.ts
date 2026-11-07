@@ -1,0 +1,63 @@
+import { describe, expect, it } from 'vitest';
+import { SourceActionKind } from 'src/modules/application/source/source.enums';
+import type { GroupedDailyData } from 'src/modules/application/source/source.interface';
+import { JobRole } from 'src/modules/application/user/user.enums';
+import { ActivityAction, ActivityDetail } from '../activity.enums';
+import {
+  at,
+  createIndex,
+  createIssue,
+  createMergeRequest,
+  createService,
+  fact,
+  ME,
+  pushEvent,
+} from './activity.fixture';
+
+function classify(overrides: Partial<GroupedDailyData>) {
+  return createService().classify(
+    { projects: [], issues: [], standaloneMergeRequests: [], standalonePushes: [], ...overrides },
+    { username: ME, role: JobRole.DEVELOPER },
+    createIndex(),
+  );
+}
+
+describe('ActivityService', () => {
+  it('classifies every line of the day', () => {
+    const results = classify({
+      issues: [createIssue({ facts: [fact(SourceActionKind.COMMENTED, at(10))] })],
+      standaloneMergeRequests: [
+        createMergeRequest({ iid: 7, facts: [fact(SourceActionKind.MERGED, at(15))] }),
+      ],
+      standalonePushes: [
+        {
+          projectId: 1,
+          branch: '9-spike',
+          events: [{ ...pushEvent(at(12), []), actionName: 'pushed new' }],
+        },
+      ],
+    });
+
+    expect(results.map(({ choice }) => [choice.main.action, choice.main.details])).toEqual([
+      [ActivityAction.COMMENTED, []],
+      [ActivityAction.MERGED, []],
+      [ActivityAction.CODE, [ActivityDetail.STARTED]],
+    ]);
+    expect(results.map(({ line }) => line.push?.branch ?? null)).toEqual([null, null, '9-spike']);
+  });
+
+  it('marks a task that the company keeps out of the report', () => {
+    const results = classify({
+      issues: [
+        createIssue({
+          labels: ['type::ignore'],
+          facts: [fact(SourceActionKind.COMMENTED, at(10))],
+        }),
+        createIssue({ iid: 13, facts: [fact(SourceActionKind.COMMENTED, at(11))] }),
+      ],
+    });
+
+    expect(results.map(({ excluded }) => excluded)).toEqual([true, false]);
+    expect(results[0].choice.main.action).toBe(ActivityAction.COMMENTED);
+  });
+});
