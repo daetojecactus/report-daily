@@ -108,98 +108,6 @@ function placeFact(place: Place, item: SourceFact): ActivityLine {
 }
 
 describe('ActivityDetectors', () => {
-  describe('lifecycle', () => {
-    it('tells a merge of own work from a merge of a colleague', () => {
-      const own = createMergeRequest({ facts: [fact(SourceActionKind.MERGED, at(15))] });
-      const other = othersMergeRequest({ iid: 6, facts: [fact(SourceActionKind.MERGED, at(16))] });
-
-      expect(summarize(detect({ issue: null, mergeRequests: [own, other] }))).toEqual([
-        { action: ActivityAction.MERGED, weight: 950, state: null, details: [] },
-        { action: ActivityAction.MERGED_OTHER, weight: 900, state: null, details: [] },
-      ]);
-    });
-
-    it('detects closing, reopening and closing a merge request without merging', () => {
-      const mergeRequest = createMergeRequest({ facts: [fact(SourceActionKind.CLOSED, at(14))] });
-      const issue = createIssue({
-        facts: [fact(SourceActionKind.REOPENED, at(10)), fact(SourceActionKind.CLOSED, at(17))],
-        mergeRequests: [mergeRequest],
-      });
-
-      expect(summarize(detect(issueLine(issue)))).toEqual([
-        { action: ActivityAction.REOPENED, weight: 880, state: null, details: [] },
-        {
-          action: ActivityAction.CLOSED,
-          weight: 940,
-          state: null,
-          details: [ActivityDetail.MERGE_REQUEST],
-        },
-        { action: ActivityAction.CLOSED, weight: 940, state: null, details: [] },
-      ]);
-    });
-
-    it('creates a task, or finds a bug, or a regression while testing', () => {
-      const created = createIssue({ facts: [fact(SourceActionKind.OPENED, at(10))] });
-      const bug = createIssue({ ...created, labels: ['type::bug'] });
-      const regression = createIssue({ ...created, labels: ['type::bug', 'status::testing'] });
-
-      expect(summarize(detect(issueLine(created)))[0].action).toBe(ActivityAction.CREATED);
-      expect(summarize(detect(issueLine(bug)))[0]).toMatchObject({
-        action: ActivityAction.BUG_FOUND,
-        weight: 750,
-        details: [],
-      });
-      expect(summarize(detect(issueLine(regression)))[0].details).toEqual([
-        ActivityDetail.REGRESSION,
-      ]);
-    });
-
-    it('completes the task of an assignee when someone else closed it', () => {
-      const mergeRequest = othersMergeRequest({ mergedOnReportDate: true });
-      const issue = createIssue({ closedOnReportDate: true, mergeRequests: [mergeRequest] });
-
-      expect(summarize(detect(issueLine(issue)))).toEqual([
-        {
-          action: ActivityAction.COMPLETED,
-          weight: 890,
-          state: null,
-          details: [ActivityDetail.WITH_MERGE],
-        },
-      ]);
-      expect(
-        summarize(detect(issueLine(createIssue({ assignees: [OTHER], closedOnReportDate: true })))),
-      ).toEqual([]);
-    });
-
-    it('marks merging and approving an update of dependencies', () => {
-      const merged = othersMergeRequest({
-        sourceBranch: 'renovate/eslint-10.x',
-        facts: [fact(SourceActionKind.MERGED, at(15))],
-      });
-      const approved = othersMergeRequest({
-        sourceBranch: 'dependabot/npm_and_yarn/vite-7.1',
-        facts: [fact(SourceActionKind.APPROVED, at(14))],
-      });
-
-      expect(summarize(detect({ issue: null, mergeRequests: [merged] }))).toEqual([
-        {
-          action: ActivityAction.MERGED_OTHER,
-          weight: 900,
-          state: null,
-          details: [ActivityDetail.DEPENDENCIES],
-        },
-      ]);
-      expect(summarize(detect({ issue: null, mergeRequests: [approved] }))).toEqual([
-        {
-          action: ActivityAction.APPROVED,
-          weight: 780,
-          state: null,
-          details: [ActivityDetail.DEPENDENCIES],
-        },
-      ]);
-    });
-  });
-
   describe('state changes', () => {
     it('weighs a state by the dictionary and returns work on changes requested', () => {
       const issue = createIssue({
@@ -264,6 +172,62 @@ describe('ActivityDetectors', () => {
         ),
       ).toEqual([ActivityDetail.AFTER_QA]);
       expect(details(createIssue({ facts: [ready, returned(at(14))] }))).toEqual([]);
+    });
+
+    it('returns the task to work when someone else moves it back', () => {
+      const back = (labels: string[], assignees: string[], facts = [doing]) =>
+        summarize(
+          detect(
+            issueLine(
+              createIssue({
+                assignees,
+                startOfDay: { ...createIssue().startOfDay, labels },
+                facts,
+              }),
+            ),
+          ),
+        );
+      const doing = fact(SourceActionKind.LABEL_ADDED, at(10), { value: 'status::doing' });
+      const review = fact(SourceActionKind.LABEL_ADDED, at(9), { value: 'status::review' });
+
+      expect(back(['status::testing'], [OTHER])).toEqual([
+        {
+          action: ActivityAction.RETURNED,
+          weight: 770,
+          state: null,
+          details: [ActivityDetail.AFTER_QA],
+        },
+      ]);
+      expect(back([], [OTHER], [review, doing]).at(-1)).toEqual({
+        action: ActivityAction.RETURNED,
+        weight: 770,
+        state: null,
+        details: [ActivityDetail.AFTER_REVIEW],
+      });
+      expect(back(['status::testing'], [ME])).toEqual([
+        {
+          action: ActivityAction.STATE_SET,
+          weight: 290,
+          state: WorkflowState.IN_PROGRESS,
+          details: [],
+        },
+      ]);
+      expect(back(['status::todo'], [OTHER])[0].action).toBe(ActivityAction.STATE_SET);
+    });
+
+    it('blocks the release when it raises a bug in testing to critical', () => {
+      const raise = fact(SourceActionKind.LABEL_ADDED, at(11), { value: 'priority::critical' });
+      const action = (labels: string[]) =>
+        summarize(detect(issueLine(createIssue({ labels, facts: [raise] }))))[0];
+
+      expect(action(['type::bug', 'status::testing'])).toEqual({
+        action: ActivityAction.RELEASE_BLOCKED,
+        weight: 765,
+        state: null,
+        details: [],
+      });
+      expect(action(['status::testing']).action).toBe(ActivityAction.ESCALATED);
+      expect(action(['type::bug']).action).toBe(ActivityAction.ESCALATED);
     });
 
     it('reads the Status field like a label', () => {

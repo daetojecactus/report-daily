@@ -7,6 +7,8 @@ export enum ActivityAction {
   APPROVED = 'approved',
   UNAPPROVED = 'unapproved',
   RETURNED = 'returned',
+  PASSED = 'passed',
+  RELEASE_BLOCKED = 'release_blocked',
   REVIEWED = 'reviewed',
   BUG_FOUND = 'bug_found',
   STATE_SET = 'state_set',
@@ -53,6 +55,10 @@ export enum ActivityDetail {
   WITH_REMARKS = 'with_remarks',
   WITH_STATE = 'with_state',
   AFTER_DISCUSSION = 'after_discussion',
+  TESTED = 'tested',
+  AFTER_APPROVAL = 'after_approval',
+  URGENT = 'urgent',
+  CLOSES = 'closes',
 }
 
 export enum EngagementLevel {

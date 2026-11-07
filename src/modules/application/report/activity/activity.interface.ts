@@ -44,6 +44,7 @@ export interface ActivityChange {
   state: WorkflowState | null;
   flags: TaskFlag[];
   priority: Priority | null;
+  returnedFrom: WorkflowState | null;
 }
 
 export interface ActivityPush {
@@ -60,6 +61,7 @@ export interface ActivityLineSignals {
   dropped: ActivityDropped[];
   others: ActivityFact[];
   changes: ActivityChange[];
+  otherChanges: ActivityChange[];
   pushes: ActivityPush[];
   kind: TaskKind | null;
   kinds: TaskKind[];
@@ -67,6 +69,7 @@ export interface ActivityLineSignals {
   endStates: WorkflowState[];
   startFlags: TaskFlag[];
   endFlags: TaskFlag[];
+  priority: Priority | null;
   removedFlags: TaskFlag[];
   ownMergeRequests: number[];
   assignee: boolean;
