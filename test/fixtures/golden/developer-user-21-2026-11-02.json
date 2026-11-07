@@ -688,7 +688,8 @@
               "unresolved": 0
             }
           }
-        ]
+        ],
+        "pushes": []
       },
       {
         "projectId": 12,
@@ -773,7 +774,8 @@
           }
         ],
         "labelEvents": [],
-        "mergeRequests": []
+        "mergeRequests": [],
+        "pushes": []
       },
       {
         "projectId": 12,
@@ -857,7 +859,8 @@
             "username": "user-21"
           }
         ],
-        "mergeRequests": []
+        "mergeRequests": [],
+        "pushes": []
       },
       {
         "projectId": 8,
@@ -1388,7 +1391,8 @@
               "unresolved": 0
             }
           }
-        ]
+        ],
+        "pushes": []
       },
       {
         "projectId": 12,
@@ -1651,7 +1655,8 @@
               "unresolved": 0
             }
           }
-        ]
+        ],
+        "pushes": []
       }
     ],
     "standaloneMergeRequests": [],

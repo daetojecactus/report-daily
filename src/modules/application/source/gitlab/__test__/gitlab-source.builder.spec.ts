@@ -69,6 +69,7 @@ function buildIssue(overrides: Partial<IssueActivity> = {}) {
           labelEvents: [],
           stateEvents: [],
           mergeRequests: [],
+          pushes: [],
           ...overrides,
         },
       ],
@@ -304,6 +305,7 @@ describe('GitLabSourceBuilder', () => {
             notes: [],
             labelEvents: [],
             stateEvents: [],
+            pushes: [],
             mergeRequests: [
               toActivity(createMergeRequest({ source_branch: '12-login' }), {
                 closingIssues: [createIssue(), createIssue({ iid: 13 })],

@@ -479,7 +479,8 @@
               "unresolved": 0
             }
           }
-        ]
+        ],
+        "pushes": []
       },
       {
         "projectId": 9,
@@ -614,7 +615,47 @@
             "username": "user-21"
           }
         ],
-        "mergeRequests": []
+        "mergeRequests": [],
+        "pushes": [
+          {
+            "projectId": 9,
+            "branch": "123-branch-25",
+            "events": [
+              {
+                "id": 597134,
+                "projectId": 9,
+                "actionName": "deleted",
+                "targetType": "Project",
+                "targetTitle": "Title",
+                "createdAt": "2026-11-03T12:50:50.617+05:00",
+                "pushData": {
+                  "commitCount": 0,
+                  "action": "removed",
+                  "refType": "branch",
+                  "ref": "123-branch-25",
+                  "commitTitle": null,
+                  "commits": []
+                }
+              },
+              {
+                "id": 597132,
+                "projectId": 9,
+                "actionName": "pushed new",
+                "targetType": "Project",
+                "targetTitle": "Title",
+                "createdAt": "2026-11-03T12:50:12.384+05:00",
+                "pushData": {
+                  "commitCount": 0,
+                  "action": "created",
+                  "refType": "branch",
+                  "ref": "123-branch-25",
+                  "commitTitle": null,
+                  "commits": []
+                }
+              }
+            ]
+          }
+        ]
       },
       {
         "projectId": 16,
@@ -1034,49 +1075,11 @@
               "unresolved": 0
             }
           }
-        ]
+        ],
+        "pushes": []
       }
     ],
     "standaloneMergeRequests": [],
-    "standalonePushes": [
-      {
-        "projectId": 9,
-        "branch": "123-branch-25",
-        "events": [
-          {
-            "id": 597134,
-            "projectId": 9,
-            "actionName": "deleted",
-            "targetType": "Project",
-            "targetTitle": "Title",
-            "createdAt": "2026-11-03T12:50:50.617+05:00",
-            "pushData": {
-              "commitCount": 0,
-              "action": "removed",
-              "refType": "branch",
-              "ref": "123-branch-25",
-              "commitTitle": null,
-              "commits": []
-            }
-          },
-          {
-            "id": 597132,
-            "projectId": 9,
-            "actionName": "pushed new",
-            "targetType": "Project",
-            "targetTitle": "Title",
-            "createdAt": "2026-11-03T12:50:12.384+05:00",
-            "pushData": {
-              "commitCount": 0,
-              "action": "created",
-              "refType": "branch",
-              "ref": "123-branch-25",
-              "commitTitle": null,
-              "commits": []
-            }
-          }
-        ]
-      }
-    ]
+    "standalonePushes": []
   }
 }

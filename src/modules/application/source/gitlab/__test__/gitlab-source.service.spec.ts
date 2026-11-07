@@ -262,6 +262,45 @@ describe('GitLabSourceService', () => {
     expect(grouped.standalonePushes.map((push) => push.branch)).toEqual(['experiment']);
   });
 
+  it('puts a push to an issue branch without a merge request into that issue', async () => {
+    const gitlab = createGitLab({
+      events: [issueEvent(12), pushEvent('12-spike')],
+      issues: [createIssue({ iid: 12 })],
+    });
+
+    const grouped = await collect(gitlab);
+
+    expect(grouped.issues.map((issue) => issue.pushes.map((push) => push.branch))).toEqual([
+      ['12-spike'],
+    ]);
+    expect(grouped.issues[0].pushes[0].events.map((event) => event.actionName)).toEqual([
+      'pushed to',
+    ]);
+    expect(grouped.standalonePushes).toEqual([]);
+  });
+
+  it('loads the issue of a pushed branch that is not in the day', async () => {
+    const gitlab = createGitLab({
+      events: [pushEvent('12-spike')],
+      issues: [createIssue({ iid: 12 })],
+    });
+
+    const grouped = await collect(gitlab);
+
+    expect(gitlab.findIssue).toHaveBeenCalledWith(PROJECT_ID, 12);
+    expect(grouped.issues.map((issue) => [issue.iid, issue.pushes.length])).toEqual([[12, 1]]);
+    expect(grouped.standalonePushes).toEqual([]);
+  });
+
+  it('keeps a push alone when its branch names no issue it can load', async () => {
+    const gitlab = createGitLab({ events: [pushEvent('77-spike')] });
+
+    const grouped = await collect(gitlab);
+
+    expect(grouped.issues).toEqual([]);
+    expect(grouped.standalonePushes.map((push) => push.branch)).toEqual(['77-spike']);
+  });
+
   it('skips issues and merge requests GitLab does not have', async () => {
     const gitlab = createGitLab({
       events: [issueEvent(12), createEvent({ target_type: 'MergeRequest', target_iid: 5 })],

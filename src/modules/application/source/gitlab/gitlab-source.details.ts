@@ -11,7 +11,9 @@ import type {
   DayActivity,
   IssueActivity,
   MergeRequestActivity,
+  SourceBranch,
   SourceEventGroups,
+  SourceEvents,
   SourceLinks,
 } from './gitlab-source.interface';
 import { GitLabSourceKeys } from './gitlab-source.keys';
@@ -44,7 +46,13 @@ export class GitLabSourceDetails {
           async ([key, issue]) =>
             [
               key,
-              await this.loadIssueActivity(issue, groups.issues.get(key)?.events ?? []),
+              await this.loadIssueActivity(
+                issue,
+                groups.issues.get(key)?.events ?? [],
+                [...links.pushIssues]
+                  .filter(([, issueKey]) => issueKey === key)
+                  .flatMap(([branchKey]) => groups.pushes.get(branchKey) ?? []),
+              ),
             ] as const,
         ),
       ),
@@ -85,7 +93,9 @@ export class GitLabSourceDetails {
       pushes: [...groups.pushes]
         .filter(
           ([key, { target }]) =>
-            !branchMergeRequests.has(key) && this.gitlabSourceKeys.isWorkBranch(target, projects),
+            !branchMergeRequests.has(key) &&
+            !links.pushIssues.has(key) &&
+            this.gitlabSourceKeys.isWorkBranch(target, projects),
         )
         .map(([, push]) => push),
       pushCommits,
@@ -119,6 +129,7 @@ export class GitLabSourceDetails {
   private async loadIssueActivity(
     issue: GitLabIssue,
     events: GitLabEvent[],
+    pushes: SourceEvents<SourceBranch>[],
   ): Promise<IssueActivity> {
     const { project_id: projectId, iid } = issue;
     const [notes, labelEvents, stateEvents] = await Promise.all([
@@ -133,6 +144,7 @@ export class GitLabSourceDetails {
       labelEvents,
       stateEvents,
       mergeRequests: [],
+      pushes,
     };
   }
 

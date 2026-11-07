@@ -73,6 +73,25 @@ describe('PreviewRenderer', () => {
     ).toEqual(['  Push 9-spike', '    main: code · started']);
   });
 
+  it('prints a push to the branch of an issue under the issue', () => {
+    const lines = render({
+      issues: [
+        createIssue({
+          pushes: [{ projectId: 1, branch: '12-spike', events: [pushEvent(at(12))] }],
+        }),
+      ],
+    });
+
+    expect(lines.slice(2)).toEqual([
+      '  Issue #12 Issue 12 · opened',
+      '    main: code',
+      '    assignees: dev.me',
+      '    Push 12-spike',
+      '      events: pushed to',
+      '      commits: fix: the login',
+    ]);
+  });
+
   it('marks a task that is kept out of the report', () => {
     const lines = render({
       issues: [

@@ -57,10 +57,12 @@ export class GitLabSourceService implements ActivitySource {
     );
     const mergeRequests = await this.loadMergeRequests(groups, projects);
     const closingIssues = await this.loadClosingIssues(mergeRequests);
+    const pushIssues = this.findPushIssues(groups, mergeRequests, projects);
     const links = this.linkMergeRequests(
       mergeRequests,
-      await this.loadIssues(groups, mergeRequests, closingIssues),
+      await this.loadIssues(groups, mergeRequests, closingIssues, pushIssues),
       closingIssues,
+      pushIssues,
     );
     const linkedProjects = await this.loadProjects(
       [...links.issues.values()]
@@ -167,10 +169,31 @@ export class GitLabSourceService implements ActivitySource {
     );
   }
 
+  private findPushIssues(
+    groups: SourceEventGroups,
+    mergeRequests: Map<string, GitLabMergeRequest>,
+    projects: Map<number, GitLabProject>,
+  ) {
+    const branches = new Set(
+      [...mergeRequests.values()].map((mergeRequest) =>
+        this.gitlabSourceKeys.toBranchKey(mergeRequest),
+      ),
+    );
+    const pushIssues = new Map<string, SourceItem>();
+    for (const [key, { target }] of groups.pushes) {
+      const issue = this.gitlabSourceKeys.toIssueOfBranch(target);
+      if (issue && !branches.has(key) && this.gitlabSourceKeys.isWorkBranch(target, projects)) {
+        pushIssues.set(key, issue);
+      }
+    }
+    return pushIssues;
+  }
+
   private async loadIssues(
     groups: SourceEventGroups,
     mergeRequests: Map<string, GitLabMergeRequest>,
     closingIssues: Map<string, GitLabIssue[]>,
+    pushIssues: Map<string, SourceItem>,
   ) {
     const known = new Map(
       [...closingIssues.values()]
@@ -183,6 +206,9 @@ export class GitLabSourceService implements ActivitySource {
       if (branchIssue) {
         targets.set(this.gitlabSourceKeys.toKey(branchIssue), branchIssue);
       }
+    }
+    for (const issue of pushIssues.values()) {
+      targets.set(this.gitlabSourceKeys.toKey(issue), issue);
     }
     const issues = await Promise.all(
       [...targets].map(async ([key, { projectId, iid }]) => {
@@ -197,11 +223,19 @@ export class GitLabSourceService implements ActivitySource {
     mergeRequests: Map<string, GitLabMergeRequest>,
     issues: Map<string, GitLabIssue>,
     closingIssues: Map<string, GitLabIssue[]>,
+    pushIssues: Map<string, SourceItem>,
   ) {
     const links: SourceLinks = {
       issues: new Map(issues),
       mainIssues: new Map(),
+      pushIssues: new Map(),
     };
+    for (const [branchKey, issue] of pushIssues) {
+      const issueKey = this.gitlabSourceKeys.toKey(issue);
+      if (issues.has(issueKey)) {
+        links.pushIssues.set(branchKey, issueKey);
+      }
+    }
     for (const [key, mergeRequest] of mergeRequests) {
       const branchIssue = this.gitlabSourceKeys.toBranchIssue(mergeRequest);
       const branchKey = branchIssue && this.gitlabSourceKeys.toKey(branchIssue);

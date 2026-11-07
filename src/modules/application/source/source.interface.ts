@@ -120,6 +120,7 @@ export interface GroupedIssue {
   notes: CleanNote[];
   labelEvents: CleanLabelEvent[];
   mergeRequests: GroupedMergeRequest[];
+  pushes: StandalonePush[];
 }
 
 export interface StandalonePush {

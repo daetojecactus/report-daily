@@ -28,7 +28,7 @@ export interface ActivityEmployee {
 export interface ActivityLine {
   issue: GroupedIssue | null;
   mergeRequests: GroupedMergeRequest[];
-  push: StandalonePush | null;
+  pushes: StandalonePush[];
 }
 
 export interface ActivityFact extends SourceFact {

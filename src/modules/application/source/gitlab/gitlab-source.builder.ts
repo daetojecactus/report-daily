@@ -14,6 +14,7 @@ import type {
   GroupedDailyData,
   GroupedIssue,
   GroupedMergeRequest,
+  StandalonePush,
 } from '../source.interface';
 import {
   GITLAB_SOURCE_ITEM_STATES,
@@ -25,8 +26,10 @@ import type {
   DayActivity,
   IssueActivity,
   MergeRequestActivity,
+  SourceBranch,
   SourceBuildContext,
   SourceEmployee,
+  SourceEvents,
 } from './gitlab-source.interface';
 
 @Injectable()
@@ -53,11 +56,18 @@ export class GitLabSourceBuilder {
       standaloneMergeRequests: activity.mergeRequests.map((mergeRequest) =>
         this.buildMergeRequest(mergeRequest, context),
       ),
-      standalonePushes: activity.pushes.map(({ target, events }) => ({
-        projectId: target.projectId,
-        branch: target.branch,
-        events: this.cleanEvents(events, context),
-      })),
+      standalonePushes: activity.pushes.map((push) => this.buildPush(push, context)),
+    };
+  }
+
+  private buildPush(
+    { target, events }: SourceEvents<SourceBranch>,
+    context: SourceBuildContext,
+  ): StandalonePush {
+    return {
+      projectId: target.projectId,
+      branch: target.branch,
+      events: this.cleanEvents(events, context),
     };
   }
 
@@ -98,6 +108,7 @@ export class GitLabSourceBuilder {
       mergeRequests: activity.mergeRequests.map((mergeRequest) =>
         this.buildMergeRequest(mergeRequest, context),
       ),
+      pushes: activity.pushes.map((push) => this.buildPush(push, context)),
     };
   }
 

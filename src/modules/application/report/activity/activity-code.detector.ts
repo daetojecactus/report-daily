@@ -139,7 +139,7 @@ export class ActivityCodeDetector {
     if (
       has(SourceActionKind.BRANCH_CREATED) ||
       has(SourceActionKind.OPENED) ||
-      [...line.mergeRequests, ...(line.push ? [line.push] : [])].some(({ events }) =>
+      [...line.mergeRequests, ...line.pushes].some(({ events }) =>
         events.some((event) => event.actionName === ACTIVITY_BRANCH_PUSH_ACTION),
       )
     ) {

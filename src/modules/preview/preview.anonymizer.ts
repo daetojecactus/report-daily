@@ -17,6 +17,7 @@ import type {
   MergeRequestSnapshot,
   SourceFact,
   SourceProject,
+  StandalonePush,
 } from 'src/modules/application/source/source.interface';
 import {
   PREVIEW_ACTION_VALUE,
@@ -73,11 +74,15 @@ export class PreviewAnonymizer {
       standaloneMergeRequests: day.standaloneMergeRequests.map((mergeRequest) =>
         this.anonymizeMergeRequest(mergeRequest, aliases),
       ),
-      standalonePushes: day.standalonePushes.map((push) => ({
-        projectId: this.toProjectId(push.projectId, aliases),
-        branch: this.toBranch(push.branch, aliases),
-        events: push.events.map((event) => this.anonymizeEvent(event, aliases)),
-      })),
+      standalonePushes: day.standalonePushes.map((push) => this.anonymizePush(push, aliases)),
+    };
+  }
+
+  private anonymizePush(push: StandalonePush, aliases: PreviewAliases): StandalonePush {
+    return {
+      projectId: this.toProjectId(push.projectId, aliases),
+      branch: this.toBranch(push.branch, aliases),
+      events: push.events.map((event) => this.anonymizeEvent(event, aliases)),
     };
   }
 
@@ -123,6 +128,7 @@ export class PreviewAnonymizer {
       mergeRequests: issue.mergeRequests.map((mergeRequest) =>
         this.anonymizeMergeRequest(mergeRequest, aliases),
       ),
+      pushes: issue.pushes.map((push) => this.anonymizePush(push, aliases)),
     };
   }
 
