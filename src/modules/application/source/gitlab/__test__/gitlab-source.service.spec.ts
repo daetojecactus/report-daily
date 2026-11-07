@@ -429,7 +429,9 @@ describe('GitLabSourceService', () => {
 
     const grouped = await collect(gitlab);
 
-    expect(grouped.issues[0].actions.map((item) => item.kind)).toEqual(['description_changed']);
+    expect(grouped.issues[0].facts.filter((fact) => fact.own).map((fact) => fact.kind)).toEqual([
+      'description_changed',
+    ]);
   });
 
   it('adds the items changed without events to the day', async () => {
@@ -459,7 +461,9 @@ describe('GitLabSourceService', () => {
       [12, 1],
       [30, 0],
     ]);
-    expect(grouped.issues[1].actions.map((action) => action.kind)).toEqual(['description_changed']);
+    expect(grouped.issues[1].facts.filter((fact) => fact.own).map((fact) => fact.kind)).toEqual([
+      'description_changed',
+    ]);
     expect(grouped.standaloneMergeRequests.map((item) => item.iid)).toEqual([7]);
     expect(gitlab.findIssue).toHaveBeenCalledTimes(2);
   });

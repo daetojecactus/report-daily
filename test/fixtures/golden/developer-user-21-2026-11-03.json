@@ -44,40 +44,66 @@
           "user-21"
         ],
         "status": "To do",
-        "actions": [
+        "startOfDay": {
+          "state": "opened",
+          "labels": [
+            "label-5",
+            "priority::high",
+            "label-6",
+            "type::maintenance",
+            "status::todo"
+          ],
+          "assignees": [
+            "user-21"
+          ],
+          "status": "To do"
+        },
+        "facts": [
           {
             "kind": "label_added",
             "at": "2026-11-03T12:49:56.742+05:00",
+            "actor": "user-21",
+            "own": true,
             "value": "status::doing",
             "users": []
           },
           {
             "kind": "label_removed",
             "at": "2026-11-03T12:49:56.742+05:00",
+            "actor": "user-21",
+            "own": true,
             "value": "status::todo",
             "users": []
           },
           {
             "kind": "branch_created",
             "at": "2026-11-03T12:50:12.051+05:00",
+            "actor": "user-21",
+            "own": true,
             "value": "123-branch-25",
             "users": []
           },
           {
             "kind": "branch_created",
             "at": "2026-11-03T12:51:46.817+05:00",
+            "actor": "user-21",
+            "own": true,
             "value": "87-branch-26",
             "users": []
           },
           {
             "kind": "label_added",
             "at": "2026-11-03T16:50:35.816+05:00",
+            "actor": "user-21",
+            "own": true,
             "value": "status::ready for QA",
             "users": []
           },
           {
             "kind": "label_removed",
             "at": "2026-11-03T16:50:35.816+05:00",
+            "actor": "user-21",
+            "own": true,
             "value": "status::doing",
             "users": []
           }
@@ -208,66 +234,110 @@
                 "webUrl": "https://gitlab.example.com/group/project-12/-/issues/87"
               }
             ],
-            "actions": [
+            "startOfDay": {
+              "state": "opened",
+              "labels": [],
+              "assignees": [],
+              "status": null,
+              "reviewers": [],
+              "draft": false
+            },
+            "facts": [
+              {
+                "kind": "pushed",
+                "at": "2026-11-03T12:51:46.891+05:00",
+                "actor": "user-21",
+                "own": true,
+                "value": "87-branch-26",
+                "users": []
+              },
               {
                 "kind": "opened",
                 "at": "2026-11-03T12:52:10.521+05:00",
+                "actor": "user-21",
+                "own": true,
                 "value": null,
                 "users": []
               },
               {
                 "kind": "label_added",
                 "at": "2026-11-03T12:52:10.617+05:00",
+                "actor": "user-21",
+                "own": true,
                 "value": "status::doing",
                 "users": []
               },
               {
                 "kind": "label_added",
                 "at": "2026-11-03T12:52:10.617+05:00",
+                "actor": "user-21",
+                "own": true,
                 "value": "priority::high",
                 "users": []
               },
               {
                 "kind": "label_added",
                 "at": "2026-11-03T12:52:10.617+05:00",
+                "actor": "user-21",
+                "own": true,
                 "value": "type::maintenance",
                 "users": []
               },
               {
                 "kind": "label_added",
                 "at": "2026-11-03T12:52:10.617+05:00",
+                "actor": "user-21",
+                "own": true,
                 "value": "label-5",
                 "users": []
               },
               {
                 "kind": "label_added",
                 "at": "2026-11-03T12:52:10.617+05:00",
+                "actor": "user-21",
+                "own": true,
                 "value": "label-6",
                 "users": []
               },
               {
                 "kind": "assigned",
                 "at": "2026-11-03T12:52:10.673+05:00",
+                "actor": "user-21",
+                "own": true,
                 "value": null,
                 "users": [
                   "user-21"
                 ]
               },
               {
+                "kind": "pushed",
+                "at": "2026-11-03T15:03:16.788+05:00",
+                "actor": "user-21",
+                "own": true,
+                "value": "87-branch-26",
+                "users": []
+              },
+              {
                 "kind": "label_added",
                 "at": "2026-11-03T16:08:37.825+05:00",
+                "actor": "user-21",
+                "own": true,
                 "value": "status::ready for QA",
                 "users": []
               },
               {
                 "kind": "label_removed",
                 "at": "2026-11-03T16:08:37.825+05:00",
+                "actor": "user-21",
+                "own": true,
                 "value": "status::doing",
                 "users": []
               },
               {
                 "kind": "review_requested",
                 "at": "2026-11-03T16:08:41.102+05:00",
+                "actor": "user-21",
+                "own": true,
                 "value": null,
                 "users": [
                   "user-1"
@@ -430,34 +500,58 @@
           "user-21"
         ],
         "status": "Done",
-        "actions": [
+        "startOfDay": {
+          "state": "opened",
+          "labels": [
+            "label-5",
+            "priority::high",
+            "label-6",
+            "type::maintenance",
+            "status::todo"
+          ],
+          "assignees": [
+            "user-21"
+          ],
+          "status": "To do"
+        },
+        "facts": [
           {
             "kind": "label_added",
             "at": "2026-11-03T12:49:56.742+05:00",
+            "actor": "user-21",
+            "own": true,
             "value": "status::doing",
             "users": []
           },
           {
             "kind": "label_removed",
             "at": "2026-11-03T12:49:56.742+05:00",
+            "actor": "user-21",
+            "own": true,
             "value": "status::todo",
             "users": []
           },
           {
             "kind": "branch_created",
             "at": "2026-11-03T12:50:12.051+05:00",
+            "actor": "user-21",
+            "own": true,
             "value": "123-branch-25",
             "users": []
           },
           {
             "kind": "status_set",
             "at": "2026-11-03T12:51:22.916+05:00",
+            "actor": "user-21",
+            "own": true,
             "value": "Done",
             "users": []
           },
           {
             "kind": "closed",
             "at": "2026-11-03T12:51:22.962+05:00",
+            "actor": "user-21",
+            "own": true,
             "value": null,
             "users": []
           }
@@ -541,16 +635,84 @@
           "user-21"
         ],
         "status": "To do",
-        "actions": [
+        "startOfDay": {
+          "state": "opened",
+          "labels": [],
+          "assignees": [],
+          "status": null
+        },
+        "facts": [
+          {
+            "kind": "opened",
+            "at": "2026-11-03T14:27:49.330+05:00",
+            "actor": "user-9",
+            "own": false,
+            "value": null,
+            "users": []
+          },
+          {
+            "kind": "status_set",
+            "at": "2026-11-03T14:27:49.428+05:00",
+            "actor": "user-9",
+            "own": false,
+            "value": "To do",
+            "users": []
+          },
+          {
+            "kind": "label_added",
+            "at": "2026-11-03T14:27:49.505+05:00",
+            "actor": "user-9",
+            "own": false,
+            "value": "priority::high",
+            "users": []
+          },
+          {
+            "kind": "label_added",
+            "at": "2026-11-03T14:27:49.505+05:00",
+            "actor": "user-9",
+            "own": false,
+            "value": "type::feature",
+            "users": []
+          },
+          {
+            "kind": "label_added",
+            "at": "2026-11-03T14:27:49.505+05:00",
+            "actor": "user-9",
+            "own": false,
+            "value": "label-1",
+            "users": []
+          },
+          {
+            "kind": "label_added",
+            "at": "2026-11-03T14:27:49.505+05:00",
+            "actor": "user-9",
+            "own": false,
+            "value": "label-6",
+            "users": []
+          },
+          {
+            "kind": "assigned",
+            "at": "2026-11-03T14:27:49.545+05:00",
+            "actor": "user-9",
+            "own": false,
+            "value": null,
+            "users": [
+              "user-21"
+            ]
+          },
           {
             "kind": "label_added",
             "at": "2026-11-03T14:31:52.089+05:00",
+            "actor": "user-21",
+            "own": true,
             "value": "status::doing",
             "users": []
           },
           {
             "kind": "branch_created",
             "at": "2026-11-03T14:32:01.469+05:00",
+            "actor": "user-21",
+            "own": true,
             "value": "42-branch-27",
             "users": []
           }
@@ -677,50 +839,88 @@
                 "webUrl": "https://gitlab.example.com/group/project-16/-/issues/42"
               }
             ],
-            "actions": [
+            "startOfDay": {
+              "state": "opened",
+              "labels": [],
+              "assignees": [],
+              "status": null,
+              "reviewers": [],
+              "draft": false
+            },
+            "facts": [
+              {
+                "kind": "pushed",
+                "at": "2026-11-03T14:32:02.026+05:00",
+                "actor": "user-21",
+                "own": true,
+                "value": "42-branch-27",
+                "users": []
+              },
               {
                 "kind": "opened",
                 "at": "2026-11-03T14:32:17.642+05:00",
+                "actor": "user-21",
+                "own": true,
                 "value": null,
                 "users": []
               },
               {
                 "kind": "label_added",
                 "at": "2026-11-03T14:32:17.751+05:00",
+                "actor": "user-21",
+                "own": true,
                 "value": "status::doing",
                 "users": []
               },
               {
                 "kind": "label_added",
                 "at": "2026-11-03T14:32:17.751+05:00",
+                "actor": "user-21",
+                "own": true,
                 "value": "priority::high",
                 "users": []
               },
               {
                 "kind": "label_added",
                 "at": "2026-11-03T14:32:17.751+05:00",
+                "actor": "user-21",
+                "own": true,
                 "value": "type::feature",
                 "users": []
               },
               {
                 "kind": "label_added",
                 "at": "2026-11-03T14:32:17.751+05:00",
+                "actor": "user-21",
+                "own": true,
                 "value": "label-1",
                 "users": []
               },
               {
                 "kind": "label_added",
                 "at": "2026-11-03T14:32:17.751+05:00",
+                "actor": "user-21",
+                "own": true,
                 "value": "label-6",
                 "users": []
               },
               {
                 "kind": "assigned",
                 "at": "2026-11-03T14:32:17.785+05:00",
+                "actor": "user-21",
+                "own": true,
                 "value": null,
                 "users": [
                   "user-21"
                 ]
+              },
+              {
+                "kind": "pushed",
+                "at": "2026-11-03T15:26:16.520+05:00",
+                "actor": "user-21",
+                "own": true,
+                "value": "42-branch-27",
+                "users": []
               }
             ],
             "events": [

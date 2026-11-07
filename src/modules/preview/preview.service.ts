@@ -6,7 +6,7 @@ import type {
   GroupedDailyData,
   GroupedIssue,
   GroupedMergeRequest,
-  SourceAction,
+  SourceFact,
 } from 'src/modules/application/source/source.interface';
 import { SourceService } from 'src/modules/application/source/source.service';
 import { UserService } from 'src/modules/application/user/user.service';
@@ -84,6 +84,8 @@ export class PreviewService {
 
   private describeDetails(item: GroupedIssue | GroupedMergeRequest, indent: string) {
     const comments = item.notes.filter((note) => !note.system).length;
+    const own = item.facts.filter((fact) => fact.own);
+    const others = item.facts.filter((fact) => !fact.own);
     return [
       item.labels.length ? `labels: ${item.labels.join(', ')}` : '',
       item.assignees.length ? `assignees: ${item.assignees.join(', ')}` : '',
@@ -92,7 +94,9 @@ export class PreviewService {
         ? `closes: ${item.closesIssues.map((issue) => `#${issue.iid}`).join(', ')}`
         : '',
       'status' in item && item.status ? `status: ${item.status}` : '',
-      item.actions.length ? `actions: ${this.describeActions(item.actions)}` : '',
+      own.length ? `actions: ${this.describeActions(own)}` : '',
+      others.length ? `facts of others: ${others.length}` : '',
+      this.describeStartOfDay(item),
       item.events.length ? `events: ${this.describeEvents(item.events)}` : '',
       this.describeCommits(item.events),
       comments ? `comments of the day: ${comments}` : '',
@@ -101,7 +105,22 @@ export class PreviewService {
       .map((line) => `${indent}${line}`);
   }
 
-  private describeActions(actions: SourceAction[]) {
+  private describeStartOfDay({ state, labels, startOfDay }: GroupedIssue | GroupedMergeRequest) {
+    const added = labels.filter((label) => !startOfDay.labels.includes(label));
+    const removed = startOfDay.labels.filter((label) => !labels.includes(label));
+    if (startOfDay.state === state && !added.length && !removed.length) {
+      return '';
+    }
+    return [
+      `start of day: ${startOfDay.state}`,
+      added.length ? `labels added: ${added.join(', ')}` : '',
+      removed.length ? `labels removed: ${removed.join(', ')}` : '',
+    ]
+      .filter(Boolean)
+      .join(' · ');
+  }
+
+  private describeActions(actions: SourceFact[]) {
     return this.countRepeats(
       actions.map(({ kind, value, users }) =>
         [kind, value, ...users.map((user) => `@${user}`)].filter(Boolean).join(' '),

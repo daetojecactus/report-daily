@@ -50,16 +50,28 @@
         "createdAt": "2026-10-12T17:27:56.954+05:00",
         "assignees": [],
         "status": "To do",
-        "actions": [
+        "startOfDay": {
+          "state": "opened",
+          "labels": [
+            "type::qa"
+          ],
+          "assignees": [],
+          "status": "To do"
+        },
+        "facts": [
           {
             "kind": "title_changed",
             "at": "2026-11-02T14:57:18.757+05:00",
+            "actor": "user-1",
+            "own": true,
             "value": null,
             "users": []
           },
           {
             "kind": "description_changed",
             "at": "2026-11-02T14:57:18.794+05:00",
+            "actor": "user-1",
+            "own": true,
             "value": null,
             "users": []
           }
@@ -170,46 +182,130 @@
                 "webUrl": "https://gitlab.example.com/group/project-13/-/issues/84"
               }
             ],
-            "actions": [
+            "startOfDay": {
+              "state": "opened",
+              "labels": [
+                "type::qa"
+              ],
+              "assignees": [
+                "user-1"
+              ],
+              "status": null,
+              "reviewers": [
+                "user-7"
+              ],
+              "draft": true
+            },
+            "facts": [
               {
                 "kind": "title_changed",
                 "at": "2026-11-02T14:57:35.252+05:00",
+                "actor": "user-1",
+                "own": true,
                 "value": null,
+                "users": []
+              },
+              {
+                "kind": "commented",
+                "at": "2026-11-02T15:04:47.923+05:00",
+                "actor": "user-7",
+                "own": false,
+                "value": null,
+                "users": []
+              },
+              {
+                "kind": "commented",
+                "at": "2026-11-02T15:08:55.250+05:00",
+                "actor": "user-7",
+                "own": false,
+                "value": null,
+                "users": []
+              },
+              {
+                "kind": "commented",
+                "at": "2026-11-02T15:09:58.606+05:00",
+                "actor": "user-7",
+                "own": false,
+                "value": null,
+                "users": []
+              },
+              {
+                "kind": "commented",
+                "at": "2026-11-02T15:14:29.030+05:00",
+                "actor": "user-7",
+                "own": false,
+                "value": null,
+                "users": []
+              },
+              {
+                "kind": "commented",
+                "at": "2026-11-02T15:17:46.954+05:00",
+                "actor": "user-7",
+                "own": false,
+                "value": null,
+                "users": []
+              },
+              {
+                "kind": "label_added",
+                "at": "2026-11-02T15:18:46.870+05:00",
+                "actor": "user-7",
+                "own": false,
+                "value": "status:: after review",
+                "users": []
+              },
+              {
+                "kind": "pushed",
+                "at": "2026-11-02T18:24:40.577+05:00",
+                "actor": "user-1",
+                "own": true,
+                "value": "84-branch-20",
                 "users": []
               },
               {
                 "kind": "diff_line_changed",
                 "at": "2026-11-02T18:24:41.847+05:00",
+                "actor": "user-1",
+                "own": true,
                 "value": null,
                 "users": []
               },
               {
                 "kind": "diff_line_changed",
                 "at": "2026-11-02T18:24:42.552+05:00",
+                "actor": "user-1",
+                "own": true,
                 "value": null,
                 "users": []
               },
               {
                 "kind": "diff_line_changed",
                 "at": "2026-11-02T18:24:42.714+05:00",
+                "actor": "user-1",
+                "own": true,
                 "value": null,
                 "users": []
               },
               {
                 "kind": "commented",
                 "at": "2026-11-02T18:25:00.232+05:00",
+                "actor": "user-1",
+                "own": true,
                 "value": null,
                 "users": []
               },
               {
                 "kind": "commented",
                 "at": "2026-11-02T18:25:19.794+05:00",
+                "actor": "user-1",
+                "own": true,
                 "value": null,
                 "users": []
               },
               {
                 "kind": "commented",
                 "at": "2026-11-02T18:25:39.515+05:00",
+                "actor": "user-1",
+                "own": true,
                 "value": null,
                 "users": []
               }
@@ -462,17 +558,131 @@
           "user-16"
         ],
         "status": "To do",
-        "actions": [
+        "startOfDay": {
+          "state": "opened",
+          "labels": [
+            "label-1",
+            "priority::high",
+            "label-6",
+            "status::review",
+            "type::maintenance"
+          ],
+          "assignees": [
+            "user-16"
+          ],
+          "status": "To do"
+        },
+        "facts": [
+          {
+            "kind": "commented",
+            "at": "2026-11-02T10:07:56.436+05:00",
+            "actor": "user-12",
+            "own": false,
+            "value": null,
+            "users": []
+          },
+          {
+            "kind": "label_added",
+            "at": "2026-11-02T10:09:20.348+05:00",
+            "actor": "user-16",
+            "own": false,
+            "value": "type::ignore",
+            "users": []
+          },
+          {
+            "kind": "label_removed",
+            "at": "2026-11-02T10:09:20.348+05:00",
+            "actor": "user-16",
+            "own": false,
+            "value": "type::maintenance",
+            "users": []
+          },
+          {
+            "kind": "status_set",
+            "at": "2026-11-02T10:09:39.659+05:00",
+            "actor": "user-16",
+            "own": false,
+            "value": "Done",
+            "users": []
+          },
+          {
+            "kind": "closed",
+            "at": "2026-11-02T10:09:39.712+05:00",
+            "actor": "user-16",
+            "own": false,
+            "value": null,
+            "users": []
+          },
+          {
+            "kind": "status_set",
+            "at": "2026-11-02T10:09:42.777+05:00",
+            "actor": "user-16",
+            "own": false,
+            "value": "To do",
+            "users": []
+          },
+          {
+            "kind": "reopened",
+            "at": "2026-11-02T10:09:42.825+05:00",
+            "actor": "user-16",
+            "own": false,
+            "value": null,
+            "users": []
+          },
+          {
+            "kind": "label_removed",
+            "at": "2026-11-02T10:10:21.642+05:00",
+            "actor": "user-16",
+            "own": false,
+            "value": "type::ignore",
+            "users": []
+          },
+          {
+            "kind": "commented",
+            "at": "2026-11-02T13:31:44.567+05:00",
+            "actor": "user-20",
+            "own": false,
+            "value": null,
+            "users": []
+          },
+          {
+            "kind": "label_added",
+            "at": "2026-11-02T14:54:11.652+05:00",
+            "actor": "user-16",
+            "own": false,
+            "value": "status::ready for QA",
+            "users": []
+          },
+          {
+            "kind": "label_removed",
+            "at": "2026-11-02T14:54:11.652+05:00",
+            "actor": "user-16",
+            "own": false,
+            "value": "status::review",
+            "users": []
+          },
           {
             "kind": "label_added",
             "at": "2026-11-02T16:01:49.693+05:00",
+            "actor": "user-1",
+            "own": true,
             "value": "status::QA passed",
             "users": []
           },
           {
             "kind": "label_removed",
             "at": "2026-11-02T16:01:49.693+05:00",
+            "actor": "user-1",
+            "own": true,
             "value": "status::ready for QA",
+            "users": []
+          },
+          {
+            "kind": "commented",
+            "at": "2026-11-02T16:06:04.257+05:00",
+            "actor": "user-12",
+            "own": false,
+            "value": null,
             "users": []
           }
         ],
@@ -617,22 +827,71 @@
                 "webUrl": "https://gitlab.example.com/group/project-2/-/issues/999"
               }
             ],
-            "actions": [
+            "startOfDay": {
+              "state": "opened",
+              "labels": [
+                "label-1",
+                "priority::high",
+                "label-6",
+                "type::maintenance",
+                "status::review"
+              ],
+              "assignees": [],
+              "status": null,
+              "reviewers": [
+                "user-12",
+                "user-17"
+              ],
+              "draft": false
+            },
+            "facts": [
+              {
+                "kind": "label_added",
+                "at": "2026-11-02T14:53:38.665+05:00",
+                "actor": "user-16",
+                "own": false,
+                "value": "status::ready for QA",
+                "users": []
+              },
+              {
+                "kind": "label_removed",
+                "at": "2026-11-02T14:53:38.665+05:00",
+                "actor": "user-16",
+                "own": false,
+                "value": "status::review",
+                "users": []
+              },
+              {
+                "kind": "review_requested",
+                "at": "2026-11-02T14:53:43.858+05:00",
+                "actor": "user-16",
+                "own": false,
+                "value": null,
+                "users": [
+                  "user-1"
+                ]
+              },
               {
                 "kind": "label_added",
                 "at": "2026-11-02T16:01:55.316+05:00",
+                "actor": "user-1",
+                "own": true,
                 "value": "status::QA passed",
                 "users": []
               },
               {
                 "kind": "label_removed",
                 "at": "2026-11-02T16:01:55.316+05:00",
+                "actor": "user-1",
+                "own": true,
                 "value": "status::ready for QA",
                 "users": []
               },
               {
                 "kind": "approved",
                 "at": "2026-11-02T16:02:01.338+05:00",
+                "actor": "user-1",
+                "own": true,
                 "value": null,
                 "users": []
               }
@@ -724,7 +983,120 @@
           "user-16"
         ],
         "status": "To do",
-        "actions": [],
+        "startOfDay": {
+          "state": "opened",
+          "labels": [],
+          "assignees": [],
+          "status": null
+        },
+        "facts": [
+          {
+            "kind": "opened",
+            "at": "2026-11-02T17:21:56.766+05:00",
+            "actor": "user-16",
+            "own": false,
+            "value": null,
+            "users": []
+          },
+          {
+            "kind": "status_set",
+            "at": "2026-11-02T17:21:56.860+05:00",
+            "actor": "user-16",
+            "own": false,
+            "value": "To do",
+            "users": []
+          },
+          {
+            "kind": "label_added",
+            "at": "2026-11-02T17:21:56.943+05:00",
+            "actor": "user-16",
+            "own": false,
+            "value": "status::review",
+            "users": []
+          },
+          {
+            "kind": "label_added",
+            "at": "2026-11-02T17:21:56.943+05:00",
+            "actor": "user-16",
+            "own": false,
+            "value": "priority::medium",
+            "users": []
+          },
+          {
+            "kind": "label_added",
+            "at": "2026-11-02T17:21:56.943+05:00",
+            "actor": "user-16",
+            "own": false,
+            "value": "type::bug",
+            "users": []
+          },
+          {
+            "kind": "label_added",
+            "at": "2026-11-02T17:21:56.943+05:00",
+            "actor": "user-16",
+            "own": false,
+            "value": "label-1",
+            "users": []
+          },
+          {
+            "kind": "assigned",
+            "at": "2026-11-02T17:21:56.984+05:00",
+            "actor": "user-16",
+            "own": false,
+            "value": null,
+            "users": [
+              "user-16"
+            ]
+          },
+          {
+            "kind": "branch_created",
+            "at": "2026-11-02T17:22:12.682+05:00",
+            "actor": "user-16",
+            "own": false,
+            "value": "1506-branch-22",
+            "users": []
+          },
+          {
+            "kind": "label_added",
+            "at": "2026-11-02T17:59:32.231+05:00",
+            "actor": "user-16",
+            "own": false,
+            "value": "status::ready for QA",
+            "users": []
+          },
+          {
+            "kind": "label_removed",
+            "at": "2026-11-02T17:59:32.231+05:00",
+            "actor": "user-16",
+            "own": false,
+            "value": "status::review",
+            "users": []
+          },
+          {
+            "kind": "title_changed",
+            "at": "2026-11-02T20:18:46.980+05:00",
+            "actor": "user-12",
+            "own": false,
+            "value": null,
+            "users": []
+          },
+          {
+            "kind": "label_added",
+            "at": "2026-11-02T20:19:03.165+05:00",
+            "actor": "user-12",
+            "own": false,
+            "value": "status::QA passed",
+            "users": []
+          },
+          {
+            "kind": "label_removed",
+            "at": "2026-11-02T20:19:03.165+05:00",
+            "actor": "user-12",
+            "own": false,
+            "value": "status::ready for QA",
+            "users": []
+          }
+        ],
         "events": [],
         "notes": [
           {
@@ -889,22 +1261,178 @@
                 "webUrl": "https://gitlab.example.com/group/project-7/-/issues/1506"
               }
             ],
-            "actions": [
+            "startOfDay": {
+              "state": "opened",
+              "labels": [],
+              "assignees": [],
+              "status": null,
+              "reviewers": [],
+              "draft": true
+            },
+            "facts": [
+              {
+                "kind": "opened",
+                "at": "2026-11-02T17:22:25.092+05:00",
+                "actor": "user-16",
+                "own": false,
+                "value": null,
+                "users": []
+              },
+              {
+                "kind": "label_added",
+                "at": "2026-11-02T17:22:25.183+05:00",
+                "actor": "user-16",
+                "own": false,
+                "value": "status::review",
+                "users": []
+              },
+              {
+                "kind": "label_added",
+                "at": "2026-11-02T17:22:25.183+05:00",
+                "actor": "user-16",
+                "own": false,
+                "value": "priority::medium",
+                "users": []
+              },
+              {
+                "kind": "label_added",
+                "at": "2026-11-02T17:22:25.183+05:00",
+                "actor": "user-16",
+                "own": false,
+                "value": "type::bug",
+                "users": []
+              },
+              {
+                "kind": "label_added",
+                "at": "2026-11-02T17:22:25.183+05:00",
+                "actor": "user-16",
+                "own": false,
+                "value": "label-1",
+                "users": []
+              },
+              {
+                "kind": "description_changed",
+                "at": "2026-11-02T17:37:12.057+05:00",
+                "actor": "user-16",
+                "own": false,
+                "value": null,
+                "users": []
+              },
+              {
+                "kind": "review_requested",
+                "at": "2026-11-02T17:37:40.673+05:00",
+                "actor": "user-16",
+                "own": false,
+                "value": null,
+                "users": [
+                  "user-12"
+                ]
+              },
+              {
+                "kind": "review_requested",
+                "at": "2026-11-02T17:37:47.982+05:00",
+                "actor": "user-16",
+                "own": false,
+                "value": null,
+                "users": [
+                  "user-17"
+                ]
+              },
+              {
+                "kind": "marked_ready",
+                "at": "2026-11-02T17:38:12.111+05:00",
+                "actor": "user-16",
+                "own": false,
+                "value": null,
+                "users": []
+              },
+              {
+                "kind": "commented",
+                "at": "2026-11-02T17:45:40.090+05:00",
+                "actor": "user-12",
+                "own": false,
+                "value": null,
+                "users": []
+              },
+              {
+                "kind": "review_submitted",
+                "at": "2026-11-02T17:45:40.340+05:00",
+                "actor": "user-12",
+                "own": false,
+                "value": null,
+                "users": []
+              },
+              {
+                "kind": "diff_line_changed",
+                "at": "2026-11-02T17:49:14.959+05:00",
+                "actor": "user-16",
+                "own": false,
+                "value": null,
+                "users": []
+              },
+              {
+                "kind": "commented",
+                "at": "2026-11-02T17:50:53.949+05:00",
+                "actor": "user-16",
+                "own": false,
+                "value": null,
+                "users": []
+              },
+              {
+                "kind": "threads_resolved",
+                "at": "2026-11-02T17:58:19.850+05:00",
+                "actor": "user-16",
+                "own": false,
+                "value": null,
+                "users": []
+              },
+              {
+                "kind": "label_added",
+                "at": "2026-11-02T17:59:08.783+05:00",
+                "actor": "user-16",
+                "own": false,
+                "value": "status::ready for QA",
+                "users": []
+              },
+              {
+                "kind": "label_removed",
+                "at": "2026-11-02T17:59:08.783+05:00",
+                "actor": "user-16",
+                "own": false,
+                "value": "status::review",
+                "users": []
+              },
+              {
+                "kind": "review_requested",
+                "at": "2026-11-02T17:59:16.570+05:00",
+                "actor": "user-16",
+                "own": false,
+                "value": null,
+                "users": [
+                  "user-1"
+                ]
+              },
               {
                 "kind": "approved",
                 "at": "2026-11-02T18:27:31.766+05:00",
+                "actor": "user-1",
+                "own": true,
                 "value": null,
                 "users": []
               },
               {
                 "kind": "label_added",
                 "at": "2026-11-02T18:27:35.337+05:00",
+                "actor": "user-1",
+                "own": true,
                 "value": "status::QA passed",
                 "users": []
               },
               {
                 "kind": "label_removed",
                 "at": "2026-11-02T18:27:35.337+05:00",
+                "actor": "user-1",
+                "own": true,
                 "value": "status::ready for QA",
                 "users": []
               }
@@ -1134,7 +1662,18 @@
           "user-24"
         ],
         "status": "To do",
-        "actions": [],
+        "startOfDay": {
+          "state": "opened",
+          "labels": [
+            "priority::high",
+            "status::ready for QA"
+          ],
+          "assignees": [
+            "user-24"
+          ],
+          "status": "To do"
+        },
+        "facts": [],
         "events": [],
         "notes": [],
         "labelEvents": [],
@@ -1188,46 +1727,95 @@
                 "webUrl": "https://gitlab.example.com/group/project-14/-/issues/909"
               }
             ],
-            "actions": [
+            "startOfDay": {
+              "state": "opened",
+              "labels": [
+                "priority::high",
+                "status::ready for QA"
+              ],
+              "assignees": [
+                "user-24"
+              ],
+              "status": null,
+              "reviewers": [
+                "user-5"
+              ],
+              "draft": false
+            },
+            "facts": [
+              {
+                "kind": "review_requested",
+                "at": "2026-11-02T10:06:36.725+05:00",
+                "actor": "user-7",
+                "own": false,
+                "value": null,
+                "users": [
+                  "user-1"
+                ]
+              },
+              {
+                "kind": "review_request_removed",
+                "at": "2026-11-02T10:06:36.725+05:00",
+                "actor": "user-7",
+                "own": false,
+                "value": null,
+                "users": [
+                  "user-5"
+                ]
+              },
               {
                 "kind": "commented",
                 "at": "2026-11-02T17:25:35.233+05:00",
+                "actor": "user-1",
+                "own": true,
                 "value": null,
                 "users": []
               },
               {
                 "kind": "commented",
                 "at": "2026-11-02T17:26:04.047+05:00",
+                "actor": "user-1",
+                "own": true,
                 "value": null,
                 "users": []
               },
               {
                 "kind": "commented",
                 "at": "2026-11-02T17:28:21.251+05:00",
+                "actor": "user-1",
+                "own": true,
                 "value": null,
                 "users": []
               },
               {
                 "kind": "commented",
                 "at": "2026-11-02T17:28:33.454+05:00",
+                "actor": "user-1",
+                "own": true,
                 "value": null,
                 "users": []
               },
               {
                 "kind": "label_added",
                 "at": "2026-11-02T17:28:38.138+05:00",
+                "actor": "user-1",
+                "own": true,
                 "value": "status:: after review",
                 "users": []
               },
               {
                 "kind": "label_removed",
                 "at": "2026-11-02T17:28:38.138+05:00",
+                "actor": "user-1",
+                "own": true,
                 "value": "status::ready for QA",
                 "users": []
               },
               {
                 "kind": "review_request_removed",
                 "at": "2026-11-02T17:28:40.899+05:00",
+                "actor": "user-1",
+                "own": true,
                 "value": null,
                 "users": [
                   "user-1"
@@ -1411,34 +1999,150 @@
             "webUrl": "https://gitlab.example.com/group/project-15/-/issues/670"
           }
         ],
-        "actions": [
+        "startOfDay": {
+          "state": "opened",
+          "labels": [
+            "label-5",
+            "priority::medium",
+            "status::ready for QA"
+          ],
+          "assignees": [
+            "user-25"
+          ],
+          "status": null,
+          "reviewers": [
+            "user-5"
+          ],
+          "draft": true
+        },
+        "facts": [
+          {
+            "kind": "review_requested",
+            "at": "2026-11-02T10:07:10.852+05:00",
+            "actor": "user-7",
+            "own": false,
+            "value": null,
+            "users": [
+              "user-1"
+            ]
+          },
+          {
+            "kind": "review_request_removed",
+            "at": "2026-11-02T10:07:16.715+05:00",
+            "actor": "user-7",
+            "own": false,
+            "value": null,
+            "users": [
+              "user-5"
+            ]
+          },
+          {
+            "kind": "review_request_removed",
+            "at": "2026-11-02T11:25:12.752+05:00",
+            "actor": "user-25",
+            "own": false,
+            "value": null,
+            "users": [
+              "user-1"
+            ]
+          },
+          {
+            "kind": "label_removed",
+            "at": "2026-11-02T11:25:14.942+05:00",
+            "actor": "user-25",
+            "own": false,
+            "value": "status::ready for QA",
+            "users": []
+          },
+          {
+            "kind": "review_requested",
+            "at": "2026-11-02T11:39:30.814+05:00",
+            "actor": "user-25",
+            "own": false,
+            "value": null,
+            "users": [
+              "user-1"
+            ]
+          },
+          {
+            "kind": "label_added",
+            "at": "2026-11-02T11:39:33.274+05:00",
+            "actor": "user-25",
+            "own": false,
+            "value": "status::ready for QA",
+            "users": []
+          },
           {
             "kind": "commented",
             "at": "2026-11-02T16:00:12.087+05:00",
+            "actor": "user-1",
+            "own": true,
             "value": null,
             "users": []
           },
           {
             "kind": "commented",
             "at": "2026-11-02T16:00:34.437+05:00",
+            "actor": "user-1",
+            "own": true,
             "value": null,
             "users": []
           },
           {
             "kind": "label_added",
             "at": "2026-11-02T16:00:38.651+05:00",
+            "actor": "user-1",
+            "own": true,
             "value": "status:: after review",
             "users": []
           },
           {
             "kind": "label_removed",
             "at": "2026-11-02T16:00:38.651+05:00",
+            "actor": "user-1",
+            "own": true,
             "value": "status::ready for QA",
             "users": []
           },
           {
             "kind": "review_request_removed",
             "at": "2026-11-02T16:00:41.404+05:00",
+            "actor": "user-1",
+            "own": true,
+            "value": null,
+            "users": [
+              "user-1"
+            ]
+          },
+          {
+            "kind": "commented",
+            "at": "2026-11-02T17:49:24.862+05:00",
+            "actor": "user-25",
+            "own": false,
+            "value": null,
+            "users": []
+          },
+          {
+            "kind": "label_added",
+            "at": "2026-11-02T17:49:29.139+05:00",
+            "actor": "user-25",
+            "own": false,
+            "value": "status::ready for QA",
+            "users": []
+          },
+          {
+            "kind": "label_removed",
+            "at": "2026-11-02T17:49:29.139+05:00",
+            "actor": "user-25",
+            "own": false,
+            "value": "status:: after review",
+            "users": []
+          },
+          {
+            "kind": "review_requested",
+            "at": "2026-11-02T17:49:34.974+05:00",
+            "actor": "user-25",
+            "own": false,
             "value": null,
             "users": [
               "user-1"

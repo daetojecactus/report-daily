@@ -2,8 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { getDayRange } from 'src/common/utils/date.util';
 import { GitLabLabelAction, GitLabState } from 'src/modules/vendors/gitlab/gitlab.enums';
 import type { GitLabMergeRequest, GitLabNote } from 'src/modules/vendors/gitlab/gitlab.interface';
-import { SourceActionKind } from '../../source.enums';
+import { ItemState, SourceActionKind } from '../../source.enums';
 import type { IssueActivity, MergeRequestActivity } from '../gitlab-source.interface';
+import type { SourceFact } from '../../source.interface';
 import {
   createAuthor,
   createBuilder,
@@ -51,7 +52,7 @@ function buildMergeRequest(
       pushCommits: new Map(),
     },
     DAY,
-    EMPLOYEE.id,
+    { id: EMPLOYEE.id, username: USERNAME },
   ).standaloneMergeRequests;
   return grouped;
 }
@@ -76,7 +77,7 @@ function buildIssue(overrides: Partial<IssueActivity> = {}) {
       pushCommits: new Map(),
     },
     DAY,
-    EMPLOYEE.id,
+    { id: EMPLOYEE.id, username: USERNAME },
   ).issues;
   return grouped;
 }
@@ -317,7 +318,7 @@ describe('GitLabSourceBuilder', () => {
         ]),
       },
       DAY,
-      EMPLOYEE.id,
+      { id: EMPLOYEE.id, username: USERNAME },
     );
 
     expect(grouped.projects).toEqual([
@@ -488,7 +489,7 @@ describe('GitLabSourceBuilder', () => {
       expect(grouped.reviewThreads).toEqual({ total: 3, unresolved: 2 });
     });
   });
-  describe('own actions of the day', () => {
+  describe('facts of the day', () => {
     const OTHER = createAuthor('dev.other');
 
     function ownNote(body: string, hour: number, system = true) {
@@ -513,6 +514,12 @@ describe('GitLabSourceBuilder', () => {
         value,
         users,
       };
+    }
+
+    function toOwn(facts: SourceFact[]) {
+      return facts
+        .filter((fact) => fact.own)
+        .map(({ kind, at, value, users }) => ({ kind, at, value, users }));
     }
 
     it('collects what the employee did on an issue in time order', () => {
@@ -569,7 +576,7 @@ describe('GitLabSourceBuilder', () => {
         ],
       });
 
-      expect(grouped.actions).toEqual([
+      expect(toOwn(grouped.facts)).toEqual([
         action(SourceActionKind.OPENED, 8),
         action(SourceActionKind.COMMENTED, 9),
         action(SourceActionKind.STATUS_SET, 10, 'In progress'),
@@ -607,7 +614,7 @@ describe('GitLabSourceBuilder', () => {
         ],
       });
 
-      expect(grouped.actions).toEqual([
+      expect(toOwn(grouped.facts)).toEqual([
         action(SourceActionKind.REVIEW_REQUESTED, 9, null, ['dev.a']),
         action(SourceActionKind.REVIEW_REQUEST_REMOVED, 9, null, ['dev.b']),
         action(SourceActionKind.APPROVED, 10),
@@ -618,6 +625,66 @@ describe('GitLabSourceBuilder', () => {
         action(SourceActionKind.DIFF_LINE_CHANGED, 15),
         action(SourceActionKind.REVIEW_SUBMITTED, 16),
         action(SourceActionKind.MERGED, 17),
+      ]);
+    });
+
+    it('keeps what others did with the actor and marks the employee by id', () => {
+      const grouped = buildIssue({
+        issue: createIssue({ author: OTHER, created_at: `${REPORT_DATE}T08:00:00.000Z` }),
+        notes: [
+          createNote({ body: 'please check', author: OTHER, system: false }),
+          createNote({
+            body: 'approved this merge request',
+            author: { ...EMPLOYEE, username: 'renamed.user' },
+            created_at: `${REPORT_DATE}T12:00:00.000Z`,
+          }),
+        ],
+        labelEvents: [createLabelEvent({ user: OTHER, label: { name: 'status::review' } })],
+        stateEvents: [
+          { ...createStateEvent(GitLabState.CLOSED, `${REPORT_DATE}T17:00:00.000Z`), user: null },
+        ],
+      });
+
+      expect(grouped.facts.map(({ kind, actor, own }) => ({ kind, actor, own }))).toEqual(
+        expect.arrayContaining([
+          { kind: SourceActionKind.OPENED, actor: 'dev.other', own: false },
+          { kind: SourceActionKind.COMMENTED, actor: 'dev.other', own: false },
+          { kind: SourceActionKind.LABEL_ADDED, actor: 'dev.other', own: false },
+          { kind: SourceActionKind.APPROVED, actor: 'renamed.user', own: true },
+          { kind: SourceActionKind.CLOSED, actor: null, own: false },
+        ]),
+      );
+      expect(grouped.facts).toHaveLength(5);
+    });
+
+    it('makes the employee pushes facts of the merge request', () => {
+      const grouped = buildMergeRequest(createMergeRequest(), {
+        events: [
+          createEvent({
+            action_name: 'pushed to',
+            created_at: `${REPORT_DATE}T11:00:00.000Z`,
+            push_data: {
+              commit_count: 2,
+              action: 'pushed',
+              ref_type: 'branch',
+              ref: '12-login',
+              commit_from: 'aaa',
+              commit_to: 'bbb',
+              commit_title: 'fix: the login',
+            },
+          }),
+        ],
+      });
+
+      expect(grouped.facts.filter((fact) => fact.kind === SourceActionKind.PUSHED)).toEqual([
+        {
+          kind: SourceActionKind.PUSHED,
+          at: `${REPORT_DATE}T11:00:00.000Z`,
+          actor: USERNAME,
+          own: true,
+          value: '12-login',
+          users: [],
+        },
       ]);
     });
 
@@ -638,6 +705,73 @@ describe('GitLabSourceBuilder', () => {
       });
 
       expect(grouped.status).toBe(status);
+    });
+  });
+
+  describe('state at the start of the day', () => {
+    it('undoes what happened during the day for an issue', () => {
+      const grouped = buildIssue({
+        issue: createIssue({
+          state: GitLabState.CLOSED,
+          labels: ['status::done'],
+          assignees: [createAuthor('dev.b')],
+        }),
+        labelEvents: [
+          createLabelEvent({
+            label: { name: 'status::done' },
+            created_at: `${REPORT_DATE}T15:00:00.000Z`,
+          }),
+          createLabelEvent({
+            label: { name: 'status::review' },
+            action: GitLabLabelAction.REMOVE,
+            created_at: `${REPORT_DATE}T15:00:00.000Z`,
+          }),
+        ],
+        stateEvents: [createStateEvent(GitLabState.CLOSED, `${REPORT_DATE}T16:00:00.000Z`)],
+        notes: [
+          createNote({
+            body: 'assigned to @dev.b and unassigned @dev.a',
+            created_at: `${REPORT_DATE}T14:00:00.000Z`,
+          }),
+          createNote({
+            body: 'set status to **In progress**',
+            created_at: '2026-08-01T10:00:00.000Z',
+          }),
+          createNote({
+            body: 'set status to **Done**',
+            created_at: `${REPORT_DATE}T16:00:00.000Z`,
+          }),
+        ],
+      });
+
+      expect(grouped.startOfDay).toEqual({
+        state: ItemState.OPENED,
+        labels: ['status::review'],
+        assignees: ['dev.a'],
+        status: 'In progress',
+      });
+      expect(grouped.state).toBe(ItemState.CLOSED);
+    });
+
+    it('keeps the reviewers and the draft of a merge request at the start of the day', () => {
+      const grouped = buildMergeRequest(
+        createMergeRequest({ reviewers: [createAuthor('dev.r')], draft: false }),
+        {
+          notes: [
+            createNote({
+              body: 'requested review from @dev.r',
+              created_at: `${REPORT_DATE}T10:00:00.000Z`,
+            }),
+            createNote({
+              body: 'marked this merge request as **ready**',
+              created_at: `${REPORT_DATE}T09:00:00.000Z`,
+            }),
+          ],
+        },
+      );
+
+      expect(grouped.startOfDay).toMatchObject({ reviewers: [], draft: true, status: null });
+      expect(grouped.reviewers).toEqual(['dev.r']);
     });
   });
 });

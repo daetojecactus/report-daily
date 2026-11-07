@@ -51,6 +51,7 @@ function isNoteBody(value: string) {
 
 const CHECKS: Record<string, (value: string) => boolean> = {
   username: (value) => USER.test(value),
+  actor: (value) => USER.test(value),
   authorUsername: (value) => USER.test(value),
   authorName: (value) => USER.test(value),
   author: (value) => USER.test(value),

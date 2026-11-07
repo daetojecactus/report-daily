@@ -1,11 +1,25 @@
 import type { UserSource } from 'src/modules/application/user/user-source/user-source.interface';
 import type { ItemState, LabelAction, Source, SourceActionKind } from './source.enums';
 
-export interface SourceAction {
+export interface SourceFact {
   kind: SourceActionKind;
   at: string;
+  actor: string | null;
+  own: boolean;
   value: string | null;
   users: string[];
+}
+
+export interface ItemSnapshot {
+  state: ItemState;
+  labels: string[];
+  assignees: string[];
+  status: string | null;
+}
+
+export interface MergeRequestSnapshot extends ItemSnapshot {
+  reviewers: string[];
+  draft: boolean;
 }
 
 export interface CleanCommit {
@@ -81,7 +95,8 @@ export interface GroupedMergeRequest {
   assignees: string[];
   reviewers: string[];
   closesIssues: IssueReference[];
-  actions: SourceAction[];
+  startOfDay: MergeRequestSnapshot;
+  facts: SourceFact[];
   events: CleanEvent[];
   notes: CleanNote[];
   labelEvents: CleanLabelEvent[];
@@ -99,7 +114,8 @@ export interface GroupedIssue {
   createdAt: string;
   assignees: string[];
   status: string | null;
-  actions: SourceAction[];
+  startOfDay: ItemSnapshot;
+  facts: SourceFact[];
   events: CleanEvent[];
   notes: CleanNote[];
   labelEvents: CleanLabelEvent[];

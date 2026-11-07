@@ -70,10 +70,20 @@ function createMergeRequest(overrides: Partial<GroupedMergeRequest> = {}): Group
         webUrl: 'https://acme.example.org/acme-corp/billing-api/-/issues/3',
       },
     ],
-    actions: [
+    startOfDay: {
+      state: ItemState.OPENED,
+      labels: ['status::doing', 'region::EU'],
+      assignees: ['anna.petrova'],
+      status: null,
+      reviewers: ['ivan.sidorov'],
+      draft: true,
+    },
+    facts: [
       {
         kind: SourceActionKind.REVIEW_REQUESTED,
         at: '2026-11-05T09:00:00.000Z',
+        actor: 'anna.petrova',
+        own: true,
         value: null,
         users: ['ivan.sidorov'],
       },
@@ -163,23 +173,35 @@ function createDay(): GroupedDailyData {
         createdAt: '2026-11-01T09:00:00.000Z',
         assignees: ['anna.petrova', 'ivan.sidorov'],
         status: 'Custom review',
-        actions: [
+        startOfDay: {
+          state: ItemState.OPENED,
+          labels: ['type::bug', 'region::EU'],
+          assignees: ['anna.petrova'],
+          status: 'Custom review',
+        },
+        facts: [
           {
             kind: SourceActionKind.LABEL_ADDED,
             at: '2026-11-05T08:00:00.000Z',
             value: 'app::server',
+            actor: 'anna.petrova',
+            own: true,
             users: [],
           },
           {
             kind: SourceActionKind.BRANCH_CREATED,
             at: '2026-11-05T08:00:00.000Z',
             value: '12-fix-card-payments',
+            actor: 'anna.petrova',
+            own: true,
             users: [],
           },
           {
             kind: SourceActionKind.STATUS_SET,
             at: '2026-11-05T08:00:00.000Z',
             value: 'Done',
+            actor: 'anna.petrova',
+            own: true,
             users: [],
           },
         ],
@@ -235,7 +257,8 @@ describe('PreviewAnonymizer', () => {
       authorName: 'user-2',
     });
     expect(mergeRequest.notes[2].body).toBe('requested review from @user-2 and unassigned @user-1');
-    expect(mergeRequest.actions[0].users).toEqual(['user-2']);
+    expect(mergeRequest.facts[0]).toMatchObject({ actor: 'user-1', users: ['user-2'] });
+    expect(mergeRequest.startOfDay).toMatchObject({ assignees: ['user-1'], reviewers: ['user-2'] });
     expect(day.projects).toEqual([
       {
         id: 1,
@@ -274,7 +297,8 @@ describe('PreviewAnonymizer', () => {
       'label-1',
       'Status::Ready_for QA',
     ]);
-    expect(issue.actions[0].value).toBe('label-2');
+    expect(issue.facts[0].value).toBe('label-2');
+    expect(issue.startOfDay.labels).toEqual(['type::bug', 'label-1']);
   });
 
   it('keeps what the rules read from branches, commits and statuses', () => {
@@ -284,7 +308,7 @@ describe('PreviewAnonymizer', () => {
     const pushData = mergeRequest.events[0].pushData;
 
     expect(mergeRequest.sourceBranch).toBe('12-branch-1');
-    expect(issue.actions[1].value).toBe('12-branch-1');
+    expect(issue.facts[1].value).toBe('12-branch-1');
     expect(day.standaloneMergeRequests[0].sourceBranch).toBe('renovate-branch-2');
     expect(day.standalonePushes[0].branch).toBe('main');
     expect(pushData?.ref).toBe('12-branch-1');
@@ -294,7 +318,8 @@ describe('PreviewAnonymizer', () => {
       { id: 'sha-3', title: 'тест: commit 3' },
     ]);
     expect(issue.status).toBe('status-1');
-    expect(issue.actions[2].value).toBe('Done');
+    expect(issue.facts[2].value).toBe('Done');
+    expect(issue.startOfDay.status).toBe('status-1');
   });
 
   it('keeps the system notes the rules parse and hides the rest', () => {

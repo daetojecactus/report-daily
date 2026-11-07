@@ -45,16 +45,42 @@
           "user-4"
         ],
         "status": "Done",
-        "actions": [
+        "startOfDay": {
+          "state": "opened",
+          "labels": [
+            "label-5",
+            "priority::high",
+            "label-2",
+            "status::QA passed",
+            "type::feature"
+          ],
+          "assignees": [
+            "user-4"
+          ],
+          "status": "To do"
+        },
+        "facts": [
+          {
+            "kind": "label_added",
+            "at": "2026-11-05T15:02:36.135+05:00",
+            "actor": "user-5",
+            "own": false,
+            "value": "test::e2e required",
+            "users": []
+          },
           {
             "kind": "status_set",
             "at": "2026-11-05T15:18:17.214+05:00",
+            "actor": "user-21",
+            "own": true,
             "value": "Done",
             "users": []
           },
           {
             "kind": "closed",
             "at": "2026-11-05T15:18:17.418+05:00",
+            "actor": "user-21",
+            "own": true,
             "value": null,
             "users": []
           }
@@ -196,11 +222,64 @@
                 "webUrl": "https://gitlab.example.com/group/project-8/-/issues/686"
               }
             ],
-            "actions": [
+            "startOfDay": {
+              "state": "opened",
+              "labels": [
+                "label-5",
+                "priority::high",
+                "label-2",
+                "status::QA passed",
+                "type::feature"
+              ],
+              "assignees": [
+                "user-4"
+              ],
+              "status": null,
+              "reviewers": [
+                "user-21",
+                "user-5"
+              ],
+              "draft": false
+            },
+            "facts": [
+              {
+                "kind": "commented",
+                "at": "2026-11-05T15:02:27.881+05:00",
+                "actor": "user-5",
+                "own": false,
+                "value": null,
+                "users": []
+              },
+              {
+                "kind": "label_added",
+                "at": "2026-11-05T15:02:31.729+05:00",
+                "actor": "user-5",
+                "own": false,
+                "value": "test::e2e required",
+                "users": []
+              },
+              {
+                "kind": "approved",
+                "at": "2026-11-05T15:02:54.024+05:00",
+                "actor": "user-5",
+                "own": false,
+                "value": null,
+                "users": []
+              },
               {
                 "kind": "merged",
                 "at": "2026-11-05T15:18:15.931+05:00",
+                "actor": "user-21",
+                "own": true,
                 "value": null,
+                "users": []
+              },
+              {
+                "kind": "pushed",
+                "at": "2026-11-05T15:18:24.740+05:00",
+                "actor": "user-21",
+                "own": true,
+                "value": "686-branch-18",
                 "users": []
               }
             ],
@@ -320,7 +399,36 @@
         ],
         "reviewers": [],
         "closesIssues": [],
-        "actions": [],
+        "startOfDay": {
+          "state": "opened",
+          "labels": [
+            "type::maintenance"
+          ],
+          "assignees": [
+            "user-21"
+          ],
+          "status": null,
+          "reviewers": [],
+          "draft": false
+        },
+        "facts": [
+          {
+            "kind": "pushed",
+            "at": "2026-11-05T15:15:02.279+05:00",
+            "actor": "user-21",
+            "own": true,
+            "value": "renovate/branch-45",
+            "users": []
+          },
+          {
+            "kind": "pushed",
+            "at": "2026-11-05T15:29:38.800+05:00",
+            "actor": "user-21",
+            "own": true,
+            "value": "renovate/branch-45",
+            "users": []
+          }
+        ],
         "events": [
           {
             "id": 598613,
@@ -413,7 +521,36 @@
         ],
         "reviewers": [],
         "closesIssues": [],
-        "actions": [],
+        "startOfDay": {
+          "state": "opened",
+          "labels": [
+            "type::maintenance"
+          ],
+          "assignees": [
+            "user-21"
+          ],
+          "status": null,
+          "reviewers": [],
+          "draft": false
+        },
+        "facts": [
+          {
+            "kind": "pushed",
+            "at": "2026-11-05T15:06:39.264+05:00",
+            "actor": "user-21",
+            "own": true,
+            "value": "renovate/branch-45",
+            "users": []
+          },
+          {
+            "kind": "pushed",
+            "at": "2026-11-05T15:30:45.778+05:00",
+            "actor": "user-21",
+            "own": true,
+            "value": "renovate/branch-45",
+            "users": []
+          }
+        ],
         "events": [
           {
             "id": 598615,
@@ -506,7 +643,28 @@
         ],
         "reviewers": [],
         "closesIssues": [],
-        "actions": [],
+        "startOfDay": {
+          "state": "opened",
+          "labels": [
+            "type::maintenance"
+          ],
+          "assignees": [
+            "user-21"
+          ],
+          "status": null,
+          "reviewers": [],
+          "draft": false
+        },
+        "facts": [
+          {
+            "kind": "pushed",
+            "at": "2026-11-05T15:09:50.382+05:00",
+            "actor": "user-21",
+            "own": true,
+            "value": "renovate/branch-45",
+            "users": []
+          }
+        ],
         "events": [
           {
             "id": 598584,

@@ -27,6 +27,7 @@ export enum SourceEventAction {
 
 export enum SourceActionKind {
   OPENED = 'opened',
+  PUSHED = 'pushed',
   COMMENTED = 'commented',
   CLOSED = 'closed',
   REOPENED = 'reopened',
