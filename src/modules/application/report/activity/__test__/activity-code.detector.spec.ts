@@ -35,6 +35,7 @@ describe('ActivityCodeDetector', () => {
 
   it('sees work on review remarks, after testing, on a rebase and on tests', () => {
     const mergeRequest = createMergeRequest({
+      reviewers: [OTHER],
       startOfDay: { ...createMergeRequest().startOfDay, labels: ['qa::returned'] },
       facts: [
         otherFact(SourceActionKind.COMMENTED, at(9)),
@@ -65,6 +66,50 @@ describe('ActivityCodeDetector', () => {
 
     expect(codeOf(mergeRequest, returned(at(10)))?.details).toEqual([ActivityDetail.AFTER_QA]);
     expect(codeOf(mergeRequest, returned(at(12)))?.details).toEqual([]);
+  });
+
+  it('sees work on review remarks by the threads of the merge request', () => {
+    const threads = (unresolved: number) =>
+      codeOf(
+        createMergeRequest({
+          reviewThreads: { total: 3, unresolved },
+          events: [pushEvent(at(11))],
+        }),
+      )?.details;
+
+    expect(threads(2)).toEqual([ActivityDetail.AFTER_REVIEW]);
+    expect(threads(0)).toEqual([ActivityDetail.AFTER_REVIEW, ActivityDetail.RESOLVED]);
+  });
+
+  it('takes a conversation outside a review for a discussion, not for review remarks', () => {
+    const conversation = (labels: string[]) =>
+      summarize(
+        detect(
+          issueLine(
+            createIssue({
+              labels,
+              mergeRequests: [
+                createMergeRequest({
+                  facts: [
+                    otherFact(SourceActionKind.COMMENTED, at(9)),
+                    fact(SourceActionKind.COMMENTED, at(10)),
+                  ],
+                  events: [pushEvent(at(11))],
+                }),
+              ],
+            }),
+          ),
+        ),
+      ).map(({ action, details }) => [action, details]);
+
+    expect(conversation([])).toEqual([
+      [ActivityAction.CODE, []],
+      [ActivityAction.DISCUSSED, [ActivityDetail.DIALOG]],
+    ]);
+    expect(conversation(['status::review'])[0]).toEqual([
+      ActivityAction.CODE,
+      [ActivityDetail.AFTER_REVIEW],
+    ]);
   });
 
   it('sees a change of a line under a review remark', () => {

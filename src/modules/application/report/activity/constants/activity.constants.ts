@@ -10,8 +10,10 @@ export const ACTIVITY_WEIGHTS = {
   MERGED_OTHER: 900,
   COMPLETED: 890,
   REOPENED: 880,
+  PASSED: 785,
   APPROVED: 780,
   RETURNED: 770,
+  RELEASE_BLOCKED: 765,
   REVIEWED_MANY: 760,
   BUG_FOUND: 750,
   REVIEWED: 720,
@@ -63,6 +65,7 @@ export const ACTIVITY_ROLE_FOCUS: Record<JobRole, ActivityRoleFocus> = {
       ActivityAction.RETURNED,
       ActivityAction.REVIEWED,
       ActivityAction.BUG_FOUND,
+      ActivityAction.RELEASE_BLOCKED,
     ],
     states: [WorkflowState.TESTING, WorkflowState.QA_PASSED],
   },
@@ -112,6 +115,13 @@ export const ACTIVITY_OPPOSITE_FACTS = new Map<SourceActionKind, SourceActionKin
   [SourceActionKind.MARKED_READY, SourceActionKind.MARKED_DRAFT],
   [SourceActionKind.CLOSED, SourceActionKind.REOPENED],
   [SourceActionKind.REOPENED, SourceActionKind.CLOSED],
+]);
+
+export const ACTIVITY_RETURN_STATES = new Map<WorkflowState, ActivityDetail>([
+  [WorkflowState.REVIEW, ActivityDetail.AFTER_REVIEW],
+  [WorkflowState.CHANGES_REQUESTED, ActivityDetail.AFTER_REVIEW],
+  [WorkflowState.READY_FOR_QA, ActivityDetail.AFTER_QA],
+  [WorkflowState.TESTING, ActivityDetail.AFTER_QA],
 ]);
 
 export const ACTIVITY_SWAP_FACTS = new Map<SourceActionKind, SourceActionKind>([

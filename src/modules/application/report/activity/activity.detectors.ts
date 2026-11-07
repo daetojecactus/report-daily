@@ -11,20 +11,25 @@ import {
   ACTIVITY_COMMENT_FACTS,
   ACTIVITY_EDIT_DETAILS,
   ACTIVITY_MANY_COMMENTS,
+  ACTIVITY_RETURN_STATES,
   ACTIVITY_REVIEW_FACTS,
   ACTIVITY_WEIGHTS,
 } from './constants/activity.constants';
 import { ActivityAction, ActivityDetail } from './activity.enums';
 import { ActivityCodeDetector } from './activity-code.detector';
+import { ActivityLifecycleDetector } from './activity-lifecycle.detector';
 import type { ActivityCandidate, ActivityFact, ActivityLineSignals } from './activity.interface';
 
 @Injectable()
 export class ActivityDetectors {
-  constructor(private readonly activityCodeDetector: ActivityCodeDetector) {}
+  constructor(
+    private readonly activityLifecycleDetector: ActivityLifecycleDetector,
+    private readonly activityCodeDetector: ActivityCodeDetector,
+  ) {}
 
   detect(signals: ActivityLineSignals): ActivityCandidate[] {
     const candidates = [
-      ...this.detectLifecycle(signals),
+      ...this.activityLifecycleDetector.detect(signals),
       ...this.detectChanges(signals),
       ...this.detectReview(signals),
       ...this.activityCodeDetector.detect(signals),
@@ -33,104 +38,55 @@ export class ActivityDetectors {
     return [...candidates, ...this.detectEdits(signals, candidates), this.toStateOnly(signals)];
   }
 
-  private detectLifecycle(signals: ActivityLineSignals): ActivityCandidate[] {
-    const { own, ownMergeRequests, kind, endStates, line, assignee, closedToday } = signals;
-    const dependencies = signals.dependencies ? [ActivityDetail.DEPENDENCIES] : [];
+  private detectChanges(signals: ActivityLineSignals): ActivityCandidate[] {
+    const { returnedAt, assignee } = signals;
+    const testing = [...signals.startStates, ...signals.endStates].includes(WorkflowState.TESTING);
     const candidates: ActivityCandidate[] = [];
-    for (const fact of own) {
-      if (fact.kind === SourceActionKind.MERGED && fact.mergeRequestIid !== null) {
-        candidates.push(
-          ownMergeRequests.includes(fact.mergeRequestIid)
-            ? this.toCandidate(ActivityAction.MERGED, ACTIVITY_WEIGHTS.MERGED, [fact], dependencies)
-            : this.toCandidate(
-                ActivityAction.MERGED_OTHER,
-                ACTIVITY_WEIGHTS.MERGED_OTHER,
-                [fact],
-                dependencies,
-              ),
-        );
-      } else if (fact.kind === SourceActionKind.CLOSED) {
+    for (const { fact, state, flags, priority, returnedFrom } of signals.changes) {
+      const back = returnedFrom && !assignee ? ACTIVITY_RETURN_STATES.get(returnedFrom) : undefined;
+      if (state === WorkflowState.CHANGES_REQUESTED || back) {
         candidates.push(
           this.toCandidate(
-            ActivityAction.CLOSED,
-            ACTIVITY_WEIGHTS.CLOSED,
+            ActivityAction.RETURNED,
+            ACTIVITY_WEIGHTS.RETURNED,
             [fact],
-            fact.mergeRequestIid === null ? [] : [ActivityDetail.MERGE_REQUEST],
+            [back ?? ActivityDetail.AFTER_REVIEW],
           ),
         );
-      } else if (fact.kind === SourceActionKind.REOPENED) {
+      } else if (state) {
+        const again =
+          state === WorkflowState.READY_FOR_QA && returnedAt !== null && returnedAt < fact.time;
         candidates.push(
-          this.toCandidate(ActivityAction.REOPENED, ACTIVITY_WEIGHTS.REOPENED, [fact]),
+          this.toCandidate(
+            ActivityAction.STATE_SET,
+            TRAIT_STATE_WEIGHTS[state],
+            [fact],
+            again ? [ActivityDetail.AFTER_QA] : [],
+            state,
+          ),
         );
-      } else if (fact.kind === SourceActionKind.OPENED && fact.mergeRequestIid === null) {
+      }
+      if (flags.includes(TaskFlag.RETURNED_FROM_QA)) {
         candidates.push(
-          kind === TaskKind.BUG
-            ? this.toCandidate(
-                ActivityAction.BUG_FOUND,
-                ACTIVITY_WEIGHTS.BUG_FOUND,
-                [fact],
-                endStates.includes(WorkflowState.TESTING) ? [ActivityDetail.REGRESSION] : [],
-              )
-            : this.toCandidate(ActivityAction.CREATED, ACTIVITY_WEIGHTS.CREATED, [fact]),
+          this.toCandidate(
+            ActivityAction.RETURNED,
+            ACTIVITY_WEIGHTS.RETURNED,
+            [fact],
+            [ActivityDetail.AFTER_QA],
+          ),
+        );
+      }
+      if (priority === Priority.CRITICAL) {
+        candidates.push(
+          signals.kinds.includes(TaskKind.BUG) && testing
+            ? this.toCandidate(ActivityAction.RELEASE_BLOCKED, ACTIVITY_WEIGHTS.RELEASE_BLOCKED, [
+                fact,
+              ])
+            : this.toCandidate(ActivityAction.ESCALATED, ACTIVITY_WEIGHTS.ESCALATED, [fact]),
         );
       }
     }
-    const ownOutcome = candidates.some((candidate) =>
-      [ActivityAction.CLOSED, ActivityAction.MERGED].includes(candidate.action),
-    );
-    if (line.issue && closedToday && assignee && !ownOutcome) {
-      candidates.push(
-        this.toCandidate(
-          ActivityAction.COMPLETED,
-          ACTIVITY_WEIGHTS.COMPLETED,
-          [],
-          signals.mergedToday ? [ActivityDetail.WITH_MERGE] : [],
-        ),
-      );
-    }
     return candidates;
-  }
-
-  private detectChanges({ changes, returnedAt }: ActivityLineSignals): ActivityCandidate[] {
-    return changes.flatMap(({ fact, state, flags, priority }) => [
-      ...(state === WorkflowState.CHANGES_REQUESTED
-        ? [
-            this.toCandidate(
-              ActivityAction.RETURNED,
-              ACTIVITY_WEIGHTS.RETURNED,
-              [fact],
-              [ActivityDetail.AFTER_REVIEW],
-            ),
-          ]
-        : state
-          ? [
-              this.toCandidate(
-                ActivityAction.STATE_SET,
-                TRAIT_STATE_WEIGHTS[state],
-                [fact],
-                state === WorkflowState.READY_FOR_QA &&
-                  returnedAt !== null &&
-                  returnedAt < fact.time
-                  ? [ActivityDetail.AFTER_QA]
-                  : [],
-                state,
-              ),
-            ]
-          : []),
-      ...(flags.includes(TaskFlag.RETURNED_FROM_QA)
-        ? [
-            this.toCandidate(
-              ActivityAction.RETURNED,
-              ACTIVITY_WEIGHTS.RETURNED,
-              [fact],
-              [ActivityDetail.AFTER_QA],
-            ),
-          ]
-        : []),
-      ...(priority === Priority.CRITICAL
-        ? [this.toCandidate(ActivityAction.ESCALATED, ACTIVITY_WEIGHTS.ESCALATED, [fact])]
-        : []),
-    ]);
   }
 
   private detectReview(signals: ActivityLineSignals): ActivityCandidate[] {
@@ -251,9 +207,8 @@ export class ActivityDetectors {
         (fact.mergeRequestIid === null || ownMergeRequests.includes(fact.mergeRequestIid)),
     );
     if (comments.length) {
-      const dialog = signals.dialog && !signals.pushes.length;
       candidates.push(
-        dialog
+        signals.dialog
           ? this.toCandidate(ActivityAction.DISCUSSED, ACTIVITY_WEIGHTS.DISCUSSED, comments, [
               ActivityDetail.DIALOG,
             ])

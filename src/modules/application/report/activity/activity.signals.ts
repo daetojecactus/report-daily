@@ -10,12 +10,13 @@ import {
   TraitDimension,
   WorkflowState,
 } from 'src/modules/application/trait/trait.enums';
-import type { TraitIndex } from 'src/modules/application/trait/trait.interface';
+import type { TaskTraits, TraitIndex } from 'src/modules/application/trait/trait.interface';
 import { TraitService } from 'src/modules/application/trait/trait.service';
 import {
   ACTIVITY_BEFORE_DAY,
   ACTIVITY_DEPENDENCY_BRANCH_PATTERN,
   ACTIVITY_PUSH_ACTIONS,
+  ACTIVITY_RETURN_STATES,
 } from './constants/activity.constants';
 import { EngagementLevel } from './activity.enums';
 import { ActivityEngagement } from './activity.engagement';
@@ -56,7 +57,6 @@ export class ActivitySignals {
       employee,
       ownMergeRequests,
     );
-    const changes = this.toChanges(own, index);
     const pushes = this.toPushes(line.mergeRequests);
     const endNames = items.flatMap(({ item }) => [...item.labels, ...this.toStatus(item)]);
     const startNames = items.flatMap(({ item }) => [
@@ -67,6 +67,9 @@ export class ActivitySignals {
     const start = this.traitService.toTaskTraits(index, startNames);
     const mainIid = line.issue ? null : (line.mergeRequests.at(0)?.iid ?? null);
     const others = facts.filter((fact) => !fact.own);
+    const history = this.toHistory([...own, ...others], index);
+    const changes = this.toChanges(own, index, history, start.workflowStates);
+    const otherChanges = this.toChanges(others, index, history, start.workflowStates);
     const signals: ActivityLineSignals = {
       line,
       employee,
@@ -74,6 +77,7 @@ export class ActivitySignals {
       dropped,
       others,
       changes,
+      otherChanges,
       pushes,
       kind: end.kinds.at(0) ?? null,
       kinds: end.kinds,
@@ -81,6 +85,7 @@ export class ActivitySignals {
       endStates: end.workflowStates,
       startFlags: start.flags,
       endFlags: end.flags,
+      priority: end.priority,
       removedFlags: facts
         .filter((fact) => fact.kind === SourceActionKind.LABEL_REMOVED && fact.value)
         .flatMap((fact) =>
@@ -94,7 +99,11 @@ export class ActivitySignals {
       closedToday: line.issue?.closedOnReportDate ?? false,
       mergedToday: line.mergeRequests.some((mergeRequest) => mergeRequest.mergedOnReportDate),
       lastCommitAt: this.toLastCommitAt(line.mergeRequests),
-      returnedAt: this.toReturnedAt(start.flags, start.workflowStates, others, index),
+      returnedAt: this.toReturnedAt(
+        start,
+        otherChanges,
+        items.flatMap(({ item }) => item.assignees),
+      ),
       dependencies:
         end.kinds.includes(TaskKind.DEPENDENCY) ||
         line.mergeRequests.some((mergeRequest) =>
@@ -120,8 +129,31 @@ export class ActivitySignals {
     return 'status' in item && item.status ? [item.status] : [];
   }
 
-  private toChanges(own: ActivityFact[], index: TraitIndex): ActivityChange[] {
-    return own
+  private toHistory(facts: ActivityFact[], index: TraitIndex) {
+    return facts
+      .toSorted((left, right) => left.time - right.time)
+      .flatMap((fact) => {
+        const state = this.toState(fact, index);
+        return state ? [{ time: fact.time, state }] : [];
+      });
+  }
+
+  private toState(fact: ActivityFact, index: TraitIndex) {
+    return (fact.kind === SourceActionKind.LABEL_ADDED ||
+      fact.kind === SourceActionKind.STATUS_SET) &&
+      fact.value
+      ? (this.traitService.findValues(index, fact.value, TraitDimension.WORKFLOW_STATE).at(0) ??
+          null)
+      : null;
+  }
+
+  private toChanges(
+    facts: ActivityFact[],
+    index: TraitIndex,
+    history: { time: number; state: WorkflowState }[],
+    startStates: WorkflowState[],
+  ): ActivityChange[] {
+    return facts
       .filter(
         (fact) =>
           (fact.kind === SourceActionKind.LABEL_ADDED ||
@@ -130,16 +162,23 @@ export class ActivitySignals {
       )
       .map((fact) => {
         const name = fact.value ?? '';
+        const state = this.toState(fact, index);
+        const previous = history.filter((mark) => mark.time < fact.time).at(-1);
         return {
           fact,
-          state:
-            this.traitService.findValues(index, name, TraitDimension.WORKFLOW_STATE).at(0) ?? null,
+          state,
           flags:
             fact.kind === SourceActionKind.LABEL_ADDED
               ? this.traitService.findValues(index, name, TraitDimension.FLAG)
               : [],
           priority:
             this.traitService.findValues(index, name, TraitDimension.PRIORITY).at(0) ?? null,
+          returnedFrom:
+            state === WorkflowState.IN_PROGRESS
+              ? ((previous ? [previous.state] : startStates).find((before) =>
+                  ACTIVITY_RETURN_STATES.has(before),
+                ) ?? null)
+              : null,
         };
       })
       .filter((change) => change.state || change.flags.length || change.priority);
@@ -170,32 +209,20 @@ export class ActivitySignals {
     return times.length ? Math.max(...times) : null;
   }
 
-  private toReturnedAt(
-    startFlags: TaskFlag[],
-    startStates: WorkflowState[],
-    others: ActivityFact[],
-    index: TraitIndex,
-  ) {
+  private toReturnedAt(start: TaskTraits, otherChanges: ActivityChange[], assignees: string[]) {
     if (
-      startFlags.includes(TaskFlag.RETURNED_FROM_QA) ||
-      startStates.includes(WorkflowState.CHANGES_REQUESTED)
+      start.flags.includes(TaskFlag.RETURNED_FROM_QA) ||
+      start.workflowStates.includes(WorkflowState.CHANGES_REQUESTED)
     ) {
       return ACTIVITY_BEFORE_DAY;
     }
-    const isReturn = (name: string) =>
-      this.traitService
-        .findValues(index, name, TraitDimension.FLAG)
-        .includes(TaskFlag.RETURNED_FROM_QA) ||
-      this.traitService
-        .findValues(index, name, TraitDimension.WORKFLOW_STATE)
-        .includes(WorkflowState.CHANGES_REQUESTED);
     return (
-      others.find(
-        (fact) =>
-          (fact.kind === SourceActionKind.LABEL_ADDED ||
-            fact.kind === SourceActionKind.STATUS_SET) &&
-          isReturn(fact.value ?? ''),
-      )?.time ?? null
+      otherChanges.find(
+        (change) =>
+          change.flags.includes(TaskFlag.RETURNED_FROM_QA) ||
+          change.state === WorkflowState.CHANGES_REQUESTED ||
+          (change.returnedFrom !== null && !assignees.includes(change.fact.actor ?? '')),
+      )?.fact.time ?? null
     );
   }
 

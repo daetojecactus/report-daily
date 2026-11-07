@@ -250,6 +250,50 @@ describe('ActivitySignals', () => {
       ]);
     });
 
+    it('knows the state a move to work came from', () => {
+      const doing = fact(SourceActionKind.LABEL_ADDED, at(10), { value: 'status::doing' });
+      const from = (issue: ReturnType<typeof createIssue>) =>
+        toSignals(issueLine(issue)).changes.at(-1)?.returnedFrom;
+
+      expect(
+        from(
+          createIssue({
+            startOfDay: { ...createIssue().startOfDay, labels: ['status::testing'] },
+            facts: [doing],
+          }),
+        ),
+      ).toBe(WorkflowState.TESTING);
+      expect(
+        from(
+          createIssue({
+            facts: [
+              otherFact(SourceActionKind.LABEL_ADDED, at(9), { value: 'status::review' }),
+              doing,
+            ],
+          }),
+        ),
+      ).toBe(WorkflowState.REVIEW);
+      expect(
+        from(
+          createIssue({
+            startOfDay: { ...createIssue().startOfDay, labels: ['status::todo'] },
+            facts: [doing],
+          }),
+        ),
+      ).toBeNull();
+    });
+
+    it('counts a move back to work by someone who is not an assignee as a return', () => {
+      const moved = otherFact(SourceActionKind.LABEL_ADDED, at(10), { value: 'status::doing' });
+      const testing = { ...createIssue().startOfDay, labels: ['status::testing'] };
+      const returnedAt = (assignees: string[]) =>
+        toSignals(issueLine(createIssue({ assignees, startOfDay: testing, facts: [moved] })))
+          .returnedAt;
+
+      expect(returnedAt([ME])).toBe(Date.parse(at(10)));
+      expect(returnedAt([ME, OTHER])).toBeNull();
+    });
+
     it('knows when the task was returned to work', () => {
       const returnedAt = (issue: ReturnType<typeof createIssue>) =>
         toSignals(issueLine(issue)).returnedAt;

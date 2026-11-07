@@ -23,6 +23,7 @@ import type { TraitRepository } from 'src/modules/application/trait/trait.reposi
 import { TraitService } from 'src/modules/application/trait/trait.service';
 import { JobRole } from 'src/modules/application/user/user.enums';
 import { ActivityCodeDetector } from '../activity-code.detector';
+import { ActivityLifecycleDetector } from '../activity-lifecycle.detector';
 import { ActivityChains } from '../activity.chains';
 import { ActivityDetectors } from '../activity.detectors';
 import { ActivityEngagement } from '../activity.engagement';
@@ -50,6 +51,7 @@ const MAPPINGS: [string, TraitDimension, TraitValue][] = [
   ['In progress', TraitDimension.WORKFLOW_STATE, WorkflowState.IN_PROGRESS],
   ['Done', TraitDimension.WORKFLOW_STATE, WorkflowState.DONE],
   ['type::bug', TraitDimension.TASK_KIND, TaskKind.BUG],
+  ['type::hotfix', TraitDimension.TASK_KIND, TaskKind.HOTFIX],
   ['type::maintenance', TraitDimension.TASK_KIND, TaskKind.MAINTENANCE],
   ['type::dependency', TraitDimension.TASK_KIND, TaskKind.DEPENDENCY],
   ['priority::critical', TraitDimension.PRIORITY, Priority.CRITICAL],
@@ -181,7 +183,7 @@ export function createSignals() {
 }
 
 export function createDetectors() {
-  return new ActivityDetectors(new ActivityCodeDetector());
+  return new ActivityDetectors(new ActivityLifecycleDetector(), new ActivityCodeDetector());
 }
 
 export function toSignals(line: ActivityLine, role = JobRole.DEVELOPER) {

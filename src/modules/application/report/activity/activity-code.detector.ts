@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { SourceActionKind } from 'src/modules/application/source/source.enums';
-import { TaskFlag, TaskKind } from 'src/modules/application/trait/trait.enums';
+import { TaskFlag, TaskKind, WorkflowState } from 'src/modules/application/trait/trait.enums';
 import {
   ACTIVITY_BRANCH_PUSH_ACTION,
   ACTIVITY_CODE_CHANGE_FACTS,
@@ -86,18 +86,39 @@ export class ActivityCodeDetector {
       ...facts.filter((fact) => fact.kind === SourceActionKind.PUSHED).map((fact) => fact.time),
     );
     const details: ActivityDetail[] = [];
+    const worked = line.mergeRequests.filter(
+      (mergeRequest) =>
+        pushes.some((push) => push.mergeRequestIid === mergeRequest.iid) ||
+        facts.some(
+          (fact) =>
+            fact.mergeRequestIid === mergeRequest.iid && ACTIVITY_CODE_CHANGE_FACTS.has(fact.kind),
+        ),
+    );
+    const underReview =
+      [...signals.startStates, ...signals.endStates].some(
+        (state) => state === WorkflowState.REVIEW || state === WorkflowState.CHANGES_REQUESTED,
+      ) ||
+      worked.some(
+        (mergeRequest) =>
+          mergeRequest.reviewers.length > 0 || mergeRequest.startOfDay.reviewers.length > 0,
+      );
     if (
       has(SourceActionKind.DIFF_LINE_CHANGED) ||
-      others.some(
-        (fact) =>
-          fact.kind === SourceActionKind.COMMENTED &&
-          fact.mergeRequestIid !== null &&
-          fact.time < firstPush,
-      )
+      worked.some((mergeRequest) => mergeRequest.reviewThreads.total > 0) ||
+      (underReview &&
+        others.some(
+          (fact) =>
+            fact.kind === SourceActionKind.COMMENTED &&
+            fact.mergeRequestIid !== null &&
+            fact.time < firstPush,
+        ))
     ) {
       details.push(ActivityDetail.AFTER_REVIEW);
     }
-    if (has(SourceActionKind.THREADS_RESOLVED)) {
+    if (
+      has(SourceActionKind.THREADS_RESOLVED) ||
+      worked.some(({ reviewThreads }) => reviewThreads.total > 0 && reviewThreads.unresolved === 0)
+    ) {
       details.push(ActivityDetail.RESOLVED);
     }
     if (signals.returnedAt !== null && signals.returnedAt < firstPush) {
