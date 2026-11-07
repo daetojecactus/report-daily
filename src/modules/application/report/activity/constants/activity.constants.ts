@@ -51,6 +51,10 @@ export const ACTIVITY_TIERS: { tier: ActivityTier; from: number }[] = [
 
 export const ACTIVITY_ROLE_BONUS = 30;
 
+export const ACTIVITY_CHAIN_BONUS = 5;
+
+export const ACTIVITY_BEFORE_DAY = 0;
+
 export const ACTIVITY_ROLE_FOCUS: Record<JobRole, ActivityRoleFocus> = {
   [JobRole.DEVELOPER]: { actions: [ActivityAction.CODE, ActivityAction.MERGED], states: [] },
   [JobRole.QA]: {

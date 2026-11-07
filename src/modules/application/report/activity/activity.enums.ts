@@ -47,6 +47,12 @@ export enum ActivityDetail {
   LABELS = 'labels',
   STATUS = 'status',
   REVIEWERS = 'reviewers',
+  WITH_CODE = 'with_code',
+  WITH_APPROVAL = 'with_approval',
+  WITH_TESTING = 'with_testing',
+  WITH_REMARKS = 'with_remarks',
+  WITH_STATE = 'with_state',
+  AFTER_DISCUSSION = 'after_discussion',
 }
 
 export enum EngagementLevel {

@@ -23,6 +23,7 @@ import type { TraitRepository } from 'src/modules/application/trait/trait.reposi
 import { TraitService } from 'src/modules/application/trait/trait.service';
 import { JobRole } from 'src/modules/application/user/user.enums';
 import { ActivityCodeDetector } from '../activity-code.detector';
+import { ActivityChains } from '../activity.chains';
 import { ActivityDetectors } from '../activity.detectors';
 import { ActivityEngagement } from '../activity.engagement';
 import { ActivityAction } from '../activity.enums';
@@ -38,6 +39,7 @@ export const ME = 'dev.me';
 export const OTHER = 'dev.other';
 
 const MAPPINGS: [string, TraitDimension, TraitValue][] = [
+  ['status::todo', TraitDimension.WORKFLOW_STATE, WorkflowState.PLANNED],
   ['status::doing', TraitDimension.WORKFLOW_STATE, WorkflowState.IN_PROGRESS],
   ['status::review', TraitDimension.WORKFLOW_STATE, WorkflowState.REVIEW],
   ['status::after review', TraitDimension.WORKFLOW_STATE, WorkflowState.CHANGES_REQUESTED],
@@ -191,9 +193,15 @@ export function detect(line: ActivityLine, role = JobRole.DEVELOPER) {
   return createDetectors().detect(toSignals(line, role));
 }
 
+export function combine(line: ActivityLine, role = JobRole.DEVELOPER) {
+  const signals = toSignals(line, role);
+  return new ActivityChains().combine(signals, createDetectors().detect(signals));
+}
+
 export function choose(line: ActivityLine, role = JobRole.DEVELOPER) {
   const signals = toSignals(line, role);
-  return new ActivitySelector().select(signals, createDetectors().detect(signals));
+  const candidates = new ActivityChains().combine(signals, createDetectors().detect(signals));
+  return new ActivitySelector().select(signals, candidates);
 }
 
 export function issueLine(issue = createIssue()): ActivityLine {

@@ -4,10 +4,16 @@ import type {
   GroupedIssue,
   GroupedMergeRequest,
 } from 'src/modules/application/source/source.interface';
-import { TaskKind, TraitDimension } from 'src/modules/application/trait/trait.enums';
+import {
+  TaskFlag,
+  TaskKind,
+  TraitDimension,
+  WorkflowState,
+} from 'src/modules/application/trait/trait.enums';
 import type { TraitIndex } from 'src/modules/application/trait/trait.interface';
 import { TraitService } from 'src/modules/application/trait/trait.service';
 import {
+  ACTIVITY_BEFORE_DAY,
   ACTIVITY_DEPENDENCY_BRANCH_PATTERN,
   ACTIVITY_PUSH_ACTIONS,
 } from './constants/activity.constants';
@@ -88,6 +94,7 @@ export class ActivitySignals {
       closedToday: line.issue?.closedOnReportDate ?? false,
       mergedToday: line.mergeRequests.some((mergeRequest) => mergeRequest.mergedOnReportDate),
       lastCommitAt: this.toLastCommitAt(line.mergeRequests),
+      returnedAt: this.toReturnedAt(start.flags, start.workflowStates, others, index),
       dependencies:
         end.kinds.includes(TaskKind.DEPENDENCY) ||
         line.mergeRequests.some((mergeRequest) =>
@@ -161,6 +168,35 @@ export class ActivitySignals {
       .filter((time) => time !== null)
       .map((time) => Date.parse(time));
     return times.length ? Math.max(...times) : null;
+  }
+
+  private toReturnedAt(
+    startFlags: TaskFlag[],
+    startStates: WorkflowState[],
+    others: ActivityFact[],
+    index: TraitIndex,
+  ) {
+    if (
+      startFlags.includes(TaskFlag.RETURNED_FROM_QA) ||
+      startStates.includes(WorkflowState.CHANGES_REQUESTED)
+    ) {
+      return ACTIVITY_BEFORE_DAY;
+    }
+    const isReturn = (name: string) =>
+      this.traitService
+        .findValues(index, name, TraitDimension.FLAG)
+        .includes(TaskFlag.RETURNED_FROM_QA) ||
+      this.traitService
+        .findValues(index, name, TraitDimension.WORKFLOW_STATE)
+        .includes(WorkflowState.CHANGES_REQUESTED);
+    return (
+      others.find(
+        (fact) =>
+          (fact.kind === SourceActionKind.LABEL_ADDED ||
+            fact.kind === SourceActionKind.STATUS_SET) &&
+          isReturn(fact.value ?? ''),
+      )?.time ?? null
+    );
   }
 
   private hasDialog(own: ActivityFact[], others: ActivityFact[]) {

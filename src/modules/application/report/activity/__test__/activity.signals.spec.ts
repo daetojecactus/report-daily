@@ -250,6 +250,29 @@ describe('ActivitySignals', () => {
       ]);
     });
 
+    it('knows when the task was returned to work', () => {
+      const returnedAt = (issue: ReturnType<typeof createIssue>) =>
+        toSignals(issueLine(issue)).returnedAt;
+      const label = { value: 'qa::returned' };
+
+      expect(
+        returnedAt(
+          createIssue({
+            startOfDay: { ...createIssue().startOfDay, labels: ['status::after review'] },
+          }),
+        ),
+      ).toBe(0);
+      expect(
+        returnedAt(
+          createIssue({ facts: [otherFact(SourceActionKind.LABEL_ADDED, at(10), label)] }),
+        ),
+      ).toBe(Date.parse(at(10)));
+      expect(
+        returnedAt(createIssue({ facts: [fact(SourceActionKind.LABEL_ADDED, at(10), label)] })),
+      ).toBeNull();
+      expect(returnedAt(createIssue())).toBeNull();
+    });
+
     it('sees an update of dependencies by the branch or the task kind', () => {
       const dependencies = (sourceBranch: string, labels: string[] = []) =>
         toSignals({ issue: null, mergeRequests: [createMergeRequest({ sourceBranch, labels })] })

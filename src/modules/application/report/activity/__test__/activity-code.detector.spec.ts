@@ -56,6 +56,17 @@ describe('ActivityCodeDetector', () => {
     });
   });
 
+  it('sees work after a return from QA during the day', () => {
+    const returned = (time: string) =>
+      createIssue({
+        facts: [otherFact(SourceActionKind.LABEL_ADDED, time, { value: 'qa::returned' })],
+      });
+    const mergeRequest = createMergeRequest({ events: [pushEvent(at(11))] });
+
+    expect(codeOf(mergeRequest, returned(at(10)))?.details).toEqual([ActivityDetail.AFTER_QA]);
+    expect(codeOf(mergeRequest, returned(at(12)))?.details).toEqual([]);
+  });
+
   it('sees a change of a line under a review remark', () => {
     const mergeRequest = createMergeRequest({
       facts: [fact(SourceActionKind.DIFF_LINE_CHANGED, at(11))],
