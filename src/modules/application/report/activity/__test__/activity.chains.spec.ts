@@ -150,17 +150,21 @@ describe('ActivityChains', () => {
       othersMergeRequest({ iid: 6, facts: [fact(SourceActionKind.MERGED, at(15))] }),
     ];
 
-    expect(composites(combine({ issue: null, mergeRequests: [mergeRequest] }))).toEqual([
-      {
-        action: ActivityAction.MERGED_OTHER,
-        weight: 905,
-        state: null,
-        details: [ActivityDetail.WITH_APPROVAL],
-        parts: [ActivityAction.APPROVED],
-      },
-    ]);
-    expect(mainTier({ issue: null, mergeRequests: [mergeRequest] })).toBe(ActivityTier.OUTCOME);
-    expect(composites(combine({ issue: null, mergeRequests: separate }))).toEqual([]);
+    expect(composites(combine({ issue: null, push: null, mergeRequests: [mergeRequest] }))).toEqual(
+      [
+        {
+          action: ActivityAction.MERGED_OTHER,
+          weight: 905,
+          state: null,
+          details: [ActivityDetail.WITH_APPROVAL],
+          parts: [ActivityAction.APPROVED],
+        },
+      ],
+    );
+    expect(mainTier({ issue: null, push: null, mergeRequests: [mergeRequest] })).toBe(
+      ActivityTier.OUTCOME,
+    );
+    expect(composites(combine({ issue: null, push: null, mergeRequests: separate }))).toEqual([]);
   });
 
   it('tests and confirms the work of someone else', () => {

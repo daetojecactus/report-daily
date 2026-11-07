@@ -7,13 +7,12 @@ import { ActivityDetectors } from './activity/activity.detectors';
 import { ActivityEngagement } from './activity/activity.engagement';
 import { ActivityRules } from './activity/activity.rules';
 import { ActivitySelector } from './activity/activity.selector';
+import { ActivityService } from './activity/activity.service';
 import { ActivitySignals } from './activity/activity.signals';
-import { ClassificationBuilder } from './classification/classification.builder';
 
 @Module({
   imports: [TraitModule],
   providers: [
-    ClassificationBuilder,
     ActivitySignals,
     ActivityRules,
     ActivityEngagement,
@@ -22,7 +21,8 @@ import { ClassificationBuilder } from './classification/classification.builder';
     ActivityCodeDetector,
     ActivityChains,
     ActivitySelector,
+    ActivityService,
   ],
-  exports: [ClassificationBuilder],
+  exports: [ActivityService],
 })
 export class ReportModule {}

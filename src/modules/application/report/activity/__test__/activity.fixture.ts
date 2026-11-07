@@ -31,6 +31,7 @@ import { ActivityAction } from '../activity.enums';
 import type { ActivityCandidate, ActivityEmployee, ActivityLine } from '../activity.interface';
 import { ActivityRules } from '../activity.rules';
 import { ActivitySelector } from '../activity.selector';
+import { ActivityService } from '../activity.service';
 import { ActivitySignals } from '../activity.signals';
 
 export const REPORT_DATE = '2026-08-02';
@@ -62,6 +63,7 @@ const MAPPINGS: [string, TraitDimension, TraitValue][] = [
   ['priority::high', TraitDimension.PRIORITY, Priority.HIGH],
   ['qa::returned', TraitDimension.FLAG, TaskFlag.RETURNED_FROM_QA],
   ['needs-rebase', TraitDimension.FLAG, TaskFlag.NEEDS_REBASE],
+  ['type::ignore', TraitDimension.FLAG, TaskFlag.EXCLUDE_FROM_REPORT],
   ['test::e2e required', TraitDimension.FLAG, TaskFlag.E2E_REQUIRED],
   ['test::unit', TraitDimension.FLAG, TaskFlag.UNIT_TESTS_REQUIRED],
 ];
@@ -188,6 +190,15 @@ export function createSignals() {
   );
 }
 
+export function createService() {
+  return new ActivityService(
+    createSignals(),
+    createDetectors(),
+    new ActivityChains(),
+    new ActivitySelector(),
+  );
+}
+
 export function createDetectors() {
   return new ActivityDetectors(new ActivityLifecycleDetector(), new ActivityCodeDetector());
 }
@@ -213,7 +224,7 @@ export function choose(line: ActivityLine, role = JobRole.DEVELOPER) {
 }
 
 export function issueLine(issue = createIssue()): ActivityLine {
-  return { issue, mergeRequests: issue.mergeRequests };
+  return { issue, mergeRequests: issue.mergeRequests, push: null };
 }
 
 export function summarize(candidates: ActivityCandidate[]) {
