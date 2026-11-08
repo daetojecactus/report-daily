@@ -215,6 +215,7 @@ export function createIssue(overrides: Partial<GroupedIssue> = {}): GroupedIssue
     status: null,
     milestone: null,
     iteration: null,
+    weight: null,
     startOfDay: {
       state: ItemState.OPENED,
       labels: [],
@@ -222,6 +223,7 @@ export function createIssue(overrides: Partial<GroupedIssue> = {}): GroupedIssue
       status: null,
       milestone: null,
       iteration: null,
+      weight: null,
     },
     facts: [],
     events: [],

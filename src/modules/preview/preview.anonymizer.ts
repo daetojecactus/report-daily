@@ -126,10 +126,12 @@ export class PreviewAnonymizer {
       status: issue.status && this.toStatus(issue.status, aliases),
       milestone: issue.milestone && this.toMilestone(issue.milestone, aliases),
       iteration: issue.iteration && this.toIteration(issue.iteration, aliases),
+      weight: issue.weight,
       startOfDay: {
         ...this.anonymizeSnapshot(issue.startOfDay, aliases),
         iteration:
           issue.startOfDay.iteration && this.toIteration(issue.startOfDay.iteration, aliases),
+        weight: issue.startOfDay.weight,
       },
       facts: issue.facts.map((fact) => this.anonymizeFact(fact, aliases)),
       events: issue.events.map((event) => this.anonymizeEvent(event, aliases)),
@@ -311,6 +313,9 @@ export class PreviewAnonymizer {
       case SourceActionKind.ITERATION_SET:
       case SourceActionKind.ITERATION_REMOVED:
         return this.toIteration(value, aliases);
+      case SourceActionKind.WEIGHT_SET:
+      case SourceActionKind.WEIGHT_REMOVED:
+        return value;
       default:
         return PREVIEW_ACTION_VALUE;
     }

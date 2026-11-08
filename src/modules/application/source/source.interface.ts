@@ -26,6 +26,7 @@ export interface ItemSnapshot {
 
 export interface IssueSnapshot extends ItemSnapshot {
   iteration: string | null;
+  weight: number | null;
 }
 
 export interface MergeRequestSnapshot extends ItemSnapshot {
@@ -129,6 +130,7 @@ export interface GroupedIssue {
   status: string | null;
   milestone: string | null;
   iteration: string | null;
+  weight: number | null;
   startOfDay: IssueSnapshot;
   facts: SourceFact[];
   events: CleanEvent[];

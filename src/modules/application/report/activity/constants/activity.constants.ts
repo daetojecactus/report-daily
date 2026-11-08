@@ -30,6 +30,7 @@ export const ACTIVITY_WEIGHTS = {
   DISCUSSED: 200,
   ASSIGNED: 200,
   HELPED: 180,
+  ESTIMATED: 170,
   EDITED: 150,
   DELETED: 120,
   COMMENTED: 100,
@@ -129,6 +130,8 @@ export const ACTIVITY_OPPOSITE_FACTS = new Map<SourceActionKind, SourceActionKin
   [SourceActionKind.MILESTONE_REMOVED, SourceActionKind.MILESTONE_SET],
   [SourceActionKind.ITERATION_SET, SourceActionKind.ITERATION_REMOVED],
   [SourceActionKind.ITERATION_REMOVED, SourceActionKind.ITERATION_SET],
+  [SourceActionKind.WEIGHT_SET, SourceActionKind.WEIGHT_REMOVED],
+  [SourceActionKind.WEIGHT_REMOVED, SourceActionKind.WEIGHT_SET],
 ]);
 
 export const ACTIVITY_RETURN_STATES = new Map<WorkflowState, ActivityDetail>([
@@ -156,6 +159,8 @@ export const ACTIVITY_SETUP_FACTS = new Set<SourceActionKind>([
   SourceActionKind.MILESTONE_REMOVED,
   SourceActionKind.ITERATION_SET,
   SourceActionKind.ITERATION_REMOVED,
+  SourceActionKind.WEIGHT_SET,
+  SourceActionKind.WEIGHT_REMOVED,
 ]);
 
 export const ACTIVITY_PLAN_FACTS = new Map<SourceActionKind, ActivityDetail>([
@@ -218,6 +223,7 @@ export const ACTIVITY_EDIT_DETAILS = new Map<SourceActionKind, ActivityDetail>([
   [SourceActionKind.REVIEW_REQUEST_REMOVED, ActivityDetail.REVIEWERS],
   [SourceActionKind.ITERATION_REMOVED, ActivityDetail.ITERATION],
   [SourceActionKind.MILESTONE_REMOVED, ActivityDetail.MILESTONE],
+  [SourceActionKind.WEIGHT_REMOVED, ActivityDetail.WEIGHT],
 ]);
 
 export const ACTIVITY_DEPENDENCY_BRANCH_PATTERN = /^(?:renovate|dependabot)[/-]/i;

@@ -10,6 +10,7 @@ import type {
   GitLabNote,
   GitLabProject,
   GitLabStateEvent,
+  GitLabWeightEvent,
 } from 'src/modules/vendors/gitlab/gitlab.interface';
 import type { SourceActionKind, SourceRefType } from '../source.enums';
 
@@ -88,6 +89,7 @@ export interface IssueActivity {
   stateEvents: GitLabStateEvent[];
   milestones: SourcePlanHistory;
   iterations: SourcePlanHistory;
+  weightEvents: GitLabWeightEvent[];
   mergeRequests: MergeRequestActivity[];
   pushes: SourceEvents<SourceBranch>[];
 }

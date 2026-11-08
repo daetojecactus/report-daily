@@ -135,6 +135,7 @@ export class PreviewRenderer {
       'status' in item && item.status ? `status: ${item.status}` : '',
       item.milestone ? `milestone: ${item.milestone}` : '',
       'iteration' in item && item.iteration ? `iteration: ${item.iteration}` : '',
+      'weight' in item && item.weight !== null ? `weight: ${item.weight}` : '',
       own.length ? `actions: ${this.describeActions(own)}` : '',
       others.length ? `facts of others: ${others.length}` : '',
       this.describeStartOfDay(item),

@@ -24,6 +24,7 @@ import {
   createNote,
   createProject,
   createStateEvent,
+  createWeightEvent,
   REPORT_DATE,
 } from './gitlab-source.fixture';
 
@@ -82,6 +83,7 @@ function buildIssue(overrides: Partial<IssueActivity> = {}) {
           stateEvents: [],
           milestones: NO_PLANS,
           iterations: NO_PLANS,
+          weightEvents: [],
           mergeRequests: [],
           pushes: [],
           ...overrides,
@@ -366,6 +368,7 @@ describe('GitLabSourceBuilder', () => {
             stateEvents: [],
             milestones: NO_PLANS,
             iterations: NO_PLANS,
+            weightEvents: [],
             pushes: [],
             mergeRequests: [
               toActivity(createMergeRequest({ source_branch: '12-login' }), {
@@ -820,8 +823,36 @@ describe('GitLabSourceBuilder', () => {
         status: 'In progress',
         milestone: null,
         iteration: null,
+        weight: null,
       });
       expect(grouped.state).toBe(ItemState.CLOSED);
+    });
+
+    it('restores the weight and makes facts of its changes', () => {
+      const grouped = buildIssue({
+        issue: createIssue({ weight: null }),
+        weightEvents: [
+          createWeightEvent({ weight: 2, created_at: '2026-07-20T10:00:00.000Z' }),
+          createWeightEvent({
+            user: EMPLOYEE,
+            weight: 5,
+            created_at: `${REPORT_DATE}T10:00:00.000Z`,
+          }),
+          createWeightEvent({
+            user: EMPLOYEE,
+            weight: null,
+            created_at: `${REPORT_DATE}T12:00:00.000Z`,
+          }),
+        ],
+      });
+      const unchanged = buildIssue({ issue: createIssue({ weight: 8 }) });
+
+      expect([grouped.startOfDay.weight, grouped.weight]).toEqual([2, null]);
+      expect([unchanged.startOfDay.weight, unchanged.weight]).toEqual([8, 8]);
+      expect(grouped.facts.map(({ kind, value, own }) => [kind, value, own])).toEqual([
+        [SourceActionKind.WEIGHT_SET, '5', true],
+        [SourceActionKind.WEIGHT_REMOVED, '5', true],
+      ]);
     });
 
     it('restores the iteration and the milestone and makes facts of their changes', () => {

@@ -90,6 +90,7 @@ function createGitLab(data: GitLabData) {
     findIterationEvents: vi.fn((_projectId: number, iid: number) =>
       Promise.resolve(data.iterationEvents?.[iid] ?? []),
     ),
+    findWeightEvents: vi.fn(() => Promise.resolve([])),
     findStateEvents: vi.fn((issuable: GitLabIssuable, projectId: number, iid: number) =>
       Promise.resolve(data.stateEvents?.[toKey(issuable, projectId, iid)] ?? []),
     ),

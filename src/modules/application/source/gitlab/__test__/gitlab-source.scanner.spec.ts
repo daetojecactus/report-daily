@@ -8,6 +8,7 @@ import type {
   GitLabLabelEvent,
   GitLabMilestoneEvent,
   GitLabNote,
+  GitLabWeightEvent,
 } from 'src/modules/vendors/gitlab/gitlab.interface';
 import type { GitLabService } from 'src/modules/vendors/gitlab/gitlab.service';
 import { GitLabSourceScanner } from '../gitlab-source.scanner';
@@ -17,6 +18,7 @@ import {
   createLabelEvent,
   createMilestoneEvent,
   createNote,
+  createWeightEvent,
   PROJECT_ID,
   REPORT_DATE,
 } from './gitlab-source.fixture';
@@ -34,6 +36,7 @@ describe('GitLabSourceScanner', () => {
     findLabelEvents: vi.fn<GitLabService['findLabelEvents']>(),
     findMilestoneEvents: vi.fn<GitLabService['findMilestoneEvents']>(),
     findIterationEvents: vi.fn<GitLabService['findIterationEvents']>(),
+    findWeightEvents: vi.fn<GitLabService['findWeightEvents']>(),
   };
   const redisService = {
     get: vi.fn<RedisService['get']>(),
@@ -49,6 +52,7 @@ describe('GitLabSourceScanner', () => {
     labelEvents: Record<number, GitLabLabelEvent[]> = {},
     milestoneEvents: Record<number, GitLabMilestoneEvent[]> = {},
     iterationEvents: Record<number, GitLabIterationEvent[]> = {},
+    weightEvents: Record<number, GitLabWeightEvent[]> = {},
   ) {
     gitlabService.findNotes.mockImplementation((_issuable, _projectId, iid) =>
       Promise.resolve(notes[iid] ?? []),
@@ -61,6 +65,9 @@ describe('GitLabSourceScanner', () => {
     );
     gitlabService.findIterationEvents.mockImplementation((_projectId, iid) =>
       Promise.resolve(iterationEvents[iid] ?? []),
+    );
+    gitlabService.findWeightEvents.mockImplementation((_projectId, iid) =>
+      Promise.resolve(weightEvents[iid] ?? []),
     );
   }
 
@@ -142,6 +149,16 @@ describe('GitLabSourceScanner', () => {
       PROJECT_ID,
       5,
     );
+  });
+
+  it('finds the issues the employee only estimated', async () => {
+    history({}, {}, {}, {}, { 14: [createWeightEvent({ user: EMPLOYEE })] });
+
+    expect(await scanner.findHiddenItems(EMPLOYEE.id, REPORT_DATE, DAY)).toEqual({
+      issues: [{ projectId: PROJECT_ID, iid: 14 }],
+      mergeRequests: [],
+    });
+    expect(gitlabService.findWeightEvents).toHaveBeenCalledTimes(3);
   });
 
   it('keeps the index of the project for every employee for 15 minutes', async () => {

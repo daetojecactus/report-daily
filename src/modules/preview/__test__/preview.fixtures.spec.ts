@@ -78,6 +78,7 @@ const CHECKS: Record<string, (value: string) => boolean> = {
     isStatus(value) ||
     BRANCH.test(value) ||
     PLAN.test(value) ||
+    /^\d+$/.test(value) ||
     value === 'value',
   milestone: (value) => PLAN.test(value),
   iteration: (value) => PLAN.test(value),

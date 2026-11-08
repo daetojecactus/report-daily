@@ -96,6 +96,7 @@ export interface GitLabIssue {
   assignees?: GitLabAuthor[];
   milestone?: GitLabMilestone | null;
   iteration?: GitLabIteration | null;
+  weight?: number | null;
 }
 
 export interface GitLabMergeRequest {
@@ -152,6 +153,13 @@ export interface GitLabIterationEvent {
   created_at: string;
   iteration: GitLabIteration | null;
   action: GitLabLabelAction;
+}
+
+export interface GitLabWeightEvent {
+  id: number;
+  user: GitLabAuthor;
+  created_at: string;
+  weight: number | null;
 }
 
 export interface GitLabStateEvent {

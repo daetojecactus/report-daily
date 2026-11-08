@@ -166,13 +166,16 @@ export class GitLabSourceDetails {
     pushes: SourceEvents<SourceBranch>[],
   ): Promise<IssueActivity> {
     const { project_id: projectId, iid } = issue;
-    const [notes, labelEvents, stateEvents, milestoneEvents, iterationEvents] = await Promise.all([
-      this.gitlabService.findNotes(GitLabIssuable.ISSUES, projectId, iid),
-      this.gitlabService.findLabelEvents(GitLabIssuable.ISSUES, projectId, iid),
-      this.gitlabService.findStateEvents(GitLabIssuable.ISSUES, projectId, iid),
-      this.gitlabService.findMilestoneEvents(GitLabIssuable.ISSUES, projectId, iid),
-      this.gitlabService.findIterationEvents(projectId, iid),
-    ]);
+    const issuable = GitLabIssuable.ISSUES;
+    const [notes, labelEvents, stateEvents, milestoneEvents, iterationEvents, weightEvents] =
+      await Promise.all([
+        this.gitlabService.findNotes(issuable, projectId, iid),
+        this.gitlabService.findLabelEvents(issuable, projectId, iid),
+        this.gitlabService.findStateEvents(issuable, projectId, iid),
+        this.gitlabService.findMilestoneEvents(issuable, projectId, iid),
+        this.gitlabService.findIterationEvents(projectId, iid),
+        this.gitlabService.findWeightEvents(projectId, iid),
+      ]);
     return {
       issue,
       events,
@@ -186,6 +189,7 @@ export class GitLabSourceDetails {
           iteration ? [{ ...event, name: this.toIterationName(iteration) }] : [],
         ),
       },
+      weightEvents,
       mergeRequests: [],
       pushes,
     };

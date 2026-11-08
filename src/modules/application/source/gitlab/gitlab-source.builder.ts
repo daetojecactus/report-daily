@@ -107,6 +107,11 @@ export class GitLabSourceBuilder {
       status: this.gitlabSourceHistory.resolveStatus(notes, day.end),
       milestone: this.gitlabSourceHistory.restorePlan(activity.milestones, day.end),
       iteration: this.gitlabSourceHistory.restorePlan(activity.iterations, day.end),
+      weight: this.gitlabSourceHistory.restoreWeight(
+        issue.weight ?? null,
+        activity.weightEvents,
+        day.end,
+      ),
       startOfDay: {
         state:
           GITLAB_SOURCE_ITEM_STATES[
@@ -117,6 +122,11 @@ export class GitLabSourceBuilder {
         status: this.gitlabSourceHistory.resolveStatus(notes, day.start),
         milestone: this.gitlabSourceHistory.restorePlan(activity.milestones, day.start),
         iteration: this.gitlabSourceHistory.restorePlan(activity.iterations, day.start),
+        weight: this.gitlabSourceHistory.restoreWeight(
+          issue.weight ?? null,
+          activity.weightEvents,
+          day.start,
+        ),
       },
       facts: this.gitlabSourceFacts.resolve(issue, activity, context),
       events: this.cleanEvents(activity.events, context),
