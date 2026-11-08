@@ -14,6 +14,7 @@ export enum ActivityAction {
   BUG_FOUND = 'bug_found',
   STATE_SET = 'state_set',
   ESCALATED = 'escalated',
+  MERGE_SCHEDULED = 'merge_scheduled',
   TOOK_REVIEW = 'took_review',
   CODE = 'code',
   REQUIREMENTS = 'requirements',
@@ -83,6 +84,8 @@ export enum ActivityDetail {
   LINKS = 'links',
   DUE_DATE = 'due_date',
   START_DATE = 'start_date',
+  AUTO_MERGE = 'auto_merge',
+  CHANGES_REQUESTED = 'changes_requested',
 }
 
 export enum EngagementLevel {

@@ -727,6 +727,35 @@ describe('GitLabSourceBuilder', () => {
       warn.mockRestore();
     });
 
+    it('reads auto-merge, requested changes and a changed file without logging the known notes', () => {
+      const warn = vi.spyOn(Logger.prototype, 'warn').mockImplementation(() => undefined);
+      const grouped = buildMergeRequest(createMergeRequest(), {
+        notes: [
+          ownNote('enabled an automatic merge when all merge checks for abc12345 pass', 9),
+          ownNote('canceled the automatic merge', 10),
+          ownNote('requested changes', 11),
+          ownNote(
+            'changed this file in [version 2 of the diff](/team/backend/-/merge_requests/5/diffs)',
+            12,
+          ),
+          ownNote('aborted the automatic merge because the source branch was updated', 13),
+          ownNote(
+            'deleted the `develop` branch. This merge request now targets the `main` branch',
+            14,
+          ),
+        ],
+      });
+
+      expect(toOwn(grouped.facts)).toEqual([
+        action(SourceActionKind.AUTO_MERGE_SET, 9),
+        action(SourceActionKind.AUTO_MERGE_CANCELED, 10),
+        action(SourceActionKind.CHANGES_REQUESTED, 11),
+        action(SourceActionKind.DIFF_LINE_CHANGED, 12),
+      ]);
+      expect(warn).not.toHaveBeenCalled();
+      warn.mockRestore();
+    });
+
     it('reads due and start dates, also both in one note', () => {
       const grouped = buildIssue({
         notes: [

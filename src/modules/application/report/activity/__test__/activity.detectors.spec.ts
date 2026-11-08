@@ -129,6 +129,12 @@ const PLACES: Record<SourceActionKind, [Place, Partial<SourceFact>][] | Activity
   [SourceActionKind.START_DATE_SET]: [['issue', { value: 'November 2, 2026' }]],
   [SourceActionKind.START_DATE_REMOVED]: [['issue', { value: 'November 2, 2026' }]],
   [SourceActionKind.RECIPROCAL_LINK]: ActivityRule.RECIPROCAL_LINK,
+  [SourceActionKind.AUTO_MERGE_SET]: [
+    ['own', {}],
+    ['other', {}],
+  ],
+  [SourceActionKind.AUTO_MERGE_CANCELED]: [['own', {}]],
+  [SourceActionKind.CHANGES_REQUESTED]: [['other', {}]],
 };
 
 function placeFact(place: Place, item: SourceFact): ActivityLine {

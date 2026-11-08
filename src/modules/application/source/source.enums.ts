@@ -73,4 +73,7 @@ export enum SourceActionKind {
   START_DATE_SET = 'start_date_set',
   START_DATE_REMOVED = 'start_date_removed',
   RECIPROCAL_LINK = 'reciprocal_link',
+  AUTO_MERGE_SET = 'auto_merge_set',
+  AUTO_MERGE_CANCELED = 'auto_merge_canceled',
+  CHANGES_REQUESTED = 'changes_requested',
 }

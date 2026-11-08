@@ -73,10 +73,19 @@ export const GITLAB_SOURCE_NOTE_ACTIONS: SourceNoteAction[] = [
     kind: SourceActionKind.BRANCH_CREATED,
   },
   {
-    pattern: /^changed this line in/,
+    pattern: /^changed this (?:line|file) in/,
     kind: SourceActionKind.DIFF_LINE_CHANGED,
   },
   { pattern: /^left review comments/, kind: SourceActionKind.REVIEW_SUBMITTED },
+  { pattern: /^requested changes\b/, kind: SourceActionKind.CHANGES_REQUESTED },
+  {
+    pattern: /^(?:enabled an automatic merge|set to auto-merge)\b/,
+    kind: SourceActionKind.AUTO_MERGE_SET,
+  },
+  {
+    pattern: /^(?:canceled|cancelled) the automatic merge\b/,
+    kind: SourceActionKind.AUTO_MERGE_CANCELED,
+  },
   { pattern: GITLAB_SOURCE_COMMIT_MENTION_PATTERN, kind: SourceActionKind.COMMIT_MENTIONED },
   {
     pattern:
@@ -114,6 +123,8 @@ export const GITLAB_SOURCE_KNOWN_NOTES = [
   /^(?:added|subtracted|deleted) .+ of (?:time spent|spent time)\b/,
   /^removed time spent\b/,
   /^(?:changed|removed) time estimate\b/,
+  /^aborted the automatic merge\b/,
+  /^deleted the .+ branch\. This merge request now targets\b/,
 ];
 
 export const GITLAB_SOURCE_LINK_KINDS = new Set<SourceActionKind>([

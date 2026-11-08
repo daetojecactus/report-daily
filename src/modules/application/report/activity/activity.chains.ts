@@ -21,6 +21,16 @@ export class ActivityChains {
       isState(candidate, [WorkflowState.TESTING]);
     const chains: ActivityChain[] = [
       {
+        isHead: (candidate) =>
+          candidate.action === ActivityAction.MERGED ||
+          candidate.action === ActivityAction.MERGED_OTHER,
+        isPart: (candidate, head) =>
+          candidate.action === ActivityAction.MERGE_SCHEDULED &&
+          candidate.time <= head.time &&
+          this.sharesMergeRequest(candidate, head),
+        details: () => [ActivityDetail.AUTO_MERGE],
+      },
+      {
         isHead: (candidate) => candidate.action === ActivityAction.MERGED_OTHER,
         isPart: (candidate, head) =>
           candidate.action === ActivityAction.APPROVED && this.sharesMergeRequest(candidate, head),
