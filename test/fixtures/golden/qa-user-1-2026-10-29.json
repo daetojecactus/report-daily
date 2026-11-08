@@ -641,11 +641,11 @@
                   "refType": "branch",
                   "ref": "772-branch-3",
                   "refCount": null,
-                  "commitTitle": "test: commit 1",
+                  "commitTitle": "commit 1 (test)",
                   "commits": [
                     {
                       "id": "sha-1",
-                      "title": "test: commit 1"
+                      "title": "commit 1 (test)"
                     }
                   ]
                 }

@@ -362,27 +362,27 @@
                   "refType": "branch",
                   "ref": "84-branch-20",
                   "refCount": null,
-                  "commitTitle": "test: commit 22",
+                  "commitTitle": "commit 22 (test)",
                   "commits": [
                     {
                       "id": "sha-22",
-                      "title": "test: commit 23"
+                      "title": "commit 23 (test)"
                     },
                     {
                       "id": "sha-23",
-                      "title": "test: commit 24"
+                      "title": "commit 24 (test)"
                     },
                     {
                       "id": "sha-24",
-                      "title": "test: commit 25"
+                      "title": "commit 25 (test)"
                     },
                     {
                       "id": "sha-25",
-                      "title": "test: commit 26"
+                      "title": "commit 26 (test)"
                     },
                     {
                       "id": "sha-26",
-                      "title": "test: commit 22"
+                      "title": "commit 22 (test)"
                     }
                   ]
                 }

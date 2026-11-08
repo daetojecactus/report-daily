@@ -360,11 +360,11 @@
                   "refType": "branch",
                   "ref": "777-branch-28",
                   "refCount": null,
-                  "commitTitle": "test: commit 29",
+                  "commitTitle": "commit 29 (test)",
                   "commits": [
                     {
                       "id": "sha-29",
-                      "title": "test: commit 29"
+                      "title": "commit 29 (test)"
                     }
                   ]
                 }
@@ -1128,11 +1128,11 @@
                   "refType": "branch",
                   "ref": "84-branch-20",
                   "refCount": null,
-                  "commitTitle": "test: commit 30",
+                  "commitTitle": "commit 30 (test)",
                   "commits": [
                     {
                       "id": "sha-30",
-                      "title": "test: commit 30"
+                      "title": "commit 30 (test)"
                     }
                   ]
                 }
@@ -1150,11 +1150,11 @@
                   "refType": "branch",
                   "ref": "84-branch-20",
                   "refCount": null,
-                  "commitTitle": "test: commit 31",
+                  "commitTitle": "commit 31 (test)",
                   "commits": [
                     {
                       "id": "sha-31",
-                      "title": "test: commit 31"
+                      "title": "commit 31 (test)"
                     }
                   ]
                 }

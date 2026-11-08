@@ -304,27 +304,27 @@
                   "refType": "branch",
                   "ref": "144-branch-46",
                   "refCount": null,
-                  "commitTitle": "test: commit 42",
+                  "commitTitle": "commit 42 (test)",
                   "commits": [
                     {
                       "id": "sha-42",
-                      "title": "test: commit 43"
+                      "title": "commit 43 (test)"
                     },
                     {
                       "id": "sha-43",
-                      "title": "test: commit 44"
+                      "title": "commit 44 (test)"
                     },
                     {
                       "id": "sha-44",
-                      "title": "test: commit 45"
+                      "title": "commit 45 (test)"
                     },
                     {
                       "id": "sha-45",
-                      "title": "test: commit 46"
+                      "title": "commit 46 (test)"
                     },
                     {
                       "id": "sha-46",
-                      "title": "test: commit 42"
+                      "title": "commit 42 (test)"
                     }
                   ]
                 }

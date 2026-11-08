@@ -15,9 +15,11 @@ import type { PreviewFixture } from '../preview.interface';
 const DIRECTORY = join(process.cwd(), 'test', 'fixtures', 'golden');
 
 const USER = /^user-\d+$/;
-const TITLE =
-  /^(?:Issue \d+|Merge request \d+|(?:test: |тест: )?commit \d+|page-\d+|milestone-\d+)$/;
-const COMMIT_TITLE = /^(?:test: |тест: )?commit \d+$/;
+const CONVENTIONAL = '(?:(?:feat|fix|docs|test|refactor)(?:\\(deps\\))?: |chore\\(deps\\): )?';
+const TITLE = new RegExp(
+  `^(?:Issue \\d+|${CONVENTIONAL}Merge request \\d+|${CONVENTIONAL}commit \\d+(?: \\((?:test|тест)\\))?|page-\\d+|milestone-\\d+)$`,
+);
+const COMMIT_TITLE = new RegExp(`^${CONVENTIONAL}commit \\d+(?: \\((?:test|тест)\\))?$`);
 const BRANCH = /^(?:main|master|develop|(?:\d+-|renovate[/-]|dependabot[/-])?branch-\d+)$/i;
 const TAG = /^(?:v\d+(?:\.\d+)*|tag-\d+)$/;
 const PLAN = /^(?:milestone|iteration)-\d+$/;

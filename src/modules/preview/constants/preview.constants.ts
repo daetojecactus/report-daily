@@ -53,9 +53,9 @@ export const PREVIEW_COMMIT_ALIAS = 'sha';
 
 export const PREVIEW_COMMIT_TITLE = 'commit';
 
-export const PREVIEW_TEST_COMMIT_PREFIX = 'test: ';
+export const PREVIEW_TEST_COMMIT_MARKER = ' (test)';
 
-export const PREVIEW_RU_TEST_COMMIT_PREFIX = 'тест: ';
+export const PREVIEW_RU_TEST_COMMIT_MARKER = ' (тест)';
 
 export const PREVIEW_ISSUE_TITLE = 'Issue';
 

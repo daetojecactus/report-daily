@@ -439,6 +439,31 @@ describe('PreviewAnonymizer', () => {
     expect(pushData?.commits[0].id).toBe('sha-1');
   });
 
+  it('keeps the Conventional Commits type of titles without other words of the scope', () => {
+    const anonymizer = new PreviewAnonymizer();
+    const day = createDay();
+    const mergeRequest = (title: string) => ({ ...createMergeRequest(), title });
+    const anonymized = anonymizer.anonymizeDay(
+      {
+        ...day,
+        standaloneMergeRequests: [
+          mergeRequest('feat(billing): the price list'),
+          mergeRequest('chore(deps): update eslint'),
+          mergeRequest('Draft: fix: the payment form'),
+          mergeRequest('Resolve "the payment form"'),
+        ],
+      },
+      anonymizer.createAliases(),
+    );
+
+    expect(anonymized.standaloneMergeRequests.map(({ title }) => title)).toEqual([
+      'feat: Merge request 7',
+      'chore(deps): Merge request 7',
+      'fix: Merge request 7',
+      'Merge request 7',
+    ]);
+  });
+
   it('keeps what the rules read from branches, commits and statuses', () => {
     const { day } = anonymize();
     const [issue] = day.issues;
@@ -453,8 +478,8 @@ describe('PreviewAnonymizer', () => {
     expect(pushData?.ref).toBe('12-branch-1');
     expect(pushData?.commits).toEqual([
       { id: 'sha-1', title: 'commit 1' },
-      { id: 'sha-2', title: 'test: commit 2' },
-      { id: 'sha-3', title: 'тест: commit 3' },
+      { id: 'sha-2', title: 'commit 2 (test)' },
+      { id: 'sha-3', title: 'commit 3 (тест)' },
     ]);
     expect(issue.status).toBe('status-1');
     expect(issue.facts[2].value).toBe('Done');
