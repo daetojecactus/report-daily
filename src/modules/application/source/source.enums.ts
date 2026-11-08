@@ -72,4 +72,5 @@ export enum SourceActionKind {
   DUE_DATE_REMOVED = 'due_date_removed',
   START_DATE_SET = 'start_date_set',
   START_DATE_REMOVED = 'start_date_removed',
+  RECIPROCAL_LINK = 'reciprocal_link',
 }

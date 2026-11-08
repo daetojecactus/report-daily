@@ -26,6 +26,7 @@ import type {
   SourceRef,
 } from './gitlab-source.interface';
 import { GitLabSourceKeys } from './gitlab-source.keys';
+import { GitLabSourceLinks } from './gitlab-source.links';
 import { GitLabSourceScanner } from './gitlab-source.scanner';
 
 @Injectable()
@@ -38,6 +39,7 @@ export class GitLabSourceService implements ActivitySource {
     private readonly gitlabSourceScanner: GitLabSourceScanner,
     private readonly gitlabSourceDetails: GitLabSourceDetails,
     private readonly gitlabSourceKeys: GitLabSourceKeys,
+    private readonly gitlabSourceLinks: GitLabSourceLinks,
   ) {}
 
   async collect(account: UserSource, date: string, timeZone: string) {
@@ -76,12 +78,16 @@ export class GitLabSourceService implements ActivitySource {
         .map((issue) => issue.project_id)
         .filter((projectId) => !projects.has(projectId)),
     );
-    const activity = await this.gitlabSourceDetails.load(
-      groups,
-      new Map([...projects, ...linkedProjects]),
-      mergeRequests,
-      closingIssues,
-      links,
+    const activity = await this.gitlabSourceLinks.addSources(
+      await this.gitlabSourceDetails.load(
+        groups,
+        new Map([...projects, ...linkedProjects]),
+        mergeRequests,
+        closingIssues,
+        links,
+      ),
+      gitlabUserId,
+      day,
     );
     return this.gitlabSourceBuilder.build(activity, day, {
       id: gitlabUserId,

@@ -6,8 +6,10 @@ import type {
 } from 'src/modules/vendors/gitlab/gitlab.interface';
 import {
   GITLAB_SOURCE_BRANCH_ISSUE_PATTERN,
+  GITLAB_SOURCE_ISSUE_REFERENCE_PATTERN,
   GITLAB_SOURCE_KEY_SEPARATOR,
   GITLAB_SOURCE_MAIN_BRANCHES,
+  GITLAB_SOURCE_PATH_SEPARATOR,
 } from './constants/gitlab-source.constants';
 import type { SourceBranch, SourceItem, SourceRef } from './gitlab-source.interface';
 
@@ -41,6 +43,18 @@ export class GitLabSourceKeys {
   toIssueOfBranch({ projectId, branch }: SourceBranch): SourceItem | null {
     const match = GITLAB_SOURCE_BRANCH_ISSUE_PATTERN.exec(branch);
     return match ? { projectId, iid: Number(match[1]) } : null;
+  }
+
+  toIssueReferences(body: string, projectPath: string) {
+    const namespace = projectPath.split(GITLAB_SOURCE_PATH_SEPARATOR).slice(0, -1);
+    return [...body.matchAll(GITLAB_SOURCE_ISSUE_REFERENCE_PATTERN)].map(([, path, iid]) => ({
+      path: !path
+        ? projectPath
+        : path.includes(GITLAB_SOURCE_PATH_SEPARATOR)
+          ? path
+          : [...namespace, path].join(GITLAB_SOURCE_PATH_SEPARATOR),
+      iid: Number(iid),
+    }));
   }
 
   isWorkBranch({ projectId, branch }: SourceBranch, projects: Map<number, GitLabProject>) {

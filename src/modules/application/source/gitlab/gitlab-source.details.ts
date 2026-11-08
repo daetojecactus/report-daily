@@ -160,7 +160,7 @@ export class GitLabSourceDetails {
     );
   }
 
-  private async loadIssueActivity(
+  async loadIssueActivity(
     issue: GitLabIssue,
     events: GitLabEvent[],
     pushes: SourceEvents<SourceBranch>[],

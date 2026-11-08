@@ -83,6 +83,10 @@ export class GitLabRepository {
     return this.get<GitLabProject>(`${GITLAB_PROJECTS_PATH}/${projectId}`);
   }
 
+  findProjectByPath(path: string) {
+    return this.get<GitLabProject>(`${GITLAB_PROJECTS_PATH}/${encodeURIComponent(path)}`);
+  }
+
   findIssue(projectId: number, iid: number) {
     return this.get<GitLabIssue>(this.toIssuablePath(GitLabIssuable.ISSUES, projectId, iid));
   }

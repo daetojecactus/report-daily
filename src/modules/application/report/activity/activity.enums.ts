@@ -118,4 +118,5 @@ export enum ActivityRule {
   SELF_REVIEW_REMOVAL = 'self_review_removal',
   REPEATED = 'repeated',
   MOVED_AWAY = 'moved_away',
+  RECIPROCAL_LINK = 'reciprocal_link',
 }

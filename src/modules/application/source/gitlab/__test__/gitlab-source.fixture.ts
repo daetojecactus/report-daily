@@ -169,5 +169,9 @@ export function createCommit(committedDate: string, title = 'feat: something'): 
 
 export function createBuilder() {
   const notes = new GitLabSourceNotes();
-  return new GitLabSourceBuilder(new GitLabSourceHistory(notes), new GitLabSourceFacts(notes));
+  return new GitLabSourceBuilder(
+    new GitLabSourceHistory(notes),
+    new GitLabSourceFacts(notes),
+    notes,
+  );
 }

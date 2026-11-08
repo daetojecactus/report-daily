@@ -42,6 +42,12 @@ export interface SourcePlanHistory {
   events: SourcePlanEvent[];
 }
 
+export interface SourceLinkReference {
+  path: string;
+  iid: number;
+  times: number[];
+}
+
 export interface SourceUserChange {
   added: string;
   removed: string;
@@ -113,6 +119,7 @@ export interface SourceBuildContext {
   day: DayRange;
   employee: SourceEmployee;
   pushCommits: Map<number, GitLabCommit[]>;
+  reciprocalNotes: Set<number>;
 }
 
 export type SourceDayIndex = Record<string, { issues: number[]; mergeRequests: number[] }>;

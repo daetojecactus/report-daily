@@ -139,6 +139,18 @@ describe('ActivityLinkDetector', () => {
     expect(commented.choice.main.action).toBe(ActivityAction.COMMENTED);
   });
 
+  it('leaves out a line that only got the reply to a link made elsewhere', () => {
+    const reply = fact(SourceActionKind.RECIPROCAL_LINK, at(10));
+
+    const replied = classify([reply]);
+    expect(replied.excluded).toBe(true);
+    expect(replied.signals.dropped.map(({ rule }) => rule)).toEqual([ActivityRule.RECIPROCAL_LINK]);
+
+    const commented = classify([fact(SourceActionKind.COMMENTED, at(9)), reply]);
+    expect(commented.excluded).toBe(false);
+    expect(commented.choice.main.action).toBe(ActivityAction.COMMENTED);
+  });
+
   it('completes no task of the assignee that left by a move', () => {
     const closedByMove = (facts: SourceFact[]) =>
       summarize(

@@ -27,6 +27,7 @@ export class ActivityRules {
     const departures = facts.filter((fact) => fact.kind === SourceActionKind.MOVED_OUT);
     const rules: [ActivityRule, (fact: ActivityFact) => boolean][] = [
       [ActivityRule.MOVED_AWAY, (fact) => this.isMovedAway(fact, departures)],
+      [ActivityRule.RECIPROCAL_LINK, (fact) => fact.kind === SourceActionKind.RECIPROCAL_LINK],
       [
         ActivityRule.SETUP,
         (fact) => this.isSetup(fact, creations) || this.isArrivalSetup(fact, arrivals),

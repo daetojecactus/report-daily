@@ -24,6 +24,7 @@ import {
 } from './constants/gitlab-source.constants';
 import { GitLabSourceFacts } from './gitlab-source.facts';
 import { GitLabSourceHistory } from './gitlab-source.history';
+import { GitLabSourceNotes } from './gitlab-source.notes';
 import type {
   DayActivity,
   IssueActivity,
@@ -39,6 +40,7 @@ export class GitLabSourceBuilder {
   constructor(
     private readonly gitlabSourceHistory: GitLabSourceHistory,
     private readonly gitlabSourceFacts: GitLabSourceFacts,
+    private readonly gitlabSourceNotes: GitLabSourceNotes,
   ) {}
 
   build(activity: DayActivity, day: DayRange, employee: SourceEmployee): GroupedDailyData {
@@ -46,6 +48,7 @@ export class GitLabSourceBuilder {
       day,
       employee,
       pushCommits: activity.pushCommits,
+      reciprocalNotes: this.findReciprocalNotes(activity, day, employee),
     };
     return {
       projects: activity.projects.map((project) => ({
@@ -82,6 +85,26 @@ export class GitLabSourceBuilder {
       mainBranch,
       events: this.cleanEvents(events, context),
     };
+  }
+
+  private findReciprocalNotes(activity: DayActivity, day: DayRange, employee: SourceEmployee) {
+    const items = [
+      ...activity.issues.map(({ issue, notes }) => ({ item: issue, notes })),
+      ...[
+        ...activity.issues.flatMap((issue) => issue.mergeRequests),
+        ...activity.mergeRequests,
+      ].map(({ mergeRequest, notes }) => ({ item: mergeRequest, notes })),
+    ];
+    return this.gitlabSourceNotes.findReciprocalLinks(
+      items.flatMap(({ item, notes }) =>
+        notes
+          .filter((note) => note.author.id === employee.id && isWithinDay(note.created_at, day))
+          .map((note) => ({
+            note,
+            item: `${'source_branch' in item ? '!' : '#'}${item.project_id}:${item.iid}`,
+          })),
+      ),
+    );
   }
 
   private buildIssue(activity: IssueActivity, context: SourceBuildContext): GroupedIssue {
