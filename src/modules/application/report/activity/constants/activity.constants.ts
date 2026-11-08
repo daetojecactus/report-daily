@@ -200,6 +200,14 @@ export const ACTIVITY_CONVENTIONAL_KINDS = new Map<string, TaskKind>([
   ['refactor', TaskKind.MAINTENANCE],
 ]);
 
+export const ACTIVITY_SUMMARY_ACTIONS = new Set<ActivityAction>([
+  ActivityAction.PLANNED,
+  ActivityAction.ESTIMATED,
+  ActivityAction.MOVED,
+]);
+
+export const ACTIVITY_SUMMARY_MIN_LINES = 3;
+
 export const ACTIVITY_ELSEWHERE_RULES = new Set<ActivityRule>([
   ActivityRule.MOVED_AWAY,
   ActivityRule.RECIPROCAL_LINK,

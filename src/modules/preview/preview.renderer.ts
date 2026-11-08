@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import type {
   ActivityCandidate,
   ActivityResult,
+  ActivitySummary,
 } from 'src/modules/application/report/activity/activity.interface';
 import { SourceRefType, WorkItemType } from 'src/modules/application/source/source.enums';
 import type {
@@ -22,7 +23,13 @@ import {
 
 @Injectable()
 export class PreviewRenderer {
-  render(day: GroupedDailyData, results: ActivityResult[], trace: boolean) {
+  render(
+    day: GroupedDailyData,
+    results: ActivityResult[],
+    trace: boolean,
+    summaries: ActivitySummary[] = [],
+  ) {
+    const summarized = new Set(summaries.flatMap((summary) => summary.results));
     const items = [
       ...day.issues,
       ...day.standaloneMergeRequests,
@@ -38,9 +45,11 @@ export class PreviewRenderer {
       );
     const describe = (item: (typeof items)[number]) => {
       const result = resultOf(item);
-      return result ? this.describeResult(result, PREVIEW_INDENT.repeat(2), trace) : [];
+      return result
+        ? this.describeResult(result, PREVIEW_INDENT.repeat(2), trace, summarized.has(result))
+        : [];
     };
-    return [...new Set(items.map((item) => item.projectId))].flatMap((projectId) => [
+    const projects = [...new Set(items.map((item) => item.projectId))].flatMap((projectId) => [
       '',
       day.projects.find((project) => project.id === projectId)?.path ?? `project ${projectId}`,
       ...day.issues
@@ -62,10 +71,42 @@ export class PreviewRenderer {
           `${PREVIEW_INDENT.repeat(2)}events: ${this.describeEvents(item.events)}`,
         ]),
     ]);
+    return [...projects, ...this.describeSummaries(day, summaries)];
   }
 
-  private describeResult({ choice, excluded }: ActivityResult, indent: string, trace: boolean) {
-    const main = `${indent}main: ${this.describeCandidate(choice.main)}${excluded ? ' · excluded from the report' : ''}`;
+  private describeSummaries(day: GroupedDailyData, summaries: ActivitySummary[]) {
+    if (!summaries.length) {
+      return [];
+    }
+    const pathOf = (projectId: number) =>
+      day.projects.find((project) => project.id === projectId)?.path ?? `project ${projectId}`;
+    const refOf = ({ line }: ActivityResult) => {
+      const mergeRequest = line.mergeRequests.at(0);
+      if (line.issue) {
+        return `${pathOf(line.issue.projectId)}#${line.issue.iid}`;
+      }
+      if (mergeRequest) {
+        return `${pathOf(mergeRequest.projectId)}!${mergeRequest.iid}`;
+      }
+      return line.event?.title ?? line.pushes.at(0)?.ref ?? '';
+    };
+    return [
+      '',
+      'Summaries',
+      ...summaries.map(
+        ({ action, details, results }) =>
+          `${PREVIEW_INDENT}${[action, details.join(', ')].filter(Boolean).join(' · ')} x${results.length}: ${results.map(refOf).join(', ')}`,
+      ),
+    ];
+  }
+
+  private describeResult(
+    { choice, excluded }: ActivityResult,
+    indent: string,
+    trace: boolean,
+    summarized: boolean,
+  ) {
+    const main = `${indent}main: ${this.describeCandidate(choice.main)}${excluded ? ' · excluded from the report' : ''}${summarized ? ' · in a summary' : ''}`;
     if (!trace) {
       return [main];
     }

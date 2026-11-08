@@ -44,6 +44,7 @@ import { ActivityRules } from '../activity.rules';
 import { ActivitySelector } from '../activity.selector';
 import { ActivityService } from '../activity.service';
 import { ActivitySignals } from '../activity.signals';
+import { ActivitySummaries } from '../activity.summaries';
 
 export const REPORT_DATE = '2026-08-02';
 
@@ -256,6 +257,7 @@ export function createService() {
     createDetectors(),
     new ActivityChains(),
     new ActivitySelector(),
+    new ActivitySummaries(),
   );
 }
 

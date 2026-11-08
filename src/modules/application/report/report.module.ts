@@ -13,6 +13,7 @@ import { ActivityRules } from './activity/activity.rules';
 import { ActivitySelector } from './activity/activity.selector';
 import { ActivityService } from './activity/activity.service';
 import { ActivitySignals } from './activity/activity.signals';
+import { ActivitySummaries } from './activity/activity.summaries';
 
 @Module({
   imports: [TraitModule],
@@ -29,6 +30,7 @@ import { ActivitySignals } from './activity/activity.signals';
     ActivityEventDetector,
     ActivityChains,
     ActivitySelector,
+    ActivitySummaries,
     ActivityService,
   ],
   exports: [ActivityService],
