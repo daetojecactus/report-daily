@@ -8,8 +8,13 @@ import {
   fact,
   ME,
   pushEvent,
+  refEvent,
 } from 'src/modules/application/report/activity/__test__/activity.fixture';
-import { SourceActionKind } from 'src/modules/application/source/source.enums';
+import {
+  SourceActionKind,
+  SourceEventAction,
+  SourceRefType,
+} from 'src/modules/application/source/source.enums';
 import type { GroupedDailyData } from 'src/modules/application/source/source.interface';
 import { JobRole } from 'src/modules/application/user/user.enums';
 import { PreviewRenderer } from '../preview.renderer';
@@ -52,7 +57,8 @@ describe('PreviewRenderer', () => {
       standalonePushes: [
         {
           projectId: 1,
-          branch: '9-spike',
+          ref: '9-spike',
+          refType: SourceRefType.BRANCH,
           mainBranch: false,
           events: [{ ...pushEvent(at(12), []), actionName: 'pushed new' }],
         },
@@ -79,7 +85,13 @@ describe('PreviewRenderer', () => {
       issues: [
         createIssue({
           pushes: [
-            { projectId: 1, branch: '12-spike', mainBranch: false, events: [pushEvent(at(12))] },
+            {
+              projectId: 1,
+              ref: '12-spike',
+              refType: SourceRefType.BRANCH,
+              mainBranch: false,
+              events: [pushEvent(at(12))],
+            },
           ],
         }),
       ],
@@ -92,6 +104,47 @@ describe('PreviewRenderer', () => {
       '    Push 12-spike',
       '      events: pushed to',
       '      commits: fix: the login',
+    ]);
+  });
+
+  it('prints a tag and a bulk push with their actions', () => {
+    const lines = render({
+      standalonePushes: [
+        {
+          projectId: 1,
+          ref: 'v1.4.0',
+          refType: SourceRefType.TAG,
+          mainBranch: false,
+          events: [
+            refEvent(at(12), SourceEventAction.PUSHED_NEW, {
+              refType: SourceRefType.TAG,
+              ref: 'v1.4.0',
+            }),
+          ],
+        },
+        {
+          projectId: 1,
+          ref: null,
+          refType: SourceRefType.BRANCH,
+          mainBranch: false,
+          events: [
+            refEvent(at(13), SourceEventAction.DELETED, {
+              action: 'removed',
+              ref: null,
+              refCount: 4,
+            }),
+          ],
+        },
+      ],
+    });
+
+    expect(lines.slice(2)).toEqual([
+      '  Tag v1.4.0',
+      '    main: released',
+      '    events: pushed new',
+      '  Bulk push · 4 branches',
+      '    main: deleted · many',
+      '    events: deleted',
     ]);
   });
 

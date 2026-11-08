@@ -3,6 +3,7 @@ import {
   ItemState,
   LabelAction,
   SourceActionKind,
+  SourceRefType,
 } from 'src/modules/application/source/source.enums';
 import type {
   CleanNote,
@@ -99,8 +100,9 @@ function createMergeRequest(overrides: Partial<GroupedMergeRequest> = {}): Group
         pushData: {
           commitCount: 3,
           action: 'pushed',
-          refType: 'branch',
+          refType: SourceRefType.BRANCH,
           ref: '12-fix-card-payments',
+          refCount: null,
           commitTitle: 'fix the checkout layout',
           commits: [
             { id: 'a1b2c3d4', title: 'fix the checkout layout' },
@@ -209,7 +211,15 @@ function createDay(): GroupedDailyData {
         notes: [],
         labelEvents: [],
         mergeRequests: [createMergeRequest()],
-        pushes: [{ projectId: 501, branch: '12-fix-card-payments', mainBranch: false, events: [] }],
+        pushes: [
+          {
+            projectId: 501,
+            ref: '12-fix-card-payments',
+            refType: SourceRefType.BRANCH,
+            mainBranch: false,
+            events: [],
+          },
+        ],
       },
     ],
     standaloneMergeRequests: [
@@ -222,8 +232,23 @@ function createDay(): GroupedDailyData {
     standalonePushes: [
       {
         projectId: 501,
-        branch: 'main',
+        ref: 'main',
+        refType: SourceRefType.BRANCH,
         mainBranch: true,
+        events: [],
+      },
+      {
+        projectId: 501,
+        ref: 'acme-2.3',
+        refType: SourceRefType.TAG,
+        mainBranch: false,
+        events: [],
+      },
+      {
+        projectId: 501,
+        ref: 'acme-prod',
+        refType: SourceRefType.TAG,
+        mainBranch: false,
         events: [],
       },
     ],
@@ -312,8 +337,8 @@ describe('PreviewAnonymizer', () => {
     expect(mergeRequest.sourceBranch).toBe('12-branch-1');
     expect(issue.facts[1].value).toBe('12-branch-1');
     expect(day.standaloneMergeRequests[0].sourceBranch).toBe('renovate-branch-2');
-    expect(day.standalonePushes[0].branch).toBe('main');
-    expect(issue.pushes[0]).toMatchObject({ projectId: issue.projectId, branch: '12-branch-1' });
+    expect(day.standalonePushes.map((push) => push.ref)).toEqual(['main', 'v2.3', 'tag-1']);
+    expect(issue.pushes[0]).toMatchObject({ projectId: issue.projectId, ref: '12-branch-1' });
     expect(pushData?.ref).toBe('12-branch-1');
     expect(pushData?.commits).toEqual([
       { id: 'sha-1', title: 'commit 1' },

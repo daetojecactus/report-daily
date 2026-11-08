@@ -1,11 +1,17 @@
 import { toSourceKey } from 'src/common/utils/source-name.util';
 import type { SourceActionKind } from 'src/modules/application/source/source.enums';
-import { ItemState } from 'src/modules/application/source/source.enums';
+import {
+  ItemState,
+  SourceEventAction,
+  SourceRefType,
+} from 'src/modules/application/source/source.enums';
 import type {
   CleanEvent,
+  CleanPushData,
   GroupedIssue,
   GroupedMergeRequest,
   SourceFact,
+  StandalonePush,
 } from 'src/modules/application/source/source.interface';
 import {
   Priority,
@@ -24,6 +30,7 @@ import { TraitService } from 'src/modules/application/trait/trait.service';
 import { JobRole } from 'src/modules/application/user/user.enums';
 import { ActivityCodeDetector } from '../activity-code.detector';
 import { ActivityLifecycleDetector } from '../activity-lifecycle.detector';
+import { ActivityRefDetector } from '../activity-ref.detector';
 import { ActivityChains } from '../activity.chains';
 import { ActivityDetectors } from '../activity.detectors';
 import { ActivityEngagement } from '../activity.engagement';
@@ -99,22 +106,53 @@ export function otherFact(
   return fact(kind, time, { actor: OTHER, own: false, ...overrides });
 }
 
-export function pushEvent(time: string, titles: string[] = ['fix: the login']): CleanEvent {
+export function refEvent(
+  time: string,
+  actionName: SourceEventAction,
+  pushData: Partial<CleanPushData> = {},
+): CleanEvent {
   return {
     id: 1,
     projectId: 1,
-    actionName: 'pushed to',
+    actionName,
     targetType: null,
     targetTitle: null,
     createdAt: time,
     pushData: {
-      commitCount: titles.length,
+      commitCount: 0,
       action: 'pushed',
-      refType: 'branch',
+      refType: SourceRefType.BRANCH,
       ref: '12-login',
-      commitTitle: titles.at(-1) ?? null,
-      commits: titles.map((title, index) => ({ id: String(index), title })),
+      refCount: null,
+      commitTitle: null,
+      commits: [],
+      ...pushData,
     },
+  };
+}
+
+export function pushEvent(time: string, titles: string[] = ['fix: the login']): CleanEvent {
+  return refEvent(time, SourceEventAction.PUSHED_TO, {
+    commitCount: titles.length,
+    commitTitle: titles.at(-1) ?? null,
+    commits: titles.map((title, index) => ({ id: String(index), title })),
+  });
+}
+
+export function pushLine(overrides: Partial<StandalonePush> = {}): ActivityLine {
+  return {
+    issue: null,
+    mergeRequests: [],
+    pushes: [
+      {
+        projectId: 1,
+        ref: '12-login',
+        refType: SourceRefType.BRANCH,
+        mainBranch: false,
+        events: [],
+        ...overrides,
+      },
+    ],
   };
 }
 
@@ -201,7 +239,11 @@ export function createService() {
 }
 
 export function createDetectors() {
-  return new ActivityDetectors(new ActivityLifecycleDetector(), new ActivityCodeDetector());
+  return new ActivityDetectors(
+    new ActivityLifecycleDetector(),
+    new ActivityCodeDetector(),
+    new ActivityRefDetector(),
+  );
 }
 
 export function toSignals(line: ActivityLine, role = JobRole.DEVELOPER) {

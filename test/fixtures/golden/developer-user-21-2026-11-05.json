@@ -304,6 +304,7 @@
                   "action": "removed",
                   "refType": "branch",
                   "ref": "686-branch-18",
+                  "refCount": null,
                   "commitTitle": null,
                   "commits": []
                 }
@@ -443,6 +444,7 @@
               "action": "pushed",
               "refType": "branch",
               "ref": "renovate/branch-45",
+              "refCount": null,
               "commitTitle": "commit 37",
               "commits": [
                 {
@@ -464,6 +466,7 @@
               "action": "pushed",
               "refType": "branch",
               "ref": "renovate/branch-45",
+              "refCount": null,
               "commitTitle": "commit 38",
               "commits": [
                 {
@@ -565,6 +568,7 @@
               "action": "pushed",
               "refType": "branch",
               "ref": "renovate/branch-45",
+              "refCount": null,
               "commitTitle": "commit 39",
               "commits": [
                 {
@@ -586,6 +590,7 @@
               "action": "pushed",
               "refType": "branch",
               "ref": "renovate/branch-45",
+              "refCount": null,
               "commitTitle": "commit 40",
               "commits": [
                 {
@@ -679,6 +684,7 @@
               "action": "pushed",
               "refType": "branch",
               "ref": "renovate/branch-45",
+              "refCount": null,
               "commitTitle": "commit 41",
               "commits": [
                 {

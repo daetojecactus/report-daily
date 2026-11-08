@@ -1,8 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { getDayRange } from 'src/common/utils/date.util';
-import { GitLabLabelAction, GitLabState } from 'src/modules/vendors/gitlab/gitlab.enums';
+import {
+  GitLabLabelAction,
+  GitLabRefType,
+  GitLabState,
+} from 'src/modules/vendors/gitlab/gitlab.enums';
 import type { GitLabMergeRequest, GitLabNote } from 'src/modules/vendors/gitlab/gitlab.interface';
-import { ItemState, SourceActionKind } from '../../source.enums';
+import { ItemState, SourceActionKind, SourceRefType } from '../../source.enums';
 import type { IssueActivity, MergeRequestActivity } from '../gitlab-source.interface';
 import type { SourceFact } from '../../source.interface';
 import {
@@ -50,6 +54,7 @@ function buildMergeRequest(
       mergeRequests: [toActivity(mergeRequest, overrides)],
       pushes: [],
       directPushes: [],
+      refs: [],
       pushCommits: new Map(),
     },
     DAY,
@@ -77,6 +82,7 @@ function buildIssue(overrides: Partial<IssueActivity> = {}) {
       mergeRequests: [],
       pushes: [],
       directPushes: [],
+      refs: [],
       pushCommits: new Map(),
     },
     DAY,
@@ -282,13 +288,56 @@ describe('GitLabSourceBuilder', () => {
     ]);
   });
 
+  it('builds a tag as a push without a merge request', () => {
+    const tag = createEvent({
+      id: 8,
+      action_name: 'pushed new',
+      push_data: {
+        action: 'created',
+        ref_type: GitLabRefType.TAG,
+        ref: 'v1.4.0',
+        ref_count: null,
+        commit_count: 0,
+        commit_from: null,
+        commit_to: 'ccc',
+        commit_title: null,
+      },
+    });
+
+    const grouped = createBuilder().build(
+      {
+        projects: [],
+        issues: [],
+        mergeRequests: [],
+        pushes: [],
+        directPushes: [],
+        refs: [
+          { target: { projectId: 1, ref: 'v1.4.0', refType: SourceRefType.TAG }, events: [tag] },
+        ],
+        pushCommits: new Map(),
+      },
+      DAY,
+      { id: EMPLOYEE.id, username: USERNAME },
+    );
+
+    expect(
+      grouped.standalonePushes.map(({ ref, refType, mainBranch, events }) => [
+        ref,
+        refType,
+        mainBranch,
+        events.map((event) => event.pushData?.refType),
+      ]),
+    ).toEqual([['v1.4.0', SourceRefType.TAG, false, [SourceRefType.TAG]]]);
+  });
+
   it('nests merge requests in their issue and cleans pushes and projects', () => {
     const push = createEvent({
       id: 7,
       action_name: 'pushed to',
       push_data: {
         action: 'pushed',
-        ref_type: 'branch',
+        ref_type: GitLabRefType.BRANCH,
+        ref_count: null,
         ref: 'hotfix',
         commit_count: 1,
         commit_from: 'aaa',
@@ -318,6 +367,7 @@ describe('GitLabSourceBuilder', () => {
         mergeRequests: [],
         pushes: [{ target: { projectId: 1, branch: 'hotfix' }, events: [push] }],
         directPushes: [],
+        refs: [],
         pushCommits: new Map([
           [7, [createCommit(`${REPORT_DATE}T09:00:00.000Z`, 'fix: the cache')]],
         ]),
@@ -355,7 +405,8 @@ describe('GitLabSourceBuilder', () => {
     expect(grouped.standalonePushes).toEqual([
       {
         projectId: 1,
-        branch: 'hotfix',
+        ref: 'hotfix',
+        refType: SourceRefType.BRANCH,
         mainBranch: false,
         events: [
           {
@@ -368,8 +419,9 @@ describe('GitLabSourceBuilder', () => {
             pushData: {
               commitCount: 1,
               action: 'pushed',
-              refType: 'branch',
+              refType: SourceRefType.BRANCH,
               ref: 'hotfix',
+              refCount: null,
               commitTitle: 'fix: the cache',
               commits: [{ id: `${REPORT_DATE}T09:00:00.000Z`, title: 'fix: the cache' }],
             },
@@ -672,7 +724,8 @@ describe('GitLabSourceBuilder', () => {
             push_data: {
               commit_count: 2,
               action: 'pushed',
-              ref_type: 'branch',
+              ref_type: GitLabRefType.BRANCH,
+              ref_count: null,
               ref: '12-login',
               commit_from: 'aaa',
               commit_to: 'bbb',

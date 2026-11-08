@@ -7,6 +7,7 @@ export interface PreviewAliases {
   labels: Map<string, string>;
   statuses: Map<string, string>;
   branches: Map<string, string>;
+  tags: Map<string, string>;
   commits: Map<string, string>;
   commitTitles: Map<string, string>;
 }

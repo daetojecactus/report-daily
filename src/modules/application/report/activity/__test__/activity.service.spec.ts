@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { SourceActionKind } from 'src/modules/application/source/source.enums';
+import { SourceActionKind, SourceRefType } from 'src/modules/application/source/source.enums';
 import type { GroupedDailyData } from 'src/modules/application/source/source.interface';
 import { JobRole } from 'src/modules/application/user/user.enums';
 import { ActivityAction, ActivityDetail } from '../activity.enums';
@@ -32,7 +32,8 @@ describe('ActivityService', () => {
       standalonePushes: [
         {
           projectId: 1,
-          branch: '9-spike',
+          ref: '9-spike',
+          refType: SourceRefType.BRANCH,
           mainBranch: false,
           events: [{ ...pushEvent(at(12), []), actionName: 'pushed new' }],
         },
@@ -44,7 +45,7 @@ describe('ActivityService', () => {
       [ActivityAction.MERGED, []],
       [ActivityAction.CODE, [ActivityDetail.STARTED]],
     ]);
-    expect(results.map(({ line }) => line.pushes.map((push) => push.branch))).toEqual([
+    expect(results.map(({ line }) => line.pushes.map((push) => push.ref))).toEqual([
       [],
       [],
       ['9-spike'],
@@ -58,7 +59,8 @@ describe('ActivityService', () => {
           pushes: [
             {
               projectId: 1,
-              branch: '12-spike',
+              ref: '12-spike',
+              refType: SourceRefType.BRANCH,
               mainBranch: false,
               events: [{ ...pushEvent(at(12), []), actionName: 'pushed new' }],
             },

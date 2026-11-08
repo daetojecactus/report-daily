@@ -4,6 +4,7 @@ export enum ActivityAction {
   CLOSED = 'closed',
   COMPLETED = 'completed',
   REOPENED = 'reopened',
+  RELEASED = 'released',
   APPROVED = 'approved',
   UNAPPROVED = 'unapproved',
   RETURNED = 'returned',
@@ -16,11 +17,13 @@ export enum ActivityAction {
   TOOK_REVIEW = 'took_review',
   CODE = 'code',
   REQUIREMENTS = 'requirements',
+  TAGGED = 'tagged',
   CREATED = 'created',
   DISCUSSED = 'discussed',
   HELPED = 'helped',
   ASSIGNED = 'assigned',
   EDITED = 'edited',
+  DELETED = 'deleted',
   COMMENTED = 'commented',
   STATE_ONLY = 'state_only',
 }
@@ -60,6 +63,7 @@ export enum ActivityDetail {
   URGENT = 'urgent',
   CLOSES = 'closes',
   DIRECT = 'direct',
+  TAG = 'tag',
 }
 
 export enum EngagementLevel {

@@ -16,9 +16,11 @@ import type {
   GroupedMergeRequest,
   StandalonePush,
 } from '../source.interface';
+import { SourceRefType } from '../source.enums';
 import {
   GITLAB_SOURCE_ITEM_STATES,
   GITLAB_SOURCE_LABEL_ACTIONS,
+  GITLAB_SOURCE_REF_TYPES,
 } from './constants/gitlab-source.constants';
 import { GitLabSourceFacts } from './gitlab-source.facts';
 import { GitLabSourceHistory } from './gitlab-source.history';
@@ -59,6 +61,11 @@ export class GitLabSourceBuilder {
       standalonePushes: [
         ...activity.pushes.map((push) => this.buildPush(push, context, false)),
         ...activity.directPushes.map((push) => this.buildPush(push, context, true)),
+        ...activity.refs.map(({ target, events }) => ({
+          ...target,
+          mainBranch: false,
+          events: this.cleanEvents(events, context),
+        })),
       ],
     };
   }
@@ -70,7 +77,8 @@ export class GitLabSourceBuilder {
   ): StandalonePush {
     return {
       projectId: target.projectId,
-      branch: target.branch,
+      ref: target.branch,
+      refType: SourceRefType.BRANCH,
       mainBranch,
       events: this.cleanEvents(events, context),
     };
@@ -185,8 +193,9 @@ export class GitLabSourceBuilder {
       pushData: event.push_data && {
         commitCount: event.push_data.commit_count,
         action: event.push_data.action,
-        refType: event.push_data.ref_type,
+        refType: GITLAB_SOURCE_REF_TYPES[event.push_data.ref_type],
         ref: event.push_data.ref,
+        refCount: event.push_data.ref_count,
         commitTitle: event.push_data.commit_title,
         commits: (pushCommits.get(event.id) ?? []).map((commit) => ({
           id: commit.id,

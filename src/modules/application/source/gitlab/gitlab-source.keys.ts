@@ -9,14 +9,18 @@ import {
   GITLAB_SOURCE_KEY_SEPARATOR,
   GITLAB_SOURCE_MAIN_BRANCHES,
 } from './constants/gitlab-source.constants';
-import type { SourceBranch, SourceItem } from './gitlab-source.interface';
+import type { SourceBranch, SourceItem, SourceRef } from './gitlab-source.interface';
 
 @Injectable()
 export class GitLabSourceKeys {
-  toKey(target: SourceItem | SourceBranch) {
-    return [target.projectId, 'iid' in target ? target.iid : target.branch].join(
-      GITLAB_SOURCE_KEY_SEPARATOR,
-    );
+  toKey(target: SourceItem | SourceBranch | SourceRef) {
+    const parts =
+      'iid' in target
+        ? [target.iid]
+        : 'branch' in target
+          ? [target.branch]
+          : [target.refType, target.ref ?? ''];
+    return [target.projectId, ...parts].join(GITLAB_SOURCE_KEY_SEPARATOR);
   }
 
   toItemKey(item: GitLabIssue | GitLabMergeRequest) {

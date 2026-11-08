@@ -14,6 +14,11 @@ export enum LabelAction {
   REMOVE = 'remove',
 }
 
+export enum SourceRefType {
+  BRANCH = 'branch',
+  TAG = 'tag',
+}
+
 export enum SourceEventAction {
   OPENED = 'opened',
   CREATED = 'created',
@@ -23,6 +28,7 @@ export enum SourceEventAction {
   APPROVED = 'approved',
   PUSHED_TO = 'pushed to',
   PUSHED_NEW = 'pushed new',
+  DELETED = 'deleted',
 }
 
 export enum SourceActionKind {

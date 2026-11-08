@@ -3,6 +3,7 @@ import type {
   ActivityCandidate,
   ActivityResult,
 } from 'src/modules/application/report/activity/activity.interface';
+import { SourceRefType } from 'src/modules/application/source/source.enums';
 import type {
   CleanEvent,
   GroupedDailyData,
@@ -89,12 +90,21 @@ export class PreviewRenderer {
 
   private describePush(push: StandalonePush, indent: string, result: string[] = []) {
     return [
-      `${indent}Push ${push.branch}${push.mainBranch ? ' · main branch' : ''}`,
+      `${indent}${this.describeRef(push)}`,
       ...result,
       `${indent}${PREVIEW_INDENT}events: ${this.describeEvents(push.events)}`,
       this.describeCommits(push.events) &&
         `${indent}${PREVIEW_INDENT}${this.describeCommits(push.events)}`,
     ].filter(Boolean);
+  }
+
+  private describeRef({ ref, refType, mainBranch, events }: StandalonePush) {
+    const tag = refType === SourceRefType.TAG;
+    if (ref === null) {
+      const count = Math.max(0, ...events.map((event) => event.pushData?.refCount ?? 0));
+      return `Bulk push · ${count} ${tag ? 'tags' : 'branches'}`;
+    }
+    return `${tag ? 'Tag' : 'Push'} ${ref}${mainBranch ? ' · main branch' : ''}`;
   }
 
   private describeMergeRequest(

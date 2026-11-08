@@ -365,6 +365,7 @@
                   "action": "pushed",
                   "refType": "branch",
                   "ref": "87-branch-26",
+                  "refCount": null,
                   "commitTitle": "commit 27",
                   "commits": [
                     {
@@ -386,6 +387,7 @@
                   "action": "created",
                   "refType": "branch",
                   "ref": "87-branch-26",
+                  "refCount": null,
                   "commitTitle": null,
                   "commits": []
                 }
@@ -619,7 +621,8 @@
         "pushes": [
           {
             "projectId": 9,
-            "branch": "123-branch-25",
+            "ref": "123-branch-25",
+            "refType": "branch",
             "mainBranch": false,
             "events": [
               {
@@ -634,6 +637,7 @@
                   "action": "removed",
                   "refType": "branch",
                   "ref": "123-branch-25",
+                  "refCount": null,
                   "commitTitle": null,
                   "commits": []
                 }
@@ -650,6 +654,7 @@
                   "action": "created",
                   "refType": "branch",
                   "ref": "123-branch-25",
+                  "refCount": null,
                   "commitTitle": null,
                   "commits": []
                 }
@@ -986,6 +991,7 @@
                   "action": "pushed",
                   "refType": "branch",
                   "ref": "42-branch-27",
+                  "refCount": null,
                   "commitTitle": "commit 28",
                   "commits": [
                     {
@@ -1007,6 +1013,7 @@
                   "action": "created",
                   "refType": "branch",
                   "ref": "42-branch-27",
+                  "refCount": null,
                   "commitTitle": null,
                   "commits": []
                 }

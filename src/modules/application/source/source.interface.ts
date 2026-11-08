@@ -1,5 +1,11 @@
 import type { UserSource } from 'src/modules/application/user/user-source/user-source.interface';
-import type { ItemState, LabelAction, Source, SourceActionKind } from './source.enums';
+import type {
+  ItemState,
+  LabelAction,
+  Source,
+  SourceActionKind,
+  SourceRefType,
+} from './source.enums';
 
 export interface SourceFact {
   kind: SourceActionKind;
@@ -30,8 +36,9 @@ export interface CleanCommit {
 export interface CleanPushData {
   commitCount: number;
   action: string;
-  refType: string;
+  refType: SourceRefType;
   ref: string | null;
+  refCount: number | null;
   commitTitle: string | null;
   commits: CleanCommit[];
 }
@@ -125,7 +132,8 @@ export interface GroupedIssue {
 
 export interface StandalonePush {
   projectId: number;
-  branch: string;
+  ref: string | null;
+  refType: SourceRefType;
   mainBranch: boolean;
   events: CleanEvent[];
 }

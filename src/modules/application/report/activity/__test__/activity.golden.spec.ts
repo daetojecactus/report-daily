@@ -84,7 +84,7 @@ const DIVERGENCES: Record<string, Reason> = {
 function toKey({ line }: ActivityResult) {
   const item = line.issue ?? line.mergeRequests.at(0);
   if (!item) {
-    return `push:${line.pushes[0].projectId}:${line.pushes[0].branch}`;
+    return `push:${line.pushes[0].projectId}:${line.pushes[0].ref}`;
   }
   return `${item.projectId}${line.issue ? '#' : '!'}${item.iid}`;
 }

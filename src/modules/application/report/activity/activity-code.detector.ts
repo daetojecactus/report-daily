@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { SourceActionKind } from 'src/modules/application/source/source.enums';
+import { SourceActionKind, SourceRefType } from 'src/modules/application/source/source.enums';
 import { TaskFlag, TaskKind, WorkflowState } from 'src/modules/application/trait/trait.enums';
 import {
   ACTIVITY_BRANCH_PUSH_ACTION,
@@ -139,8 +139,8 @@ export class ActivityCodeDetector {
     if (
       has(SourceActionKind.BRANCH_CREATED) ||
       has(SourceActionKind.OPENED) ||
-      [...line.mergeRequests, ...line.pushes].some(({ events }) =>
-        events.some((event) => event.actionName === ACTIVITY_BRANCH_PUSH_ACTION),
+      [...line.mergeRequests, ...line.pushes.filter((push) => push.ref !== null)].some(
+        ({ events }) => events.some((event) => event.actionName === ACTIVITY_BRANCH_PUSH_ACTION),
       )
     ) {
       details.push(ActivityDetail.STARTED);
@@ -170,6 +170,9 @@ export class ActivityCodeDetector {
     }
     if (line.pushes.some((push) => push.mainBranch)) {
       details.push(ActivityDetail.DIRECT);
+    }
+    if (line.pushes.some((push) => push.ref === null && push.refType === SourceRefType.BRANCH)) {
+      details.push(ActivityDetail.MANY);
     }
     return details;
   }

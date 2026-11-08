@@ -18,6 +18,7 @@ import {
 import { ActivityAction, ActivityDetail } from './activity.enums';
 import { ActivityCodeDetector } from './activity-code.detector';
 import { ActivityLifecycleDetector } from './activity-lifecycle.detector';
+import { ActivityRefDetector } from './activity-ref.detector';
 import type { ActivityCandidate, ActivityFact, ActivityLineSignals } from './activity.interface';
 
 @Injectable()
@@ -25,6 +26,7 @@ export class ActivityDetectors {
   constructor(
     private readonly activityLifecycleDetector: ActivityLifecycleDetector,
     private readonly activityCodeDetector: ActivityCodeDetector,
+    private readonly activityRefDetector: ActivityRefDetector,
   ) {}
 
   detect(signals: ActivityLineSignals): ActivityCandidate[] {
@@ -33,6 +35,7 @@ export class ActivityDetectors {
       ...this.detectChanges(signals),
       ...this.detectReview(signals),
       ...this.activityCodeDetector.detect(signals),
+      ...this.activityRefDetector.detect(signals),
       ...this.detectDiscussion(signals),
     ];
     return [...candidates, ...this.detectEdits(signals, candidates), this.toStateOnly(signals)];

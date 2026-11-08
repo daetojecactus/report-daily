@@ -292,6 +292,7 @@
                   "action": "pushed",
                   "refType": "branch",
                   "ref": "144-branch-46",
+                  "refCount": null,
                   "commitTitle": "test: commit 42",
                   "commits": [
                     {
@@ -329,6 +330,7 @@
                   "action": "created",
                   "refType": "branch",
                   "ref": "144-branch-46",
+                  "refCount": null,
                   "commitTitle": null,
                   "commits": []
                 }
