@@ -7,6 +7,7 @@ import {
 import type {
   GitLabEvent,
   GitLabIssue,
+  GitLabIterationEvent,
   GitLabMergeRequest,
   GitLabNote,
   GitLabProject,
@@ -14,7 +15,7 @@ import type {
   GitLabStateEvent,
 } from 'src/modules/vendors/gitlab/gitlab.interface';
 import type { GitLabService } from 'src/modules/vendors/gitlab/gitlab.service';
-import { Source, SourceRefType } from '../../source.enums';
+import { Source, SourceActionKind, SourceRefType } from '../../source.enums';
 import { GitLabSourceDetails } from '../gitlab-source.details';
 import type { SourceHiddenItems } from '../gitlab-source.interface';
 import { GitLabSourceKeys } from '../gitlab-source.keys';
@@ -24,6 +25,7 @@ import {
   createBuilder,
   createEvent,
   createIssue,
+  createIterationEvent,
   createMergeRequest,
   createNote,
   createProject,
@@ -42,6 +44,7 @@ interface GitLabData {
   closingIssues?: Record<number, GitLabIssue[]>;
   notes?: Record<string, GitLabNote[]>;
   stateEvents?: Record<string, GitLabStateEvent[]>;
+  iterationEvents?: Record<number, GitLabIterationEvent[]>;
 }
 
 function findItem<T extends { project_id: number; iid: number }>(
@@ -83,6 +86,10 @@ function createGitLab(data: GitLabData) {
       Promise.resolve(data.notes?.[toKey(issuable, projectId, iid)] ?? []),
     ),
     findLabelEvents: vi.fn(() => Promise.resolve([])),
+    findMilestoneEvents: vi.fn(() => Promise.resolve([])),
+    findIterationEvents: vi.fn((_projectId: number, iid: number) =>
+      Promise.resolve(data.iterationEvents?.[iid] ?? []),
+    ),
     findStateEvents: vi.fn((issuable: GitLabIssuable, projectId: number, iid: number) =>
       Promise.resolve(data.stateEvents?.[toKey(issuable, projectId, iid)] ?? []),
     ),
@@ -360,6 +367,31 @@ describe('GitLabSourceService', () => {
 
     expect(grouped.issues).toEqual([]);
     expect(grouped.standalonePushes.map((push) => push.ref)).toEqual(['77-spike']);
+  });
+
+  it('names an iteration without a title by its dates', async () => {
+    const iteration = {
+      id: 4,
+      sequence: 3,
+      title: null,
+      start_date: '2026-07-27',
+      due_date: '2026-08-09',
+    };
+    const gitlab = createGitLab({
+      events: [issueEvent(12)],
+      issues: [createIssue({ iid: 12, iteration })],
+      iterationEvents: { 12: [createIterationEvent({ iteration })] },
+    });
+
+    const [issue] = (await collect(gitlab)).issues;
+
+    expect(issue.iteration).toBe('2026-07-27 – 2026-08-09');
+    expect(issue.startOfDay.iteration).toBeNull();
+    expect(
+      issue.facts
+        .filter((fact) => fact.kind === SourceActionKind.ITERATION_SET)
+        .map((fact) => fact.value),
+    ).toEqual(['2026-07-27 – 2026-08-09']);
   });
 
   it('keeps a tag and a bulk push apart from branches and links neither', async () => {

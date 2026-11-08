@@ -31,11 +31,13 @@ import {
   PREVIEW_GROUP,
   PREVIEW_ISSUE_TITLE,
   PREVIEW_ISSUES_PATH,
+  PREVIEW_ITERATION_ALIAS,
   PREVIEW_KEPT_LABELS,
   PREVIEW_KEPT_STATUSES,
   PREVIEW_LABEL_ALIAS,
   PREVIEW_MERGE_REQUEST_TITLE,
   PREVIEW_MERGE_REQUESTS_PATH,
+  PREVIEW_MILESTONE_ALIAS,
   PREVIEW_NOTE_PREFIXES,
   PREVIEW_PROJECT_ALIAS,
   PREVIEW_RU_TEST_COMMIT_PATTERN,
@@ -66,6 +68,8 @@ export class PreviewAnonymizer {
       statuses: new Map(),
       branches: new Map(),
       tags: new Map(),
+      milestones: new Map(),
+      iterations: new Map(),
       commits: new Map(),
       commitTitles: new Map(),
     };
@@ -120,7 +124,13 @@ export class PreviewAnonymizer {
       createdAt: issue.createdAt,
       assignees: issue.assignees.map((username) => this.toUser(username, aliases)),
       status: issue.status && this.toStatus(issue.status, aliases),
-      startOfDay: this.anonymizeSnapshot(issue.startOfDay, aliases),
+      milestone: issue.milestone && this.toMilestone(issue.milestone, aliases),
+      iteration: issue.iteration && this.toIteration(issue.iteration, aliases),
+      startOfDay: {
+        ...this.anonymizeSnapshot(issue.startOfDay, aliases),
+        iteration:
+          issue.startOfDay.iteration && this.toIteration(issue.startOfDay.iteration, aliases),
+      },
       facts: issue.facts.map((fact) => this.anonymizeFact(fact, aliases)),
       events: issue.events.map((event) => this.anonymizeEvent(event, aliases)),
       notes: issue.notes.map((note) => this.anonymizeNote(note, aliases)),
@@ -167,6 +177,7 @@ export class PreviewAnonymizer {
           webUrl: this.toItemUrl(issueProjectId, PREVIEW_ISSUES_PATH, issue.iid),
         };
       }),
+      milestone: mergeRequest.milestone && this.toMilestone(mergeRequest.milestone, aliases),
       startOfDay: {
         ...this.anonymizeSnapshot(mergeRequest.startOfDay, aliases),
         reviewers: mergeRequest.startOfDay.reviewers.map((username) =>
@@ -197,6 +208,7 @@ export class PreviewAnonymizer {
       labels: snapshot.labels.map((label) => this.toLabel(label, aliases)),
       assignees: snapshot.assignees.map((username) => this.toUser(username, aliases)),
       status: snapshot.status && this.toStatus(snapshot.status, aliases),
+      milestone: snapshot.milestone && this.toMilestone(snapshot.milestone, aliases),
     };
   }
 
@@ -293,6 +305,12 @@ export class PreviewAnonymizer {
       case SourceActionKind.BRANCH_CREATED:
       case SourceActionKind.PUSHED:
         return this.toBranch(value, aliases);
+      case SourceActionKind.MILESTONE_SET:
+      case SourceActionKind.MILESTONE_REMOVED:
+        return this.toMilestone(value, aliases);
+      case SourceActionKind.ITERATION_SET:
+      case SourceActionKind.ITERATION_REMOVED:
+        return this.toIteration(value, aliases);
       default:
         return PREVIEW_ACTION_VALUE;
     }
@@ -309,6 +327,14 @@ export class PreviewAnonymizer {
     return PREVIEW_KEPT_STATUSES.has(status)
       ? status
       : this.toAlias(aliases.statuses, status, PREVIEW_STATUS_ALIAS);
+  }
+
+  private toMilestone(milestone: string, aliases: PreviewAliases) {
+    return this.toAlias(aliases.milestones, milestone, PREVIEW_MILESTONE_ALIAS);
+  }
+
+  private toIteration(iteration: string, aliases: PreviewAliases) {
+    return this.toAlias(aliases.iterations, iteration, PREVIEW_ITERATION_ALIAS);
   }
 
   private toRef(ref: string, refType: SourceRefType, aliases: PreviewAliases) {

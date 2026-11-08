@@ -50,13 +50,17 @@
         "createdAt": "2026-10-12T17:27:56.954+05:00",
         "assignees": [],
         "status": "To do",
+        "milestone": null,
+        "iteration": null,
         "startOfDay": {
           "state": "opened",
           "labels": [
             "type::qa"
           ],
           "assignees": [],
-          "status": "To do"
+          "status": "To do",
+          "milestone": null,
+          "iteration": null
         },
         "facts": [
           {
@@ -182,6 +186,7 @@
                 "webUrl": "https://gitlab.example.com/group/project-13/-/issues/84"
               }
             ],
+            "milestone": null,
             "startOfDay": {
               "state": "opened",
               "labels": [
@@ -191,6 +196,7 @@
                 "user-1"
               ],
               "status": null,
+              "milestone": null,
               "reviewers": [
                 "user-7"
               ],
@@ -560,6 +566,8 @@
           "user-16"
         ],
         "status": "To do",
+        "milestone": null,
+        "iteration": null,
         "startOfDay": {
           "state": "opened",
           "labels": [
@@ -572,7 +580,9 @@
           "assignees": [
             "user-16"
           ],
-          "status": "To do"
+          "status": "To do",
+          "milestone": null,
+          "iteration": null
         },
         "facts": [
           {
@@ -829,6 +839,7 @@
                 "webUrl": "https://gitlab.example.com/group/project-2/-/issues/999"
               }
             ],
+            "milestone": null,
             "startOfDay": {
               "state": "opened",
               "labels": [
@@ -840,6 +851,7 @@
               ],
               "assignees": [],
               "status": null,
+              "milestone": null,
               "reviewers": [
                 "user-12",
                 "user-17"
@@ -986,11 +998,15 @@
           "user-16"
         ],
         "status": "To do",
+        "milestone": null,
+        "iteration": null,
         "startOfDay": {
           "state": "opened",
           "labels": [],
           "assignees": [],
-          "status": null
+          "status": null,
+          "milestone": null,
+          "iteration": null
         },
         "facts": [
           {
@@ -1264,11 +1280,13 @@
                 "webUrl": "https://gitlab.example.com/group/project-7/-/issues/1506"
               }
             ],
+            "milestone": null,
             "startOfDay": {
               "state": "opened",
               "labels": [],
               "assignees": [],
               "status": null,
+              "milestone": null,
               "reviewers": [],
               "draft": true
             },
@@ -1666,6 +1684,8 @@
           "user-24"
         ],
         "status": "To do",
+        "milestone": null,
+        "iteration": null,
         "startOfDay": {
           "state": "opened",
           "labels": [
@@ -1675,7 +1695,9 @@
           "assignees": [
             "user-24"
           ],
-          "status": "To do"
+          "status": "To do",
+          "milestone": null,
+          "iteration": null
         },
         "facts": [],
         "events": [],
@@ -1731,6 +1753,7 @@
                 "webUrl": "https://gitlab.example.com/group/project-14/-/issues/909"
               }
             ],
+            "milestone": null,
             "startOfDay": {
               "state": "opened",
               "labels": [
@@ -1741,6 +1764,7 @@
                 "user-24"
               ],
               "status": null,
+              "milestone": null,
               "reviewers": [
                 "user-5"
               ],
@@ -2004,6 +2028,7 @@
             "webUrl": "https://gitlab.example.com/group/project-15/-/issues/670"
           }
         ],
+        "milestone": null,
         "startOfDay": {
           "state": "opened",
           "labels": [
@@ -2015,6 +2040,7 @@
             "user-25"
           ],
           "status": null,
+          "milestone": null,
           "reviewers": [
             "user-5"
           ],

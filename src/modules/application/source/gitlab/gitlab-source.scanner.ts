@@ -82,15 +82,19 @@ export class GitLabSourceScanner {
     const index: SourceDayIndex = {};
     await Promise.all(
       items.slice(0, GITLAB_SOURCE_SCAN_LIMIT).map(async ({ issuable, iid }) => {
-        const [notes, labelEvents] = await Promise.all([
+        const issue = issuable === GitLabIssuable.ISSUES;
+        const [notes, ...events] = await Promise.all([
           this.gitlabService.findNotes(issuable, projectId, iid),
           this.gitlabService.findLabelEvents(issuable, projectId, iid),
+          issue ? this.gitlabService.findMilestoneEvents(issuable, projectId, iid) : [],
+          issue ? this.gitlabService.findIterationEvents(projectId, iid) : [],
         ]);
         const userIds = new Set([
           ...notes
             .filter((note) => isWithinDay(note.created_at, day))
             .map((note) => note.author.id),
-          ...labelEvents
+          ...events
+            .flat()
             .filter((event) => isWithinDay(event.created_at, day))
             .map((event) => event.user.id),
         ]);
@@ -99,7 +103,7 @@ export class GitLabSourceScanner {
             issues: [],
             mergeRequests: [],
           });
-          (issuable === GitLabIssuable.ISSUES ? own.issues : own.mergeRequests).push(iid);
+          (issue ? own.issues : own.mergeRequests).push(iid);
         }
       }),
     );

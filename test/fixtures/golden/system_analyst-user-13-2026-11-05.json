@@ -38,11 +38,15 @@
           "user-34"
         ],
         "status": "To do",
+        "milestone": null,
+        "iteration": null,
         "startOfDay": {
           "state": "opened",
           "labels": [],
           "assignees": [],
-          "status": null
+          "status": null,
+          "milestone": null,
+          "iteration": null
         },
         "facts": [
           {
@@ -327,6 +331,8 @@
           "user-19"
         ],
         "status": "Done",
+        "milestone": null,
+        "iteration": null,
         "startOfDay": {
           "state": "opened",
           "labels": [
@@ -339,7 +345,9 @@
           "assignees": [
             "user-19"
           ],
-          "status": "In progress"
+          "status": "In progress",
+          "milestone": null,
+          "iteration": null
         },
         "facts": [
           {

@@ -19,6 +19,8 @@ export const GITLAB_SOURCE_MAIN_BRANCHES = new Set(['main', 'master', 'develop']
 
 export const GITLAB_SOURCE_KEY_SEPARATOR = ':';
 
+export const GITLAB_SOURCE_ITERATION_DATES_SEPARATOR = ' – ';
+
 export const GITLAB_SOURCE_REF_TYPES: Record<GitLabRefType, SourceRefType> = {
   [GitLabRefType.BRANCH]: SourceRefType.BRANCH,
   [GitLabRefType.TAG]: SourceRefType.TAG,
@@ -96,6 +98,16 @@ export const GITLAB_SOURCE_ITEM_STATES: Record<GitLabState, ItemState> = {
 export const GITLAB_SOURCE_LABEL_ACTIONS: Record<GitLabLabelAction, LabelAction> = {
   [GitLabLabelAction.ADD]: LabelAction.ADD,
   [GitLabLabelAction.REMOVE]: LabelAction.REMOVE,
+};
+
+export const GITLAB_SOURCE_MILESTONE_ACTIONS: Record<GitLabLabelAction, SourceActionKind> = {
+  [GitLabLabelAction.ADD]: SourceActionKind.MILESTONE_SET,
+  [GitLabLabelAction.REMOVE]: SourceActionKind.MILESTONE_REMOVED,
+};
+
+export const GITLAB_SOURCE_ITERATION_ACTIONS: Record<GitLabLabelAction, SourceActionKind> = {
+  [GitLabLabelAction.ADD]: SourceActionKind.ITERATION_SET,
+  [GitLabLabelAction.REMOVE]: SourceActionKind.ITERATION_REMOVED,
 };
 
 export const GITLAB_SOURCE_LOOKBACK_DAYS = 30;

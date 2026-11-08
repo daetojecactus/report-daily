@@ -64,6 +64,7 @@ describe('ActivitySelector', () => {
       CODE: ActivityTier.WORK,
       REQUIREMENTS: ActivityTier.WORK,
       TOOK_REVIEW: ActivityTier.WORK,
+      PLANNED: ActivityTier.WORK,
       TAGGED: ActivityTier.WORK,
       CREATED: ActivityTier.PARTICIPATION,
       DISCUSSED: ActivityTier.PARTICIPATION,

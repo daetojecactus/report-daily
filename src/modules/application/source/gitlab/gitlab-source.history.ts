@@ -17,7 +17,7 @@ import {
   GITLAB_SOURCE_DRAFT_ACTIONS,
   GITLAB_SOURCE_REVIEWER_CHANGE,
 } from './constants/gitlab-source.constants';
-import type { SourceUserChange } from './gitlab-source.interface';
+import type { SourcePlanHistory, SourceUserChange } from './gitlab-source.interface';
 import { GitLabSourceNotes } from './gitlab-source.notes';
 
 @Injectable()
@@ -55,6 +55,19 @@ export class GitLabSourceHistory {
       }
     }
     return [...labels];
+  }
+
+  restorePlan({ current, events }: SourcePlanHistory, moment: number) {
+    const ordered = this.toLatestFirst(events).toReversed();
+    const last = ordered.filter((event) => Date.parse(event.created_at) < moment).at(-1);
+    if (last) {
+      return last.action === GitLabLabelAction.ADD ? last.name : null;
+    }
+    const [first] = ordered;
+    if (!first) {
+      return current;
+    }
+    return first.action === GitLabLabelAction.REMOVE ? first.name : null;
   }
 
   restoreAssignees(assignees: GitLabAuthor[] | undefined, notes: GitLabNote[], moment: number) {

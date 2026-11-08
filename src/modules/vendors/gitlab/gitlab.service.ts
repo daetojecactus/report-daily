@@ -76,6 +76,14 @@ export class GitLabService {
     return this.gitlabRepository.findStateEvents(issuable, projectId, iid);
   }
 
+  findMilestoneEvents(issuable: GitLabIssuable, projectId: number, iid: number) {
+    return this.gitlabRepository.findMilestoneEvents(issuable, projectId, iid);
+  }
+
+  findIterationEvents(projectId: number, iid: number) {
+    return this.gitlabRepository.findIterationEvents(projectId, iid);
+  }
+
   findMergeRequestCommits(projectId: number, iid: number) {
     return this.gitlabRepository.findMergeRequestCommits(projectId, iid);
   }

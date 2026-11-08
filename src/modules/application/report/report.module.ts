@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TraitModule } from 'src/modules/application/trait/trait.module';
 import { ActivityCodeDetector } from './activity/activity-code.detector';
 import { ActivityLifecycleDetector } from './activity/activity-lifecycle.detector';
+import { ActivityPlanDetector } from './activity/activity-plan.detector';
 import { ActivityRefDetector } from './activity/activity-ref.detector';
 import { ActivityChains } from './activity/activity.chains';
 import { ActivityDetectors } from './activity/activity.detectors';
@@ -21,6 +22,7 @@ import { ActivitySignals } from './activity/activity.signals';
     ActivityLifecycleDetector,
     ActivityCodeDetector,
     ActivityRefDetector,
+    ActivityPlanDetector,
     ActivityChains,
     ActivitySelector,
     ActivityService,

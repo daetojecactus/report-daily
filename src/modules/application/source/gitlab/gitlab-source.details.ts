@@ -3,10 +3,14 @@ import { GitLabIssuable } from 'src/modules/vendors/gitlab/gitlab.enums';
 import type {
   GitLabEvent,
   GitLabIssue,
+  GitLabIteration,
   GitLabMergeRequest,
+  GitLabMilestone,
+  GitLabMilestoneEvent,
   GitLabProject,
 } from 'src/modules/vendors/gitlab/gitlab.interface';
 import { GitLabService } from 'src/modules/vendors/gitlab/gitlab.service';
+import { GITLAB_SOURCE_ITERATION_DATES_SEPARATOR } from './constants/gitlab-source.constants';
 import type {
   DayActivity,
   IssueActivity,
@@ -15,6 +19,7 @@ import type {
   SourceEventGroups,
   SourceEvents,
   SourceLinks,
+  SourcePlanHistory,
 } from './gitlab-source.interface';
 import { GitLabSourceKeys } from './gitlab-source.keys';
 
@@ -161,10 +166,12 @@ export class GitLabSourceDetails {
     pushes: SourceEvents<SourceBranch>[],
   ): Promise<IssueActivity> {
     const { project_id: projectId, iid } = issue;
-    const [notes, labelEvents, stateEvents] = await Promise.all([
+    const [notes, labelEvents, stateEvents, milestoneEvents, iterationEvents] = await Promise.all([
       this.gitlabService.findNotes(GitLabIssuable.ISSUES, projectId, iid),
       this.gitlabService.findLabelEvents(GitLabIssuable.ISSUES, projectId, iid),
       this.gitlabService.findStateEvents(GitLabIssuable.ISSUES, projectId, iid),
+      this.gitlabService.findMilestoneEvents(GitLabIssuable.ISSUES, projectId, iid),
+      this.gitlabService.findIterationEvents(projectId, iid),
     ]);
     return {
       issue,
@@ -172,6 +179,13 @@ export class GitLabSourceDetails {
       notes,
       labelEvents,
       stateEvents,
+      milestones: this.toMilestones(issue.milestone, milestoneEvents),
+      iterations: {
+        current: issue.iteration ? this.toIterationName(issue.iteration) : null,
+        events: iterationEvents.flatMap(({ iteration, ...event }) =>
+          iteration ? [{ ...event, name: this.toIterationName(iteration) }] : [],
+        ),
+      },
       mergeRequests: [],
       pushes,
     };
@@ -184,10 +198,11 @@ export class GitLabSourceDetails {
   ): Promise<MergeRequestActivity> {
     const { project_id: projectId, iid } = mergeRequest;
     const issuable = GitLabIssuable.MERGE_REQUESTS;
-    const [notes, labelEvents, stateEvents, commits] = await Promise.all([
+    const [notes, labelEvents, stateEvents, milestoneEvents, commits] = await Promise.all([
       this.gitlabService.findNotes(issuable, projectId, iid),
       this.gitlabService.findLabelEvents(issuable, projectId, iid),
       this.gitlabService.findStateEvents(issuable, projectId, iid),
+      this.gitlabService.findMilestoneEvents(issuable, projectId, iid),
       this.gitlabService.findMergeRequestCommits(projectId, iid),
     ]);
     return {
@@ -197,7 +212,24 @@ export class GitLabSourceDetails {
       notes,
       labelEvents,
       stateEvents,
+      milestones: this.toMilestones(mergeRequest.milestone, milestoneEvents),
       commits,
     };
+  }
+
+  private toMilestones(
+    current: GitLabMilestone | null | undefined,
+    events: GitLabMilestoneEvent[],
+  ): SourcePlanHistory {
+    return {
+      current: current?.title ?? null,
+      events: events.flatMap(({ milestone, ...event }) =>
+        milestone ? [{ ...event, name: milestone.title }] : [],
+      ),
+    };
+  }
+
+  private toIterationName({ title, start_date: start, due_date: due }: GitLabIteration) {
+    return title ?? `${start}${GITLAB_SOURCE_ITERATION_DATES_SEPARATOR}${due}`;
   }
 }

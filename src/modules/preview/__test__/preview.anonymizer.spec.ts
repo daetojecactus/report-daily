@@ -71,11 +71,13 @@ function createMergeRequest(overrides: Partial<GroupedMergeRequest> = {}): Group
         webUrl: 'https://acme.example.org/acme-corp/billing-api/-/issues/3',
       },
     ],
+    milestone: 'Acme Q4',
     startOfDay: {
       state: ItemState.OPENED,
       labels: ['status::doing', 'region::EU'],
       assignees: ['anna.petrova'],
       status: null,
+      milestone: 'Acme Q3',
       reviewers: ['ivan.sidorov'],
       draft: true,
     },
@@ -175,11 +177,15 @@ function createDay(): GroupedDailyData {
         createdAt: '2026-11-01T09:00:00.000Z',
         assignees: ['anna.petrova', 'ivan.sidorov'],
         status: 'Custom review',
+        milestone: 'Acme Q4',
+        iteration: 'Acme sprint 47',
         startOfDay: {
           state: ItemState.OPENED,
           labels: ['type::bug', 'region::EU'],
           assignees: ['anna.petrova'],
           status: 'Custom review',
+          milestone: null,
+          iteration: 'Acme sprint 46',
         },
         facts: [
           {
@@ -202,6 +208,14 @@ function createDay(): GroupedDailyData {
             kind: SourceActionKind.STATUS_SET,
             at: '2026-11-05T08:00:00.000Z',
             value: 'Done',
+            actor: 'anna.petrova',
+            own: true,
+            users: [],
+          },
+          {
+            kind: SourceActionKind.ITERATION_SET,
+            at: '2026-11-05T09:00:00.000Z',
+            value: 'Acme sprint 47',
             actor: 'anna.petrova',
             own: true,
             users: [],
@@ -326,6 +340,20 @@ describe('PreviewAnonymizer', () => {
     ]);
     expect(issue.facts[0].value).toBe('label-2');
     expect(issue.startOfDay.labels).toEqual(['type::bug', 'label-1']);
+  });
+
+  it('gives milestones and iterations aliases that stay the same over the day', () => {
+    const { day } = anonymize();
+    const [issue] = day.issues;
+    const [mergeRequest] = issue.mergeRequests;
+
+    expect([issue.milestone, mergeRequest.milestone, mergeRequest.startOfDay.milestone]).toEqual([
+      'milestone-1',
+      'milestone-1',
+      'milestone-2',
+    ]);
+    expect([issue.iteration, issue.startOfDay.iteration]).toEqual(['iteration-1', 'iteration-2']);
+    expect(issue.facts.at(-1)?.value).toBe('iteration-1');
   });
 
   it('keeps what the rules read from branches, commits and statuses', () => {

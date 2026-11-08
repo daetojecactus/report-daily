@@ -55,4 +55,8 @@ export enum SourceActionKind {
   BRANCH_CREATED = 'branch_created',
   DIFF_LINE_CHANGED = 'diff_line_changed',
   REVIEW_SUBMITTED = 'review_submitted',
+  MILESTONE_SET = 'milestone_set',
+  MILESTONE_REMOVED = 'milestone_removed',
+  ITERATION_SET = 'iteration_set',
+  ITERATION_REMOVED = 'iteration_removed',
 }

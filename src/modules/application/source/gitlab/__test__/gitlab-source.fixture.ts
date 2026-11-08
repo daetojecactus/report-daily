@@ -4,8 +4,10 @@ import type {
   GitLabCommit,
   GitLabEvent,
   GitLabIssue,
+  GitLabIterationEvent,
   GitLabLabelEvent,
   GitLabMergeRequest,
+  GitLabMilestoneEvent,
   GitLabNote,
   GitLabProject,
   GitLabStateEvent,
@@ -109,6 +111,38 @@ export function createLabelEvent(overrides: Partial<GitLabLabelEvent> = {}): Git
     user: createAuthor('dev.author'),
     created_at: `${REPORT_DATE}T11:00:00.000Z`,
     label: { name: 'status::doing' },
+    action: GitLabLabelAction.ADD,
+    ...overrides,
+  };
+}
+
+export function createMilestoneEvent(
+  overrides: Partial<GitLabMilestoneEvent> = {},
+): GitLabMilestoneEvent {
+  return {
+    id: 1,
+    user: createAuthor('dev.author'),
+    created_at: `${REPORT_DATE}T11:00:00.000Z`,
+    milestone: { id: 3, title: '17.5' },
+    action: GitLabLabelAction.ADD,
+    ...overrides,
+  };
+}
+
+export function createIterationEvent(
+  overrides: Partial<GitLabIterationEvent> = {},
+): GitLabIterationEvent {
+  return {
+    id: 1,
+    user: createAuthor('dev.author'),
+    created_at: `${REPORT_DATE}T11:00:00.000Z`,
+    iteration: {
+      id: 4,
+      sequence: 3,
+      title: null,
+      start_date: '2026-07-27',
+      due_date: '2026-08-09',
+    },
     action: GitLabLabelAction.ADD,
     ...overrides,
   };

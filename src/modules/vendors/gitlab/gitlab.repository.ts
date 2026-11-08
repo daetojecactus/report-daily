@@ -4,8 +4,10 @@ import {
   GITLAB_CLOSES_ISSUES_PATH,
   GITLAB_COMMITS_PATH,
   GITLAB_EVENTS_PATH,
+  GITLAB_ITERATION_EVENTS_PATH,
   GITLAB_LABEL_EVENTS_PATH,
   GITLAB_MAX_PAGES,
+  GITLAB_MILESTONE_EVENTS_PATH,
   GITLAB_NEXT_PAGE_HEADER,
   GITLAB_NOT_FOUND,
   GITLAB_NOTES_PATH,
@@ -29,8 +31,10 @@ import type {
   GitLabHttpResponse,
   GitLabIssuableItem,
   GitLabIssue,
+  GitLabIterationEvent,
   GitLabLabelEvent,
   GitLabMergeRequest,
+  GitLabMilestoneEvent,
   GitLabNote,
   GitLabPage,
   GitLabProject,
@@ -122,6 +126,18 @@ export class GitLabRepository {
   findStateEvents(issuable: GitLabIssuable, projectId: number, iid: number) {
     return this.getAll<GitLabStateEvent>(
       `${this.toIssuablePath(issuable, projectId, iid)}${GITLAB_STATE_EVENTS_PATH}`,
+    );
+  }
+
+  findMilestoneEvents(issuable: GitLabIssuable, projectId: number, iid: number) {
+    return this.getAll<GitLabMilestoneEvent>(
+      `${this.toIssuablePath(issuable, projectId, iid)}${GITLAB_MILESTONE_EVENTS_PATH}`,
+    );
+  }
+
+  findIterationEvents(projectId: number, iid: number) {
+    return this.getAll<GitLabIterationEvent>(
+      `${this.toIssuablePath(GitLabIssuable.ISSUES, projectId, iid)}${GITLAB_ITERATION_EVENTS_PATH}`,
     );
   }
 

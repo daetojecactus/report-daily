@@ -56,6 +56,8 @@
           "user-21"
         ],
         "status": "To do",
+        "milestone": null,
+        "iteration": null,
         "startOfDay": {
           "state": "opened",
           "labels": [
@@ -68,7 +70,9 @@
           "assignees": [
             "user-21"
           ],
-          "status": "To do"
+          "status": "To do",
+          "milestone": null,
+          "iteration": null
         },
         "facts": [
           {
@@ -214,6 +218,7 @@
                 "webUrl": "https://gitlab.example.com/group/project-16/-/issues/42"
               }
             ],
+            "milestone": null,
             "startOfDay": {
               "state": "opened",
               "labels": [
@@ -227,6 +232,7 @@
                 "user-21"
               ],
               "status": null,
+              "milestone": null,
               "reviewers": [],
               "draft": false
             },
@@ -338,13 +344,17 @@
           "user-21"
         ],
         "status": "Done",
+        "milestone": null,
+        "iteration": null,
         "startOfDay": {
           "state": "opened",
           "labels": [],
           "assignees": [
             "user-21"
           ],
-          "status": "To do"
+          "status": "To do",
+          "milestone": null,
+          "iteration": null
         },
         "facts": [
           {
@@ -436,6 +446,8 @@
           "user-21"
         ],
         "status": "Done",
+        "milestone": null,
+        "iteration": null,
         "startOfDay": {
           "state": "opened",
           "labels": [
@@ -448,7 +460,9 @@
           "assignees": [
             "user-21"
           ],
-          "status": "To do"
+          "status": "To do",
+          "milestone": null,
+          "iteration": null
         },
         "facts": [
           {
@@ -576,6 +590,7 @@
                 "webUrl": "https://gitlab.example.com/group/project-12/-/issues/87"
               }
             ],
+            "milestone": null,
             "startOfDay": {
               "state": "opened",
               "labels": [
@@ -589,6 +604,7 @@
                 "user-21"
               ],
               "status": null,
+              "milestone": null,
               "reviewers": [
                 "user-1"
               ],
@@ -728,6 +744,8 @@
           "user-21"
         ],
         "status": "Done",
+        "milestone": null,
+        "iteration": null,
         "startOfDay": {
           "state": "opened",
           "labels": [
@@ -739,7 +757,9 @@
           "assignees": [
             "user-21"
           ],
-          "status": "To do"
+          "status": "To do",
+          "milestone": null,
+          "iteration": null
         },
         "facts": [
           {
@@ -878,11 +898,13 @@
                 "webUrl": "https://gitlab.example.com/group/project-20/-/issues/13"
               }
             ],
+            "milestone": null,
             "startOfDay": {
               "state": "opened",
               "labels": [],
               "assignees": [],
               "status": null,
+              "milestone": null,
               "reviewers": [],
               "draft": false
             },
@@ -1148,6 +1170,8 @@
           "user-4"
         ],
         "status": "Done",
+        "milestone": null,
+        "iteration": null,
         "startOfDay": {
           "state": "opened",
           "labels": [
@@ -1160,7 +1184,9 @@
           "assignees": [
             "user-4"
           ],
-          "status": "To do"
+          "status": "To do",
+          "milestone": null,
+          "iteration": null
         },
         "facts": [
           {
@@ -1248,6 +1274,7 @@
                 "webUrl": "https://gitlab.example.com/group/project-8/-/issues/685"
               }
             ],
+            "milestone": null,
             "startOfDay": {
               "state": "opened",
               "labels": [
@@ -1261,6 +1288,7 @@
                 "user-4"
               ],
               "status": null,
+              "milestone": null,
               "reviewers": [
                 "user-1"
               ],
@@ -1352,6 +1380,8 @@
           "user-4"
         ],
         "status": "Done",
+        "milestone": null,
+        "iteration": null,
         "startOfDay": {
           "state": "opened",
           "labels": [
@@ -1365,7 +1395,9 @@
             "user-3",
             "user-4"
           ],
-          "status": "To do"
+          "status": "To do",
+          "milestone": null,
+          "iteration": null
         },
         "facts": [
           {
@@ -1452,6 +1484,7 @@
                 "webUrl": "https://gitlab.example.com/group/project-2/-/issues/1002"
               }
             ],
+            "milestone": null,
             "startOfDay": {
               "state": "opened",
               "labels": [
@@ -1465,6 +1498,7 @@
                 "user-4"
               ],
               "status": null,
+              "milestone": null,
               "reviewers": [
                 "user-5"
               ],

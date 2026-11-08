@@ -17,6 +17,7 @@ export enum ActivityAction {
   TOOK_REVIEW = 'took_review',
   CODE = 'code',
   REQUIREMENTS = 'requirements',
+  PLANNED = 'planned',
   TAGGED = 'tagged',
   CREATED = 'created',
   DISCUSSED = 'discussed',
@@ -64,6 +65,9 @@ export enum ActivityDetail {
   CLOSES = 'closes',
   DIRECT = 'direct',
   TAG = 'tag',
+  ITERATION = 'iteration',
+  MILESTONE = 'milestone',
+  MOVED = 'moved',
 }
 
 export enum EngagementLevel {

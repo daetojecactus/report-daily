@@ -105,6 +105,8 @@ export class GitLabSourceBuilder {
       createdAt: issue.created_at,
       assignees: this.gitlabSourceHistory.restoreAssignees(issue.assignees, notes, day.end),
       status: this.gitlabSourceHistory.resolveStatus(notes, day.end),
+      milestone: this.gitlabSourceHistory.restorePlan(activity.milestones, day.end),
+      iteration: this.gitlabSourceHistory.restorePlan(activity.iterations, day.end),
       startOfDay: {
         state:
           GITLAB_SOURCE_ITEM_STATES[
@@ -113,6 +115,8 @@ export class GitLabSourceBuilder {
         labels: this.gitlabSourceHistory.restoreLabels(issue.labels, labelEvents, day.start),
         assignees: this.gitlabSourceHistory.restoreAssignees(issue.assignees, notes, day.start),
         status: this.gitlabSourceHistory.resolveStatus(notes, day.start),
+        milestone: this.gitlabSourceHistory.restorePlan(activity.milestones, day.start),
+        iteration: this.gitlabSourceHistory.restorePlan(activity.iterations, day.start),
       },
       facts: this.gitlabSourceFacts.resolve(issue, activity, context),
       events: this.cleanEvents(activity.events, context),
@@ -159,6 +163,7 @@ export class GitLabSourceBuilder {
         title: issue.title,
         webUrl: issue.web_url,
       })),
+      milestone: this.gitlabSourceHistory.restorePlan(activity.milestones, day.end),
       startOfDay: {
         state:
           GITLAB_SOURCE_ITEM_STATES[
@@ -171,6 +176,7 @@ export class GitLabSourceBuilder {
           day.start,
         ),
         status: null,
+        milestone: this.gitlabSourceHistory.restorePlan(activity.milestones, day.start),
         reviewers: this.gitlabSourceHistory.restoreReviewers(mergeRequest, notes, day.start),
         draft: this.gitlabSourceHistory.restoreDraft(mergeRequest.draft ?? false, notes, day.start),
       },
