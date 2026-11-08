@@ -53,6 +53,7 @@ describe('PreviewRenderer', () => {
         {
           projectId: 1,
           branch: '9-spike',
+          mainBranch: false,
           events: [{ ...pushEvent(at(12), []), actionName: 'pushed new' }],
         },
       ],
@@ -77,7 +78,9 @@ describe('PreviewRenderer', () => {
     const lines = render({
       issues: [
         createIssue({
-          pushes: [{ projectId: 1, branch: '12-spike', events: [pushEvent(at(12))] }],
+          pushes: [
+            { projectId: 1, branch: '12-spike', mainBranch: false, events: [pushEvent(at(12))] },
+          ],
         }),
       ],
     });

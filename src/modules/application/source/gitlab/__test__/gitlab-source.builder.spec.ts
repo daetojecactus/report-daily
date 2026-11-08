@@ -49,6 +49,7 @@ function buildMergeRequest(
       issues: [],
       mergeRequests: [toActivity(mergeRequest, overrides)],
       pushes: [],
+      directPushes: [],
       pushCommits: new Map(),
     },
     DAY,
@@ -75,6 +76,7 @@ function buildIssue(overrides: Partial<IssueActivity> = {}) {
       ],
       mergeRequests: [],
       pushes: [],
+      directPushes: [],
       pushCommits: new Map(),
     },
     DAY,
@@ -315,6 +317,7 @@ describe('GitLabSourceBuilder', () => {
         ],
         mergeRequests: [],
         pushes: [{ target: { projectId: 1, branch: 'hotfix' }, events: [push] }],
+        directPushes: [],
         pushCommits: new Map([
           [7, [createCommit(`${REPORT_DATE}T09:00:00.000Z`, 'fix: the cache')]],
         ]),
@@ -353,6 +356,7 @@ describe('GitLabSourceBuilder', () => {
       {
         projectId: 1,
         branch: 'hotfix',
+        mainBranch: false,
         events: [
           {
             id: 7,

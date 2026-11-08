@@ -98,8 +98,36 @@ export class GitLabSourceDetails {
             this.gitlabSourceKeys.isWorkBranch(target, projects),
         )
         .map(([, push]) => push),
+      directPushes: [...groups.pushes.values()]
+        .filter(({ target }) => !this.gitlabSourceKeys.isWorkBranch(target, projects))
+        .map(({ target, events }) => ({
+          target,
+          events: events.filter((event) => !this.isMergePush(event, target, mergeRequests)),
+        }))
+        .filter(({ events }) => events.length),
       pushCommits,
     };
+  }
+
+  private isMergePush(
+    event: GitLabEvent,
+    target: SourceBranch,
+    mergeRequests: Map<string, GitLabMergeRequest>,
+  ) {
+    const commit = event.push_data?.commit_to ?? null;
+    return (
+      commit !== null &&
+      [...mergeRequests.values()].some(
+        (mergeRequest) =>
+          mergeRequest.project_id === target.projectId &&
+          mergeRequest.target_branch === target.branch &&
+          [
+            mergeRequest.merge_commit_sha,
+            mergeRequest.squash_commit_sha,
+            mergeRequest.sha,
+          ].includes(commit),
+      )
+    );
   }
 
   private async loadPushCommits(groups: SourceEventGroups) {

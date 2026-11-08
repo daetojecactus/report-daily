@@ -209,7 +209,7 @@ function createDay(): GroupedDailyData {
         notes: [],
         labelEvents: [],
         mergeRequests: [createMergeRequest()],
-        pushes: [{ projectId: 501, branch: '12-fix-card-payments', events: [] }],
+        pushes: [{ projectId: 501, branch: '12-fix-card-payments', mainBranch: false, events: [] }],
       },
     ],
     standaloneMergeRequests: [
@@ -223,6 +223,7 @@ function createDay(): GroupedDailyData {
       {
         projectId: 501,
         branch: 'main',
+        mainBranch: true,
         events: [],
       },
     ],

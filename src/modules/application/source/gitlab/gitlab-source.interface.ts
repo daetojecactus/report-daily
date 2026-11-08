@@ -73,6 +73,7 @@ export interface DayActivity {
   issues: IssueActivity[];
   mergeRequests: MergeRequestActivity[];
   pushes: SourceEvents<SourceBranch>[];
+  directPushes: SourceEvents<SourceBranch>[];
   pushCommits: Map<number, GitLabCommit[]>;
 }
 

@@ -620,6 +620,7 @@
           {
             "projectId": 9,
             "branch": "123-branch-25",
+            "mainBranch": false,
             "events": [
               {
                 "id": 597134,

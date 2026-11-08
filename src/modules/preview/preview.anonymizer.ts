@@ -82,6 +82,7 @@ export class PreviewAnonymizer {
     return {
       projectId: this.toProjectId(push.projectId, aliases),
       branch: this.toBranch(push.branch, aliases),
+      mainBranch: push.mainBranch,
       events: push.events.map((event) => this.anonymizeEvent(event, aliases)),
     };
   }

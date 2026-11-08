@@ -168,6 +168,9 @@ export class ActivityCodeDetector {
     if (signals.dependencies) {
       details.push(ActivityDetail.DEPENDENCIES);
     }
+    if (line.pushes.some((push) => push.mainBranch)) {
+      details.push(ActivityDetail.DIRECT);
+    }
     return details;
   }
 

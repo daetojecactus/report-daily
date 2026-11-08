@@ -56,17 +56,22 @@ export class GitLabSourceBuilder {
       standaloneMergeRequests: activity.mergeRequests.map((mergeRequest) =>
         this.buildMergeRequest(mergeRequest, context),
       ),
-      standalonePushes: activity.pushes.map((push) => this.buildPush(push, context)),
+      standalonePushes: [
+        ...activity.pushes.map((push) => this.buildPush(push, context, false)),
+        ...activity.directPushes.map((push) => this.buildPush(push, context, true)),
+      ],
     };
   }
 
   private buildPush(
     { target, events }: SourceEvents<SourceBranch>,
     context: SourceBuildContext,
+    mainBranch: boolean,
   ): StandalonePush {
     return {
       projectId: target.projectId,
       branch: target.branch,
+      mainBranch,
       events: this.cleanEvents(events, context),
     };
   }
@@ -108,7 +113,7 @@ export class GitLabSourceBuilder {
       mergeRequests: activity.mergeRequests.map((mergeRequest) =>
         this.buildMergeRequest(mergeRequest, context),
       ),
-      pushes: activity.pushes.map((push) => this.buildPush(push, context)),
+      pushes: activity.pushes.map((push) => this.buildPush(push, context, false)),
     };
   }
 
