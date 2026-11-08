@@ -60,6 +60,7 @@ describe('ActivitySelector', () => {
       BUG_FOUND: ActivityTier.CHECK,
       REVIEWED: ActivityTier.CHECK,
       UNAPPROVED: ActivityTier.CHECK,
+      MERGE_SCHEDULED: ActivityTier.TRANSITION,
       ESCALATED: ActivityTier.TRANSITION,
       CODE: ActivityTier.WORK,
       REQUIREMENTS: ActivityTier.WORK,

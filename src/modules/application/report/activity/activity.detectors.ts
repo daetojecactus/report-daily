@@ -163,6 +163,9 @@ export class ActivityDetectors {
             ...(remarks.some((fact) => fact.kind === SourceActionKind.THREADS_RESOLVED)
               ? [ActivityDetail.RESOLVED]
               : []),
+            ...(remarks.some((fact) => fact.kind === SourceActionKind.CHANGES_REQUESTED)
+              ? [ActivityDetail.CHANGES_REQUESTED]
+              : []),
           ],
         ),
       );

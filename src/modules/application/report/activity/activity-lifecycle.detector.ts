@@ -53,6 +53,12 @@ export class ActivityLifecycleDetector {
             ],
           ),
         );
+      } else if (fact.kind === SourceActionKind.AUTO_MERGE_SET && fact.mergeRequestIid !== null) {
+        candidates.push(
+          this.toCandidate(ActivityAction.MERGE_SCHEDULED, ACTIVITY_WEIGHTS.MERGE_SCHEDULED, [
+            fact,
+          ]),
+        );
       } else if (fact.kind === SourceActionKind.REOPENED) {
         candidates.push(
           this.toCandidate(ActivityAction.REOPENED, ACTIVITY_WEIGHTS.REOPENED, [fact]),

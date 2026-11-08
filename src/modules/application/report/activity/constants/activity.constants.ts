@@ -20,6 +20,7 @@ export const ACTIVITY_WEIGHTS = {
   BUG_FOUND: 750,
   REVIEWED: 720,
   UNAPPROVED: 700,
+  MERGE_SCHEDULED: 650,
   ESCALATED: 600,
   CODE: 300,
   REQUIREMENTS: 320,
@@ -146,6 +147,8 @@ export const ACTIVITY_OPPOSITE_FACTS = new Map<SourceActionKind, SourceActionKin
   [SourceActionKind.DUE_DATE_REMOVED, SourceActionKind.DUE_DATE_SET],
   [SourceActionKind.START_DATE_SET, SourceActionKind.START_DATE_REMOVED],
   [SourceActionKind.START_DATE_REMOVED, SourceActionKind.START_DATE_SET],
+  [SourceActionKind.AUTO_MERGE_SET, SourceActionKind.AUTO_MERGE_CANCELED],
+  [SourceActionKind.AUTO_MERGE_CANCELED, SourceActionKind.AUTO_MERGE_SET],
 ]);
 
 export const ACTIVITY_RETURN_STATES = new Map<WorkflowState, ActivityDetail>([
@@ -245,6 +248,7 @@ export const ACTIVITY_REVIEW_FACTS = new Set<SourceActionKind>([
   SourceActionKind.COMMENTED,
   SourceActionKind.REVIEW_SUBMITTED,
   SourceActionKind.THREADS_RESOLVED,
+  SourceActionKind.CHANGES_REQUESTED,
 ]);
 
 export const ACTIVITY_COMMENT_FACTS = new Set<SourceActionKind>([
@@ -266,6 +270,7 @@ export const ACTIVITY_EDIT_DETAILS = new Map<SourceActionKind, ActivityDetail>([
   [SourceActionKind.UNLINKED, ActivityDetail.LINKS],
   [SourceActionKind.DUE_DATE_REMOVED, ActivityDetail.DUE_DATE],
   [SourceActionKind.START_DATE_REMOVED, ActivityDetail.START_DATE],
+  [SourceActionKind.AUTO_MERGE_CANCELED, ActivityDetail.AUTO_MERGE],
 ]);
 
 export const ACTIVITY_DEPENDENCY_BRANCH_PATTERN = /^(?:renovate|dependabot)[/-]/i;
