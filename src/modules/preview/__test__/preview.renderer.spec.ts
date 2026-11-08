@@ -32,12 +32,9 @@ function render(overrides: Partial<GroupedDailyData>, trace = false) {
     standaloneEvents: [],
     ...overrides,
   };
-  const results = createService().classify(
-    day,
-    { username: ME, role: JobRole.DEVELOPER },
-    createIndex(),
-  );
-  return new PreviewRenderer().render(day, results, trace);
+  const service = createService();
+  const results = service.classify(day, { username: ME, role: JobRole.DEVELOPER }, createIndex());
+  return new PreviewRenderer().render(day, results, trace, service.summarize(results));
 }
 
 const reviewed = createIssue({
@@ -194,6 +191,25 @@ describe('PreviewRenderer', () => {
       '  Wiki page page-1',
       '    main: documented',
       '    events: updated',
+    ]);
+  });
+
+  it('marks the lines of a summary and prints the summaries after the day', () => {
+    const planned = (iid: number) =>
+      createIssue({
+        iid,
+        facts: [fact(SourceActionKind.WEIGHT_SET, at(10, iid), { value: '3' })],
+      });
+    const lines = render({ issues: [planned(1), planned(2), planned(3)] });
+
+    expect(lines.filter((line) => line.includes('main:'))).toEqual([
+      '    main: estimated · in a summary',
+      '    main: estimated · in a summary',
+      '    main: estimated · in a summary',
+    ]);
+    expect(lines.slice(-2)).toEqual([
+      'Summaries',
+      '  estimated x3: group/project-1#1, group/project-1#2, group/project-1#3',
     ]);
   });
 

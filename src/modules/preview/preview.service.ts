@@ -38,7 +38,7 @@ export class PreviewService {
     return [
       [account.username, user.role, date, timeZone].join(' · '),
       `issues: ${day.issues.length}, merge requests without an issue: ${day.standaloneMergeRequests.length}, pushes without a merge request: ${day.standalonePushes.length}`,
-      ...this.previewRenderer.render(day, results, trace),
+      ...this.previewRenderer.render(day, results, trace, this.activityService.summarize(results)),
     ].join('\n');
   }
 }

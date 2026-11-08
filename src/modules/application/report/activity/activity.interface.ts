@@ -133,3 +133,9 @@ export interface ActivityResult {
   choice: ActivityChoice;
   excluded: boolean;
 }
+
+export interface ActivitySummary {
+  action: ActivityAction;
+  details: ActivityDetail[];
+  results: ActivityResult[];
+}

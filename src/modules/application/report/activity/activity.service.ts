@@ -9,6 +9,7 @@ import { ActivityAction } from './activity.enums';
 import type { ActivityEmployee, ActivityLine, ActivityResult } from './activity.interface';
 import { ActivitySelector } from './activity.selector';
 import { ActivitySignals } from './activity.signals';
+import { ActivitySummaries } from './activity.summaries';
 
 @Injectable()
 export class ActivityService {
@@ -17,7 +18,12 @@ export class ActivityService {
     private readonly activityDetectors: ActivityDetectors,
     private readonly activityChains: ActivityChains,
     private readonly activitySelector: ActivitySelector,
+    private readonly activitySummaries: ActivitySummaries,
   ) {}
+
+  summarize(results: ActivityResult[]) {
+    return this.activitySummaries.collect(results);
+  }
 
   classify(day: GroupedDailyData, employee: ActivityEmployee, index: TraitIndex): ActivityResult[] {
     return this.toLines(day).map((line) => {
