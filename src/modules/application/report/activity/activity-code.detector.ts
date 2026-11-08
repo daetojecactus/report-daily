@@ -6,6 +6,7 @@ import {
   ACTIVITY_CODE_CHANGE_FACTS,
   ACTIVITY_CODE_FACTS,
   ACTIVITY_CODE_WEIGHTS,
+  ACTIVITY_COMMIT_FACTS,
   ACTIVITY_DAY_MS,
   ACTIVITY_RESUMED_WORK_DAYS,
   ACTIVITY_TEST_COMMIT_PATTERN,
@@ -15,6 +16,7 @@ import { ActivityAction, ActivityDetail, EngagementLevel } from './activity.enum
 import type {
   ActivityCandidate,
   ActivityFact,
+  ActivityLine,
   ActivityLineSignals,
   ActivityPush,
 } from './activity.interface';
@@ -85,7 +87,7 @@ export class ActivityCodeDetector {
     const has = (sourceKind: SourceActionKind) => facts.some((fact) => fact.kind === sourceKind);
     const firstPush = Math.min(
       ...pushes.map((push) => push.time),
-      ...facts.filter((fact) => fact.kind === SourceActionKind.PUSHED).map((fact) => fact.time),
+      ...facts.filter((fact) => ACTIVITY_COMMIT_FACTS.has(fact.kind)).map((fact) => fact.time),
     );
     const details: ActivityDetail[] = [];
     const worked = line.mergeRequests.filter(
@@ -171,10 +173,25 @@ export class ActivityCodeDetector {
     if (line.pushes.some((push) => push.mainBranch)) {
       details.push(ActivityDetail.DIRECT);
     }
+    if (this.hasForeignMention(line, facts)) {
+      details.push(ActivityDetail.MENTIONED);
+    }
     if (line.pushes.some((push) => push.ref === null && push.refType === SourceRefType.BRANCH)) {
       details.push(ActivityDetail.MANY);
     }
     return details;
+  }
+
+  private hasForeignMention(line: ActivityLine, facts: ActivityFact[]) {
+    const commits = [...line.mergeRequests, ...line.pushes].flatMap(({ events }) =>
+      events.flatMap((event) => event.pushData?.commits.map((commit) => commit.id) ?? []),
+    );
+    return facts.some(
+      (fact) =>
+        fact.kind === SourceActionKind.COMMIT_MENTIONED &&
+        fact.value !== null &&
+        !commits.some((commit) => commit.startsWith(fact.value ?? '')),
+    );
   }
 
   private toCode(facts: ActivityFact[], details: ActivityDetail[], pushes: ActivityPush[]) {

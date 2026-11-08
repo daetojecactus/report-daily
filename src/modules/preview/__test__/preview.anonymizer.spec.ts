@@ -215,6 +215,14 @@ function createDay(): GroupedDailyData {
             users: [],
           },
           {
+            kind: SourceActionKind.COMMIT_MENTIONED,
+            at: '2026-11-05T08:10:00.000Z',
+            value: 'a1b2c3d',
+            actor: 'anna.petrova',
+            own: true,
+            users: [],
+          },
+          {
             kind: SourceActionKind.WEIGHT_SET,
             at: '2026-11-05T08:30:00.000Z',
             value: '5',
@@ -365,6 +373,15 @@ describe('PreviewAnonymizer', () => {
     expect([issue.iteration, issue.startOfDay.iteration]).toEqual(['iteration-1', 'iteration-2']);
     expect(issue.facts.at(-1)?.value).toBe('iteration-1');
     expect([issue.weight, issue.startOfDay.weight, issue.facts.at(-2)?.value]).toEqual([5, 3, '5']);
+  });
+
+  it('gives a mentioned commit the alias of the same pushed commit', () => {
+    const { day } = anonymize();
+    const [issue] = day.issues;
+    const pushData = issue.mergeRequests[0].events[0].pushData;
+
+    expect(issue.facts[3].value).toBe('sha-1');
+    expect(pushData?.commits[0].id).toBe('sha-1');
   });
 
   it('keeps what the rules read from branches, commits and statuses', () => {

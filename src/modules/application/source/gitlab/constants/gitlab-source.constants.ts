@@ -15,6 +15,9 @@ export const GITLAB_SOURCE_ISSUE_TARGET_TYPES = new Set<string>([
 
 export const GITLAB_SOURCE_BRANCH_ISSUE_PATTERN = /^(\d+)-/;
 
+export const GITLAB_SOURCE_COMMIT_MENTION_PATTERN =
+  /^mentioned in commit (?:\S+@)?([0-9a-f]{7,40})/;
+
 export const GITLAB_SOURCE_MAIN_BRANCHES = new Set(['main', 'master', 'develop']);
 
 export const GITLAB_SOURCE_KEY_SEPARATOR = ':';
@@ -74,6 +77,38 @@ export const GITLAB_SOURCE_NOTE_ACTIONS: SourceNoteAction[] = [
     kind: SourceActionKind.DIFF_LINE_CHANGED,
   },
   { pattern: /^left review comments/, kind: SourceActionKind.REVIEW_SUBMITTED },
+  { pattern: GITLAB_SOURCE_COMMIT_MENTION_PATTERN, kind: SourceActionKind.COMMIT_MENTIONED },
+];
+
+export const GITLAB_SOURCE_KNOWN_NOTES = [
+  /^added \d+ commits?\b/,
+  /^mentioned in (?:merge request|issue|epic|work item)\b/,
+  /^changed target branch from/,
+  /^reset approvals from/,
+  /^made the (?:issue|work item|merge request) (?:confidential|visible to everyone)/,
+  /^(?:locked|unlocked) (?:the discussion in )?this (?:issue|work item|merge request)/,
+  /^(?:changed|removed) health status/,
+  /^(?:added|removed) \d+ contacts?\b/,
+  /^created merge request [^\s]*![\d]+ to address this/,
+];
+
+export const GITLAB_SOURCE_NOTE_SHAPE_WORDS = 6;
+
+export const GITLAB_SOURCE_NOTE_SHAPE_REPLACEMENTS: [RegExp, string][] = [
+  [/<[^>]+>/g, ' '],
+  [/https?:\/\/\S+/g, 'URL'],
+  [/@[\w.-]+/g, '@user'],
+  [/\*\*[^*]*\*\*/g, '**x**'],
+  [/`[^`]*`/g, '`x`'],
+  [/\[[^\]]*\]\([^)]*\)/g, '[link]'],
+  [/~"[^"]*"|~[\w:.-]+/g, '~label'],
+  [/%"[^"]*"|%[\w.-]+/g, '%milestone'],
+  [/[\w.-]+(?:\/[\w.-]+)+[#!&]\d+/g, 'REF'],
+  [/[#!&]\d+/g, 'REF'],
+  [/\b[0-9a-f]{7,40}\b/g, 'SHA'],
+  [/\d+/g, 'N'],
+  [/[^\x20-\x7E]+/g, 'X'],
+  [/\s+/g, ' '],
 ];
 
 export const GITLAB_SOURCE_DRAFT_ACTIONS = new Set([

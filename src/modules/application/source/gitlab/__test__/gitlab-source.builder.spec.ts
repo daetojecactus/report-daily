@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import { Logger } from '@nestjs/common';
+import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { getDayRange } from 'src/common/utils/date.util';
 import {
   GitLabLabelAction,
@@ -7,6 +8,7 @@ import {
 } from 'src/modules/vendors/gitlab/gitlab.enums';
 import type { GitLabMergeRequest, GitLabNote } from 'src/modules/vendors/gitlab/gitlab.interface';
 import { ItemState, SourceActionKind, SourceRefType } from '../../source.enums';
+import { GitLabSourceMessages } from '../constants/gitlab-source.messages';
 import type {
   IssueActivity,
   MergeRequestActivity,
@@ -106,6 +108,10 @@ function withNotes(notes: GitLabNote[]) {
 }
 
 describe('GitLabSourceBuilder', () => {
+  beforeAll(() => {
+    Logger.overrideLogger(false);
+  });
+
   describe('merge request reviewers', () => {
     it('keeps the current reviewers', () => {
       const grouped = buildMergeRequest(
@@ -592,6 +598,47 @@ describe('GitLabSourceBuilder', () => {
         .filter((fact) => fact.own)
         .map(({ kind, at, value, users }) => ({ kind, at, value, users }));
     }
+
+    it('reads a commit mention in the same and in another project', () => {
+      const grouped = buildIssue({
+        notes: [
+          ownNote('mentioned in commit abc1234f', 9),
+          ownNote('mentioned in commit group/backend@def5678a', 10),
+        ],
+      });
+
+      expect(toOwn(grouped.facts)).toEqual([
+        action(SourceActionKind.COMMIT_MENTIONED, 9, 'abc1234f'),
+        action(SourceActionKind.COMMIT_MENTIONED, 10, 'def5678a'),
+      ]);
+    });
+
+    it('logs only the system notes it neither reads nor knows, by their shape', () => {
+      const warn = vi.spyOn(Logger.prototype, 'warn').mockImplementation(() => undefined);
+      const grouped = buildIssue({
+        notes: [
+          ownNote('added 2 commits\n\n* abc1234 - fix', 9),
+          ownNote('mentioned in merge request !15', 10),
+          ownNote('changed target branch from `develop` to `main`', 11),
+          ownNote('marked the checklist item **Проверить оплату** as completed', 12),
+          ownNote('marked this issue as related to #45 by @dev.other', 13),
+        ],
+      });
+
+      expect(grouped.facts).toEqual([]);
+      expect(warn).toHaveBeenCalledTimes(2);
+      expect(warn).toHaveBeenNthCalledWith(
+        1,
+        { noteableType: 'MergeRequest', shape: 'marked the checklist item **x** as' },
+        GitLabSourceMessages.UNKNOWN_NOTE,
+      );
+      expect(warn).toHaveBeenNthCalledWith(
+        2,
+        { noteableType: 'MergeRequest', shape: 'marked this issue as related to' },
+        GitLabSourceMessages.UNKNOWN_NOTE,
+      );
+      warn.mockRestore();
+    });
 
     it('collects what the employee did on an issue in time order', () => {
       const grouped = buildIssue({

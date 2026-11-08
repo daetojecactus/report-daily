@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { isWithinDay } from 'src/common/utils/date.util';
 import { GitLabLabelAction } from 'src/modules/vendors/gitlab/gitlab.enums';
 import type {
@@ -17,6 +17,7 @@ import {
   GITLAB_SOURCE_REVIEWER_CHANGE,
   GITLAB_SOURCE_STATE_ACTIONS,
 } from './constants/gitlab-source.constants';
+import { GitLabSourceMessages } from './constants/gitlab-source.messages';
 import type {
   IssueActivity,
   MergeRequestActivity,
@@ -26,6 +27,8 @@ import { GitLabSourceNotes } from './gitlab-source.notes';
 
 @Injectable()
 export class GitLabSourceFacts {
+  private readonly logger = new Logger(GitLabSourceFacts.name);
+
   constructor(private readonly gitlabSourceNotes: GitLabSourceNotes) {}
 
   resolve(
@@ -142,9 +145,16 @@ export class GitLabSourceFacts {
       return userFacts;
     }
     const match = this.gitlabSourceNotes.match(note);
-    return match
-      ? [this.toFact(match.kind, note.created_at, note.author, context, match.value)]
-      : [];
+    if (match) {
+      return [this.toFact(match.kind, note.created_at, note.author, context, match.value)];
+    }
+    if (!this.gitlabSourceNotes.isKnown(note)) {
+      this.logger.warn(
+        { noteableType: note.noteable_type, shape: this.gitlabSourceNotes.toShape(note) },
+        GitLabSourceMessages.UNKNOWN_NOTE,
+      );
+    }
+    return [];
   }
 
   private isOfDay(at: string, { day }: SourceBuildContext) {

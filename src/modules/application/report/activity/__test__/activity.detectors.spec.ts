@@ -108,6 +108,11 @@ const PLACES: Record<SourceActionKind, [Place, Partial<SourceFact>][]> = {
   [SourceActionKind.ITERATION_REMOVED]: [['issue', { value: '2026-11-03 – 2026-11-16' }]],
   [SourceActionKind.WEIGHT_SET]: [['issue', { value: '3' }]],
   [SourceActionKind.WEIGHT_REMOVED]: [['issue', { value: '3' }]],
+  [SourceActionKind.COMMIT_MENTIONED]: [
+    ['issue', { value: 'abc1234' }],
+    ['own', { value: 'abc1234' }],
+    ['other', { value: 'abc1234' }],
+  ],
 };
 
 function placeFact(place: Place, item: SourceFact): ActivityLine {

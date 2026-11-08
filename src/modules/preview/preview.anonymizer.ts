@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { toSourceKey } from 'src/common/utils/source-name.util';
 import {
   GITLAB_SOURCE_BRANCH_ISSUE_PATTERN,
+  GITLAB_SOURCE_COMMIT_MENTION_PATTERN,
   GITLAB_SOURCE_MAIN_BRANCHES,
   GITLAB_SOURCE_MENTION_PATTERN,
 } from 'src/modules/application/source/gitlab/constants/gitlab-source.constants';
@@ -252,7 +253,7 @@ export class PreviewAnonymizer {
       refCount: pushData.refCount,
       commitTitle: pushData.commitTitle && this.toCommitTitle(pushData.commitTitle, aliases),
       commits: pushData.commits.map((commit) => ({
-        id: this.toAlias(aliases.commits, commit.id, PREVIEW_COMMIT_ALIAS),
+        id: this.toCommit(commit.id, aliases),
         title: this.toCommitTitle(commit.title, aliases),
       })),
     };
@@ -285,6 +286,10 @@ export class PreviewAnonymizer {
     if (branch) {
       return `created branch [\`${this.toBranch(branch[1], aliases)}\`](${PREVIEW_URL})`;
     }
+    const commit = GITLAB_SOURCE_COMMIT_MENTION_PATTERN.exec(body);
+    if (commit) {
+      return `mentioned in commit ${this.toCommit(commit[1], aliases)}`;
+    }
     if (PREVIEW_TITLE_NOTE_PATTERN.test(body)) {
       return PREVIEW_TITLE_NOTE;
     }
@@ -316,6 +321,8 @@ export class PreviewAnonymizer {
       case SourceActionKind.WEIGHT_SET:
       case SourceActionKind.WEIGHT_REMOVED:
         return value;
+      case SourceActionKind.COMMIT_MENTIONED:
+        return this.toCommit(value, aliases);
       default:
         return PREVIEW_ACTION_VALUE;
     }
@@ -332,6 +339,13 @@ export class PreviewAnonymizer {
     return PREVIEW_KEPT_STATUSES.has(status)
       ? status
       : this.toAlias(aliases.statuses, status, PREVIEW_STATUS_ALIAS);
+  }
+
+  private toCommit(id: string, aliases: PreviewAliases) {
+    const known = [...aliases.commits.keys()].find(
+      (key) => key.startsWith(id) || id.startsWith(key),
+    );
+    return this.toAlias(aliases.commits, known ?? id, PREVIEW_COMMIT_ALIAS);
   }
 
   private toMilestone(milestone: string, aliases: PreviewAliases) {

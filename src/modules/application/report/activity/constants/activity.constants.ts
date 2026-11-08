@@ -195,11 +195,18 @@ export const ACTIVITY_CODE_FACTS = new Set<SourceActionKind>([
   SourceActionKind.PUSHED,
   SourceActionKind.BRANCH_CREATED,
   SourceActionKind.DIFF_LINE_CHANGED,
+  SourceActionKind.COMMIT_MENTIONED,
 ]);
 
 export const ACTIVITY_CODE_CHANGE_FACTS = new Set<SourceActionKind>([
   SourceActionKind.PUSHED,
   SourceActionKind.DIFF_LINE_CHANGED,
+  SourceActionKind.COMMIT_MENTIONED,
+]);
+
+export const ACTIVITY_COMMIT_FACTS = new Set<SourceActionKind>([
+  SourceActionKind.PUSHED,
+  SourceActionKind.COMMIT_MENTIONED,
 ]);
 
 export const ACTIVITY_REVIEW_FACTS = new Set<SourceActionKind>([
