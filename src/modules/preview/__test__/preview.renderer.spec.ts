@@ -15,6 +15,7 @@ import {
   SourceEventAction,
   SourceRefType,
   SourceTargetType,
+  WorkItemType,
 } from 'src/modules/application/source/source.enums';
 import type { GroupedDailyData } from 'src/modules/application/source/source.interface';
 import { JobRole } from 'src/modules/application/user/user.enums';
@@ -154,6 +155,7 @@ describe('PreviewRenderer', () => {
     const lines = render({
       issues: [
         createIssue({
+          workItemType: WorkItemType.INCIDENT,
           milestone: 'milestone-1',
           iteration: 'iteration-2',
           weight: 3,
@@ -166,6 +168,7 @@ describe('PreviewRenderer', () => {
     expect(lines.slice(2)).toEqual([
       '  Issue #12 Issue 12 · opened',
       '    main: planned · iteration',
+      '    type: incident',
       '    assignees: dev.me',
       '    milestone: milestone-1',
       '    iteration: iteration-2',

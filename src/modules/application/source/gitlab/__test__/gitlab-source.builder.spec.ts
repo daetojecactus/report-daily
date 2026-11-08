@@ -7,7 +7,7 @@ import {
   GitLabState,
 } from 'src/modules/vendors/gitlab/gitlab.enums';
 import type { GitLabMergeRequest, GitLabNote } from 'src/modules/vendors/gitlab/gitlab.interface';
-import { ItemState, SourceActionKind, SourceRefType } from '../../source.enums';
+import { ItemState, SourceActionKind, SourceRefType, WorkItemType } from '../../source.enums';
 import { GitLabSourceMessages } from '../constants/gitlab-source.messages';
 import type {
   IssueActivity,
@@ -179,6 +179,13 @@ describe('GitLabSourceBuilder', () => {
 
       expect(grouped.reviewThreads).toEqual({ total: 2, unresolved: 1 });
     });
+  });
+
+  it('takes the work item type of an issue and leaves an unknown one empty', () => {
+    expect(buildIssue({ issue: createIssue({ issue_type: 'incident' }) }).workItemType).toBe(
+      WorkItemType.INCIDENT,
+    );
+    expect(buildIssue({ issue: createIssue({ issue_type: 'objective' }) }).workItemType).toBeNull();
   });
 
   describe('state at the end of the day', () => {

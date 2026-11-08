@@ -2,9 +2,10 @@ import {
   SourceActionKind,
   SourceEventAction,
   SourceTargetType,
+  WorkItemType,
 } from 'src/modules/application/source/source.enums';
 import { TRAIT_STATE_WEIGHTS } from 'src/modules/application/trait/constants/trait.constants';
-import { WorkflowState } from 'src/modules/application/trait/trait.enums';
+import { TaskKind, WorkflowState } from 'src/modules/application/trait/trait.enums';
 import { JobRole } from 'src/modules/application/user/user.enums';
 import { ActivityAction, ActivityDetail, ActivityRule, ActivityTier } from '../activity.enums';
 import type { ActivityRoleFocus } from '../activity.interface';
@@ -178,6 +179,13 @@ export const ACTIVITY_TARGET_ACTIONS: Record<
     ],
   ]),
 };
+
+export const ACTIVITY_WORK_ITEM_KINDS = new Map<WorkItemType, TaskKind>([
+  [WorkItemType.INCIDENT, TaskKind.INCIDENT],
+  [WorkItemType.REQUIREMENT, TaskKind.REQUIREMENTS],
+  [WorkItemType.TEST_CASE, TaskKind.TEST_AUTOMATION],
+  [WorkItemType.EPIC, TaskKind.EPIC],
+]);
 
 export const ACTIVITY_ELSEWHERE_RULES = new Set<ActivityRule>([
   ActivityRule.MOVED_AWAY,

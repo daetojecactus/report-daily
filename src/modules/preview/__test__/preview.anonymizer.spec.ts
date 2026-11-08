@@ -5,6 +5,7 @@ import {
   SourceActionKind,
   SourceRefType,
   SourceTargetType,
+  WorkItemType,
 } from 'src/modules/application/source/source.enums';
 import type {
   CleanNote,
@@ -175,6 +176,7 @@ function createDay(): GroupedDailyData {
         state: ItemState.OPENED,
         closedOnReportDate: false,
         webUrl: 'https://acme.example.org/acme-corp/billing-api/-/issues/12',
+        workItemType: WorkItemType.INCIDENT,
         labels: ['type::bug', 'region::EU'],
         createdAt: '2026-11-01T09:00:00.000Z',
         assignees: ['anna.petrova', 'ivan.sidorov'],

@@ -11,6 +11,7 @@ import {
   SourceActionKind,
   SourceRefType,
   SourceTargetType,
+  WorkItemType,
 } from '../../source.enums';
 import type { SourceNoteAction, SourceUserChange } from '../gitlab-source.interface';
 
@@ -23,6 +24,10 @@ export const GITLAB_SOURCE_PROJECT_TARGET_TYPES = new Map<string, SourceTargetTy
   [GitLabTargetType.WIKI_PAGE, SourceTargetType.WIKI_PAGE],
   [GitLabTargetType.MILESTONE, SourceTargetType.MILESTONE],
 ]);
+
+export const GITLAB_SOURCE_WORK_ITEM_TYPES = new Map<string, WorkItemType>(
+  Object.values(WorkItemType).map((type) => [type, type]),
+);
 
 export const GITLAB_SOURCE_KNOWN_EVENTS = new Set(['joined', 'left', 'expired']);
 

@@ -21,6 +21,7 @@ import {
   GITLAB_SOURCE_ITEM_STATES,
   GITLAB_SOURCE_LABEL_ACTIONS,
   GITLAB_SOURCE_REF_TYPES,
+  GITLAB_SOURCE_WORK_ITEM_TYPES,
 } from './constants/gitlab-source.constants';
 import { GitLabSourceFacts } from './gitlab-source.facts';
 import { GitLabSourceHistory } from './gitlab-source.history';
@@ -130,6 +131,7 @@ export class GitLabSourceBuilder {
         GitLabState.CLOSED,
       ),
       webUrl: issue.web_url,
+      workItemType: GITLAB_SOURCE_WORK_ITEM_TYPES.get(issue.issue_type ?? '') ?? null,
       labels: this.gitlabSourceHistory.restoreLabels(issue.labels, labelEvents, day.end),
       createdAt: issue.created_at,
       assignees: this.gitlabSourceHistory.restoreAssignees(issue.assignees, notes, day.end),

@@ -3,7 +3,7 @@ import type {
   ActivityCandidate,
   ActivityResult,
 } from 'src/modules/application/report/activity/activity.interface';
-import { SourceRefType } from 'src/modules/application/source/source.enums';
+import { SourceRefType, WorkItemType } from 'src/modules/application/source/source.enums';
 import type {
   CleanEvent,
   GroupedDailyData,
@@ -145,6 +145,9 @@ export class PreviewRenderer {
     const own = item.facts.filter((fact) => fact.own);
     const others = item.facts.filter((fact) => !fact.own);
     return [
+      'workItemType' in item && item.workItemType && item.workItemType !== WorkItemType.ISSUE
+        ? `type: ${item.workItemType}`
+        : '',
       item.labels.length ? `labels: ${item.labels.join(', ')}` : '',
       item.assignees.length ? `assignees: ${item.assignees.join(', ')}` : '',
       'reviewers' in item && item.reviewers.length ? `reviewers: ${item.reviewers.join(', ')}` : '',

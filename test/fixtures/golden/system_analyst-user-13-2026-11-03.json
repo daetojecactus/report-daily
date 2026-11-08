@@ -32,6 +32,7 @@
         "state": "opened",
         "closedOnReportDate": false,
         "webUrl": "https://gitlab.example.com/group/project-6/-/issues/2660",
+        "workItemType": null,
         "labels": [
           "label-1",
           "priority::high",
@@ -194,6 +195,7 @@
         "state": "closed",
         "closedOnReportDate": true,
         "webUrl": "https://gitlab.example.com/group/project-6/-/issues/2645",
+        "workItemType": null,
         "labels": [
           "label-5",
           "priority::medium",
@@ -376,6 +378,7 @@
         "state": "opened",
         "closedOnReportDate": false,
         "webUrl": "https://gitlab.example.com/group/project-2/-/issues/1002",
+        "workItemType": null,
         "labels": [
           "label-1",
           "priority::critical",
@@ -773,6 +776,7 @@
         "state": "opened",
         "closedOnReportDate": false,
         "webUrl": "https://gitlab.example.com/group/project-19/-/issues/430",
+        "workItemType": null,
         "labels": [
           "label-5",
           "priority::high",

@@ -4,6 +4,7 @@ import {
   ItemState,
   SourceEventAction,
   SourceRefType,
+  WorkItemType,
 } from 'src/modules/application/source/source.enums';
 import type {
   CleanEvent,
@@ -213,6 +214,7 @@ export function createIssue(overrides: Partial<GroupedIssue> = {}): GroupedIssue
     state: ItemState.OPENED,
     closedOnReportDate: false,
     webUrl: 'https://gitlab.example.com/group/project-1/-/issues/12',
+    workItemType: WorkItemType.ISSUE,
     labels: [],
     createdAt: '2026-07-30T09:00:00.000Z',
     assignees: [ME],

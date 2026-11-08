@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { SourceActionKind } from 'src/modules/application/source/source.enums';
+import { SourceActionKind, WorkItemType } from 'src/modules/application/source/source.enums';
 import { TaskFlag, TaskKind, WorkflowState } from 'src/modules/application/trait/trait.enums';
 import { ActivityRule, EngagementLevel } from '../activity.enums';
 import {
@@ -21,6 +21,19 @@ function ownKinds(line: Parameters<typeof toSignals>[0]) {
 }
 
 describe('ActivitySignals', () => {
+  it('takes the kind from the work item type only when the labels give none', () => {
+    const kind = (workItemType: WorkItemType, labels: string[] = []) =>
+      toSignals(issueLine(createIssue({ workItemType, labels }))).kind;
+
+    expect(kind(WorkItemType.INCIDENT)).toBe(TaskKind.INCIDENT);
+    expect(kind(WorkItemType.REQUIREMENT)).toBe(TaskKind.REQUIREMENTS);
+    expect(kind(WorkItemType.TEST_CASE)).toBe(TaskKind.TEST_AUTOMATION);
+    expect(kind(WorkItemType.EPIC)).toBe(TaskKind.EPIC);
+    expect(kind(WorkItemType.INCIDENT, ['type::bug'])).toBe(TaskKind.BUG);
+    expect(kind(WorkItemType.ISSUE)).toBeNull();
+    expect(kind(WorkItemType.TASK)).toBeNull();
+  });
+
   describe('accuracy rules', () => {
     it('drops an action undone by the same person within two minutes', () => {
       const issue = createIssue({

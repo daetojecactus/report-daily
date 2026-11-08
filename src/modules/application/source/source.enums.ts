@@ -19,6 +19,15 @@ export enum SourceRefType {
   TAG = 'tag',
 }
 
+export enum WorkItemType {
+  ISSUE = 'issue',
+  TASK = 'task',
+  INCIDENT = 'incident',
+  REQUIREMENT = 'requirement',
+  TEST_CASE = 'test_case',
+  EPIC = 'epic',
+}
+
 export enum SourceTargetType {
   WIKI_PAGE = 'wiki_page',
   MILESTONE = 'milestone',

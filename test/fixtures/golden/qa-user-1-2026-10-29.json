@@ -44,6 +44,7 @@
         "state": "opened",
         "closedOnReportDate": false,
         "webUrl": "https://gitlab.example.com/group/project-1/-/issues/770",
+        "workItemType": null,
         "labels": [
           "label-1",
           "priority::high",
@@ -243,6 +244,7 @@
         "state": "closed",
         "closedOnReportDate": true,
         "webUrl": "https://gitlab.example.com/group/project-1/-/issues/771",
+        "workItemType": null,
         "labels": [
           "label-1",
           "priority::high",
@@ -515,6 +517,7 @@
         "state": "opened",
         "closedOnReportDate": false,
         "webUrl": "https://gitlab.example.com/group/project-1/-/issues/772",
+        "workItemType": null,
         "labels": [
           "type::qa"
         ],
@@ -696,6 +699,7 @@
         "state": "closed",
         "closedOnReportDate": true,
         "webUrl": "https://gitlab.example.com/group/project-2/-/issues/998",
+        "workItemType": null,
         "labels": [
           "label-1",
           "priority::high",
@@ -955,6 +959,7 @@
         "state": "opened",
         "closedOnReportDate": false,
         "webUrl": "https://gitlab.example.com/group/project-3/-/issues/1611",
+        "workItemType": null,
         "labels": [
           "priority::medium",
           "status::QA passed"
@@ -1177,6 +1182,7 @@
         "state": "closed",
         "closedOnReportDate": true,
         "webUrl": "https://gitlab.example.com/group/project-4/-/issues/128",
+        "workItemType": null,
         "labels": [
           "label-3",
           "priority::high",
@@ -1481,6 +1487,7 @@
         "state": "closed",
         "closedOnReportDate": true,
         "webUrl": "https://gitlab.example.com/group/project-5/-/issues/1061",
+        "workItemType": null,
         "labels": [
           "label-1",
           "priority::medium",
@@ -1993,6 +2000,7 @@
         "state": "opened",
         "closedOnReportDate": false,
         "webUrl": "https://gitlab.example.com/group/project-5/-/issues/1040",
+        "workItemType": null,
         "labels": [
           "label-3",
           "priority::low",
