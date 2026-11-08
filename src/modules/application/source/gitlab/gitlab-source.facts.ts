@@ -144,6 +144,12 @@ export class GitLabSourceFacts {
     if (userFacts.length) {
       return userFacts;
     }
+    const dateFacts = this.gitlabSourceNotes
+      .parseDateChanges(note)
+      .map(({ kind, value }) => this.toFact(kind, note.created_at, note.author, context, value));
+    if (dateFacts.length) {
+      return dateFacts;
+    }
     const match = this.gitlabSourceNotes.match(note);
     if (match) {
       return [this.toFact(match.kind, note.created_at, note.author, context, match.value)];

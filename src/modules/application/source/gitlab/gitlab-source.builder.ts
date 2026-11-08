@@ -112,6 +112,7 @@ export class GitLabSourceBuilder {
         activity.weightEvents,
         day.end,
       ),
+      timeSpent: this.gitlabSourceHistory.resolveTimeSpent(notes, context.employee.id, day),
       startOfDay: {
         state:
           GITLAB_SOURCE_ITEM_STATES[
@@ -174,6 +175,7 @@ export class GitLabSourceBuilder {
         webUrl: issue.web_url,
       })),
       milestone: this.gitlabSourceHistory.restorePlan(activity.milestones, day.end),
+      timeSpent: this.gitlabSourceHistory.resolveTimeSpent(notes, context.employee.id, day),
       startOfDay: {
         state:
           GITLAB_SOURCE_ITEM_STATES[

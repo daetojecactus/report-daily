@@ -72,6 +72,7 @@ function createMergeRequest(overrides: Partial<GroupedMergeRequest> = {}): Group
       },
     ],
     milestone: 'Acme Q4',
+    timeSpent: 1800,
     startOfDay: {
       state: ItemState.OPENED,
       labels: ['status::doing', 'region::EU'],
@@ -180,6 +181,7 @@ function createDay(): GroupedDailyData {
         milestone: 'Acme Q4',
         iteration: 'Acme sprint 47',
         weight: 5,
+        timeSpent: 5400,
         startOfDay: {
           state: ItemState.OPENED,
           labels: ['type::bug', 'region::EU'],
@@ -373,6 +375,7 @@ describe('PreviewAnonymizer', () => {
     expect([issue.iteration, issue.startOfDay.iteration]).toEqual(['iteration-1', 'iteration-2']);
     expect(issue.facts.at(-1)?.value).toBe('iteration-1');
     expect([issue.weight, issue.startOfDay.weight, issue.facts.at(-2)?.value]).toEqual([5, 3, '5']);
+    expect([issue.timeSpent, issue.mergeRequests[0].timeSpent]).toEqual([5400, 1800]);
   });
 
   it('keeps the kind of a link and hides the reference of a move', () => {

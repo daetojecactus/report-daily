@@ -144,6 +144,15 @@ export class GitLabSourceHistory {
     return null;
   }
 
+  resolveTimeSpent(notes: GitLabNote[], employeeId: number, day: DayRange) {
+    const seconds = notes
+      .filter((note) => note.author.id === employeeId)
+      .map((note) => this.gitlabSourceNotes.parseTimeSpent(note))
+      .filter((spent) => spent !== null && isWithinDay(spent.at, day))
+      .reduce((total, spent) => total + (spent?.seconds ?? 0), 0);
+    return Math.max(0, seconds);
+  }
+
   resolveLastCommitBeforeDate(commits: GitLabCommit[], day: DayRange) {
     const times = commits
       .map((commit) => Date.parse(commit.committed_date ?? commit.created_at))

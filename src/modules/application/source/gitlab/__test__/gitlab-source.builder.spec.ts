@@ -653,6 +653,8 @@ describe('GitLabSourceBuilder', () => {
           ownNote('changed target branch from `develop` to `main`', 11),
           ownNote('marked the checklist item **Проверить оплату** as completed', 12),
           ownNote('changed time estimate to 2h', 13),
+          ownNote('changed the incident severity to **Высокая**', 14),
+          ownNote('promoted to epic &5', 15),
         ],
       });
 
@@ -660,15 +662,57 @@ describe('GitLabSourceBuilder', () => {
       expect(warn).toHaveBeenCalledTimes(2);
       expect(warn).toHaveBeenNthCalledWith(
         1,
-        { noteableType: 'MergeRequest', shape: 'marked the checklist item **x** as' },
+        { noteableType: 'MergeRequest', shape: 'changed the incident severity to **x**' },
         GitLabSourceMessages.UNKNOWN_NOTE,
       );
       expect(warn).toHaveBeenNthCalledWith(
         2,
-        { noteableType: 'MergeRequest', shape: 'changed time estimate to Nh' },
+        { noteableType: 'MergeRequest', shape: 'promoted to epic REF' },
         GitLabSourceMessages.UNKNOWN_NOTE,
       );
       warn.mockRestore();
+    });
+
+    it('reads due and start dates, also both in one note', () => {
+      const grouped = buildIssue({
+        notes: [
+          ownNote('changed due date to November 15, 2026', 9),
+          ownNote(
+            'changed start date to November 2, 2026 and changed due date to November 20, 2026',
+            10,
+          ),
+          ownNote('removed due date November 20, 2026', 11),
+          ownNote('removed start date November 2, 2026', 12),
+        ],
+      });
+
+      expect(toOwn(grouped.facts)).toEqual([
+        action(SourceActionKind.DUE_DATE_SET, 9, 'November 15, 2026'),
+        action(SourceActionKind.START_DATE_SET, 10, 'November 2, 2026'),
+        action(SourceActionKind.DUE_DATE_SET, 10, 'November 20, 2026'),
+        action(SourceActionKind.DUE_DATE_REMOVED, 11, 'November 20, 2026'),
+        action(SourceActionKind.START_DATE_REMOVED, 12, 'November 2, 2026'),
+      ]);
+    });
+
+    it('sums the time the employee spent on the day by its spent at date', () => {
+      const grouped = buildIssue({
+        notes: [
+          ownNote(`added 1h 30m of time spent at ${REPORT_DATE} 10:00:00 +0000`, 11),
+          ownNote(`added 1d of time spent at ${REPORT_DATE} 12:00:00 +0000`, 12),
+          ownNote(`deleted 30m of spent time from ${REPORT_DATE} 10:00:00 +0000`, 13),
+          ownNote('added 2h of time spent at 2026-08-01 10:00:00 +0000', 14),
+          createNote({
+            body: `added 5h of time spent at ${REPORT_DATE} 10:00:00 +0000`,
+            system: true,
+            author: OTHER,
+            created_at: `${REPORT_DATE}T15:00:00.000Z`,
+          }),
+        ],
+      });
+
+      expect(grouped.timeSpent).toBe(9 * 60 * 60);
+      expect(grouped.facts).toEqual([]);
     });
 
     it('collects what the employee did on an issue in time order', () => {

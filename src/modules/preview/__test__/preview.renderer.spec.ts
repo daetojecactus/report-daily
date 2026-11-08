@@ -155,6 +155,7 @@ describe('PreviewRenderer', () => {
           milestone: 'milestone-1',
           iteration: 'iteration-2',
           weight: 3,
+          timeSpent: 5400,
           facts: [fact(SourceActionKind.ITERATION_SET, at(10), { value: 'iteration-2' })],
         }),
       ],
@@ -167,6 +168,7 @@ describe('PreviewRenderer', () => {
       '    milestone: milestone-1',
       '    iteration: iteration-2',
       '    weight: 3',
+      '    time spent: 1h 30m',
       '    actions: iteration_set iteration-2',
     ]);
   });

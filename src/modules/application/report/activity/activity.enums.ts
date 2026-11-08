@@ -81,6 +81,8 @@ export enum ActivityDetail {
   PARENT = 'parent',
   DUPLICATE = 'duplicate',
   LINKS = 'links',
+  DUE_DATE = 'due_date',
+  START_DATE = 'start_date',
 }
 
 export enum EngagementLevel {
