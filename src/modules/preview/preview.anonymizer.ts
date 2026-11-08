@@ -6,7 +6,12 @@ import {
   GITLAB_SOURCE_MAIN_BRANCHES,
   GITLAB_SOURCE_MENTION_PATTERN,
 } from 'src/modules/application/source/gitlab/constants/gitlab-source.constants';
-import { ACTIVITY_VERSION_TAG_PATTERN } from 'src/modules/application/report/activity/constants/activity.constants';
+import {
+  ACTIVITY_CONVENTIONAL_DEPENDENCY_SCOPE,
+  ACTIVITY_CONVENTIONAL_KINDS,
+  ACTIVITY_CONVENTIONAL_PATTERN,
+  ACTIVITY_VERSION_TAG_PATTERN,
+} from 'src/modules/application/report/activity/constants/activity.constants';
 import {
   SourceActionKind,
   SourceRefType,
@@ -46,16 +51,16 @@ import {
   PREVIEW_PAGE_ALIAS,
   PREVIEW_NOTE_PREFIXES,
   PREVIEW_PROJECT_ALIAS,
+  PREVIEW_RU_TEST_COMMIT_MARKER,
   PREVIEW_RU_TEST_COMMIT_PATTERN,
-  PREVIEW_RU_TEST_COMMIT_PREFIX,
   PREVIEW_STATUS_ALIAS,
   PREVIEW_STATUS_NOTE_PATTERN,
   PREVIEW_SYSTEM_NOTE,
   PREVIEW_TAG_ALIAS,
   PREVIEW_TAG_VERSION_PATTERN,
   PREVIEW_TARGET_TITLE,
+  PREVIEW_TEST_COMMIT_MARKER,
   PREVIEW_TEST_COMMIT_PATTERN,
-  PREVIEW_TEST_COMMIT_PREFIX,
   PREVIEW_TITLE_NOTE,
   PREVIEW_TITLE_NOTE_PATTERN,
   PREVIEW_URL,
@@ -176,7 +181,7 @@ export class PreviewAnonymizer {
     return {
       projectId,
       iid: mergeRequest.iid,
-      title: `${PREVIEW_MERGE_REQUEST_TITLE} ${mergeRequest.iid}`,
+      title: `${this.toConventionalPrefix(mergeRequest.title)}${PREVIEW_MERGE_REQUEST_TITLE} ${mergeRequest.iid}`,
       state: mergeRequest.state,
       mergedOnReportDate: mergeRequest.mergedOnReportDate,
       draft: mergeRequest.draft,
@@ -407,17 +412,29 @@ export class PreviewAnonymizer {
     return alias;
   }
 
+  private toConventionalPrefix(title: string) {
+    const match = ACTIVITY_CONVENTIONAL_PATTERN.exec(title);
+    if (!match) {
+      return '';
+    }
+    const [, type, scope] = match;
+    if (scope && ACTIVITY_CONVENTIONAL_DEPENDENCY_SCOPE.test(scope)) {
+      return `${type.toLowerCase()}(deps): `;
+    }
+    return ACTIVITY_CONVENTIONAL_KINDS.has(type.toLowerCase()) ? `${type.toLowerCase()}: ` : '';
+  }
+
   private toCommitTitle(title: string, aliases: PreviewAliases) {
     const known = aliases.commitTitles.get(title);
     if (known) {
       return known;
     }
-    const prefix = PREVIEW_TEST_COMMIT_PATTERN.test(title)
-      ? PREVIEW_TEST_COMMIT_PREFIX
+    const marker = PREVIEW_TEST_COMMIT_PATTERN.test(title)
+      ? PREVIEW_TEST_COMMIT_MARKER
       : PREVIEW_RU_TEST_COMMIT_PATTERN.test(title)
-        ? PREVIEW_RU_TEST_COMMIT_PREFIX
+        ? PREVIEW_RU_TEST_COMMIT_MARKER
         : '';
-    const alias = `${prefix}${PREVIEW_COMMIT_TITLE} ${aliases.commitTitles.size + 1}`;
+    const alias = `${this.toConventionalPrefix(title)}${PREVIEW_COMMIT_TITLE} ${aliases.commitTitles.size + 1}${marker}`;
     aliases.commitTitles.set(title, alias);
     return alias;
   }

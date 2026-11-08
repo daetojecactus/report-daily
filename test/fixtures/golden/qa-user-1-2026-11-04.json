@@ -1794,11 +1794,11 @@
                   "refType": "branch",
                   "ref": "1037-branch-43",
                   "refCount": null,
-                  "commitTitle": "test: commit 35",
+                  "commitTitle": "commit 35 (test)",
                   "commits": [
                     {
                       "id": "sha-35",
-                      "title": "test: commit 35"
+                      "title": "commit 35 (test)"
                     }
                   ]
                 }
@@ -1816,11 +1816,11 @@
                   "refType": "branch",
                   "ref": "1037-branch-43",
                   "refCount": null,
-                  "commitTitle": "test: commit 36",
+                  "commitTitle": "commit 36 (test)",
                   "commits": [
                     {
                       "id": "sha-36",
-                      "title": "test: commit 36"
+                      "title": "commit 36 (test)"
                     }
                   ]
                 }

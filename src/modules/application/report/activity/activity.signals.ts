@@ -16,6 +16,9 @@ import { TraitService } from 'src/modules/application/trait/trait.service';
 import {
   ACTIVITY_BEFORE_DAY,
   ACTIVITY_DEPENDENCY_BRANCH_PATTERN,
+  ACTIVITY_CONVENTIONAL_DEPENDENCY_SCOPE,
+  ACTIVITY_CONVENTIONAL_KINDS,
+  ACTIVITY_CONVENTIONAL_PATTERN,
   ACTIVITY_PUSH_ACTIONS,
   ACTIVITY_WORK_ITEM_KINDS,
   ACTIVITY_RETURN_STATES,
@@ -70,7 +73,8 @@ export class ActivitySignals {
     const workItemKind = line.issue?.workItemType
       ? ACTIVITY_WORK_ITEM_KINDS.get(line.issue.workItemType)
       : undefined;
-    const kinds = end.kinds.length || !workItemKind ? end.kinds : [workItemKind];
+    const fallbackKind = workItemKind ?? this.toConventionalKind(line, pushes);
+    const kinds = end.kinds.length || !fallbackKind ? end.kinds : [fallbackKind];
     const mainIid = line.issue ? null : (line.mergeRequests.at(0)?.iid ?? null);
     const others = facts.filter((fact) => !fact.own);
     const history = this.toHistory([...own, ...others], index);
@@ -214,6 +218,40 @@ export class ActivitySignals {
               : [],
         })),
     );
+  }
+
+  private toConventionalKind(line: ActivityLine, pushes: ActivityPush[]) {
+    const fromTitles = line.mergeRequests
+      .map((mergeRequest) => this.toKindOfTitle(mergeRequest.title))
+      .find((kind) => kind !== null);
+    if (fromTitles) {
+      return fromTitles;
+    }
+    const counts = new Map<TaskKind, number>();
+    for (const title of pushes.flatMap((push) => push.commitTitles)) {
+      const kind = this.toKindOfTitle(title);
+      if (kind) {
+        counts.set(kind, (counts.get(kind) ?? 0) + 1);
+      }
+    }
+    return (
+      [...counts].reduce<[TaskKind, number] | null>(
+        (best, entry) => (best === null || entry[1] > best[1] ? entry : best),
+        null,
+      )?.[0] ?? null
+    );
+  }
+
+  private toKindOfTitle(title: string) {
+    const match = ACTIVITY_CONVENTIONAL_PATTERN.exec(title);
+    if (!match) {
+      return null;
+    }
+    const [, type, scope] = match;
+    if (scope && ACTIVITY_CONVENTIONAL_DEPENDENCY_SCOPE.test(scope)) {
+      return TaskKind.DEPENDENCY;
+    }
+    return ACTIVITY_CONVENTIONAL_KINDS.get(type.toLowerCase()) ?? null;
   }
 
   private toLastCommitAt(mergeRequests: GroupedMergeRequest[]) {

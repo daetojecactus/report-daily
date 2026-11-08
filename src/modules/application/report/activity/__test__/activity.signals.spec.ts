@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { SourceActionKind, WorkItemType } from 'src/modules/application/source/source.enums';
+import type { GroupedIssue } from 'src/modules/application/source/source.interface';
 import { TaskFlag, TaskKind, WorkflowState } from 'src/modules/application/trait/trait.enums';
 import { ActivityRule, EngagementLevel } from '../activity.enums';
 import {
@@ -21,6 +22,45 @@ function ownKinds(line: Parameters<typeof toSignals>[0]) {
 }
 
 describe('ActivitySignals', () => {
+  it('takes the kind from Conventional Commits after the labels and the work item type', () => {
+    const kind = (title: string, issue: Partial<GroupedIssue> = {}) =>
+      toSignals(
+        issueLine(createIssue({ ...issue, mergeRequests: [createMergeRequest({ title })] })),
+      ).kind;
+
+    expect(kind('feat: the login page')).toBe(TaskKind.FEATURE);
+    expect(kind('Draft: fix: a crash on save')).toBe(TaskKind.BUG);
+    expect(kind('docs: the setup guide')).toBe(TaskKind.DOCUMENTATION);
+    expect(kind('test: e2e for payments')).toBe(TaskKind.TEST_AUTOMATION);
+    expect(kind('refactor: split the service')).toBe(TaskKind.MAINTENANCE);
+    expect(kind('chore(deps): update eslint')).toBe(TaskKind.DEPENDENCY);
+    expect(kind('fix(deps): update an http client')).toBe(TaskKind.DEPENDENCY);
+    expect(kind('feat(server): the price list')).toBe(TaskKind.FEATURE);
+    expect(kind('perf: faster search')).toBeNull();
+    expect(kind('Resolve "a task"')).toBeNull();
+    expect(kind('feat: the login page', { labels: ['type::bug'] })).toBe(TaskKind.BUG);
+    expect(kind('feat: the login page', { workItemType: WorkItemType.INCIDENT })).toBe(
+      TaskKind.INCIDENT,
+    );
+  });
+
+  it('takes the most frequent prefix of the commits when no title has one', () => {
+    const kind = (titles: string[]) =>
+      toSignals(
+        issueLine(
+          createIssue({
+            mergeRequests: [
+              createMergeRequest({ title: 'Merge request 5', events: [pushEvent(at(11), titles)] }),
+            ],
+          }),
+        ),
+      ).kind;
+
+    expect(kind(['fix: a typo', 'feat: the form', 'feat: the button'])).toBe(TaskKind.FEATURE);
+    expect(kind(['fix: a typo', 'feat: the form'])).toBe(TaskKind.BUG);
+    expect(kind(['update the form'])).toBeNull();
+  });
+
   it('takes the kind from the work item type only when the labels give none', () => {
     const kind = (workItemType: WorkItemType, labels: string[] = []) =>
       toSignals(issueLine(createIssue({ workItemType, labels }))).kind;

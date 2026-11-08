@@ -187,6 +187,19 @@ export const ACTIVITY_WORK_ITEM_KINDS = new Map<WorkItemType, TaskKind>([
   [WorkItemType.EPIC, TaskKind.EPIC],
 ]);
 
+export const ACTIVITY_CONVENTIONAL_PATTERN =
+  /^(?:(?:draft|wip):\s*|\[(?:draft|wip)\]\s*)*([a-z]+)(?:\(([^)]*)\))?!?:\s/i;
+
+export const ACTIVITY_CONVENTIONAL_DEPENDENCY_SCOPE = /^deps(?:-dev)?$/i;
+
+export const ACTIVITY_CONVENTIONAL_KINDS = new Map<string, TaskKind>([
+  ['feat', TaskKind.FEATURE],
+  ['fix', TaskKind.BUG],
+  ['docs', TaskKind.DOCUMENTATION],
+  ['test', TaskKind.TEST_AUTOMATION],
+  ['refactor', TaskKind.MAINTENANCE],
+]);
+
 export const ACTIVITY_ELSEWHERE_RULES = new Set<ActivityRule>([
   ActivityRule.MOVED_AWAY,
   ActivityRule.RECIPROCAL_LINK,
