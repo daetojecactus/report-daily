@@ -109,6 +109,7 @@ export interface GroupedMergeRequest {
   reviewers: string[];
   closesIssues: IssueReference[];
   milestone: string | null;
+  timeSpent: number;
   startOfDay: MergeRequestSnapshot;
   facts: SourceFact[];
   events: CleanEvent[];
@@ -131,6 +132,7 @@ export interface GroupedIssue {
   milestone: string | null;
   iteration: string | null;
   weight: number | null;
+  timeSpent: number;
   startOfDay: IssueSnapshot;
   facts: SourceFact[];
   events: CleanEvent[];

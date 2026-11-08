@@ -68,4 +68,8 @@ export enum SourceActionKind {
   MOVED_IN = 'moved_in',
   MOVED_OUT = 'moved_out',
   DUPLICATE_MARKED = 'duplicate_marked',
+  DUE_DATE_SET = 'due_date_set',
+  DUE_DATE_REMOVED = 'due_date_removed',
+  START_DATE_SET = 'start_date_set',
+  START_DATE_REMOVED = 'start_date_removed',
 }

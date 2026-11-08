@@ -137,6 +137,10 @@ export const ACTIVITY_OPPOSITE_FACTS = new Map<SourceActionKind, SourceActionKin
   [SourceActionKind.ITERATION_REMOVED, SourceActionKind.ITERATION_SET],
   [SourceActionKind.WEIGHT_SET, SourceActionKind.WEIGHT_REMOVED],
   [SourceActionKind.WEIGHT_REMOVED, SourceActionKind.WEIGHT_SET],
+  [SourceActionKind.DUE_DATE_SET, SourceActionKind.DUE_DATE_REMOVED],
+  [SourceActionKind.DUE_DATE_REMOVED, SourceActionKind.DUE_DATE_SET],
+  [SourceActionKind.START_DATE_SET, SourceActionKind.START_DATE_REMOVED],
+  [SourceActionKind.START_DATE_REMOVED, SourceActionKind.START_DATE_SET],
 ]);
 
 export const ACTIVITY_RETURN_STATES = new Map<WorkflowState, ActivityDetail>([
@@ -169,6 +173,10 @@ export const ACTIVITY_SETUP_FACTS = new Set<SourceActionKind>([
   SourceActionKind.LINKED,
   SourceActionKind.UNLINKED,
   SourceActionKind.CHILD_ADDED,
+  SourceActionKind.DUE_DATE_SET,
+  SourceActionKind.DUE_DATE_REMOVED,
+  SourceActionKind.START_DATE_SET,
+  SourceActionKind.START_DATE_REMOVED,
 ]);
 
 export const ACTIVITY_LINK_DETAILS = new Map<string, ActivityDetail>([
@@ -183,6 +191,8 @@ export const ACTIVITY_LINK_DETAILS = new Map<string, ActivityDetail>([
 export const ACTIVITY_PLAN_FACTS = new Map<SourceActionKind, ActivityDetail>([
   [SourceActionKind.ITERATION_SET, ActivityDetail.ITERATION],
   [SourceActionKind.MILESTONE_SET, ActivityDetail.MILESTONE],
+  [SourceActionKind.DUE_DATE_SET, ActivityDetail.DUE_DATE],
+  [SourceActionKind.START_DATE_SET, ActivityDetail.START_DATE],
 ]);
 
 export const ACTIVITY_EDIT_FACTS = new Set<SourceActionKind>([
@@ -249,6 +259,8 @@ export const ACTIVITY_EDIT_DETAILS = new Map<SourceActionKind, ActivityDetail>([
   [SourceActionKind.MILESTONE_REMOVED, ActivityDetail.MILESTONE],
   [SourceActionKind.WEIGHT_REMOVED, ActivityDetail.WEIGHT],
   [SourceActionKind.UNLINKED, ActivityDetail.LINKS],
+  [SourceActionKind.DUE_DATE_REMOVED, ActivityDetail.DUE_DATE],
+  [SourceActionKind.START_DATE_REMOVED, ActivityDetail.START_DATE],
 ]);
 
 export const ACTIVITY_DEPENDENCY_BRANCH_PATTERN = /^(?:renovate|dependabot)[/-]/i;

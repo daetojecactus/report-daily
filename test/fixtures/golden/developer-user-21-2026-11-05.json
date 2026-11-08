@@ -48,6 +48,7 @@
         "milestone": null,
         "iteration": null,
         "weight": null,
+        "timeSpent": 0,
         "startOfDay": {
           "state": "opened",
           "labels": [
@@ -229,6 +230,7 @@
               }
             ],
             "milestone": null,
+            "timeSpent": 0,
             "startOfDay": {
               "state": "opened",
               "labels": [
@@ -410,6 +412,7 @@
         "reviewers": [],
         "closesIssues": [],
         "milestone": null,
+        "timeSpent": 0,
         "startOfDay": {
           "state": "opened",
           "labels": [
@@ -536,6 +539,7 @@
         "reviewers": [],
         "closesIssues": [],
         "milestone": null,
+        "timeSpent": 0,
         "startOfDay": {
           "state": "opened",
           "labels": [
@@ -662,6 +666,7 @@
         "reviewers": [],
         "closesIssues": [],
         "milestone": null,
+        "timeSpent": 0,
         "startOfDay": {
           "state": "opened",
           "labels": [

@@ -178,6 +178,7 @@ export function createMergeRequest(
     reviewers: [],
     closesIssues: [],
     milestone: null,
+    timeSpent: 0,
     startOfDay: {
       state: ItemState.OPENED,
       labels: [],
@@ -217,6 +218,7 @@ export function createIssue(overrides: Partial<GroupedIssue> = {}): GroupedIssue
     milestone: null,
     iteration: null,
     weight: null,
+    timeSpent: 0,
     startOfDay: {
       state: ItemState.OPENED,
       labels: [],

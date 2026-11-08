@@ -12,7 +12,12 @@ import type {
   SourceFact,
   StandalonePush,
 } from 'src/modules/application/source/source.interface';
-import { PREVIEW_INDENT, PREVIEW_REASONS } from './constants/preview.constants';
+import {
+  PREVIEW_HOUR_SECONDS,
+  PREVIEW_INDENT,
+  PREVIEW_MINUTE_SECONDS,
+  PREVIEW_REASONS,
+} from './constants/preview.constants';
 
 @Injectable()
 export class PreviewRenderer {
@@ -136,6 +141,7 @@ export class PreviewRenderer {
       item.milestone ? `milestone: ${item.milestone}` : '',
       'iteration' in item && item.iteration ? `iteration: ${item.iteration}` : '',
       'weight' in item && item.weight !== null ? `weight: ${item.weight}` : '',
+      item.timeSpent ? `time spent: ${this.describeDuration(item.timeSpent)}` : '',
       own.length ? `actions: ${this.describeActions(own)}` : '',
       others.length ? `facts of others: ${others.length}` : '',
       this.describeStartOfDay(item),
@@ -177,6 +183,12 @@ export class PreviewRenderer {
   private describeCommits(events: CleanEvent[]) {
     const commits = events.flatMap((event) => event.pushData?.commits ?? []);
     return commits.length ? `commits: ${commits.map((commit) => commit.title).join('; ')}` : '';
+  }
+
+  private describeDuration(seconds: number) {
+    const hours = Math.floor(seconds / PREVIEW_HOUR_SECONDS);
+    const minutes = Math.round((seconds % PREVIEW_HOUR_SECONDS) / PREVIEW_MINUTE_SECONDS);
+    return [hours ? `${hours}h` : '', minutes ? `${minutes}m` : ''].filter(Boolean).join(' ');
   }
 
   private countRepeats(texts: string[]) {

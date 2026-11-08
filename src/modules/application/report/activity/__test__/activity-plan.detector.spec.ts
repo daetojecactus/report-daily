@@ -41,6 +41,27 @@ describe('ActivityPlanDetector', () => {
     ).toEqual([ActivityDetail.ITERATION, ActivityDetail.MILESTONE]);
   });
 
+  it('plans a due date and a start date and takes their removal for an edit', () => {
+    expect(
+      planned([
+        fact(SourceActionKind.START_DATE_SET, at(10), { value: 'November 2, 2026' }),
+        fact(SourceActionKind.DUE_DATE_SET, at(10), { value: 'November 20, 2026' }),
+      ]),
+    ).toEqual([
+      {
+        action: ActivityAction.PLANNED,
+        weight: 285,
+        state: null,
+        details: [ActivityDetail.START_DATE, ActivityDetail.DUE_DATE],
+      },
+    ]);
+    expect(
+      planned([
+        fact(SourceActionKind.DUE_DATE_REMOVED, at(10), { value: 'November 20, 2026' }),
+      ]).map(({ action, details }) => [action, details]),
+    ).toEqual([[ActivityAction.EDITED, [ActivityDetail.DUE_DATE]]]);
+  });
+
   it('moves a task from the iteration or the milestone it had at the start of the day', () => {
     const start = { ...createIssue().startOfDay, iteration: 'sprint 2', milestone: '17.4' };
 

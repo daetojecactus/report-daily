@@ -110,7 +110,37 @@ export const GITLAB_SOURCE_KNOWN_NOTES = [
   /^(?:added|removed) \d+ contacts?\b/,
   /^created merge request [^\s]*![\d]+ to address this/,
   /^cloned (?:to|from)\b/,
+  /^marked the (?:checklist|task) item\b/,
+  /^(?:added|subtracted|deleted) .+ of (?:time spent|spent time)\b/,
+  /^removed time spent\b/,
+  /^(?:changed|removed) time estimate\b/,
 ];
+
+export const GITLAB_SOURCE_DATE_NOTE_PATTERN = /^(?:changed|removed) (?:start|due) date\b/;
+
+export const GITLAB_SOURCE_DATE_CHANGE_PATTERN =
+  /(changed|removed) (start|due) date(?: to)?(?: ([A-Z][a-z]+ \d{1,2}, \d{4}))?/g;
+
+export const GITLAB_SOURCE_DATE_ACTIONS = new Map<string, SourceActionKind>([
+  ['changed due', SourceActionKind.DUE_DATE_SET],
+  ['removed due', SourceActionKind.DUE_DATE_REMOVED],
+  ['changed start', SourceActionKind.START_DATE_SET],
+  ['removed start', SourceActionKind.START_DATE_REMOVED],
+]);
+
+export const GITLAB_SOURCE_TIME_SPENT_PATTERN =
+  /^(added|subtracted|deleted) ((?:\d+(?:mo|w|d|h|m|s) ?)+) of (?:time spent|spent time)(?: (?:at|from) (\d{4}-\d{2}-\d{2})(?: (\d{2}:\d{2}:\d{2}))?(?: ([+-]\d{2})(\d{2}))?)?/;
+
+export const GITLAB_SOURCE_TIME_UNIT_PATTERN = /(\d+)(mo|w|d|h|m|s)/g;
+
+export const GITLAB_SOURCE_TIME_UNITS: Record<string, number> = {
+  s: 1,
+  m: 60,
+  h: 60 * 60,
+  d: 8 * 60 * 60,
+  w: 5 * 8 * 60 * 60,
+  mo: 4 * 5 * 8 * 60 * 60,
+};
 
 export const GITLAB_SOURCE_NOTE_SHAPE_WORDS = 6;
 

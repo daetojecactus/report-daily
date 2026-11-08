@@ -56,6 +56,9 @@ export class ActivityPlanDetector {
     if (fact.kind === SourceActionKind.ITERATION_SET) {
       return line.issue?.startOfDay.iteration ?? null;
     }
+    if (fact.kind !== SourceActionKind.MILESTONE_SET) {
+      return null;
+    }
     const item =
       fact.mergeRequestIid === null
         ? line.issue

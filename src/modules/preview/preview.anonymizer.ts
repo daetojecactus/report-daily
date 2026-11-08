@@ -128,6 +128,7 @@ export class PreviewAnonymizer {
       milestone: issue.milestone && this.toMilestone(issue.milestone, aliases),
       iteration: issue.iteration && this.toIteration(issue.iteration, aliases),
       weight: issue.weight,
+      timeSpent: issue.timeSpent,
       startOfDay: {
         ...this.anonymizeSnapshot(issue.startOfDay, aliases),
         iteration:
@@ -181,6 +182,7 @@ export class PreviewAnonymizer {
         };
       }),
       milestone: mergeRequest.milestone && this.toMilestone(mergeRequest.milestone, aliases),
+      timeSpent: mergeRequest.timeSpent,
       startOfDay: {
         ...this.anonymizeSnapshot(mergeRequest.startOfDay, aliases),
         reviewers: mergeRequest.startOfDay.reviewers.map((username) =>
@@ -321,6 +323,10 @@ export class PreviewAnonymizer {
       case SourceActionKind.WEIGHT_SET:
       case SourceActionKind.WEIGHT_REMOVED:
       case SourceActionKind.LINKED:
+      case SourceActionKind.DUE_DATE_SET:
+      case SourceActionKind.DUE_DATE_REMOVED:
+      case SourceActionKind.START_DATE_SET:
+      case SourceActionKind.START_DATE_REMOVED:
         return value;
       case SourceActionKind.COMMIT_MENTIONED:
         return this.toCommit(value, aliases);

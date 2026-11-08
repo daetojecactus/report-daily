@@ -41,6 +41,7 @@
         "milestone": null,
         "iteration": null,
         "weight": null,
+        "timeSpent": 0,
         "startOfDay": {
           "state": "opened",
           "labels": [],
@@ -336,6 +337,7 @@
         "milestone": null,
         "iteration": null,
         "weight": null,
+        "timeSpent": 0,
         "startOfDay": {
           "state": "opened",
           "labels": [
