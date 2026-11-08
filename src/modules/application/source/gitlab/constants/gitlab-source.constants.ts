@@ -78,6 +78,25 @@ export const GITLAB_SOURCE_NOTE_ACTIONS: SourceNoteAction[] = [
   },
   { pattern: /^left review comments/, kind: SourceActionKind.REVIEW_SUBMITTED },
   { pattern: GITLAB_SOURCE_COMMIT_MENTION_PATTERN, kind: SourceActionKind.COMMIT_MENTIONED },
+  {
+    pattern:
+      /^marked (?:this (?:issue|item|work item|task|incident) )?as (related to|blocking|blocked by)\b/,
+    kind: SourceActionKind.LINKED,
+  },
+  { pattern: /^added .+? as (parent)\b/, kind: SourceActionKind.LINKED },
+  { pattern: /^added to (epic)\b/, kind: SourceActionKind.LINKED },
+  { pattern: /^marked \S+ as a (duplicate) of this\b/, kind: SourceActionKind.LINKED },
+  { pattern: /^added .+? as child\b/, kind: SourceActionKind.CHILD_ADDED },
+  {
+    pattern: /^(?:removed the relation with|removed (?:child|parent)\b|removed from epic)/,
+    kind: SourceActionKind.UNLINKED,
+  },
+  { pattern: /^moved from (\S+)/, kind: SourceActionKind.MOVED_IN },
+  { pattern: /^moved to (\S+)/, kind: SourceActionKind.MOVED_OUT },
+  {
+    pattern: /^marked this (?:issue|item|work item|task|incident) as a duplicate of\b/,
+    kind: SourceActionKind.DUPLICATE_MARKED,
+  },
 ];
 
 export const GITLAB_SOURCE_KNOWN_NOTES = [
@@ -90,6 +109,7 @@ export const GITLAB_SOURCE_KNOWN_NOTES = [
   /^(?:changed|removed) health status/,
   /^(?:added|removed) \d+ contacts?\b/,
   /^created merge request [^\s]*![\d]+ to address this/,
+  /^cloned (?:to|from)\b/,
 ];
 
 export const GITLAB_SOURCE_NOTE_SHAPE_WORDS = 6;

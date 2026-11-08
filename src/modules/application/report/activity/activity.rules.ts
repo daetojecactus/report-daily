@@ -5,6 +5,7 @@ import {
   ACTIVITY_EDIT_FACTS,
   ACTIVITY_LIFECYCLE_FACTS,
   ACTIVITY_MERGE_CLOSE_MS,
+  ACTIVITY_MOVE_MS,
   ACTIVITY_OPPOSITE_FACTS,
   ACTIVITY_SETUP_FACTS,
   ACTIVITY_SETUP_MS,
@@ -22,8 +23,14 @@ export class ActivityRules {
     const active = facts.filter((fact) => !undone.has(fact));
     const creations = facts.filter((fact) => fact.kind === SourceActionKind.OPENED);
     const merges = facts.filter((fact) => fact.kind === SourceActionKind.MERGED);
+    const arrivals = facts.filter((fact) => fact.kind === SourceActionKind.MOVED_IN);
+    const departures = facts.filter((fact) => fact.kind === SourceActionKind.MOVED_OUT);
     const rules: [ActivityRule, (fact: ActivityFact) => boolean][] = [
-      [ActivityRule.SETUP, (fact) => this.isSetup(fact, creations)],
+      [ActivityRule.MOVED_AWAY, (fact) => this.isMovedAway(fact, departures)],
+      [
+        ActivityRule.SETUP,
+        (fact) => this.isSetup(fact, creations) || this.isArrivalSetup(fact, arrivals),
+      ],
       [ActivityRule.AUTOMATIC_STATUS, (fact) => this.isAutomaticStatus(fact, facts)],
       [ActivityRule.CLOSED_BY_MERGE, (fact) => this.isClosedByMerge(fact, merges)],
       [ActivityRule.SELF_APPROVAL, (fact) => this.isSelfApproval(fact, ownMergeRequests)],
@@ -84,6 +91,25 @@ export class ActivityRules {
         fact.time >= creation.time &&
         ((ACTIVITY_SETUP_FACTS.has(fact.kind) && fact.time - creation.time <= ACTIVITY_SETUP_MS) ||
           ACTIVITY_EDIT_FACTS.has(fact.kind)),
+    );
+  }
+
+  private isMovedAway(fact: ActivityFact, departures: ActivityFact[]) {
+    return departures.some(
+      (departure) =>
+        departure.mergeRequestIid === fact.mergeRequestIid &&
+        Math.abs(fact.time - departure.time) <= ACTIVITY_MOVE_MS,
+    );
+  }
+
+  private isArrivalSetup(fact: ActivityFact, arrivals: ActivityFact[]) {
+    return arrivals.some(
+      (arrival) =>
+        fact !== arrival &&
+        arrival.mergeRequestIid === fact.mergeRequestIid &&
+        (fact.time < arrival.time ||
+          (fact.time - arrival.time <= ACTIVITY_SETUP_MS &&
+            (ACTIVITY_SETUP_FACTS.has(fact.kind) || ACTIVITY_EDIT_FACTS.has(fact.kind)))),
     );
   }
 

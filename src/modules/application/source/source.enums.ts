@@ -62,4 +62,10 @@ export enum SourceActionKind {
   WEIGHT_SET = 'weight_set',
   WEIGHT_REMOVED = 'weight_removed',
   COMMIT_MENTIONED = 'commit_mentioned',
+  LINKED = 'linked',
+  UNLINKED = 'unlinked',
+  CHILD_ADDED = 'child_added',
+  MOVED_IN = 'moved_in',
+  MOVED_OUT = 'moved_out',
+  DUPLICATE_MARKED = 'duplicate_marked',
 }

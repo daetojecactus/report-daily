@@ -30,6 +30,7 @@ import { TraitService } from 'src/modules/application/trait/trait.service';
 import { JobRole } from 'src/modules/application/user/user.enums';
 import { ActivityCodeDetector } from '../activity-code.detector';
 import { ActivityLifecycleDetector } from '../activity-lifecycle.detector';
+import { ActivityLinkDetector } from '../activity-link.detector';
 import { ActivityPlanDetector } from '../activity-plan.detector';
 import { ActivityRefDetector } from '../activity-ref.detector';
 import { ActivityChains } from '../activity.chains';
@@ -258,6 +259,7 @@ export function createDetectors() {
     new ActivityCodeDetector(),
     new ActivityRefDetector(),
     new ActivityPlanDetector(),
+    new ActivityLinkDetector(),
   );
 }
 

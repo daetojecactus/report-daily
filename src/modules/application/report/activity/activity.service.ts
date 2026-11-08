@@ -4,6 +4,7 @@ import { TaskFlag } from 'src/modules/application/trait/trait.enums';
 import type { TraitIndex } from 'src/modules/application/trait/trait.interface';
 import { ActivityChains } from './activity.chains';
 import { ActivityDetectors } from './activity.detectors';
+import { ActivityAction, ActivityRule } from './activity.enums';
 import type { ActivityEmployee, ActivityLine, ActivityResult } from './activity.interface';
 import { ActivitySelector } from './activity.selector';
 import { ActivitySignals } from './activity.signals';
@@ -24,11 +25,15 @@ export class ActivityService {
         signals,
         this.activityDetectors.detect(signals),
       );
+      const choice = this.activitySelector.select(signals, candidates);
       return {
         line,
         signals,
-        choice: this.activitySelector.select(signals, candidates),
-        excluded: signals.endFlags.includes(TaskFlag.EXCLUDE_FROM_REPORT),
+        choice,
+        excluded:
+          signals.endFlags.includes(TaskFlag.EXCLUDE_FROM_REPORT) ||
+          (choice.main.action === ActivityAction.STATE_ONLY &&
+            signals.dropped.some(({ rule }) => rule === ActivityRule.MOVED_AWAY)),
       };
     });
   }

@@ -81,6 +81,7 @@ const CHECKS: Record<string, (value: string) => boolean> = {
     PLAN.test(value) ||
     /^\d+$/.test(value) ||
     /^sha-\d+$/.test(value) ||
+    /^(?:related to|blocking|blocked by|parent|epic|duplicate)$/.test(value) ||
     value === 'value',
   milestone: (value) => PLAN.test(value),
   iteration: (value) => PLAN.test(value),
