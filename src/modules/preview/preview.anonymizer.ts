@@ -320,6 +320,7 @@ export class PreviewAnonymizer {
         return this.toIteration(value, aliases);
       case SourceActionKind.WEIGHT_SET:
       case SourceActionKind.WEIGHT_REMOVED:
+      case SourceActionKind.LINKED:
         return value;
       case SourceActionKind.COMMIT_MENTIONED:
         return this.toCommit(value, aliases);

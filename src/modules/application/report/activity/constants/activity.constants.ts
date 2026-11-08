@@ -23,10 +23,13 @@ export const ACTIVITY_WEIGHTS = {
   ESCALATED: 600,
   CODE: 300,
   REQUIREMENTS: 320,
+  DECOMPOSED: 320,
   TOOK_REVIEW: 290,
   PLANNED: TRAIT_STATE_WEIGHTS[WorkflowState.PLANNED],
   TAGGED: 260,
   CREATED: 220,
+  MOVED: 215,
+  LINKED: 210,
   DISCUSSED: 200,
   ASSIGNED: 200,
   HELPED: 180,
@@ -104,6 +107,8 @@ export const ACTIVITY_AUTO_STATUS_MS = 5 * 1000;
 
 export const ACTIVITY_SWAP_MS = 5 * 1000;
 
+export const ACTIVITY_MOVE_MS = 60 * 1000;
+
 export const ACTIVITY_RESUMED_WORK_DAYS = 7;
 
 export const ACTIVITY_DAY_MS = 24 * 60 * 60 * 1000;
@@ -161,6 +166,18 @@ export const ACTIVITY_SETUP_FACTS = new Set<SourceActionKind>([
   SourceActionKind.ITERATION_REMOVED,
   SourceActionKind.WEIGHT_SET,
   SourceActionKind.WEIGHT_REMOVED,
+  SourceActionKind.LINKED,
+  SourceActionKind.UNLINKED,
+  SourceActionKind.CHILD_ADDED,
+]);
+
+export const ACTIVITY_LINK_DETAILS = new Map<string, ActivityDetail>([
+  ['related to', ActivityDetail.RELATED],
+  ['blocking', ActivityDetail.BLOCKING],
+  ['blocked by', ActivityDetail.BLOCKED_BY],
+  ['parent', ActivityDetail.PARENT],
+  ['epic', ActivityDetail.PARENT],
+  ['duplicate', ActivityDetail.DUPLICATE],
 ]);
 
 export const ACTIVITY_PLAN_FACTS = new Map<SourceActionKind, ActivityDetail>([
@@ -231,6 +248,7 @@ export const ACTIVITY_EDIT_DETAILS = new Map<SourceActionKind, ActivityDetail>([
   [SourceActionKind.ITERATION_REMOVED, ActivityDetail.ITERATION],
   [SourceActionKind.MILESTONE_REMOVED, ActivityDetail.MILESTONE],
   [SourceActionKind.WEIGHT_REMOVED, ActivityDetail.WEIGHT],
+  [SourceActionKind.UNLINKED, ActivityDetail.LINKS],
 ]);
 
 export const ACTIVITY_DEPENDENCY_BRANCH_PATTERN = /^(?:renovate|dependabot)[/-]/i;

@@ -613,6 +613,37 @@ describe('GitLabSourceBuilder', () => {
       ]);
     });
 
+    it('reads links, hierarchy, moves and duplicates of issues', () => {
+      const grouped = buildIssue({
+        notes: [
+          ownNote('marked this issue as related to #45', 8),
+          ownNote('marked as related to #46', 9),
+          ownNote('marked this item as blocking team/backend#47', 10),
+          ownNote('marked this issue as blocked by #48 and #49', 11),
+          ownNote('added #50 as parent item', 12),
+          ownNote('added #51 as child task', 13),
+          ownNote('removed the relation with #45', 14),
+          ownNote('moved from team/frontend#3', 15),
+          ownNote('marked this issue as a duplicate of #52', 16),
+          ownNote('marked #53 as a duplicate of this issue', 17),
+          ownNote('cloned to team/backend#9', 18),
+        ],
+      });
+
+      expect(toOwn(grouped.facts)).toEqual([
+        action(SourceActionKind.LINKED, 8, 'related to'),
+        action(SourceActionKind.LINKED, 9, 'related to'),
+        action(SourceActionKind.LINKED, 10, 'blocking'),
+        action(SourceActionKind.LINKED, 11, 'blocked by'),
+        action(SourceActionKind.LINKED, 12, 'parent'),
+        action(SourceActionKind.CHILD_ADDED, 13),
+        action(SourceActionKind.UNLINKED, 14),
+        action(SourceActionKind.MOVED_IN, 15, 'team/frontend#3'),
+        action(SourceActionKind.DUPLICATE_MARKED, 16),
+        action(SourceActionKind.LINKED, 17, 'duplicate'),
+      ]);
+    });
+
     it('logs only the system notes it neither reads nor knows, by their shape', () => {
       const warn = vi.spyOn(Logger.prototype, 'warn').mockImplementation(() => undefined);
       const grouped = buildIssue({
@@ -621,7 +652,7 @@ describe('GitLabSourceBuilder', () => {
           ownNote('mentioned in merge request !15', 10),
           ownNote('changed target branch from `develop` to `main`', 11),
           ownNote('marked the checklist item **Проверить оплату** as completed', 12),
-          ownNote('marked this issue as related to #45 by @dev.other', 13),
+          ownNote('changed time estimate to 2h', 13),
         ],
       });
 
@@ -634,7 +665,7 @@ describe('GitLabSourceBuilder', () => {
       );
       expect(warn).toHaveBeenNthCalledWith(
         2,
-        { noteableType: 'MergeRequest', shape: 'marked this issue as related to' },
+        { noteableType: 'MergeRequest', shape: 'changed time estimate to Nh' },
         GitLabSourceMessages.UNKNOWN_NOTE,
       );
       warn.mockRestore();
@@ -705,6 +736,7 @@ describe('GitLabSourceBuilder', () => {
         action(SourceActionKind.DESCRIPTION_CHANGED, 13),
         action(SourceActionKind.TITLE_CHANGED, 14),
         action(SourceActionKind.BRANCH_CREATED, 15, '12-login'),
+        action(SourceActionKind.MOVED_OUT, 16, 'team/frontend#3'),
         action(SourceActionKind.CLOSED, 17),
       ]);
     });

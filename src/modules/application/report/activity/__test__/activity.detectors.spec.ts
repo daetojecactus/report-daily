@@ -3,7 +3,7 @@ import { SourceActionKind } from 'src/modules/application/source/source.enums';
 import type { SourceFact } from 'src/modules/application/source/source.interface';
 import { WorkflowState } from 'src/modules/application/trait/trait.enums';
 import { JobRole } from 'src/modules/application/user/user.enums';
-import { ActivityAction, ActivityDetail } from '../activity.enums';
+import { ActivityAction, ActivityDetail, ActivityRule } from '../activity.enums';
 import type { ActivityLine } from '../activity.interface';
 import {
   at,
@@ -24,7 +24,7 @@ import {
 
 type Place = 'issue' | 'own' | 'other';
 
-const PLACES: Record<SourceActionKind, [Place, Partial<SourceFact>][]> = {
+const PLACES: Record<SourceActionKind, [Place, Partial<SourceFact>][] | ActivityRule> = {
   [SourceActionKind.OPENED]: [
     ['issue', {}],
     ['own', {}],
@@ -113,6 +113,17 @@ const PLACES: Record<SourceActionKind, [Place, Partial<SourceFact>][]> = {
     ['own', { value: 'abc1234' }],
     ['other', { value: 'abc1234' }],
   ],
+  [SourceActionKind.LINKED]: [
+    ['issue', { value: 'related to' }],
+    ['issue', { value: 'blocked by' }],
+    ['issue', { value: 'parent' }],
+    ['issue', { value: 'duplicate' }],
+  ],
+  [SourceActionKind.UNLINKED]: [['issue', {}]],
+  [SourceActionKind.CHILD_ADDED]: [['issue', {}]],
+  [SourceActionKind.MOVED_IN]: [['issue', { value: 'group/project#3' }]],
+  [SourceActionKind.MOVED_OUT]: ActivityRule.MOVED_AWAY,
+  [SourceActionKind.DUPLICATE_MARKED]: [['issue', {}]],
 };
 
 function placeFact(place: Place, item: SourceFact): ActivityLine {
@@ -474,9 +485,23 @@ describe('ActivityDetectors', () => {
   });
 
   describe('completeness', () => {
-    const cases = Object.values(SourceActionKind).flatMap((kind) =>
-      PLACES[kind].map(([place, overrides]) => ({ kind, place, overrides })),
-    );
+    const cases = Object.values(SourceActionKind).flatMap((kind) => {
+      const places = PLACES[kind];
+      return typeof places === 'string'
+        ? []
+        : places.map(([place, overrides]) => ({ kind, place, overrides }));
+    });
+    const rules = Object.values(SourceActionKind).flatMap((kind) => {
+      const rule = PLACES[kind];
+      return typeof rule === 'string' ? [{ kind, rule }] : [];
+    });
+
+    it.each(rules)('leaves $kind out by the rule $rule', ({ kind, rule }) => {
+      const signals = toSignals(issueLine(createIssue({ facts: [fact(kind, at(10))] })));
+
+      expect(signals.own).toEqual([]);
+      expect(signals.dropped.map((item) => item.rule)).toEqual([rule]);
+    });
 
     it.each(cases)('turns $kind on $place into an action', ({ kind, place, overrides }) => {
       const signals = toSignals(placeFact(place, fact(kind, at(10), overrides)));

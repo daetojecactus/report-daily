@@ -17,9 +17,12 @@ export enum ActivityAction {
   TOOK_REVIEW = 'took_review',
   CODE = 'code',
   REQUIREMENTS = 'requirements',
+  DECOMPOSED = 'decomposed',
   PLANNED = 'planned',
   TAGGED = 'tagged',
   CREATED = 'created',
+  MOVED = 'moved',
+  LINKED = 'linked',
   DISCUSSED = 'discussed',
   HELPED = 'helped',
   ASSIGNED = 'assigned',
@@ -72,6 +75,12 @@ export enum ActivityDetail {
   WEIGHT = 'weight',
   CHANGED = 'changed',
   MENTIONED = 'mentioned',
+  RELATED = 'related',
+  BLOCKING = 'blocking',
+  BLOCKED_BY = 'blocked_by',
+  PARENT = 'parent',
+  DUPLICATE = 'duplicate',
+  LINKS = 'links',
 }
 
 export enum EngagementLevel {
@@ -106,4 +115,5 @@ export enum ActivityRule {
   SELF_APPROVAL = 'self_approval',
   SELF_REVIEW_REMOVAL = 'self_review_removal',
   REPEATED = 'repeated',
+  MOVED_AWAY = 'moved_away',
 }

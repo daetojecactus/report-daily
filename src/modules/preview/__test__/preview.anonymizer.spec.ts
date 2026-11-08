@@ -375,6 +375,40 @@ describe('PreviewAnonymizer', () => {
     expect([issue.weight, issue.startOfDay.weight, issue.facts.at(-2)?.value]).toEqual([5, 3, '5']);
   });
 
+  it('keeps the kind of a link and hides the reference of a move', () => {
+    const anonymizer = new PreviewAnonymizer();
+    const day: GroupedDailyData = {
+      ...createDay(),
+      issues: [
+        {
+          ...createDay().issues[0],
+          facts: [
+            {
+              kind: SourceActionKind.LINKED,
+              at: '2026-11-05T08:00:00.000Z',
+              value: 'blocked by',
+              actor: 'anna.petrova',
+              own: true,
+              users: [],
+            },
+            {
+              kind: SourceActionKind.MOVED_IN,
+              at: '2026-11-05T09:00:00.000Z',
+              value: 'acme-corp/billing-api#12',
+              actor: 'anna.petrova',
+              own: true,
+              users: [],
+            },
+          ],
+        },
+      ],
+    };
+
+    const [issue] = anonymizer.anonymizeDay(day, anonymizer.createAliases()).issues;
+
+    expect(issue.facts.map((fact) => fact.value)).toEqual(['blocked by', 'value']);
+  });
+
   it('gives a mentioned commit the alias of the same pushed commit', () => {
     const { day } = anonymize();
     const [issue] = day.issues;

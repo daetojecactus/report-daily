@@ -18,6 +18,7 @@ import {
 import { ActivityAction, ActivityDetail } from './activity.enums';
 import { ActivityCodeDetector } from './activity-code.detector';
 import { ActivityLifecycleDetector } from './activity-lifecycle.detector';
+import { ActivityLinkDetector } from './activity-link.detector';
 import { ActivityPlanDetector } from './activity-plan.detector';
 import { ActivityRefDetector } from './activity-ref.detector';
 import type { ActivityCandidate, ActivityFact, ActivityLineSignals } from './activity.interface';
@@ -29,6 +30,7 @@ export class ActivityDetectors {
     private readonly activityCodeDetector: ActivityCodeDetector,
     private readonly activityRefDetector: ActivityRefDetector,
     private readonly activityPlanDetector: ActivityPlanDetector,
+    private readonly activityLinkDetector: ActivityLinkDetector,
   ) {}
 
   detect(signals: ActivityLineSignals): ActivityCandidate[] {
@@ -39,6 +41,7 @@ export class ActivityDetectors {
       ...this.activityCodeDetector.detect(signals),
       ...this.activityRefDetector.detect(signals),
       ...this.activityPlanDetector.detect(signals),
+      ...this.activityLinkDetector.detect(signals),
       ...this.detectDiscussion(signals),
     ];
     return [...candidates, ...this.detectEdits(signals, candidates), this.toStateOnly(signals)];

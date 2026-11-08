@@ -29,13 +29,22 @@ export class ActivityLifecycleDetector {
           ),
         );
       } else if (fact.kind === SourceActionKind.CLOSED) {
+        const duplicates =
+          fact.mergeRequestIid === null
+            ? own.filter(
+                (other) =>
+                  other.kind === SourceActionKind.DUPLICATE_MARKED &&
+                  other.mergeRequestIid === null,
+              )
+            : [];
         candidates.push(
           this.toCandidate(
             ActivityAction.CLOSED,
             ACTIVITY_WEIGHTS.CLOSED,
-            [fact],
+            [fact, ...duplicates],
             [
               ...(fact.mergeRequestIid === null ? [] : [ActivityDetail.MERGE_REQUEST]),
+              ...(duplicates.length ? [ActivityDetail.DUPLICATE] : []),
               ...this.toContext(
                 signals,
                 fact.time,
@@ -77,7 +86,16 @@ export class ActivityLifecycleDetector {
       (candidate) =>
         candidate.action === ActivityAction.CLOSED || candidate.action === ActivityAction.MERGED,
     );
-    if (!signals.line.issue || !signals.closedToday || !signals.assignee || ownOutcome) {
+    const movedAway = [...signals.others, ...signals.dropped.map(({ fact }) => fact)].some(
+      (fact) => fact.kind === SourceActionKind.MOVED_OUT && fact.mergeRequestIid === null,
+    );
+    if (
+      !signals.line.issue ||
+      !signals.closedToday ||
+      !signals.assignee ||
+      ownOutcome ||
+      movedAway
+    ) {
       return [];
     }
     const closing = signals.others.find(
