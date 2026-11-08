@@ -2,7 +2,7 @@ import { SourceActionKind, SourceEventAction } from 'src/modules/application/sou
 import { TRAIT_STATE_WEIGHTS } from 'src/modules/application/trait/constants/trait.constants';
 import { WorkflowState } from 'src/modules/application/trait/trait.enums';
 import { JobRole } from 'src/modules/application/user/user.enums';
-import { ActivityAction, ActivityDetail, ActivityTier } from '../activity.enums';
+import { ActivityAction, ActivityDetail, ActivityRule, ActivityTier } from '../activity.enums';
 import type { ActivityRoleFocus } from '../activity.interface';
 
 export const ACTIVITY_WEIGHTS = {
@@ -108,6 +108,11 @@ export const ACTIVITY_AUTO_STATUS_MS = 5 * 1000;
 export const ACTIVITY_SWAP_MS = 5 * 1000;
 
 export const ACTIVITY_MOVE_MS = 60 * 1000;
+
+export const ACTIVITY_ELSEWHERE_RULES = new Set<ActivityRule>([
+  ActivityRule.MOVED_AWAY,
+  ActivityRule.RECIPROCAL_LINK,
+]);
 
 export const ACTIVITY_RESUMED_WORK_DAYS = 7;
 

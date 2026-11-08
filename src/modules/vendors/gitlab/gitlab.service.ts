@@ -44,6 +44,10 @@ export class GitLabService {
     return this.gitlabRepository.findProject(projectId);
   }
 
+  findProjectByPath(path: string) {
+    return this.gitlabRepository.findProjectByPath(path);
+  }
+
   findIssue(projectId: number, iid: number) {
     return this.gitlabRepository.findIssue(projectId, iid);
   }

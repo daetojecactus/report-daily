@@ -116,6 +116,20 @@ export const GITLAB_SOURCE_KNOWN_NOTES = [
   /^(?:changed|removed) time estimate\b/,
 ];
 
+export const GITLAB_SOURCE_LINK_KINDS = new Set<SourceActionKind>([
+  SourceActionKind.LINKED,
+  SourceActionKind.UNLINKED,
+  SourceActionKind.CHILD_ADDED,
+  SourceActionKind.DUPLICATE_MARKED,
+]);
+
+export const GITLAB_SOURCE_LINK_WINDOW_MS = 2000;
+
+export const GITLAB_SOURCE_ISSUE_REFERENCE_PATTERN =
+  /(?<![\w/.-])((?:[\w.-]+\/)*[\w.-]+)?#(\d+)\b/g;
+
+export const GITLAB_SOURCE_PATH_SEPARATOR = '/';
+
 export const GITLAB_SOURCE_DATE_NOTE_PATTERN = /^(?:changed|removed) (?:start|due) date\b/;
 
 export const GITLAB_SOURCE_DATE_CHANGE_PATTERN =

@@ -129,6 +129,9 @@ export class GitLabSourceFacts {
     if (!note.system) {
       return [this.toFact(SourceActionKind.COMMENTED, note.created_at, note.author, context)];
     }
+    if (context.reciprocalNotes.has(note.id)) {
+      return [this.toFact(SourceActionKind.RECIPROCAL_LINK, note.created_at, note.author, context)];
+    }
     const assignees = this.gitlabSourceNotes.parseUserChange(note, GITLAB_SOURCE_ASSIGNEE_CHANGE);
     const reviewers = this.gitlabSourceNotes.parseUserChange(note, GITLAB_SOURCE_REVIEWER_CHANGE);
     const userFacts = [

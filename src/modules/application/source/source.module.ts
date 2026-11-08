@@ -5,6 +5,7 @@ import { GitLabSourceDetails } from './gitlab/gitlab-source.details';
 import { GitLabSourceFacts } from './gitlab/gitlab-source.facts';
 import { GitLabSourceHistory } from './gitlab/gitlab-source.history';
 import { GitLabSourceKeys } from './gitlab/gitlab-source.keys';
+import { GitLabSourceLinks } from './gitlab/gitlab-source.links';
 import { GitLabSourceNotes } from './gitlab/gitlab-source.notes';
 import { GitLabSourceScanner } from './gitlab/gitlab-source.scanner';
 import { GitLabSourceService } from './gitlab/gitlab-source.service';
@@ -22,6 +23,7 @@ import { SourceService } from './source.service';
     GitLabSourceHistory,
     GitLabSourceFacts,
     GitLabSourceNotes,
+    GitLabSourceLinks,
   ],
   exports: [SourceService],
 })

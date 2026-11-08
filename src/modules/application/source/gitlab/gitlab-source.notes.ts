@@ -5,6 +5,8 @@ import {
   GITLAB_SOURCE_DATE_CHANGE_PATTERN,
   GITLAB_SOURCE_DATE_NOTE_PATTERN,
   GITLAB_SOURCE_KNOWN_NOTES,
+  GITLAB_SOURCE_LINK_KINDS,
+  GITLAB_SOURCE_LINK_WINDOW_MS,
   GITLAB_SOURCE_MENTION_PATTERN,
   GITLAB_SOURCE_NOTE_ACTIONS,
   GITLAB_SOURCE_NOTE_SHAPE_REPLACEMENTS,
@@ -57,6 +59,31 @@ export class GitLabSourceNotes {
       seconds: action === 'added' ? seconds : -seconds,
       at: date ? `${date}T${time ?? '00:00:00'}${zone}` : note.created_at,
     };
+  }
+
+  findReciprocalLinks(notes: { note: GitLabNote; item: string }[]) {
+    const links = notes
+      .filter(({ note }) => {
+        const kind = this.match(note)?.kind;
+        return kind !== undefined && GITLAB_SOURCE_LINK_KINDS.has(kind);
+      })
+      .toSorted((left, right) => right.note.id - left.note.id);
+    const reciprocal = new Set<number>();
+    for (const [index, { note, item }] of links.entries()) {
+      const time = Date.parse(note.created_at);
+      const source = links
+        .slice(0, index)
+        .some(
+          (other) =>
+            other.item !== item &&
+            !reciprocal.has(other.note.id) &&
+            Math.abs(Date.parse(other.note.created_at) - time) <= GITLAB_SOURCE_LINK_WINDOW_MS,
+        );
+      if (source) {
+        reciprocal.add(note.id);
+      }
+    }
+    return reciprocal;
   }
 
   isKnown(note: GitLabNote) {

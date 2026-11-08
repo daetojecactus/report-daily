@@ -613,6 +613,60 @@ describe('GitLabSourceBuilder', () => {
       ]);
     });
 
+    it('keeps a link on the issue where it was made and marks the replies on the others', () => {
+      const note = (id: number, body: string, second: number, author = EMPLOYEE) =>
+        createNote({
+          id,
+          body,
+          system: true,
+          author,
+          created_at: `${REPORT_DATE}T10:00:${String(second).padStart(2, '0')}.000Z`,
+        });
+      const issue = (iid: number, notes: GitLabNote[]): IssueActivity => ({
+        issue: createIssue({ iid }),
+        events: [],
+        notes,
+        labelEvents: [],
+        stateEvents: [],
+        milestones: NO_PLANS,
+        iterations: NO_PLANS,
+        weightEvents: [],
+        mergeRequests: [],
+        pushes: [],
+      });
+      const grouped = createBuilder().build(
+        {
+          projects: [],
+          issues: [
+            issue(1, [
+              note(12, 'marked this issue as related to #2 and #3', 1),
+              note(21, 'marked this issue as blocking #4', 30),
+              note(22, 'marked this issue as related to #5', 31),
+            ]),
+            issue(2, [note(10, 'marked this issue as related to #1', 0)]),
+            issue(3, [note(11, 'marked this issue as related to #1', 0)]),
+            issue(4, [note(20, 'marked this issue as blocked by #1', 30)]),
+            issue(5, [note(13, 'marked this issue as related to #9', 1, OTHER)]),
+          ],
+          mergeRequests: [],
+          pushes: [],
+          directPushes: [],
+          refs: [],
+          pushCommits: new Map(),
+        },
+        DAY,
+        { id: EMPLOYEE.id, username: USERNAME },
+      );
+
+      expect(grouped.issues.map(({ iid, facts }) => [iid, facts.map(({ kind }) => kind)])).toEqual([
+        [1, [SourceActionKind.LINKED, SourceActionKind.LINKED, SourceActionKind.LINKED]],
+        [2, [SourceActionKind.RECIPROCAL_LINK]],
+        [3, [SourceActionKind.RECIPROCAL_LINK]],
+        [4, [SourceActionKind.RECIPROCAL_LINK]],
+        [5, [SourceActionKind.LINKED]],
+      ]);
+    });
+
     it('reads links, hierarchy, moves and duplicates of issues', () => {
       const grouped = buildIssue({
         notes: [

@@ -19,6 +19,8 @@ import { Source, SourceActionKind, SourceRefType } from '../../source.enums';
 import { GitLabSourceDetails } from '../gitlab-source.details';
 import type { SourceHiddenItems } from '../gitlab-source.interface';
 import { GitLabSourceKeys } from '../gitlab-source.keys';
+import { GitLabSourceLinks } from '../gitlab-source.links';
+import { GitLabSourceNotes } from '../gitlab-source.notes';
 import type { GitLabSourceScanner } from '../gitlab-source.scanner';
 import { GitLabSourceService } from '../gitlab-source.service';
 import {
@@ -65,6 +67,13 @@ function createGitLab(data: GitLabData) {
         (data.projects ?? [createProject()]).find((project) => project.id === id) ?? null,
       ),
     ),
+    findProjectByPath: vi.fn((path: string) =>
+      Promise.resolve(
+        (data.projects ?? [createProject()]).find(
+          (project) => project.path_with_namespace === path,
+        ) ?? null,
+      ),
+    ),
     findIssue: vi.fn((projectId: number, iid: number) =>
       Promise.resolve(findItem(data.issues, projectId, iid)),
     ),
@@ -108,12 +117,19 @@ function collect(
 ) {
   const scanner = { findHiddenItems: vi.fn(() => Promise.resolve(hidden)) };
   const keys = new GitLabSourceKeys();
+  const details = new GitLabSourceDetails(gitlab as unknown as GitLabService, keys);
   return new GitLabSourceService(
     gitlab as unknown as GitLabService,
     createBuilder(),
     scanner as unknown as GitLabSourceScanner,
-    new GitLabSourceDetails(gitlab as unknown as GitLabService, keys),
+    details,
     keys,
+    new GitLabSourceLinks(
+      gitlab as unknown as GitLabService,
+      details,
+      new GitLabSourceNotes(),
+      keys,
+    ),
   ).collect(
     {
       id: '0190b5a8-0000-7000-8000-000000000003',
@@ -368,6 +384,42 @@ describe('GitLabSourceService', () => {
 
     expect(grouped.issues).toEqual([]);
     expect(grouped.standalonePushes.map((push) => push.ref)).toEqual(['77-spike']);
+  });
+
+  it('adds the issue where a link was made from another project and keeps the link there', async () => {
+    const employee = { id: GITLAB_USER_ID, username: 'qa.user', name: 'qa.user' };
+    const link = (id: number, body: string) =>
+      createNote({
+        id,
+        body,
+        system: true,
+        author: employee,
+        created_at: `${REPORT_DATE}T10:00:00.000Z`,
+      });
+    const frontend = createProject({ id: 2, path_with_namespace: 'team/frontend' });
+    const gitlab = createGitLab({
+      events: [],
+      projects: [createProject(), frontend],
+      issues: [createIssue({ iid: 12 }), createIssue({ project_id: 2, iid: 7 })],
+      notes: {
+        'issues:1:12': [link(20, 'marked this issue as related to frontend#7')],
+        'issues:2:7': [link(21, 'marked this issue as related to backend#12')],
+      },
+    });
+
+    const grouped = await collect(gitlab, 'UTC', {
+      issues: [{ projectId: PROJECT_ID, iid: 12 }],
+      mergeRequests: [],
+    });
+
+    expect(gitlab.findProjectByPath).toHaveBeenCalledWith('team/frontend');
+    expect(
+      grouped.issues.map(({ projectId, iid, facts }) => [projectId, iid, facts.map((f) => f.kind)]),
+    ).toEqual([
+      [PROJECT_ID, 12, [SourceActionKind.RECIPROCAL_LINK]],
+      [2, 7, [SourceActionKind.LINKED]],
+    ]);
+    expect(grouped.projects.map(({ path }) => path)).toEqual(['team/backend', 'team/frontend']);
   });
 
   it('names an iteration without a title by its dates', async () => {
