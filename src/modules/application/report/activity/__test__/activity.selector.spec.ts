@@ -70,6 +70,7 @@ describe('ActivitySelector', () => {
       DISCUSSED: ActivityTier.PARTICIPATION,
       ASSIGNED: ActivityTier.PARTICIPATION,
       HELPED: ActivityTier.PARTICIPATION,
+      ESTIMATED: ActivityTier.PARTICIPATION,
       EDITED: ActivityTier.PARTICIPATION,
       DELETED: ActivityTier.PARTICIPATION,
       COMMENTED: ActivityTier.PARTICIPATION,

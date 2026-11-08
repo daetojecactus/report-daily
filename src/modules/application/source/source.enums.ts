@@ -59,4 +59,6 @@ export enum SourceActionKind {
   MILESTONE_REMOVED = 'milestone_removed',
   ITERATION_SET = 'iteration_set',
   ITERATION_REMOVED = 'iteration_removed',
+  WEIGHT_SET = 'weight_set',
+  WEIGHT_REMOVED = 'weight_removed',
 }

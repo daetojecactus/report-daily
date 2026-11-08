@@ -20,6 +20,7 @@ import {
   GITLAB_TOO_MANY_REQUESTS,
   GITLAB_USER_SEARCH_LIMIT,
   GITLAB_USERS_PATH,
+  GITLAB_WEIGHT_EVENTS_PATH,
 } from './constants/gitlab.constants';
 import { GitLabMessages } from './constants/gitlab.messages';
 import { GitLabClient } from './gitlab.client';
@@ -41,6 +42,7 @@ import type {
   GitLabQuery,
   GitLabStateEvent,
   GitLabUser,
+  GitLabWeightEvent,
 } from './gitlab.interface';
 
 @Injectable()
@@ -138,6 +140,12 @@ export class GitLabRepository {
   findIterationEvents(projectId: number, iid: number) {
     return this.getAll<GitLabIterationEvent>(
       `${this.toIssuablePath(GitLabIssuable.ISSUES, projectId, iid)}${GITLAB_ITERATION_EVENTS_PATH}`,
+    );
+  }
+
+  findWeightEvents(projectId: number, iid: number) {
+    return this.getAll<GitLabWeightEvent>(
+      `${this.toIssuablePath(GitLabIssuable.ISSUES, projectId, iid)}${GITLAB_WEIGHT_EVENTS_PATH}`,
     );
   }
 

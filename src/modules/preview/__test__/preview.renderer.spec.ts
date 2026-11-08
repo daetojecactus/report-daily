@@ -148,12 +148,13 @@ describe('PreviewRenderer', () => {
     ]);
   });
 
-  it('prints the milestone and the iteration of a task', () => {
+  it('prints the milestone, the iteration and the weight of a task', () => {
     const lines = render({
       issues: [
         createIssue({
           milestone: 'milestone-1',
           iteration: 'iteration-2',
+          weight: 3,
           facts: [fact(SourceActionKind.ITERATION_SET, at(10), { value: 'iteration-2' })],
         }),
       ],
@@ -165,6 +166,7 @@ describe('PreviewRenderer', () => {
       '    assignees: dev.me',
       '    milestone: milestone-1',
       '    iteration: iteration-2',
+      '    weight: 3',
       '    actions: iteration_set iteration-2',
     ]);
   });

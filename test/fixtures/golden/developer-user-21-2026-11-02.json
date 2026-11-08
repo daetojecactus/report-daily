@@ -44,13 +44,15 @@
         "status": "Done",
         "milestone": null,
         "iteration": null,
+        "weight": null,
         "startOfDay": {
           "state": "opened",
           "labels": [],
           "assignees": [],
           "status": null,
           "milestone": null,
-          "iteration": null
+          "iteration": null,
+          "weight": null
         },
         "facts": [
           {
@@ -721,6 +723,7 @@
         "status": "To do",
         "milestone": null,
         "iteration": null,
+        "weight": null,
         "startOfDay": {
           "state": "opened",
           "labels": [
@@ -734,7 +737,8 @@
           ],
           "status": "To do",
           "milestone": null,
-          "iteration": null
+          "iteration": null,
+          "weight": null
         },
         "facts": [
           {
@@ -812,6 +816,7 @@
         "status": "To do",
         "milestone": null,
         "iteration": null,
+        "weight": null,
         "startOfDay": {
           "state": "opened",
           "labels": [
@@ -825,7 +830,8 @@
           ],
           "status": "To do",
           "milestone": null,
-          "iteration": null
+          "iteration": null,
+          "weight": null
         },
         "facts": [
           {
@@ -901,6 +907,7 @@
         "status": "To do",
         "milestone": null,
         "iteration": null,
+        "weight": null,
         "startOfDay": {
           "state": "opened",
           "labels": [
@@ -915,7 +922,8 @@
           ],
           "status": "To do",
           "milestone": null,
-          "iteration": null
+          "iteration": null,
+          "weight": null
         },
         "facts": [
           {
@@ -1439,6 +1447,7 @@
         "status": "To do",
         "milestone": null,
         "iteration": null,
+        "weight": null,
         "startOfDay": {
           "state": "opened",
           "labels": [
@@ -1452,7 +1461,8 @@
           ],
           "status": "To do",
           "milestone": null,
-          "iteration": null
+          "iteration": null,
+          "weight": null
         },
         "facts": [
           {

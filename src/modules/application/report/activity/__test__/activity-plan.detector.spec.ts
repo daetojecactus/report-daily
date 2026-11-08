@@ -86,6 +86,7 @@ describe('ActivityPlanDetector', () => {
           facts: [
             fact(SourceActionKind.OPENED, at(10)),
             fact(SourceActionKind.ITERATION_SET, at(10, 2), { value: SPRINT }),
+            fact(SourceActionKind.WEIGHT_SET, at(10, 2), { value: '3' }),
           ],
         }),
       ),
@@ -93,6 +94,7 @@ describe('ActivityPlanDetector', () => {
 
     expect(signals.dropped.map(({ fact: item, rule }) => [item.kind, rule])).toEqual([
       [SourceActionKind.ITERATION_SET, ActivityRule.SETUP],
+      [SourceActionKind.WEIGHT_SET, ActivityRule.SETUP],
     ]);
   });
 
@@ -103,6 +105,49 @@ describe('ActivityPlanDetector', () => {
         fact(SourceActionKind.ITERATION_REMOVED, at(10, 1), { value: SPRINT }),
       ]),
     ).toEqual([]);
+  });
+
+  it('estimates a task and changes the estimate it had at the start of the day', () => {
+    const estimate = [fact(SourceActionKind.WEIGHT_SET, at(10), { value: '5' })];
+
+    expect(planned(estimate)).toEqual([
+      { action: ActivityAction.ESTIMATED, weight: 170, state: null, details: [] },
+    ]);
+    expect(
+      planned(estimate, { startOfDay: { ...createIssue().startOfDay, weight: 3 } })[0].details,
+    ).toEqual([ActivityDetail.CHANGED]);
+    expect(
+      planned(estimate, { startOfDay: { ...createIssue().startOfDay, weight: 5 } })[0].details,
+    ).toEqual([]);
+  });
+
+  it('takes a removed estimate for an edit and an undone one for nothing', () => {
+    expect(
+      planned([fact(SourceActionKind.WEIGHT_REMOVED, at(10), { value: '5' })]).map(
+        ({ action, details }) => [action, details],
+      ),
+    ).toEqual([[ActivityAction.EDITED, [ActivityDetail.WEIGHT]]]);
+    expect(
+      planned([
+        fact(SourceActionKind.WEIGHT_SET, at(10), { value: '5' }),
+        fact(SourceActionKind.WEIGHT_REMOVED, at(10, 1), { value: '5' }),
+      ]),
+    ).toEqual([]);
+  });
+
+  it('plans and estimates a task in one line, planning first', () => {
+    const line = issueLine(
+      createIssue({
+        facts: [
+          fact(SourceActionKind.WEIGHT_SET, at(10), { value: '5' }),
+          fact(SourceActionKind.ITERATION_SET, at(9), { value: SPRINT }),
+        ],
+      }),
+    );
+    const choice = choose(line);
+
+    expect(choice.main.action).toBe(ActivityAction.PLANNED);
+    expect(choice.secondary.map(({ action }) => action)).toContain(ActivityAction.ESTIMATED);
   });
 
   it('gives a project manager the role bonus for planning', () => {

@@ -38,6 +38,8 @@ export const GITLAB_MILESTONE_EVENTS_PATH = '/resource_milestone_events';
 
 export const GITLAB_ITERATION_EVENTS_PATH = '/resource_iteration_events';
 
+export const GITLAB_WEIGHT_EVENTS_PATH = '/resource_weight_events';
+
 export const GITLAB_COMMITS_PATH = '/commits';
 
 export const GITLAB_CLOSES_ISSUES_PATH = '/closes_issues';

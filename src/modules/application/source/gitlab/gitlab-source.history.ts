@@ -9,6 +9,7 @@ import type {
   GitLabMergeRequest,
   GitLabNote,
   GitLabStateEvent,
+  GitLabWeightEvent,
 } from 'src/modules/vendors/gitlab/gitlab.interface';
 import { SourceActionKind } from '../source.enums';
 import type { ReviewThreads } from '../source.interface';
@@ -68,6 +69,14 @@ export class GitLabSourceHistory {
       return current;
     }
     return first.action === GitLabLabelAction.REMOVE ? first.name : null;
+  }
+
+  restoreWeight(current: number | null, events: GitLabWeightEvent[], moment: number) {
+    if (!events.length) {
+      return current;
+    }
+    const last = this.toLatestFirst(events).find((event) => Date.parse(event.created_at) < moment);
+    return last?.weight ?? null;
   }
 
   restoreAssignees(assignees: GitLabAuthor[] | undefined, notes: GitLabNote[], moment: number) {

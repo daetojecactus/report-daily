@@ -11,6 +11,7 @@ import type {
   GitLabNote,
   GitLabProject,
   GitLabStateEvent,
+  GitLabWeightEvent,
 } from 'src/modules/vendors/gitlab/gitlab.interface';
 import { GitLabSourceBuilder } from '../gitlab-source.builder';
 import { GitLabSourceFacts } from '../gitlab-source.facts';
@@ -144,6 +145,16 @@ export function createIterationEvent(
       due_date: '2026-08-09',
     },
     action: GitLabLabelAction.ADD,
+    ...overrides,
+  };
+}
+
+export function createWeightEvent(overrides: Partial<GitLabWeightEvent> = {}): GitLabWeightEvent {
+  return {
+    id: 1,
+    user: createAuthor('dev.author'),
+    created_at: `${REPORT_DATE}T11:00:00.000Z`,
+    weight: 3,
     ...overrides,
   };
 }

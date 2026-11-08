@@ -23,6 +23,7 @@ export enum ActivityAction {
   DISCUSSED = 'discussed',
   HELPED = 'helped',
   ASSIGNED = 'assigned',
+  ESTIMATED = 'estimated',
   EDITED = 'edited',
   DELETED = 'deleted',
   COMMENTED = 'commented',
@@ -68,6 +69,8 @@ export enum ActivityDetail {
   ITERATION = 'iteration',
   MILESTONE = 'milestone',
   MOVED = 'moved',
+  WEIGHT = 'weight',
+  CHANGED = 'changed',
 }
 
 export enum EngagementLevel {

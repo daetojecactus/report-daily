@@ -179,6 +179,7 @@ function createDay(): GroupedDailyData {
         status: 'Custom review',
         milestone: 'Acme Q4',
         iteration: 'Acme sprint 47',
+        weight: 5,
         startOfDay: {
           state: ItemState.OPENED,
           labels: ['type::bug', 'region::EU'],
@@ -186,6 +187,7 @@ function createDay(): GroupedDailyData {
           status: 'Custom review',
           milestone: null,
           iteration: 'Acme sprint 46',
+          weight: 3,
         },
         facts: [
           {
@@ -208,6 +210,14 @@ function createDay(): GroupedDailyData {
             kind: SourceActionKind.STATUS_SET,
             at: '2026-11-05T08:00:00.000Z',
             value: 'Done',
+            actor: 'anna.petrova',
+            own: true,
+            users: [],
+          },
+          {
+            kind: SourceActionKind.WEIGHT_SET,
+            at: '2026-11-05T08:30:00.000Z',
+            value: '5',
             actor: 'anna.petrova',
             own: true,
             users: [],
@@ -342,7 +352,7 @@ describe('PreviewAnonymizer', () => {
     expect(issue.startOfDay.labels).toEqual(['type::bug', 'label-1']);
   });
 
-  it('gives milestones and iterations aliases that stay the same over the day', () => {
+  it('gives milestones and iterations aliases and keeps the weights', () => {
     const { day } = anonymize();
     const [issue] = day.issues;
     const [mergeRequest] = issue.mergeRequests;
@@ -354,6 +364,7 @@ describe('PreviewAnonymizer', () => {
     ]);
     expect([issue.iteration, issue.startOfDay.iteration]).toEqual(['iteration-1', 'iteration-2']);
     expect(issue.facts.at(-1)?.value).toBe('iteration-1');
+    expect([issue.weight, issue.startOfDay.weight, issue.facts.at(-2)?.value]).toEqual([5, 3, '5']);
   });
 
   it('keeps what the rules read from branches, commits and statuses', () => {

@@ -88,6 +88,7 @@ export class GitLabSourceScanner {
           this.gitlabService.findLabelEvents(issuable, projectId, iid),
           issue ? this.gitlabService.findMilestoneEvents(issuable, projectId, iid) : [],
           issue ? this.gitlabService.findIterationEvents(projectId, iid) : [],
+          issue ? this.gitlabService.findWeightEvents(projectId, iid) : [],
         ]);
         const userIds = new Set([
           ...notes

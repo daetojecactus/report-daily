@@ -84,6 +84,10 @@ export class GitLabService {
     return this.gitlabRepository.findIterationEvents(projectId, iid);
   }
 
+  findWeightEvents(projectId: number, iid: number) {
+    return this.gitlabRepository.findWeightEvents(projectId, iid);
+  }
+
   findMergeRequestCommits(projectId: number, iid: number) {
     return this.gitlabRepository.findMergeRequestCommits(projectId, iid);
   }

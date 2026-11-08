@@ -6,6 +6,7 @@ import type {
   GitLabIssue,
   GitLabMergeRequest,
   GitLabNote,
+  GitLabWeightEvent,
 } from 'src/modules/vendors/gitlab/gitlab.interface';
 import { SourceActionKind } from '../source.enums';
 import type { SourceFact } from '../source.interface';
@@ -78,6 +79,9 @@ export class GitLabSourceFacts {
         }
       }
     }
+    if ('weightEvents' in activity) {
+      facts.push(...this.toWeightFacts(activity.weightEvents, context));
+    }
     for (const event of events) {
       if (event.push_data && this.isOfDay(event.created_at, context)) {
         facts.push(
@@ -92,6 +96,30 @@ export class GitLabSourceFacts {
       }
     }
     return facts.sort((left, right) => Date.parse(left.at) - Date.parse(right.at));
+  }
+
+  private toWeightFacts(events: GitLabWeightEvent[], context: SourceBuildContext) {
+    const facts: SourceFact[] = [];
+    let previous: number | null = null;
+    for (const event of events.toSorted(
+      (left, right) => Date.parse(left.created_at) - Date.parse(right.created_at),
+    )) {
+      if (this.isOfDay(event.created_at, context)) {
+        const removed = event.weight === null;
+        const weight = removed ? previous : event.weight;
+        facts.push(
+          this.toFact(
+            removed ? SourceActionKind.WEIGHT_REMOVED : SourceActionKind.WEIGHT_SET,
+            event.created_at,
+            event.user,
+            context,
+            weight === null ? null : String(weight),
+          ),
+        );
+      }
+      previous = event.weight;
+    }
+    return facts;
   }
 
   private toNoteFacts(note: GitLabNote, context: SourceBuildContext): SourceFact[] {
