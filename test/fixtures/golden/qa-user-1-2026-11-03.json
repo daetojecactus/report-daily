@@ -348,6 +348,7 @@
                   "action": "pushed",
                   "refType": "branch",
                   "ref": "777-branch-28",
+                  "refCount": null,
                   "commitTitle": "test: commit 29",
                   "commits": [
                     {
@@ -369,6 +370,7 @@
                   "action": "created",
                   "refType": "branch",
                   "ref": "777-branch-28",
+                  "refCount": null,
                   "commitTitle": null,
                   "commits": []
                 }
@@ -1092,6 +1094,7 @@
                   "action": "pushed",
                   "refType": "branch",
                   "ref": "84-branch-20",
+                  "refCount": null,
                   "commitTitle": "test: commit 30",
                   "commits": [
                     {
@@ -1113,6 +1116,7 @@
                   "action": "pushed",
                   "refType": "branch",
                   "ref": "84-branch-20",
+                  "refCount": null,
                   "commitTitle": "test: commit 31",
                   "commits": [
                     {

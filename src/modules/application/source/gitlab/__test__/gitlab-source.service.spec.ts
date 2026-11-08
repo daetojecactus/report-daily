@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
-import { GitLabIssuable, GitLabState } from 'src/modules/vendors/gitlab/gitlab.enums';
+import {
+  GitLabIssuable,
+  GitLabRefType,
+  GitLabState,
+} from 'src/modules/vendors/gitlab/gitlab.enums';
 import type {
   GitLabEvent,
   GitLabIssue,
@@ -10,7 +14,7 @@ import type {
   GitLabStateEvent,
 } from 'src/modules/vendors/gitlab/gitlab.interface';
 import type { GitLabService } from 'src/modules/vendors/gitlab/gitlab.service';
-import { Source } from '../../source.enums';
+import { Source, SourceRefType } from '../../source.enums';
 import { GitLabSourceDetails } from '../gitlab-source.details';
 import type { SourceHiddenItems } from '../gitlab-source.interface';
 import { GitLabSourceKeys } from '../gitlab-source.keys';
@@ -141,12 +145,32 @@ function pushEvent(branch: string) {
     target_type: null,
     push_data: {
       action: 'pushed',
-      ref_type: 'branch',
+      ref_type: GitLabRefType.BRANCH,
       ref: branch,
+      ref_count: null,
       commit_count: 1,
       commit_from: 'aaa',
       commit_to: 'bbb',
       commit_title: 'fix: a bug',
+    },
+  });
+}
+
+function refEvent(id: number, actionName: string, pushData: Partial<GitLabPushData>) {
+  return createEvent({
+    id,
+    action_name: actionName,
+    target_type: null,
+    push_data: {
+      action: 'created',
+      ref_type: GitLabRefType.TAG,
+      ref: null,
+      ref_count: null,
+      commit_count: 0,
+      commit_from: null,
+      commit_to: 'ccc',
+      commit_title: null,
+      ...pushData,
     },
   });
 }
@@ -259,7 +283,7 @@ describe('GitLabSourceService', () => {
     const grouped = await collect(gitlab);
 
     expect(gitlab.findMergeRequestByBranch).toHaveBeenCalledTimes(1);
-    expect(grouped.standalonePushes.map(({ branch, mainBranch }) => [branch, mainBranch])).toEqual([
+    expect(grouped.standalonePushes.map(({ ref, mainBranch }) => [ref, mainBranch])).toEqual([
       ['experiment', false],
       ['main', true],
       ['develop', true],
@@ -274,8 +298,9 @@ describe('GitLabSourceService', () => {
         action_name: 'pushed to',
         push_data: {
           action: 'pushed',
-          ref_type: 'branch',
+          ref_type: GitLabRefType.BRANCH,
           ref: 'main',
+          ref_count: null,
           commit_count: 1,
           commit_from: 'aaa',
           commit_to: commit,
@@ -294,7 +319,7 @@ describe('GitLabSourceService', () => {
     const grouped = await collect(gitlab);
 
     expect(
-      grouped.standalonePushes.map(({ branch, events }) => [branch, events.map(({ id }) => id)]),
+      grouped.standalonePushes.map(({ ref, events }) => [ref, events.map(({ id }) => id)]),
     ).toEqual([['main', [3]]]);
   });
 
@@ -306,7 +331,7 @@ describe('GitLabSourceService', () => {
 
     const grouped = await collect(gitlab);
 
-    expect(grouped.issues.map((issue) => issue.pushes.map((push) => push.branch))).toEqual([
+    expect(grouped.issues.map((issue) => issue.pushes.map((push) => push.ref))).toEqual([
       ['12-spike'],
     ]);
     expect(grouped.issues[0].pushes[0].events.map((event) => event.actionName)).toEqual([
@@ -334,7 +359,41 @@ describe('GitLabSourceService', () => {
     const grouped = await collect(gitlab);
 
     expect(grouped.issues).toEqual([]);
-    expect(grouped.standalonePushes.map((push) => push.branch)).toEqual(['77-spike']);
+    expect(grouped.standalonePushes.map((push) => push.ref)).toEqual(['77-spike']);
+  });
+
+  it('keeps a tag and a bulk push apart from branches and links neither', async () => {
+    const gitlab = createGitLab({
+      events: [
+        refEvent(1, 'pushed new', { ref: '12-spike' }),
+        refEvent(2, 'pushed new', { ref_type: GitLabRefType.BRANCH, ref_count: 5 }),
+        refEvent(3, 'deleted', {
+          action: 'removed',
+          ref_type: GitLabRefType.BRANCH,
+          ref: '12-spike',
+          commit_from: 'ccc',
+          commit_to: null,
+        }),
+      ],
+      issues: [createIssue({ iid: 12 })],
+    });
+
+    const grouped = await collect(gitlab);
+
+    expect(gitlab.findMergeRequestByBranch).toHaveBeenCalledTimes(1);
+    expect(
+      grouped.standalonePushes.map(({ ref, refType, events }) => [
+        ref,
+        refType,
+        events.map(({ id, pushData }) => [id, pushData?.refCount]),
+      ]),
+    ).toEqual([
+      ['12-spike', SourceRefType.TAG, [[1, null]]],
+      [null, SourceRefType.BRANCH, [[2, 5]]],
+    ]);
+    expect(
+      grouped.issues.map((issue) => issue.pushes.map(({ ref, events }) => [ref, events.length])),
+    ).toEqual([[['12-spike', 1]]]);
   });
 
   it('skips issues and merge requests GitLab does not have', async () => {

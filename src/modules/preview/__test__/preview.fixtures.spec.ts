@@ -18,6 +18,7 @@ const USER = /^user-\d+$/;
 const TITLE = /^(?:Issue \d+|Merge request \d+|(?:test: |тест: )?commit \d+)$/;
 const COMMIT_TITLE = /^(?:test: |тест: )?commit \d+$/;
 const BRANCH = /^(?:main|master|develop|(?:\d+-|renovate[/-]|dependabot[/-])?branch-\d+)$/i;
+const TAG = /^(?:v\d+(?:\.\d+)*|tag-\d+)$/;
 const URL =
   /^https:\/\/gitlab\.example\.com\/group\/project-\d+(?:\/-\/(?:issues|merge_requests)\/\d+)?$/;
 const DATE = /^\d{4}-\d{2}-\d{2}(?:T[\d:.]+(?:Z|[+-]\d{2}:\d{2}))?$/;
@@ -66,7 +67,7 @@ const CHECKS: Record<string, (value: string) => boolean> = {
   path: (value) => /^group\/project-\d+$/.test(value),
   branch: (value) => BRANCH.test(value),
   sourceBranch: (value) => BRANCH.test(value),
-  ref: (value) => BRANCH.test(value),
+  ref: (value) => BRANCH.test(value) || TAG.test(value),
   id: (value) => /^sha-\d+$/.test(value),
   labels: isLabel,
   labelName: isLabel,
@@ -105,10 +106,16 @@ function findLeaks(value: unknown, key: string, path: string): string[] {
   return [];
 }
 
+interface PushKey {
+  projectId: number;
+  branch?: string;
+  ref?: string | null;
+}
+
 interface ItemKeys {
-  issues: { projectId: number; iid: number; pushes?: { projectId: number; branch: string }[] }[];
+  issues: { projectId: number; iid: number; pushes?: PushKey[] }[];
   standaloneMergeRequests: { projectId: number; iid: number }[];
-  standalonePushes: { projectId: number; branch: string }[];
+  standalonePushes: PushKey[];
 }
 
 function toKeys(day: ItemKeys) {
@@ -118,7 +125,7 @@ function toKeys(day: ItemKeys) {
       ({ projectId, iid }) => `${projectId}!${iid}`,
     ),
     standalonePushes: [...day.standalonePushes, ...day.issues.flatMap(({ pushes }) => pushes ?? [])]
-      .map(({ projectId, branch }) => `${projectId}:${branch}`)
+      .map(({ projectId, branch, ref }) => `${projectId}:${branch ?? ref}`)
       .toSorted(),
   };
 }

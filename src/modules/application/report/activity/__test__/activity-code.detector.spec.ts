@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { SourceActionKind } from 'src/modules/application/source/source.enums';
+import {
+  SourceActionKind,
+  SourceEventAction,
+  SourceRefType,
+} from 'src/modules/application/source/source.enums';
 import type { GroupedMergeRequest } from 'src/modules/application/source/source.interface';
 import { ActivityAction, ActivityDetail } from '../activity.enums';
 import {
@@ -13,6 +17,8 @@ import {
   otherFact,
   othersMergeRequest,
   pushEvent,
+  pushLine,
+  refEvent,
   summarize,
 } from './activity.fixture';
 
@@ -201,11 +207,7 @@ describe('ActivityCodeDetector', () => {
 
   it('commits directly to a main branch', () => {
     const [candidate] = summarize(
-      detect({
-        issue: null,
-        mergeRequests: [],
-        pushes: [{ projectId: 1, branch: 'main', mainBranch: true, events: [pushEvent(at(11))] }],
-      }),
+      detect(pushLine({ ref: 'main', mainBranch: true, events: [pushEvent(at(11))] })),
     );
 
     expect(candidate).toEqual({
@@ -214,6 +216,42 @@ describe('ActivityCodeDetector', () => {
       state: null,
       details: [ActivityDetail.DIRECT],
     });
+  });
+
+  it('pushes to many branches at once without starting work', () => {
+    const bulk = (actionName: SourceEventAction) =>
+      summarize(
+        detect(
+          pushLine({
+            ref: null,
+            events: [refEvent(at(11), actionName, { ref: null, refCount: 5 })],
+          }),
+        ),
+      );
+
+    expect(bulk(SourceEventAction.PUSHED_TO)).toEqual([
+      { action: ActivityAction.CODE, weight: 300, state: null, details: [ActivityDetail.MANY] },
+    ]);
+    expect(bulk(SourceEventAction.PUSHED_NEW)[0].details).toEqual([ActivityDetail.MANY]);
+  });
+
+  it('takes no tag and no deleted branch for work on code', () => {
+    const tag = pushLine({
+      ref: 'v1.4.0',
+      refType: SourceRefType.TAG,
+      events: [
+        refEvent(at(11), SourceEventAction.PUSHED_NEW, {
+          refType: SourceRefType.TAG,
+          ref: 'v1.4.0',
+        }),
+      ],
+    });
+    const deleted = pushLine({ events: [refEvent(at(11), SourceEventAction.DELETED)] });
+
+    expect(summarize(detect(tag)).map(({ action }) => action)).toEqual([ActivityAction.RELEASED]);
+    expect(summarize(detect(deleted)).map(({ action }) => action)).toEqual([
+      ActivityAction.DELETED,
+    ]);
   });
 
   it('helps with a task of someone else', () => {

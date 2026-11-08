@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { UserSource } from 'src/modules/application/user/user-source/user-source.interface';
 import { getDayRange, isWithinDay } from 'src/common/utils/date.util';
-import { GitLabTargetType } from 'src/modules/vendors/gitlab/gitlab.enums';
+import { GitLabRefType, GitLabTargetType } from 'src/modules/vendors/gitlab/gitlab.enums';
 import type {
   GitLabEvent,
   GitLabIssue,
@@ -11,7 +11,10 @@ import type {
 import { GitLabService } from 'src/modules/vendors/gitlab/gitlab.service';
 import { Source } from '../source.enums';
 import type { ActivitySource } from '../source.interface';
-import { GITLAB_SOURCE_ISSUE_TARGET_TYPES } from './constants/gitlab-source.constants';
+import {
+  GITLAB_SOURCE_ISSUE_TARGET_TYPES,
+  GITLAB_SOURCE_REF_TYPES,
+} from './constants/gitlab-source.constants';
 import { GitLabSourceBuilder } from './gitlab-source.builder';
 import { GitLabSourceDetails } from './gitlab-source.details';
 import type {
@@ -20,6 +23,7 @@ import type {
   SourceEvents,
   SourceItem,
   SourceLinks,
+  SourceRef,
 } from './gitlab-source.interface';
 import { GitLabSourceKeys } from './gitlab-source.keys';
 import { GitLabSourceScanner } from './gitlab-source.scanner';
@@ -51,9 +55,12 @@ export class GitLabSourceService implements ActivitySource {
       this.addTarget(groups.mergeRequests, target);
     }
     const projects = await this.loadProjects(
-      [...groups.issues.values(), ...groups.mergeRequests.values(), ...groups.pushes.values()].map(
-        ({ target }) => target.projectId,
-      ),
+      [
+        ...groups.issues.values(),
+        ...groups.mergeRequests.values(),
+        ...groups.pushes.values(),
+        ...groups.refs.values(),
+      ].map(({ target }) => target.projectId),
     );
     const mergeRequests = await this.loadMergeRequests(groups, projects);
     const closingIssues = await this.loadClosingIssues(mergeRequests);
@@ -87,6 +94,7 @@ export class GitLabSourceService implements ActivitySource {
       issues: new Map(),
       mergeRequests: new Map(),
       pushes: new Map(),
+      refs: new Map(),
     };
     for (const event of events) {
       const projectId = event.project_id;
@@ -95,13 +103,16 @@ export class GitLabSourceService implements ActivitySource {
       }
       const type = event.note?.noteable_type ?? event.target_type;
       const iid = event.note?.noteable_iid ?? event.target_iid;
-      const branch = event.push_data?.ref;
+      const push = event.push_data;
       if (iid !== null && type !== null && GITLAB_SOURCE_ISSUE_TARGET_TYPES.has(type)) {
         this.addEvent(groups.issues, { projectId, iid }, event);
       } else if (iid !== null && type === GitLabTargetType.MERGE_REQUEST) {
         this.addEvent(groups.mergeRequests, { projectId, iid }, event);
-      } else if (branch) {
-        this.addEvent(groups.pushes, { projectId, branch }, event);
+      } else if (push?.ref && push.ref_type === GitLabRefType.BRANCH) {
+        this.addEvent(groups.pushes, { projectId, branch: push.ref }, event);
+      } else if (push) {
+        const refType = GITLAB_SOURCE_REF_TYPES[push.ref_type];
+        this.addEvent(groups.refs, { projectId, ref: push.ref, refType }, event);
       }
     }
     return groups;
@@ -258,7 +269,7 @@ export class GitLabSourceService implements ActivitySource {
     }
   }
 
-  private addEvent<T extends SourceItem | SourceBranch>(
+  private addEvent<T extends SourceItem | SourceBranch | SourceRef>(
     groups: Map<string, SourceEvents<T>>,
     target: T,
     event: GitLabEvent,

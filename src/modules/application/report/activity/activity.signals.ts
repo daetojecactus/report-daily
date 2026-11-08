@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { SourceActionKind } from 'src/modules/application/source/source.enums';
+import { SourceActionKind, SourceRefType } from 'src/modules/application/source/source.enums';
 import type {
   CleanEvent,
   GroupedIssue,
@@ -191,7 +191,9 @@ export class ActivitySignals {
         events: mergeRequest.events,
         mergeRequestIid: mergeRequest.iid,
       })),
-      ...line.pushes.map((push) => ({ events: push.events, mergeRequestIid: null })),
+      ...line.pushes
+        .filter((push) => push.refType === SourceRefType.BRANCH)
+        .map((push) => ({ events: push.events, mergeRequestIid: null })),
     ];
     return sources.flatMap(({ events, mergeRequestIid }) =>
       events

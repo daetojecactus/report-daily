@@ -350,6 +350,7 @@
                   "action": "pushed",
                   "refType": "branch",
                   "ref": "84-branch-20",
+                  "refCount": null,
                   "commitTitle": "test: commit 22",
                   "commits": [
                     {

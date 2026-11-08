@@ -105,6 +105,7 @@ export class GitLabSourceDetails {
           events: events.filter((event) => !this.isMergePush(event, target, mergeRequests)),
         }))
         .filter(({ events }) => events.length),
+      refs: [...groups.refs.values()],
       pushCommits,
     };
   }

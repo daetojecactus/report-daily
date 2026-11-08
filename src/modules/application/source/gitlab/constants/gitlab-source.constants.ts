@@ -1,10 +1,11 @@
 import {
   GitLabLabelAction,
+  GitLabRefType,
   GitLabState,
   GitLabTargetType,
 } from 'src/modules/vendors/gitlab/gitlab.enums';
 import { z } from 'zod';
-import { ItemState, LabelAction, SourceActionKind } from '../../source.enums';
+import { ItemState, LabelAction, SourceActionKind, SourceRefType } from '../../source.enums';
 import type { SourceNoteAction, SourceUserChange } from '../gitlab-source.interface';
 
 export const GITLAB_SOURCE_ISSUE_TARGET_TYPES = new Set<string>([
@@ -17,6 +18,11 @@ export const GITLAB_SOURCE_BRANCH_ISSUE_PATTERN = /^(\d+)-/;
 export const GITLAB_SOURCE_MAIN_BRANCHES = new Set(['main', 'master', 'develop']);
 
 export const GITLAB_SOURCE_KEY_SEPARATOR = ':';
+
+export const GITLAB_SOURCE_REF_TYPES: Record<GitLabRefType, SourceRefType> = {
+  [GitLabRefType.BRANCH]: SourceRefType.BRANCH,
+  [GitLabRefType.TAG]: SourceRefType.TAG,
+};
 
 export const GITLAB_SOURCE_ASSIGNEE_CHANGE: SourceUserChange = {
   added: 'assigned to ',

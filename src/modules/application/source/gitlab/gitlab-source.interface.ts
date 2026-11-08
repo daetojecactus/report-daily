@@ -9,7 +9,7 @@ import type {
   GitLabProject,
   GitLabStateEvent,
 } from 'src/modules/vendors/gitlab/gitlab.interface';
-import type { SourceActionKind } from '../source.enums';
+import type { SourceActionKind, SourceRefType } from '../source.enums';
 
 export interface SourceItem {
   projectId: number;
@@ -19,6 +19,12 @@ export interface SourceItem {
 export interface SourceBranch {
   projectId: number;
   branch: string;
+}
+
+export interface SourceRef {
+  projectId: number;
+  ref: string | null;
+  refType: SourceRefType;
 }
 
 export interface SourceUserChange {
@@ -40,6 +46,7 @@ export interface SourceEventGroups {
   issues: Map<string, SourceEvents<SourceItem>>;
   mergeRequests: Map<string, SourceEvents<SourceItem>>;
   pushes: Map<string, SourceEvents<SourceBranch>>;
+  refs: Map<string, SourceEvents<SourceRef>>;
 }
 
 export interface SourceLinks {
@@ -74,6 +81,7 @@ export interface DayActivity {
   mergeRequests: MergeRequestActivity[];
   pushes: SourceEvents<SourceBranch>[];
   directPushes: SourceEvents<SourceBranch>[];
+  refs: SourceEvents<SourceRef>[];
   pushCommits: Map<number, GitLabCommit[]>;
 }
 

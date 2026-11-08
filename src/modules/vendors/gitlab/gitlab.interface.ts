@@ -1,4 +1,4 @@
-import type { GitLabLabelAction, GitLabState } from './gitlab.enums';
+import type { GitLabLabelAction, GitLabRefType, GitLabState } from './gitlab.enums';
 
 export type GitLabQuery = Record<string, string | number | boolean>;
 
@@ -31,8 +31,9 @@ export interface GitLabAuthor {
 
 export interface GitLabPushData {
   action: string;
-  ref_type: string;
+  ref_type: GitLabRefType;
   ref: string | null;
+  ref_count: number | null;
   commit_count: number;
   commit_from: string | null;
   commit_to: string | null;

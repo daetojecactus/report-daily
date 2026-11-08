@@ -1,4 +1,4 @@
-import { SourceActionKind } from 'src/modules/application/source/source.enums';
+import { SourceActionKind, SourceEventAction } from 'src/modules/application/source/source.enums';
 import { WorkflowState } from 'src/modules/application/trait/trait.enums';
 import { JobRole } from 'src/modules/application/user/user.enums';
 import { ActivityAction, ActivityDetail, ActivityTier } from '../activity.enums';
@@ -10,6 +10,7 @@ export const ACTIVITY_WEIGHTS = {
   MERGED_OTHER: 900,
   COMPLETED: 890,
   REOPENED: 880,
+  RELEASED: 930,
   PASSED: 785,
   APPROVED: 780,
   RETURNED: 770,
@@ -22,11 +23,13 @@ export const ACTIVITY_WEIGHTS = {
   CODE: 300,
   REQUIREMENTS: 320,
   TOOK_REVIEW: 290,
+  TAGGED: 260,
   CREATED: 220,
   DISCUSSED: 200,
   ASSIGNED: 200,
   HELPED: 180,
   EDITED: 150,
+  DELETED: 120,
   COMMENTED: 100,
   STATE_ONLY: 50,
 } as const;
@@ -78,7 +81,7 @@ export const ACTIVITY_ROLE_FOCUS: Record<JobRole, ActivityRoleFocus> = {
     states: [WorkflowState.ANALYSIS, WorkflowState.DESIGN, WorkflowState.NEEDS_INFO],
   },
   [JobRole.DEVOPS]: {
-    actions: [],
+    actions: [ActivityAction.RELEASED],
     states: [WorkflowState.STAGING, WorkflowState.RELEASED, WorkflowState.READY_FOR_RELEASE],
   },
 };
@@ -150,9 +153,16 @@ export const ACTIVITY_LIFECYCLE_FACTS = new Set<SourceActionKind>([
   SourceActionKind.MERGED,
 ]);
 
-export const ACTIVITY_BRANCH_PUSH_ACTION = 'pushed new';
+export const ACTIVITY_BRANCH_PUSH_ACTION: string = SourceEventAction.PUSHED_NEW;
 
-export const ACTIVITY_PUSH_ACTIONS = new Set(['pushed to', ACTIVITY_BRANCH_PUSH_ACTION]);
+export const ACTIVITY_DELETE_ACTION: string = SourceEventAction.DELETED;
+
+export const ACTIVITY_PUSH_ACTIONS = new Set<string>([
+  SourceEventAction.PUSHED_TO,
+  SourceEventAction.PUSHED_NEW,
+]);
+
+export const ACTIVITY_VERSION_TAG_PATTERN = /\d+\.\d+|(?:^|[^a-z])v\d+/i;
 
 export const ACTIVITY_CODE_FACTS = new Set<SourceActionKind>([
   SourceActionKind.PUSHED,

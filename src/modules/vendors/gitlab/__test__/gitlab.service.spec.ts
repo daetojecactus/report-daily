@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { GitLabIssuable } from '../gitlab.enums';
+import { GitLabIssuable, GitLabRefType } from '../gitlab.enums';
 import type { GitLabPushData } from '../gitlab.interface';
 import type { GitLabRepository } from '../gitlab.repository';
 import { GitLabService } from '../gitlab.service';
@@ -41,8 +41,9 @@ describe('GitLabService', () => {
   function push(overrides: Partial<GitLabPushData> = {}): GitLabPushData {
     return {
       action: 'pushed',
-      ref_type: 'branch',
+      ref_type: GitLabRefType.BRANCH,
       ref: '12-login',
+      ref_count: null,
       commit_count: 2,
       commit_from: 'aaa',
       commit_to: 'ccc',

@@ -5,7 +5,8 @@ import {
   GITLAB_SOURCE_MAIN_BRANCHES,
   GITLAB_SOURCE_MENTION_PATTERN,
 } from 'src/modules/application/source/gitlab/constants/gitlab-source.constants';
-import { SourceActionKind } from 'src/modules/application/source/source.enums';
+import { ACTIVITY_VERSION_TAG_PATTERN } from 'src/modules/application/report/activity/constants/activity.constants';
+import { SourceActionKind, SourceRefType } from 'src/modules/application/source/source.enums';
 import type {
   CleanEvent,
   CleanNote,
@@ -42,6 +43,8 @@ import {
   PREVIEW_STATUS_ALIAS,
   PREVIEW_STATUS_NOTE_PATTERN,
   PREVIEW_SYSTEM_NOTE,
+  PREVIEW_TAG_ALIAS,
+  PREVIEW_TAG_VERSION_PATTERN,
   PREVIEW_TARGET_TITLE,
   PREVIEW_TEST_COMMIT_PATTERN,
   PREVIEW_TEST_COMMIT_PREFIX,
@@ -62,6 +65,7 @@ export class PreviewAnonymizer {
       labels: new Map(),
       statuses: new Map(),
       branches: new Map(),
+      tags: new Map(),
       commits: new Map(),
       commitTitles: new Map(),
     };
@@ -81,7 +85,8 @@ export class PreviewAnonymizer {
   private anonymizePush(push: StandalonePush, aliases: PreviewAliases): StandalonePush {
     return {
       projectId: this.toProjectId(push.projectId, aliases),
-      branch: this.toBranch(push.branch, aliases),
+      ref: push.ref && this.toRef(push.ref, push.refType, aliases),
+      refType: push.refType,
       mainBranch: push.mainBranch,
       events: push.events.map((event) => this.anonymizeEvent(event, aliases)),
     };
@@ -229,7 +234,8 @@ export class PreviewAnonymizer {
       commitCount: pushData.commitCount,
       action: pushData.action,
       refType: pushData.refType,
-      ref: pushData.ref && this.toBranch(pushData.ref, aliases),
+      ref: pushData.ref && this.toRef(pushData.ref, pushData.refType, aliases),
+      refCount: pushData.refCount,
       commitTitle: pushData.commitTitle && this.toCommitTitle(pushData.commitTitle, aliases),
       commits: pushData.commits.map((commit) => ({
         id: this.toAlias(aliases.commits, commit.id, PREVIEW_COMMIT_ALIAS),
@@ -303,6 +309,17 @@ export class PreviewAnonymizer {
     return PREVIEW_KEPT_STATUSES.has(status)
       ? status
       : this.toAlias(aliases.statuses, status, PREVIEW_STATUS_ALIAS);
+  }
+
+  private toRef(ref: string, refType: SourceRefType, aliases: PreviewAliases) {
+    return refType === SourceRefType.TAG ? this.toTag(ref, aliases) : this.toBranch(ref, aliases);
+  }
+
+  private toTag(tag: string, aliases: PreviewAliases) {
+    const version = ACTIVITY_VERSION_TAG_PATTERN.test(tag)
+      ? PREVIEW_TAG_VERSION_PATTERN.exec(tag)?.[0]
+      : undefined;
+    return version ? `v${version}` : this.toAlias(aliases.tags, tag, PREVIEW_TAG_ALIAS);
   }
 
   private toBranch(branch: string, aliases: PreviewAliases) {

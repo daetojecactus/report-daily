@@ -507,6 +507,7 @@
                   "action": "removed",
                   "refType": "branch",
                   "ref": "1001-branch-17",
+                  "refCount": null,
                   "commitTitle": null,
                   "commits": []
                 }
@@ -523,6 +524,7 @@
                   "action": "pushed",
                   "refType": "branch",
                   "ref": "1001-branch-17",
+                  "refCount": null,
                   "commitTitle": "commit 2",
                   "commits": [
                     {
@@ -544,6 +546,7 @@
                   "action": "pushed",
                   "refType": "branch",
                   "ref": "1001-branch-17",
+                  "refCount": null,
                   "commitTitle": "commit 3",
                   "commits": [
                     {
@@ -565,6 +568,7 @@
                   "action": "created",
                   "refType": "branch",
                   "ref": "1001-branch-17",
+                  "refCount": null,
                   "commitTitle": null,
                   "commits": []
                 }
@@ -1559,6 +1563,7 @@
                   "action": "pushed",
                   "refType": "branch",
                   "ref": "74-branch-19",
+                  "refCount": null,
                   "commitTitle": "commit 4",
                   "commits": [
                     {

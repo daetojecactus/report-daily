@@ -29,6 +29,10 @@ export const PREVIEW_STATUS_ALIAS = 'status';
 
 export const PREVIEW_BRANCH_ALIAS = 'branch';
 
+export const PREVIEW_TAG_ALIAS = 'tag';
+
+export const PREVIEW_TAG_VERSION_PATTERN = /\d+(?:\.\d+)*/;
+
 export const PREVIEW_COMMIT_ALIAS = 'sha';
 
 export const PREVIEW_COMMIT_TITLE = 'commit';
