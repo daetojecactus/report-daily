@@ -6,6 +6,7 @@ import type {
   SourceActionKind,
   SourceRefType,
   SourceTargetType,
+  WorkItemType,
 } from './source.enums';
 
 export interface SourceFact {
@@ -126,6 +127,7 @@ export interface GroupedIssue {
   state: ItemState;
   closedOnReportDate: boolean;
   webUrl: string;
+  workItemType: WorkItemType | null;
   labels: string[];
   createdAt: string;
   assignees: string[];

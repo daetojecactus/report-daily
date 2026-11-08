@@ -44,6 +44,7 @@
         "state": "opened",
         "closedOnReportDate": false,
         "webUrl": "https://gitlab.example.com/group/project-1/-/issues/766",
+        "workItemType": null,
         "labels": [
           "label-1",
           "priority::low",
@@ -243,6 +244,7 @@
         "state": "opened",
         "closedOnReportDate": false,
         "webUrl": "https://gitlab.example.com/group/project-7/-/issues/1495",
+        "workItemType": null,
         "labels": [
           "label-1",
           "priority::medium",
@@ -458,6 +460,7 @@
         "state": "opened",
         "closedOnReportDate": false,
         "webUrl": "https://gitlab.example.com/group/project-8/-/issues/685",
+        "workItemType": null,
         "labels": [
           "label-3",
           "priority::medium",
@@ -789,6 +792,7 @@
         "state": "closed",
         "closedOnReportDate": true,
         "webUrl": "https://gitlab.example.com/group/project-8/-/issues/692",
+        "workItemType": null,
         "labels": [
           "label-3",
           "priority::medium",
@@ -1047,6 +1051,7 @@
         "state": "opened",
         "closedOnReportDate": false,
         "webUrl": "https://gitlab.example.com/group/project-2/-/issues/994",
+        "workItemType": null,
         "labels": [
           "priority::high",
           "label-6",
@@ -1314,6 +1319,7 @@
         "state": "opened",
         "closedOnReportDate": false,
         "webUrl": "https://gitlab.example.com/group/project-9/-/issues/98",
+        "workItemType": null,
         "labels": [
           "label-5",
           "priority::medium",
@@ -1517,6 +1523,7 @@
         "state": "opened",
         "closedOnReportDate": false,
         "webUrl": "https://gitlab.example.com/group/project-1/-/issues/749",
+        "workItemType": null,
         "labels": [
           "label-1",
           "priority::medium",
@@ -2003,6 +2010,7 @@
         "state": "opened",
         "closedOnReportDate": false,
         "webUrl": "https://gitlab.example.com/group/project-1/-/issues/748",
+        "workItemType": null,
         "labels": [
           "label-1",
           "priority::medium",

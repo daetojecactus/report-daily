@@ -136,6 +136,7 @@ export class PreviewAnonymizer {
       state: issue.state,
       closedOnReportDate: issue.closedOnReportDate,
       webUrl: this.toItemUrl(projectId, PREVIEW_ISSUES_PATH, issue.iid),
+      workItemType: issue.workItemType,
       labels: issue.labels.map((label) => this.toLabel(label, aliases)),
       createdAt: issue.createdAt,
       assignees: issue.assignees.map((username) => this.toUser(username, aliases)),

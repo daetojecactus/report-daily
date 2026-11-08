@@ -32,6 +32,7 @@
         "state": "closed",
         "closedOnReportDate": true,
         "webUrl": "https://gitlab.example.com/group/project-8/-/issues/686",
+        "workItemType": null,
         "labels": [
           "label-5",
           "priority::high",

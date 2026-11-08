@@ -50,6 +50,7 @@
         "state": "opened",
         "closedOnReportDate": false,
         "webUrl": "https://gitlab.example.com/group/project-7/-/issues/1489",
+        "workItemType": null,
         "labels": [
           "priority::medium",
           "label-7",
@@ -169,6 +170,7 @@
         "state": "opened",
         "closedOnReportDate": false,
         "webUrl": "https://gitlab.example.com/group/project-19/-/issues/445",
+        "workItemType": null,
         "labels": [
           "label-12",
           "label-13",
@@ -357,6 +359,7 @@
         "state": "opened",
         "closedOnReportDate": false,
         "webUrl": "https://gitlab.example.com/group/project-8/-/issues/694",
+        "workItemType": null,
         "labels": [
           "label-5",
           "priority::medium",
@@ -471,6 +474,7 @@
         "state": "closed",
         "closedOnReportDate": true,
         "webUrl": "https://gitlab.example.com/group/project-10/-/issues/178",
+        "workItemType": null,
         "labels": [
           "label-5",
           "priority::high",
@@ -645,6 +649,7 @@
         "state": "opened",
         "closedOnReportDate": false,
         "webUrl": "https://gitlab.example.com/group/project-9/-/issues/66",
+        "workItemType": null,
         "labels": [
           "label-1",
           "priority::high",
@@ -799,6 +804,7 @@
         "state": "opened",
         "closedOnReportDate": false,
         "webUrl": "https://gitlab.example.com/group/project-11/-/issues/609",
+        "workItemType": null,
         "labels": [
           "label-1",
           "priority::medium",
@@ -870,6 +876,7 @@
         "state": "opened",
         "closedOnReportDate": false,
         "webUrl": "https://gitlab.example.com/group/project-19/-/issues/430",
+        "workItemType": null,
         "labels": [
           "label-5",
           "priority::high",

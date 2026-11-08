@@ -17,6 +17,7 @@ import {
   ACTIVITY_BEFORE_DAY,
   ACTIVITY_DEPENDENCY_BRANCH_PATTERN,
   ACTIVITY_PUSH_ACTIONS,
+  ACTIVITY_WORK_ITEM_KINDS,
   ACTIVITY_RETURN_STATES,
 } from './constants/activity.constants';
 import { EngagementLevel } from './activity.enums';
@@ -66,6 +67,10 @@ export class ActivitySignals {
     ]);
     const end = this.traitService.toTaskTraits(index, endNames);
     const start = this.traitService.toTaskTraits(index, startNames);
+    const workItemKind = line.issue?.workItemType
+      ? ACTIVITY_WORK_ITEM_KINDS.get(line.issue.workItemType)
+      : undefined;
+    const kinds = end.kinds.length || !workItemKind ? end.kinds : [workItemKind];
     const mainIid = line.issue ? null : (line.mergeRequests.at(0)?.iid ?? null);
     const others = facts.filter((fact) => !fact.own);
     const history = this.toHistory([...own, ...others], index);
@@ -80,8 +85,8 @@ export class ActivitySignals {
       changes,
       otherChanges,
       pushes,
-      kind: end.kinds.at(0) ?? null,
-      kinds: end.kinds,
+      kind: kinds.at(0) ?? null,
+      kinds,
       startStates: start.workflowStates,
       endStates: end.workflowStates,
       startFlags: start.flags,
@@ -106,7 +111,7 @@ export class ActivitySignals {
         items.flatMap(({ item }) => item.assignees),
       ),
       dependencies:
-        end.kinds.includes(TaskKind.DEPENDENCY) ||
+        kinds.includes(TaskKind.DEPENDENCY) ||
         line.mergeRequests.some((mergeRequest) =>
           ACTIVITY_DEPENDENCY_BRANCH_PATTERN.test(mergeRequest.sourceBranch),
         ),

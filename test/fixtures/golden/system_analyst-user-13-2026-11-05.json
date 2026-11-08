@@ -26,6 +26,7 @@
         "state": "opened",
         "closedOnReportDate": false,
         "webUrl": "https://gitlab.example.com/group/project-7/-/issues/1510",
+        "workItemType": null,
         "labels": [
           "label-1",
           "priority::high",
@@ -322,6 +323,7 @@
         "state": "closed",
         "closedOnReportDate": true,
         "webUrl": "https://gitlab.example.com/group/project-6/-/issues/2660",
+        "workItemType": null,
         "labels": [
           "label-1",
           "priority::high",

@@ -98,6 +98,7 @@ export interface GitLabIssue {
   milestone?: GitLabMilestone | null;
   iteration?: GitLabIteration | null;
   weight?: number | null;
+  issue_type?: string;
 }
 
 export interface GitLabMergeRequest {
