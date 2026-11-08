@@ -55,12 +55,23 @@ export class ActivityChains {
         details: (parts) => [ActivityDetail.WITH_CODE, ...parts.flatMap((part) => part.details)],
       },
       {
+        isHead: (candidate) => candidate.action === ActivityAction.PLANNED,
+        isPart: (candidate) => isState(candidate, [WorkflowState.PLANNED]),
+        details: () => [],
+      },
+      {
         isHead: (candidate) => candidate.action === ActivityAction.REQUIREMENTS,
         isPart: (candidate, head) =>
-          isState(candidate, [WorkflowState.PLANNED, WorkflowState.IN_PROGRESS]) &&
+          (isState(candidate, [WorkflowState.PLANNED, WorkflowState.IN_PROGRESS]) ||
+            candidate.action === ActivityAction.PLANNED) &&
           candidate.time >= Math.min(...head.facts.map((fact) => fact.time)),
         details: () => [ActivityDetail.WITH_STATE],
-        state: (parts) => parts.at(-1)?.state ?? null,
+        state: (parts) => {
+          const last = parts.at(-1);
+          return last?.action === ActivityAction.PLANNED
+            ? WorkflowState.PLANNED
+            : (last?.state ?? null);
+        },
       },
     ];
     return chains.reduce(

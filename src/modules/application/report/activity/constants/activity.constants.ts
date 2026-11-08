@@ -1,4 +1,5 @@
 import { SourceActionKind, SourceEventAction } from 'src/modules/application/source/source.enums';
+import { TRAIT_STATE_WEIGHTS } from 'src/modules/application/trait/constants/trait.constants';
 import { WorkflowState } from 'src/modules/application/trait/trait.enums';
 import { JobRole } from 'src/modules/application/user/user.enums';
 import { ActivityAction, ActivityDetail, ActivityTier } from '../activity.enums';
@@ -23,6 +24,7 @@ export const ACTIVITY_WEIGHTS = {
   CODE: 300,
   REQUIREMENTS: 320,
   TOOK_REVIEW: 290,
+  PLANNED: TRAIT_STATE_WEIGHTS[WorkflowState.PLANNED],
   TAGGED: 260,
   CREATED: 220,
   DISCUSSED: 200,
@@ -73,7 +75,12 @@ export const ACTIVITY_ROLE_FOCUS: Record<JobRole, ActivityRoleFocus> = {
     states: [WorkflowState.TESTING, WorkflowState.QA_PASSED],
   },
   [JobRole.PROJECT_MANAGER]: {
-    actions: [ActivityAction.CLOSED, ActivityAction.CREATED, ActivityAction.ESCALATED],
+    actions: [
+      ActivityAction.CLOSED,
+      ActivityAction.CREATED,
+      ActivityAction.ESCALATED,
+      ActivityAction.PLANNED,
+    ],
     states: [WorkflowState.PLANNED],
   },
   [JobRole.SYSTEM_ANALYST]: {
@@ -118,6 +125,10 @@ export const ACTIVITY_OPPOSITE_FACTS = new Map<SourceActionKind, SourceActionKin
   [SourceActionKind.MARKED_READY, SourceActionKind.MARKED_DRAFT],
   [SourceActionKind.CLOSED, SourceActionKind.REOPENED],
   [SourceActionKind.REOPENED, SourceActionKind.CLOSED],
+  [SourceActionKind.MILESTONE_SET, SourceActionKind.MILESTONE_REMOVED],
+  [SourceActionKind.MILESTONE_REMOVED, SourceActionKind.MILESTONE_SET],
+  [SourceActionKind.ITERATION_SET, SourceActionKind.ITERATION_REMOVED],
+  [SourceActionKind.ITERATION_REMOVED, SourceActionKind.ITERATION_SET],
 ]);
 
 export const ACTIVITY_RETURN_STATES = new Map<WorkflowState, ActivityDetail>([
@@ -131,6 +142,8 @@ export const ACTIVITY_SWAP_FACTS = new Map<SourceActionKind, SourceActionKind>([
   [SourceActionKind.LABEL_REMOVED, SourceActionKind.LABEL_ADDED],
   [SourceActionKind.UNASSIGNED, SourceActionKind.ASSIGNED],
   [SourceActionKind.REVIEW_REQUEST_REMOVED, SourceActionKind.REVIEW_REQUESTED],
+  [SourceActionKind.MILESTONE_REMOVED, SourceActionKind.MILESTONE_SET],
+  [SourceActionKind.ITERATION_REMOVED, SourceActionKind.ITERATION_SET],
 ]);
 
 export const ACTIVITY_SETUP_FACTS = new Set<SourceActionKind>([
@@ -139,6 +152,15 @@ export const ACTIVITY_SETUP_FACTS = new Set<SourceActionKind>([
   SourceActionKind.STATUS_SET,
   SourceActionKind.ASSIGNED,
   SourceActionKind.UNASSIGNED,
+  SourceActionKind.MILESTONE_SET,
+  SourceActionKind.MILESTONE_REMOVED,
+  SourceActionKind.ITERATION_SET,
+  SourceActionKind.ITERATION_REMOVED,
+]);
+
+export const ACTIVITY_PLAN_FACTS = new Map<SourceActionKind, ActivityDetail>([
+  [SourceActionKind.ITERATION_SET, ActivityDetail.ITERATION],
+  [SourceActionKind.MILESTONE_SET, ActivityDetail.MILESTONE],
 ]);
 
 export const ACTIVITY_EDIT_FACTS = new Set<SourceActionKind>([
@@ -194,6 +216,8 @@ export const ACTIVITY_EDIT_DETAILS = new Map<SourceActionKind, ActivityDetail>([
   [SourceActionKind.STATUS_SET, ActivityDetail.STATUS],
   [SourceActionKind.MARKED_DRAFT, ActivityDetail.DRAFT],
   [SourceActionKind.REVIEW_REQUEST_REMOVED, ActivityDetail.REVIEWERS],
+  [SourceActionKind.ITERATION_REMOVED, ActivityDetail.ITERATION],
+  [SourceActionKind.MILESTONE_REMOVED, ActivityDetail.MILESTONE],
 ]);
 
 export const ACTIVITY_DEPENDENCY_BRANCH_PATTERN = /^(?:renovate|dependabot)[/-]/i;

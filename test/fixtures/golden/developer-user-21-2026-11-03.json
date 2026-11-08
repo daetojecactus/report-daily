@@ -44,6 +44,8 @@
           "user-21"
         ],
         "status": "To do",
+        "milestone": null,
+        "iteration": null,
         "startOfDay": {
           "state": "opened",
           "labels": [
@@ -56,7 +58,9 @@
           "assignees": [
             "user-21"
           ],
-          "status": "To do"
+          "status": "To do",
+          "milestone": null,
+          "iteration": null
         },
         "facts": [
           {
@@ -234,11 +238,13 @@
                 "webUrl": "https://gitlab.example.com/group/project-12/-/issues/87"
               }
             ],
+            "milestone": null,
             "startOfDay": {
               "state": "opened",
               "labels": [],
               "assignees": [],
               "status": null,
+              "milestone": null,
               "reviewers": [],
               "draft": false
             },
@@ -503,6 +509,8 @@
           "user-21"
         ],
         "status": "Done",
+        "milestone": null,
+        "iteration": null,
         "startOfDay": {
           "state": "opened",
           "labels": [
@@ -515,7 +523,9 @@
           "assignees": [
             "user-21"
           ],
-          "status": "To do"
+          "status": "To do",
+          "milestone": null,
+          "iteration": null
         },
         "facts": [
           {
@@ -682,11 +692,15 @@
           "user-21"
         ],
         "status": "To do",
+        "milestone": null,
+        "iteration": null,
         "startOfDay": {
           "state": "opened",
           "labels": [],
           "assignees": [],
-          "status": null
+          "status": null,
+          "milestone": null,
+          "iteration": null
         },
         "facts": [
           {
@@ -886,11 +900,13 @@
                 "webUrl": "https://gitlab.example.com/group/project-16/-/issues/42"
               }
             ],
+            "milestone": null,
             "startOfDay": {
               "state": "opened",
               "labels": [],
               "assignees": [],
               "status": null,
+              "milestone": null,
               "reviewers": [],
               "draft": false
             },

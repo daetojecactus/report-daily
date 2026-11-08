@@ -8,6 +8,8 @@ export interface PreviewAliases {
   statuses: Map<string, string>;
   branches: Map<string, string>;
   tags: Map<string, string>;
+  milestones: Map<string, string>;
+  iterations: Map<string, string>;
   commits: Map<string, string>;
   commitTitles: Map<string, string>;
 }

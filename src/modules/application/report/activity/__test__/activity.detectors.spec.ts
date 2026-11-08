@@ -96,6 +96,16 @@ const PLACES: Record<SourceActionKind, [Place, Partial<SourceFact>][]> = {
     ['own', {}],
     ['other', {}],
   ],
+  [SourceActionKind.MILESTONE_SET]: [
+    ['issue', { value: '17.5' }],
+    ['own', { value: '17.5' }],
+  ],
+  [SourceActionKind.MILESTONE_REMOVED]: [
+    ['issue', { value: '17.5' }],
+    ['own', { value: '17.5' }],
+  ],
+  [SourceActionKind.ITERATION_SET]: [['issue', { value: '2026-11-03 – 2026-11-16' }]],
+  [SourceActionKind.ITERATION_REMOVED]: [['issue', { value: '2026-11-03 – 2026-11-16' }]],
 };
 
 function placeFact(place: Place, item: SourceFact): ActivityLine {

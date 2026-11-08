@@ -1,5 +1,7 @@
 import type { DayRange } from 'src/common/interfaces/date.interface';
+import type { GitLabLabelAction } from 'src/modules/vendors/gitlab/gitlab.enums';
 import type {
+  GitLabAuthor,
   GitLabCommit,
   GitLabEvent,
   GitLabIssue,
@@ -25,6 +27,18 @@ export interface SourceRef {
   projectId: number;
   ref: string | null;
   refType: SourceRefType;
+}
+
+export interface SourcePlanEvent {
+  name: string;
+  action: GitLabLabelAction;
+  user: GitLabAuthor;
+  created_at: string;
+}
+
+export interface SourcePlanHistory {
+  current: string | null;
+  events: SourcePlanEvent[];
 }
 
 export interface SourceUserChange {
@@ -62,6 +76,7 @@ export interface MergeRequestActivity {
   notes: GitLabNote[];
   labelEvents: GitLabLabelEvent[];
   stateEvents: GitLabStateEvent[];
+  milestones: SourcePlanHistory;
   commits: GitLabCommit[];
 }
 
@@ -71,6 +86,8 @@ export interface IssueActivity {
   notes: GitLabNote[];
   labelEvents: GitLabLabelEvent[];
   stateEvents: GitLabStateEvent[];
+  milestones: SourcePlanHistory;
+  iterations: SourcePlanHistory;
   mergeRequests: MergeRequestActivity[];
   pushes: SourceEvents<SourceBranch>[];
 }

@@ -11,6 +11,8 @@ import { SourceActionKind } from '../source.enums';
 import type { SourceFact } from '../source.interface';
 import {
   GITLAB_SOURCE_ASSIGNEE_CHANGE,
+  GITLAB_SOURCE_ITERATION_ACTIONS,
+  GITLAB_SOURCE_MILESTONE_ACTIONS,
   GITLAB_SOURCE_REVIEWER_CHANGE,
   GITLAB_SOURCE_STATE_ACTIONS,
 } from './constants/gitlab-source.constants';
@@ -27,9 +29,10 @@ export class GitLabSourceFacts {
 
   resolve(
     item: GitLabIssue | GitLabMergeRequest,
-    { events, notes, labelEvents, stateEvents }: IssueActivity | MergeRequestActivity,
+    activity: IssueActivity | MergeRequestActivity,
     context: SourceBuildContext,
   ) {
+    const { events, notes, labelEvents, stateEvents } = activity;
     const facts: SourceFact[] = [];
     if (this.isOfDay(item.created_at, context)) {
       facts.push(this.toFact(SourceActionKind.OPENED, item.created_at, item.author, context));
@@ -58,6 +61,21 @@ export class GitLabSourceFacts {
       const kind = GITLAB_SOURCE_STATE_ACTIONS.get(event.state);
       if (kind && this.isOfDay(event.created_at, context)) {
         facts.push(this.toFact(kind, event.created_at, event.user, context));
+      }
+    }
+    const plans = [
+      { history: activity.milestones, kinds: GITLAB_SOURCE_MILESTONE_ACTIONS },
+      ...('iterations' in activity
+        ? [{ history: activity.iterations, kinds: GITLAB_SOURCE_ITERATION_ACTIONS }]
+        : []),
+    ];
+    for (const { history, kinds } of plans) {
+      for (const event of history.events) {
+        if (this.isOfDay(event.created_at, context)) {
+          facts.push(
+            this.toFact(kinds[event.action], event.created_at, event.user, context, event.name),
+          );
+        }
       }
     }
     for (const event of events) {

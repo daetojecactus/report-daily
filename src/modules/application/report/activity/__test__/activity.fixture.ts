@@ -30,6 +30,7 @@ import { TraitService } from 'src/modules/application/trait/trait.service';
 import { JobRole } from 'src/modules/application/user/user.enums';
 import { ActivityCodeDetector } from '../activity-code.detector';
 import { ActivityLifecycleDetector } from '../activity-lifecycle.detector';
+import { ActivityPlanDetector } from '../activity-plan.detector';
 import { ActivityRefDetector } from '../activity-ref.detector';
 import { ActivityChains } from '../activity.chains';
 import { ActivityDetectors } from '../activity.detectors';
@@ -175,11 +176,13 @@ export function createMergeRequest(
     assignees: [ME],
     reviewers: [],
     closesIssues: [],
+    milestone: null,
     startOfDay: {
       state: ItemState.OPENED,
       labels: [],
       assignees: [ME],
       status: null,
+      milestone: null,
       reviewers: [],
       draft: false,
     },
@@ -210,7 +213,16 @@ export function createIssue(overrides: Partial<GroupedIssue> = {}): GroupedIssue
     createdAt: '2026-07-30T09:00:00.000Z',
     assignees: [ME],
     status: null,
-    startOfDay: { state: ItemState.OPENED, labels: [], assignees: [ME], status: null },
+    milestone: null,
+    iteration: null,
+    startOfDay: {
+      state: ItemState.OPENED,
+      labels: [],
+      assignees: [ME],
+      status: null,
+      milestone: null,
+      iteration: null,
+    },
     facts: [],
     events: [],
     notes: [],
@@ -243,6 +255,7 @@ export function createDetectors() {
     new ActivityLifecycleDetector(),
     new ActivityCodeDetector(),
     new ActivityRefDetector(),
+    new ActivityPlanDetector(),
   );
 }
 

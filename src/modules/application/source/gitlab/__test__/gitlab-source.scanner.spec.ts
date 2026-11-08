@@ -3,12 +3,19 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getDayRange } from 'src/common/utils/date.util';
 import type { RedisService } from 'src/modules/infrastructure/redis/redis.service';
 import { GitLabIssuable } from 'src/modules/vendors/gitlab/gitlab.enums';
-import type { GitLabLabelEvent, GitLabNote } from 'src/modules/vendors/gitlab/gitlab.interface';
+import type {
+  GitLabIterationEvent,
+  GitLabLabelEvent,
+  GitLabMilestoneEvent,
+  GitLabNote,
+} from 'src/modules/vendors/gitlab/gitlab.interface';
 import type { GitLabService } from 'src/modules/vendors/gitlab/gitlab.service';
 import { GitLabSourceScanner } from '../gitlab-source.scanner';
 import {
   createAuthor,
+  createIterationEvent,
   createLabelEvent,
+  createMilestoneEvent,
   createNote,
   PROJECT_ID,
   REPORT_DATE,
@@ -25,6 +32,8 @@ describe('GitLabSourceScanner', () => {
     findUpdatedItems: vi.fn<GitLabService['findUpdatedItems']>(),
     findNotes: vi.fn<GitLabService['findNotes']>(),
     findLabelEvents: vi.fn<GitLabService['findLabelEvents']>(),
+    findMilestoneEvents: vi.fn<GitLabService['findMilestoneEvents']>(),
+    findIterationEvents: vi.fn<GitLabService['findIterationEvents']>(),
   };
   const redisService = {
     get: vi.fn<RedisService['get']>(),
@@ -38,12 +47,20 @@ describe('GitLabSourceScanner', () => {
   function history(
     notes: Record<number, GitLabNote[]>,
     labelEvents: Record<number, GitLabLabelEvent[]> = {},
+    milestoneEvents: Record<number, GitLabMilestoneEvent[]> = {},
+    iterationEvents: Record<number, GitLabIterationEvent[]> = {},
   ) {
     gitlabService.findNotes.mockImplementation((_issuable, _projectId, iid) =>
       Promise.resolve(notes[iid] ?? []),
     );
     gitlabService.findLabelEvents.mockImplementation((_issuable, _projectId, iid) =>
       Promise.resolve(labelEvents[iid] ?? []),
+    );
+    gitlabService.findMilestoneEvents.mockImplementation((_issuable, _projectId, iid) =>
+      Promise.resolve(milestoneEvents[iid] ?? []),
+    );
+    gitlabService.findIterationEvents.mockImplementation((_projectId, iid) =>
+      Promise.resolve(iterationEvents[iid] ?? []),
     );
   }
 
@@ -96,6 +113,34 @@ describe('GitLabSourceScanner', () => {
       GitLabIssuable.ISSUES,
       PROJECT_ID,
       `${REPORT_DATE}T00:00:00.000Z`,
+    );
+  });
+
+  it('finds the issues the employee only planned, without the plans of merge requests', async () => {
+    history(
+      {},
+      {},
+      {
+        13: [createMilestoneEvent({ user: EMPLOYEE })],
+        5: [createMilestoneEvent({ user: EMPLOYEE })],
+      },
+      {
+        12: [createIterationEvent({ user: EMPLOYEE })],
+        14: [createIterationEvent({ user: EMPLOYEE, created_at: '2026-08-01T10:00:00.000Z' })],
+      },
+    );
+
+    expect(await scanner.findHiddenItems(EMPLOYEE.id, REPORT_DATE, DAY)).toEqual({
+      issues: [
+        { projectId: PROJECT_ID, iid: 12 },
+        { projectId: PROJECT_ID, iid: 13 },
+      ],
+      mergeRequests: [],
+    });
+    expect(gitlabService.findMilestoneEvents).not.toHaveBeenCalledWith(
+      GitLabIssuable.MERGE_REQUESTS,
+      PROJECT_ID,
+      5,
     );
   });
 

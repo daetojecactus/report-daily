@@ -19,6 +19,7 @@ const TITLE = /^(?:Issue \d+|Merge request \d+|(?:test: |тест: )?commit \d+)
 const COMMIT_TITLE = /^(?:test: |тест: )?commit \d+$/;
 const BRANCH = /^(?:main|master|develop|(?:\d+-|renovate[/-]|dependabot[/-])?branch-\d+)$/i;
 const TAG = /^(?:v\d+(?:\.\d+)*|tag-\d+)$/;
+const PLAN = /^(?:milestone|iteration)-\d+$/;
 const URL =
   /^https:\/\/gitlab\.example\.com\/group\/project-\d+(?:\/-\/(?:issues|merge_requests)\/\d+)?$/;
 const DATE = /^\d{4}-\d{2}-\d{2}(?:T[\d:.]+(?:Z|[+-]\d{2}:\d{2}))?$/;
@@ -72,7 +73,14 @@ const CHECKS: Record<string, (value: string) => boolean> = {
   labels: isLabel,
   labelName: isLabel,
   status: isStatus,
-  value: (value) => isLabel(value) || isStatus(value) || BRANCH.test(value) || value === 'value',
+  value: (value) =>
+    isLabel(value) ||
+    isStatus(value) ||
+    BRANCH.test(value) ||
+    PLAN.test(value) ||
+    value === 'value',
+  milestone: (value) => PLAN.test(value),
+  iteration: (value) => PLAN.test(value),
   body: isNoteBody,
   noteBody: (value) => value === PREVIEW_COMMENT,
   createdAt: (value) => DATE.test(value),

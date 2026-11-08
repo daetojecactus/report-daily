@@ -63,6 +63,8 @@
           "user-13"
         ],
         "status": "To do",
+        "milestone": null,
+        "iteration": null,
         "startOfDay": {
           "state": "opened",
           "labels": [
@@ -76,7 +78,9 @@
             "user-22",
             "user-13"
           ],
-          "status": "To do"
+          "status": "To do",
+          "milestone": null,
+          "iteration": null
         },
         "facts": [
           {
@@ -175,11 +179,15 @@
           "user-13"
         ],
         "status": "To do",
+        "milestone": null,
+        "iteration": null,
         "startOfDay": {
           "state": "opened",
           "labels": [],
           "assignees": [],
-          "status": null
+          "status": null,
+          "milestone": null,
+          "iteration": null
         },
         "facts": [
           {
@@ -355,6 +363,8 @@
           "user-13"
         ],
         "status": "To do",
+        "milestone": null,
+        "iteration": null,
         "startOfDay": {
           "state": "opened",
           "labels": [
@@ -368,7 +378,9 @@
           "assignees": [
             "user-13"
           ],
-          "status": "To do"
+          "status": "To do",
+          "milestone": null,
+          "iteration": null
         },
         "facts": [
           {
@@ -461,6 +473,8 @@
           "user-13"
         ],
         "status": "Done",
+        "milestone": null,
+        "iteration": null,
         "startOfDay": {
           "state": "opened",
           "labels": [
@@ -471,7 +485,9 @@
           "assignees": [
             "user-13"
           ],
-          "status": "To do"
+          "status": "To do",
+          "milestone": null,
+          "iteration": null
         },
         "facts": [
           {
@@ -630,6 +646,8 @@
           "user-13"
         ],
         "status": "To do",
+        "milestone": null,
+        "iteration": null,
         "startOfDay": {
           "state": "opened",
           "labels": [
@@ -643,7 +661,9 @@
           "assignees": [
             "user-13"
           ],
-          "status": "To do"
+          "status": "To do",
+          "milestone": null,
+          "iteration": null
         },
         "facts": [
           {
@@ -778,6 +798,8 @@
           "user-13"
         ],
         "status": "To do",
+        "milestone": null,
+        "iteration": null,
         "startOfDay": {
           "state": "opened",
           "labels": [
@@ -792,7 +814,9 @@
             "user-4",
             "user-13"
           ],
-          "status": "To do"
+          "status": "To do",
+          "milestone": null,
+          "iteration": null
         },
         "facts": [
           {
@@ -839,6 +863,8 @@
           "user-15"
         ],
         "status": "In progress",
+        "milestone": null,
+        "iteration": null,
         "startOfDay": {
           "state": "opened",
           "labels": [
@@ -850,7 +876,9 @@
           "assignees": [
             "user-15"
           ],
-          "status": "In progress"
+          "status": "In progress",
+          "milestone": null,
+          "iteration": null
         },
         "facts": [],
         "events": [],
@@ -887,6 +915,7 @@
                 "webUrl": "https://gitlab.example.com/group/project-19/-/issues/430"
               }
             ],
+            "milestone": null,
             "startOfDay": {
               "state": "opened",
               "labels": [
@@ -899,6 +928,7 @@
                 "user-15"
               ],
               "status": null,
+              "milestone": null,
               "reviewers": [],
               "draft": true
             },

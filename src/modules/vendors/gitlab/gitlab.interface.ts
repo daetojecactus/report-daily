@@ -71,6 +71,19 @@ export interface GitLabIssuableItem {
   project_id: number;
 }
 
+export interface GitLabMilestone {
+  id: number;
+  title: string;
+}
+
+export interface GitLabIteration {
+  id: number;
+  sequence: number;
+  title: string | null;
+  start_date: string;
+  due_date: string;
+}
+
 export interface GitLabIssue {
   iid: number;
   project_id: number;
@@ -81,6 +94,8 @@ export interface GitLabIssue {
   created_at: string;
   author?: GitLabAuthor | null;
   assignees?: GitLabAuthor[];
+  milestone?: GitLabMilestone | null;
+  iteration?: GitLabIteration | null;
 }
 
 export interface GitLabMergeRequest {
@@ -100,6 +115,7 @@ export interface GitLabMergeRequest {
   author?: GitLabAuthor | null;
   assignees?: GitLabAuthor[];
   reviewers?: GitLabAuthor[];
+  milestone?: GitLabMilestone | null;
 }
 
 export interface GitLabNote {
@@ -119,6 +135,22 @@ export interface GitLabLabelEvent {
   user: GitLabAuthor;
   created_at: string;
   label: { name: string } | null;
+  action: GitLabLabelAction;
+}
+
+export interface GitLabMilestoneEvent {
+  id: number;
+  user: GitLabAuthor;
+  created_at: string;
+  milestone: GitLabMilestone | null;
+  action: GitLabLabelAction;
+}
+
+export interface GitLabIterationEvent {
+  id: number;
+  user: GitLabAuthor;
+  created_at: string;
+  iteration: GitLabIteration | null;
   action: GitLabLabelAction;
 }
 

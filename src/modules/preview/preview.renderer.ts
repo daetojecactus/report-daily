@@ -133,6 +133,8 @@ export class PreviewRenderer {
         ? `closes: ${item.closesIssues.map((issue) => `#${issue.iid}`).join(', ')}`
         : '',
       'status' in item && item.status ? `status: ${item.status}` : '',
+      item.milestone ? `milestone: ${item.milestone}` : '',
+      'iteration' in item && item.iteration ? `iteration: ${item.iteration}` : '',
       own.length ? `actions: ${this.describeActions(own)}` : '',
       others.length ? `facts of others: ${others.length}` : '',
       this.describeStartOfDay(item),

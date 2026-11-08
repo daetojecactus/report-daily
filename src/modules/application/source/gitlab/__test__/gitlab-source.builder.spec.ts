@@ -7,7 +7,11 @@ import {
 } from 'src/modules/vendors/gitlab/gitlab.enums';
 import type { GitLabMergeRequest, GitLabNote } from 'src/modules/vendors/gitlab/gitlab.interface';
 import { ItemState, SourceActionKind, SourceRefType } from '../../source.enums';
-import type { IssueActivity, MergeRequestActivity } from '../gitlab-source.interface';
+import type {
+  IssueActivity,
+  MergeRequestActivity,
+  SourcePlanHistory,
+} from '../gitlab-source.interface';
 import type { SourceFact } from '../../source.interface';
 import {
   createAuthor,
@@ -26,6 +30,7 @@ import {
 const DAY = getDayRange(REPORT_DATE, 'UTC');
 const USERNAME = 'qa.user';
 const EMPLOYEE = createAuthor(USERNAME);
+const NO_PLANS: SourcePlanHistory = { current: null, events: [] };
 
 function toActivity(
   mergeRequest: GitLabMergeRequest,
@@ -38,6 +43,7 @@ function toActivity(
     notes: [],
     labelEvents: [],
     stateEvents: [],
+    milestones: NO_PLANS,
     commits: [],
     ...overrides,
   };
@@ -74,6 +80,8 @@ function buildIssue(overrides: Partial<IssueActivity> = {}) {
           notes: [],
           labelEvents: [],
           stateEvents: [],
+          milestones: NO_PLANS,
+          iterations: NO_PLANS,
           mergeRequests: [],
           pushes: [],
           ...overrides,
@@ -356,6 +364,8 @@ describe('GitLabSourceBuilder', () => {
             notes: [],
             labelEvents: [],
             stateEvents: [],
+            milestones: NO_PLANS,
+            iterations: NO_PLANS,
             pushes: [],
             mergeRequests: [
               toActivity(createMergeRequest({ source_branch: '12-login' }), {
@@ -808,8 +818,66 @@ describe('GitLabSourceBuilder', () => {
         labels: ['status::review'],
         assignees: ['dev.a'],
         status: 'In progress',
+        milestone: null,
+        iteration: null,
       });
       expect(grouped.state).toBe(ItemState.CLOSED);
+    });
+
+    it('restores the iteration and the milestone and makes facts of their changes', () => {
+      const plan = (
+        name: string,
+        action: GitLabLabelAction,
+        created_at: string,
+        user = EMPLOYEE,
+      ) => ({ name, action, created_at, user });
+      const grouped = buildIssue({
+        iterations: {
+          current: 'sprint 3',
+          events: [
+            plan('sprint 2', GitLabLabelAction.ADD, '2026-07-20T10:00:00.000Z', createAuthor('pm')),
+            plan('sprint 3', GitLabLabelAction.ADD, `${REPORT_DATE}T10:00:00.000Z`),
+          ],
+        },
+        milestones: {
+          current: null,
+          events: [
+            plan('17.5', GitLabLabelAction.ADD, `${REPORT_DATE}T09:00:00.000Z`),
+            plan('17.5', GitLabLabelAction.REMOVE, `${REPORT_DATE}T11:00:00.000Z`),
+          ],
+        },
+      });
+
+      expect([grouped.startOfDay.iteration, grouped.iteration]).toEqual(['sprint 2', 'sprint 3']);
+      expect([grouped.startOfDay.milestone, grouped.milestone]).toEqual([null, null]);
+      expect(grouped.facts.map(({ kind, value, own }) => [kind, value, own])).toEqual([
+        [SourceActionKind.MILESTONE_SET, '17.5', true],
+        [SourceActionKind.ITERATION_SET, 'sprint 3', true],
+        [SourceActionKind.MILESTONE_REMOVED, '17.5', true],
+      ]);
+    });
+
+    it('keeps the current plan without events and the removed one before its first removal', () => {
+      const grouped = buildIssue({
+        iterations: { current: 'sprint 3', events: [] },
+        milestones: {
+          current: null,
+          events: [
+            {
+              name: '17.5',
+              action: GitLabLabelAction.REMOVE,
+              created_at: `${REPORT_DATE}T11:00:00.000Z`,
+              user: createAuthor('pm'),
+            },
+          ],
+        },
+      });
+
+      expect([grouped.startOfDay.iteration, grouped.iteration]).toEqual(['sprint 3', 'sprint 3']);
+      expect([grouped.startOfDay.milestone, grouped.milestone]).toEqual(['17.5', null]);
+      expect(grouped.facts.map(({ kind, own }) => [kind, own])).toEqual([
+        [SourceActionKind.MILESTONE_REMOVED, false],
+      ]);
     });
 
     it('keeps the reviewers and the draft of a merge request at the start of the day', () => {

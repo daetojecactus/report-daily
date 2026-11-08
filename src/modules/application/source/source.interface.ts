@@ -21,6 +21,11 @@ export interface ItemSnapshot {
   labels: string[];
   assignees: string[];
   status: string | null;
+  milestone: string | null;
+}
+
+export interface IssueSnapshot extends ItemSnapshot {
+  iteration: string | null;
 }
 
 export interface MergeRequestSnapshot extends ItemSnapshot {
@@ -102,6 +107,7 @@ export interface GroupedMergeRequest {
   assignees: string[];
   reviewers: string[];
   closesIssues: IssueReference[];
+  milestone: string | null;
   startOfDay: MergeRequestSnapshot;
   facts: SourceFact[];
   events: CleanEvent[];
@@ -121,7 +127,9 @@ export interface GroupedIssue {
   createdAt: string;
   assignees: string[];
   status: string | null;
-  startOfDay: ItemSnapshot;
+  milestone: string | null;
+  iteration: string | null;
+  startOfDay: IssueSnapshot;
   facts: SourceFact[];
   events: CleanEvent[];
   notes: CleanNote[];

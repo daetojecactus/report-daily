@@ -148,6 +148,27 @@ describe('PreviewRenderer', () => {
     ]);
   });
 
+  it('prints the milestone and the iteration of a task', () => {
+    const lines = render({
+      issues: [
+        createIssue({
+          milestone: 'milestone-1',
+          iteration: 'iteration-2',
+          facts: [fact(SourceActionKind.ITERATION_SET, at(10), { value: 'iteration-2' })],
+        }),
+      ],
+    });
+
+    expect(lines.slice(2)).toEqual([
+      '  Issue #12 Issue 12 · opened',
+      '    main: planned · iteration',
+      '    assignees: dev.me',
+      '    milestone: milestone-1',
+      '    iteration: iteration-2',
+      '    actions: iteration_set iteration-2',
+    ]);
+  });
+
   it('marks a task that is kept out of the report', () => {
     const lines = render({
       issues: [
