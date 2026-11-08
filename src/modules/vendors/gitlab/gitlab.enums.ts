@@ -2,6 +2,8 @@ export enum GitLabTargetType {
   ISSUE = 'Issue',
   WORK_ITEM = 'WorkItem',
   MERGE_REQUEST = 'MergeRequest',
+  WIKI_PAGE = 'WikiPage::Meta',
+  MILESTONE = 'Milestone',
 }
 
 export enum GitLabState {

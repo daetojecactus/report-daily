@@ -1,4 +1,8 @@
-import { SourceActionKind, SourceEventAction } from 'src/modules/application/source/source.enums';
+import {
+  SourceActionKind,
+  SourceEventAction,
+  SourceTargetType,
+} from 'src/modules/application/source/source.enums';
 import { TRAIT_STATE_WEIGHTS } from 'src/modules/application/trait/constants/trait.constants';
 import { WorkflowState } from 'src/modules/application/trait/trait.enums';
 import { JobRole } from 'src/modules/application/user/user.enums';
@@ -12,6 +16,7 @@ export const ACTIVITY_WEIGHTS = {
   COMPLETED: 890,
   REOPENED: 880,
   RELEASED: 930,
+  MILESTONE_CLOSED: 920,
   PASSED: 785,
   APPROVED: 780,
   RETURNED: 770,
@@ -25,6 +30,7 @@ export const ACTIVITY_WEIGHTS = {
   CODE: 300,
   REQUIREMENTS: 320,
   DECOMPOSED: 320,
+  DOCUMENTED: 300,
   TOOK_REVIEW: 290,
   PLANNED: TRAIT_STATE_WEIGHTS[WorkflowState.PLANNED],
   TAGGED: 260,
@@ -85,6 +91,7 @@ export const ACTIVITY_ROLE_FOCUS: Record<JobRole, ActivityRoleFocus> = {
       ActivityAction.CREATED,
       ActivityAction.ESCALATED,
       ActivityAction.PLANNED,
+      ActivityAction.MILESTONE_CLOSED,
     ],
     states: [WorkflowState.PLANNED],
   },
@@ -109,6 +116,68 @@ export const ACTIVITY_AUTO_STATUS_MS = 5 * 1000;
 export const ACTIVITY_SWAP_MS = 5 * 1000;
 
 export const ACTIVITY_MOVE_MS = 60 * 1000;
+
+export const ACTIVITY_TARGET_ACTIONS: Record<
+  SourceTargetType,
+  Map<string, { action: ActivityAction; weight: number; details: ActivityDetail[] }>
+> = {
+  [SourceTargetType.WIKI_PAGE]: new Map([
+    [
+      SourceEventAction.CREATED,
+      {
+        action: ActivityAction.DOCUMENTED,
+        weight: ACTIVITY_WEIGHTS.DOCUMENTED,
+        details: [ActivityDetail.NEW_PAGE],
+      },
+    ],
+    [
+      SourceEventAction.UPDATED,
+      { action: ActivityAction.DOCUMENTED, weight: ACTIVITY_WEIGHTS.DOCUMENTED, details: [] },
+    ],
+    [
+      SourceEventAction.DESTROYED,
+      {
+        action: ActivityAction.DELETED,
+        weight: ACTIVITY_WEIGHTS.DELETED,
+        details: [ActivityDetail.WIKI],
+      },
+    ],
+  ]),
+  [SourceTargetType.MILESTONE]: new Map([
+    [
+      SourceEventAction.OPENED,
+      {
+        action: ActivityAction.PLANNED,
+        weight: ACTIVITY_WEIGHTS.PLANNED,
+        details: [ActivityDetail.NEW_MILESTONE],
+      },
+    ],
+    [
+      SourceEventAction.CLOSED,
+      {
+        action: ActivityAction.MILESTONE_CLOSED,
+        weight: ACTIVITY_WEIGHTS.MILESTONE_CLOSED,
+        details: [],
+      },
+    ],
+    [
+      SourceEventAction.REOPENED,
+      {
+        action: ActivityAction.REOPENED,
+        weight: ACTIVITY_WEIGHTS.REOPENED,
+        details: [ActivityDetail.MILESTONE],
+      },
+    ],
+    [
+      SourceEventAction.DESTROYED,
+      {
+        action: ActivityAction.DELETED,
+        weight: ACTIVITY_WEIGHTS.DELETED,
+        details: [ActivityDetail.MILESTONE],
+      },
+    ],
+  ]),
+};
 
 export const ACTIVITY_ELSEWHERE_RULES = new Set<ActivityRule>([
   ActivityRule.MOVED_AWAY,

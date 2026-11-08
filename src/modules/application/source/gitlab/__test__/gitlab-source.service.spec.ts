@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import { describe, expect, it, vi } from 'vitest';
 import {
   GitLabIssuable,
@@ -15,9 +16,11 @@ import type {
   GitLabStateEvent,
 } from 'src/modules/vendors/gitlab/gitlab.interface';
 import type { GitLabService } from 'src/modules/vendors/gitlab/gitlab.service';
-import { Source, SourceActionKind, SourceRefType } from '../../source.enums';
+import { Source, SourceActionKind, SourceRefType, SourceTargetType } from '../../source.enums';
+import { GitLabSourceMessages } from '../constants/gitlab-source.messages';
 import { GitLabSourceDetails } from '../gitlab-source.details';
 import type { SourceHiddenItems } from '../gitlab-source.interface';
+import { GitLabSourceEvents } from '../gitlab-source.events';
 import { GitLabSourceKeys } from '../gitlab-source.keys';
 import { GitLabSourceLinks } from '../gitlab-source.links';
 import { GitLabSourceNotes } from '../gitlab-source.notes';
@@ -130,6 +133,7 @@ function collect(
       new GitLabSourceNotes(),
       keys,
     ),
+    new GitLabSourceEvents(keys),
   ).collect(
     {
       id: '0190b5a8-0000-7000-8000-000000000003',
@@ -422,6 +426,47 @@ describe('GitLabSourceService', () => {
     expect(grouped.projects.map(({ path }) => path)).toEqual(['team/backend', 'team/frontend']);
   });
 
+  it('keeps wiki pages and milestones as lines and logs other events outside items', async () => {
+    const warn = vi.spyOn(Logger.prototype, 'warn').mockImplementation(() => undefined);
+    const target = (id: number, action: string, type: string, title: string) =>
+      createEvent({
+        id,
+        action_name: action,
+        target_type: type,
+        target_id: id,
+        target_iid: null,
+        target_title: title,
+      });
+    const gitlab = createGitLab({
+      events: [
+        target(1, 'updated', 'WikiPage::Meta', 'Runbook'),
+        target(1, 'created', 'WikiPage::Meta', 'Runbook'),
+        target(2, 'opened', 'Milestone', 'Release 3'),
+        createEvent({ id: 3, action_name: 'joined', target_type: null, target_iid: null }),
+        createEvent({ id: 4, action_name: 'created', target_type: 'Project', target_iid: null }),
+      ],
+    });
+
+    const grouped = await collect(gitlab);
+
+    expect(
+      grouped.standaloneEvents.map(({ targetType, title, events }) => [
+        targetType,
+        title,
+        events.map(({ actionName }) => actionName),
+      ]),
+    ).toEqual([
+      [SourceTargetType.WIKI_PAGE, 'Runbook', ['updated', 'created']],
+      [SourceTargetType.MILESTONE, 'Release 3', ['opened']],
+    ]);
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn).toHaveBeenCalledWith(
+      { actionName: 'created', targetType: 'Project' },
+      GitLabSourceMessages.UNKNOWN_EVENT,
+    );
+    warn.mockRestore();
+  });
+
   it('names an iteration without a title by its dates', async () => {
     const iteration = {
       id: 4,
@@ -510,6 +555,7 @@ describe('GitLabSourceService', () => {
       issues: [],
       standaloneMergeRequests: [],
       standalonePushes: [],
+      standaloneEvents: [],
     });
   });
 

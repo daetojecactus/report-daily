@@ -1595,6 +1595,7 @@
       }
     ],
     "standaloneMergeRequests": [],
-    "standalonePushes": []
+    "standalonePushes": [],
+    "standaloneEvents": []
   }
 }

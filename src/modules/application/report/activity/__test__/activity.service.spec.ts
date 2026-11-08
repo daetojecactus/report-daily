@@ -16,7 +16,14 @@ import {
 
 function classify(overrides: Partial<GroupedDailyData>) {
   return createService().classify(
-    { projects: [], issues: [], standaloneMergeRequests: [], standalonePushes: [], ...overrides },
+    {
+      projects: [],
+      issues: [],
+      standaloneMergeRequests: [],
+      standalonePushes: [],
+      standaloneEvents: [],
+      ...overrides,
+    },
     { username: ME, role: JobRole.DEVELOPER },
     createIndex(),
   );

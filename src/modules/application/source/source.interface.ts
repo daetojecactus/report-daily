@@ -5,6 +5,7 @@ import type {
   Source,
   SourceActionKind,
   SourceRefType,
+  SourceTargetType,
 } from './source.enums';
 
 export interface SourceFact {
@@ -150,6 +151,13 @@ export interface StandalonePush {
   events: CleanEvent[];
 }
 
+export interface StandaloneEvent {
+  projectId: number;
+  targetType: SourceTargetType;
+  title: string;
+  events: CleanEvent[];
+}
+
 export interface SourceProject {
   id: number;
   name: string;
@@ -162,6 +170,7 @@ export interface GroupedDailyData {
   issues: GroupedIssue[];
   standaloneMergeRequests: GroupedMergeRequest[];
   standalonePushes: StandalonePush[];
+  standaloneEvents: StandaloneEvent[];
 }
 
 export interface ActivitySource {

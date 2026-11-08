@@ -2188,6 +2188,7 @@
       }
     ],
     "standaloneMergeRequests": [],
-    "standalonePushes": []
+    "standalonePushes": [],
+    "standaloneEvents": []
   }
 }

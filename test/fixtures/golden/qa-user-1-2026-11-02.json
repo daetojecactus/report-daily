@@ -2381,6 +2381,7 @@
         }
       }
     ],
-    "standalonePushes": []
+    "standalonePushes": [],
+    "standaloneEvents": []
   }
 }

@@ -11,17 +11,19 @@ import {
   GITLAB_SOURCE_MAIN_BRANCHES,
   GITLAB_SOURCE_PATH_SEPARATOR,
 } from './constants/gitlab-source.constants';
-import type { SourceBranch, SourceItem, SourceRef } from './gitlab-source.interface';
+import type { SourceBranch, SourceItem, SourceRef, SourceTarget } from './gitlab-source.interface';
 
 @Injectable()
 export class GitLabSourceKeys {
-  toKey(target: SourceItem | SourceBranch | SourceRef) {
+  toKey(target: SourceItem | SourceBranch | SourceRef | SourceTarget) {
     const parts =
       'iid' in target
         ? [target.iid]
         : 'branch' in target
           ? [target.branch]
-          : [target.refType, target.ref ?? ''];
+          : 'targetType' in target
+            ? [target.targetType, target.id]
+            : [target.refType, target.ref ?? ''];
     return [target.projectId, ...parts].join(GITLAB_SOURCE_KEY_SEPARATOR);
   }
 

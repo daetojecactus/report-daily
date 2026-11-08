@@ -7,7 +7,11 @@ import {
   GITLAB_SOURCE_MENTION_PATTERN,
 } from 'src/modules/application/source/gitlab/constants/gitlab-source.constants';
 import { ACTIVITY_VERSION_TAG_PATTERN } from 'src/modules/application/report/activity/constants/activity.constants';
-import { SourceActionKind, SourceRefType } from 'src/modules/application/source/source.enums';
+import {
+  SourceActionKind,
+  SourceRefType,
+  SourceTargetType,
+} from 'src/modules/application/source/source.enums';
 import type {
   CleanEvent,
   CleanNote,
@@ -39,6 +43,7 @@ import {
   PREVIEW_MERGE_REQUEST_TITLE,
   PREVIEW_MERGE_REQUESTS_PATH,
   PREVIEW_MILESTONE_ALIAS,
+  PREVIEW_PAGE_ALIAS,
   PREVIEW_NOTE_PREFIXES,
   PREVIEW_PROJECT_ALIAS,
   PREVIEW_RU_TEST_COMMIT_PATTERN,
@@ -71,6 +76,7 @@ export class PreviewAnonymizer {
       tags: new Map(),
       milestones: new Map(),
       iterations: new Map(),
+      pages: new Map(),
       commits: new Map(),
       commitTitles: new Map(),
     };
@@ -84,6 +90,15 @@ export class PreviewAnonymizer {
         this.anonymizeMergeRequest(mergeRequest, aliases),
       ),
       standalonePushes: day.standalonePushes.map((push) => this.anonymizePush(push, aliases)),
+      standaloneEvents: day.standaloneEvents.map((item) => ({
+        projectId: this.toProjectId(item.projectId, aliases),
+        targetType: item.targetType,
+        title:
+          item.targetType === SourceTargetType.MILESTONE
+            ? this.toMilestone(item.title, aliases)
+            : this.toAlias(aliases.pages, item.title, PREVIEW_PAGE_ALIAS),
+        events: item.events.map((event) => this.anonymizeEvent(event, aliases)),
+      })),
     };
   }
 

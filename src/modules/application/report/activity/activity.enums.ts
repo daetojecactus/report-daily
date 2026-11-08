@@ -2,6 +2,7 @@ export enum ActivityAction {
   MERGED = 'merged',
   MERGED_OTHER = 'merged_other',
   CLOSED = 'closed',
+  MILESTONE_CLOSED = 'milestone_closed',
   COMPLETED = 'completed',
   REOPENED = 'reopened',
   RELEASED = 'released',
@@ -19,6 +20,7 @@ export enum ActivityAction {
   CODE = 'code',
   REQUIREMENTS = 'requirements',
   DECOMPOSED = 'decomposed',
+  DOCUMENTED = 'documented',
   PLANNED = 'planned',
   TAGGED = 'tagged',
   CREATED = 'created',
@@ -86,6 +88,9 @@ export enum ActivityDetail {
   START_DATE = 'start_date',
   AUTO_MERGE = 'auto_merge',
   CHANGES_REQUESTED = 'changes_requested',
+  NEW_PAGE = 'new_page',
+  WIKI = 'wiki',
+  NEW_MILESTONE = 'new_milestone',
 }
 
 export enum EngagementLevel {

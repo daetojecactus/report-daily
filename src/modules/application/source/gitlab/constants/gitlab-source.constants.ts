@@ -5,13 +5,26 @@ import {
   GitLabTargetType,
 } from 'src/modules/vendors/gitlab/gitlab.enums';
 import { z } from 'zod';
-import { ItemState, LabelAction, SourceActionKind, SourceRefType } from '../../source.enums';
+import {
+  ItemState,
+  LabelAction,
+  SourceActionKind,
+  SourceRefType,
+  SourceTargetType,
+} from '../../source.enums';
 import type { SourceNoteAction, SourceUserChange } from '../gitlab-source.interface';
 
 export const GITLAB_SOURCE_ISSUE_TARGET_TYPES = new Set<string>([
   GitLabTargetType.ISSUE,
   GitLabTargetType.WORK_ITEM,
 ]);
+
+export const GITLAB_SOURCE_PROJECT_TARGET_TYPES = new Map<string, SourceTargetType>([
+  [GitLabTargetType.WIKI_PAGE, SourceTargetType.WIKI_PAGE],
+  [GitLabTargetType.MILESTONE, SourceTargetType.MILESTONE],
+]);
+
+export const GITLAB_SOURCE_KNOWN_EVENTS = new Set(['joined', 'left', 'expired']);
 
 export const GITLAB_SOURCE_BRANCH_ISSUE_PATTERN = /^(\d+)-/;
 
@@ -113,8 +126,8 @@ export const GITLAB_SOURCE_KNOWN_NOTES = [
   /^mentioned in (?:merge request|issue|epic|work item)\b/,
   /^changed target branch from/,
   /^reset approvals from/,
-  /^made the (?:issue|work item|merge request) (?:confidential|visible to everyone)/,
-  /^(?:locked|unlocked) (?:the discussion in )?this (?:issue|work item|merge request)/,
+  /^made the (?:issue|item|work item|merge request) (?:confidential|visible to everyone)/,
+  /^(?:locked|unlocked) (?:the discussion in )?this (?:issue|item|work item|merge request)/,
   /^(?:changed|removed) health status/,
   /^(?:added|removed) \d+ contacts?\b/,
   /^created merge request [^\s]*![\d]+ to address this/,

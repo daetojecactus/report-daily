@@ -51,6 +51,7 @@ export interface GitLabEvent {
   project_id: number | null;
   action_name: string;
   target_type: string | null;
+  target_id?: number | null;
   target_iid: number | null;
   target_title: string | null;
   created_at: string;

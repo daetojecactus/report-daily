@@ -29,6 +29,7 @@ import type { TraitRepository } from 'src/modules/application/trait/trait.reposi
 import { TraitService } from 'src/modules/application/trait/trait.service';
 import { JobRole } from 'src/modules/application/user/user.enums';
 import { ActivityCodeDetector } from '../activity-code.detector';
+import { ActivityEventDetector } from '../activity-event.detector';
 import { ActivityLifecycleDetector } from '../activity-lifecycle.detector';
 import { ActivityLinkDetector } from '../activity-link.detector';
 import { ActivityPlanDetector } from '../activity-plan.detector';
@@ -144,6 +145,7 @@ export function pushEvent(time: string, titles: string[] = ['fix: the login']): 
 export function pushLine(overrides: Partial<StandalonePush> = {}): ActivityLine {
   return {
     issue: null,
+    event: null,
     mergeRequests: [],
     pushes: [
       {
@@ -262,6 +264,7 @@ export function createDetectors() {
     new ActivityRefDetector(),
     new ActivityPlanDetector(),
     new ActivityLinkDetector(),
+    new ActivityEventDetector(),
   );
 }
 
@@ -286,7 +289,7 @@ export function choose(line: ActivityLine, role = JobRole.DEVELOPER) {
 }
 
 export function issueLine(issue = createIssue()): ActivityLine {
-  return { issue, mergeRequests: issue.mergeRequests, pushes: issue.pushes };
+  return { issue, mergeRequests: issue.mergeRequests, pushes: issue.pushes, event: null };
 }
 
 export function summarize(candidates: ActivityCandidate[]) {

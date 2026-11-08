@@ -70,6 +70,12 @@ export class GitLabSourceBuilder {
           events: this.cleanEvents(events, context),
         })),
       ],
+      standaloneEvents: activity.targets.map(({ target, events }) => ({
+        projectId: target.projectId,
+        targetType: target.targetType,
+        title: target.title,
+        events: this.cleanEvents(events, context),
+      })),
     };
   }
 
