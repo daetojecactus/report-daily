@@ -31,7 +31,7 @@ describe('ActivitySignals', () => {
         ],
       });
 
-      const signals = toSignals({ issue, pushes: [], mergeRequests: [] });
+      const signals = toSignals({ issue, event: null, pushes: [], mergeRequests: [] });
 
       expect(signals.changes.map((change) => change.state)).toEqual([
         WorkflowState.CHANGES_REQUESTED,
@@ -46,7 +46,9 @@ describe('ActivitySignals', () => {
         ],
       });
 
-      expect(toSignals({ issue, pushes: [], mergeRequests: [] }).changes).toHaveLength(1);
+      expect(toSignals({ issue, event: null, pushes: [], mergeRequests: [] }).changes).toHaveLength(
+        1,
+      );
     });
 
     it('makes the setup and the editing of a new task part of creating it', () => {
@@ -61,7 +63,7 @@ describe('ActivitySignals', () => {
         ],
       });
 
-      const signals = toSignals({ issue, pushes: [], mergeRequests: [] });
+      const signals = toSignals({ issue, event: null, pushes: [], mergeRequests: [] });
 
       expect(signals.own.map((item) => item.kind)).toEqual([
         SourceActionKind.OPENED,
@@ -78,7 +80,9 @@ describe('ActivitySignals', () => {
         ],
       });
 
-      expect(ownKinds({ issue, pushes: [], mergeRequests: [] })).toEqual([SourceActionKind.CLOSED]);
+      expect(ownKinds({ issue, event: null, pushes: [], mergeRequests: [] })).toEqual([
+        SourceActionKind.CLOSED,
+      ]);
     });
 
     it('makes closing an issue on merge part of the merge', () => {
@@ -93,7 +97,7 @@ describe('ActivitySignals', () => {
         mergeRequests: [mergeRequest],
       });
 
-      expect(ownKinds({ issue, pushes: [], mergeRequests: [mergeRequest] })).toEqual([
+      expect(ownKinds({ issue, event: null, pushes: [], mergeRequests: [mergeRequest] })).toEqual([
         SourceActionKind.MERGED,
       ]);
     });
@@ -107,7 +111,12 @@ describe('ActivitySignals', () => {
         facts: [fact(SourceActionKind.APPROVED, at(12))],
       });
 
-      const signals = toSignals({ issue: null, pushes: [], mergeRequests: [own, other] });
+      const signals = toSignals({
+        issue: null,
+        event: null,
+        pushes: [],
+        mergeRequests: [own, other],
+      });
 
       expect(signals.own.map((item) => [item.kind, item.mergeRequestIid])).toEqual([
         [SourceActionKind.APPROVED, 6],
@@ -125,9 +134,9 @@ describe('ActivitySignals', () => {
         ],
       });
 
-      expect(ownKinds({ issue: null, pushes: [], mergeRequests: [mergeRequest] })).toEqual([
-        SourceActionKind.REVIEW_REQUESTED,
-      ]);
+      expect(
+        ownKinds({ issue: null, event: null, pushes: [], mergeRequests: [mergeRequest] }),
+      ).toEqual([SourceActionKind.REVIEW_REQUESTED]);
     });
 
     it('makes a replacement of a label, an assignee or a reviewer one change', () => {
@@ -147,7 +156,7 @@ describe('ActivitySignals', () => {
         mergeRequests: [mergeRequest],
       });
 
-      expect(ownKinds({ issue, pushes: [], mergeRequests: [mergeRequest] })).toEqual([
+      expect(ownKinds({ issue, event: null, pushes: [], mergeRequests: [mergeRequest] })).toEqual([
         SourceActionKind.LABEL_ADDED,
         SourceActionKind.REVIEW_REQUESTED,
         SourceActionKind.ASSIGNED,
@@ -163,7 +172,7 @@ describe('ActivitySignals', () => {
         mergeRequests: [mergeRequest],
       });
 
-      const signals = toSignals({ issue, pushes: [], mergeRequests: [mergeRequest] });
+      const signals = toSignals({ issue, event: null, pushes: [], mergeRequests: [mergeRequest] });
 
       expect(signals.changes).toHaveLength(1);
       expect(signals.changes[0].fact.mergeRequestIid).toBeNull();
@@ -225,7 +234,7 @@ describe('ActivitySignals', () => {
         mergeRequests: [mergeRequest],
       });
 
-      const signals = toSignals({ issue, pushes: [], mergeRequests: [mergeRequest] });
+      const signals = toSignals({ issue, event: null, pushes: [], mergeRequests: [mergeRequest] });
 
       expect(signals.kind).toBe(TaskKind.BUG);
       expect(signals.startStates).toEqual([WorkflowState.IN_PROGRESS, WorkflowState.READY_FOR_QA]);
@@ -239,7 +248,12 @@ describe('ActivitySignals', () => {
         events: [pushEvent(at(11), ['fix: a', 'test: b'])],
       });
 
-      const signals = toSignals({ issue: null, pushes: [], mergeRequests: [mergeRequest] });
+      const signals = toSignals({
+        issue: null,
+        event: null,
+        pushes: [],
+        mergeRequests: [mergeRequest],
+      });
 
       expect(signals.removedFlags).toEqual([TaskFlag.NEEDS_REBASE]);
       expect(signals.pushes).toEqual([
@@ -323,6 +337,7 @@ describe('ActivitySignals', () => {
       const dependencies = (sourceBranch: string, labels: string[] = []) =>
         toSignals({
           issue: null,
+          event: null,
           pushes: [],
           mergeRequests: [createMergeRequest({ sourceBranch, labels })],
         }).dependencies;
@@ -353,7 +368,7 @@ describe('ActivitySignals', () => {
       });
       const issue = createIssue({ assignees: [OTHER], mergeRequests: [mergeRequest] });
 
-      const signals = toSignals({ issue, pushes: [], mergeRequests: [mergeRequest] });
+      const signals = toSignals({ issue, event: null, pushes: [], mergeRequests: [mergeRequest] });
 
       expect(signals.dialog).toBe(true);
       expect(signals.assignee).toBe(false);

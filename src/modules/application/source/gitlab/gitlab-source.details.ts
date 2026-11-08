@@ -111,6 +111,7 @@ export class GitLabSourceDetails {
         }))
         .filter(({ events }) => events.length),
       refs: [...groups.refs.values()],
+      targets: [...groups.targets.values()],
       pushCommits,
     };
   }

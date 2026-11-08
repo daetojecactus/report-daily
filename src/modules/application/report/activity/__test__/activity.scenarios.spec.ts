@@ -729,7 +729,7 @@ const SCENARIOS: Scenario[] = [
       role: DEVELOPER,
       v1: 'HOTFIX_DEPLOYED',
       verdict: 'phrase',
-      line: { issue: null, pushes: [], mergeRequests: [merged({ labels })] },
+      line: { issue: null, event: null, pushes: [], mergeRequests: [merged({ labels })] },
       main: { action: ActivityAction.MERGED, details: [ActivityDetail.URGENT] },
     }),
   ),

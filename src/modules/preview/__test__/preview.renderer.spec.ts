@@ -14,6 +14,7 @@ import {
   SourceActionKind,
   SourceEventAction,
   SourceRefType,
+  SourceTargetType,
 } from 'src/modules/application/source/source.enums';
 import type { GroupedDailyData } from 'src/modules/application/source/source.interface';
 import { JobRole } from 'src/modules/application/user/user.enums';
@@ -27,6 +28,7 @@ function render(overrides: Partial<GroupedDailyData>, trace = false) {
     issues: [],
     standaloneMergeRequests: [],
     standalonePushes: [],
+    standaloneEvents: [],
     ...overrides,
   };
   const results = createService().classify(
@@ -170,6 +172,25 @@ describe('PreviewRenderer', () => {
       '    weight: 3',
       '    time spent: 1h 30m',
       '    actions: iteration_set iteration-2',
+    ]);
+  });
+
+  it('prints a wiki page and a milestone with their actions', () => {
+    const lines = render({
+      standaloneEvents: [
+        {
+          projectId: 1,
+          targetType: SourceTargetType.WIKI_PAGE,
+          title: 'page-1',
+          events: [{ ...pushEvent(at(10), []), actionName: 'updated', pushData: undefined }],
+        },
+      ],
+    });
+
+    expect(lines.slice(2)).toEqual([
+      '  Wiki page page-1',
+      '    main: documented',
+      '    events: updated',
     ]);
   });
 

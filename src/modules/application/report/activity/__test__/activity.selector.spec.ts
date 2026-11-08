@@ -30,7 +30,7 @@ function candidate(
 
 function select(candidates: ActivityCandidate[], role = JobRole.DEVELOPER) {
   return new ActivitySelector().select(
-    toSignals({ issue: null, pushes: [], mergeRequests: [] }, role),
+    toSignals({ issue: null, event: null, pushes: [], mergeRequests: [] }, role),
     candidates,
   );
 }
@@ -52,6 +52,7 @@ describe('ActivitySelector', () => {
       COMPLETED: ActivityTier.OUTCOME,
       REOPENED: ActivityTier.OUTCOME,
       RELEASED: ActivityTier.OUTCOME,
+      MILESTONE_CLOSED: ActivityTier.OUTCOME,
       PASSED: ActivityTier.CHECK,
       APPROVED: ActivityTier.CHECK,
       RETURNED: ActivityTier.CHECK,
@@ -65,6 +66,7 @@ describe('ActivitySelector', () => {
       CODE: ActivityTier.WORK,
       REQUIREMENTS: ActivityTier.WORK,
       DECOMPOSED: ActivityTier.WORK,
+      DOCUMENTED: ActivityTier.WORK,
       TOOK_REVIEW: ActivityTier.WORK,
       PLANNED: ActivityTier.WORK,
       TAGGED: ActivityTier.WORK,
@@ -204,7 +206,7 @@ describe('ActivitySelector', () => {
       events: [pushEvent(at(15))],
     });
 
-    const choice = choose({ issue: null, pushes: [], mergeRequests: [mergeRequest] });
+    const choice = choose({ issue: null, event: null, pushes: [], mergeRequests: [mergeRequest] });
 
     expect(
       choice.trace.ranked.map(({ candidate: item, tier, weight }) => [item.action, tier, weight]),

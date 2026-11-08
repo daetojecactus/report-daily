@@ -45,13 +45,26 @@ export class ActivityService {
         issue,
         mergeRequests: issue.mergeRequests,
         pushes: issue.pushes,
+        event: null,
       })),
       ...day.standaloneMergeRequests.map((mergeRequest) => ({
         issue: null,
         mergeRequests: [mergeRequest],
         pushes: [],
+        event: null,
       })),
-      ...day.standalonePushes.map((push) => ({ issue: null, mergeRequests: [], pushes: [push] })),
+      ...day.standalonePushes.map((push) => ({
+        issue: null,
+        mergeRequests: [],
+        pushes: [push],
+        event: null,
+      })),
+      ...day.standaloneEvents.map((event) => ({
+        issue: null,
+        mergeRequests: [],
+        pushes: [],
+        event,
+      })),
     ];
   }
 }

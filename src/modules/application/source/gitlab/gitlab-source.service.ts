@@ -1,9 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { UserSource } from 'src/modules/application/user/user-source/user-source.interface';
 import { getDayRange, isWithinDay } from 'src/common/utils/date.util';
-import { GitLabRefType, GitLabTargetType } from 'src/modules/vendors/gitlab/gitlab.enums';
 import type {
-  GitLabEvent,
   GitLabIssue,
   GitLabMergeRequest,
   GitLabProject,
@@ -11,20 +9,10 @@ import type {
 import { GitLabService } from 'src/modules/vendors/gitlab/gitlab.service';
 import { Source } from '../source.enums';
 import type { ActivitySource } from '../source.interface';
-import {
-  GITLAB_SOURCE_ISSUE_TARGET_TYPES,
-  GITLAB_SOURCE_REF_TYPES,
-} from './constants/gitlab-source.constants';
 import { GitLabSourceBuilder } from './gitlab-source.builder';
 import { GitLabSourceDetails } from './gitlab-source.details';
-import type {
-  SourceBranch,
-  SourceEventGroups,
-  SourceEvents,
-  SourceItem,
-  SourceLinks,
-  SourceRef,
-} from './gitlab-source.interface';
+import type { SourceEventGroups, SourceItem, SourceLinks } from './gitlab-source.interface';
+import { GitLabSourceEvents } from './gitlab-source.events';
 import { GitLabSourceKeys } from './gitlab-source.keys';
 import { GitLabSourceLinks } from './gitlab-source.links';
 import { GitLabSourceScanner } from './gitlab-source.scanner';
@@ -40,6 +28,7 @@ export class GitLabSourceService implements ActivitySource {
     private readonly gitlabSourceDetails: GitLabSourceDetails,
     private readonly gitlabSourceKeys: GitLabSourceKeys,
     private readonly gitlabSourceLinks: GitLabSourceLinks,
+    private readonly gitlabSourceEvents: GitLabSourceEvents,
   ) {}
 
   async collect(account: UserSource, date: string, timeZone: string) {
@@ -49,12 +38,14 @@ export class GitLabSourceService implements ActivitySource {
       this.gitlabService.findUserEventsAround(gitlabUserId, date),
       this.gitlabSourceScanner.findHiddenItems(gitlabUserId, date, day),
     ]);
-    const groups = this.groupEvents(events.filter((event) => isWithinDay(event.created_at, day)));
+    const groups = this.gitlabSourceEvents.group(
+      events.filter((event) => isWithinDay(event.created_at, day)),
+    );
     for (const target of hidden.issues) {
-      this.addTarget(groups.issues, target);
+      this.gitlabSourceEvents.addTarget(groups.issues, target);
     }
     for (const target of hidden.mergeRequests) {
-      this.addTarget(groups.mergeRequests, target);
+      this.gitlabSourceEvents.addTarget(groups.mergeRequests, target);
     }
     const projects = await this.loadProjects(
       [
@@ -62,6 +53,7 @@ export class GitLabSourceService implements ActivitySource {
         ...groups.mergeRequests.values(),
         ...groups.pushes.values(),
         ...groups.refs.values(),
+        ...groups.targets.values(),
       ].map(({ target }) => target.projectId),
     );
     const mergeRequests = await this.loadMergeRequests(groups, projects);
@@ -93,35 +85,6 @@ export class GitLabSourceService implements ActivitySource {
       id: gitlabUserId,
       username: account.username,
     });
-  }
-
-  private groupEvents(events: GitLabEvent[]): SourceEventGroups {
-    const groups: SourceEventGroups = {
-      issues: new Map(),
-      mergeRequests: new Map(),
-      pushes: new Map(),
-      refs: new Map(),
-    };
-    for (const event of events) {
-      const projectId = event.project_id;
-      if (projectId === null) {
-        continue;
-      }
-      const type = event.note?.noteable_type ?? event.target_type;
-      const iid = event.note?.noteable_iid ?? event.target_iid;
-      const push = event.push_data;
-      if (iid !== null && type !== null && GITLAB_SOURCE_ISSUE_TARGET_TYPES.has(type)) {
-        this.addEvent(groups.issues, { projectId, iid }, event);
-      } else if (iid !== null && type === GitLabTargetType.MERGE_REQUEST) {
-        this.addEvent(groups.mergeRequests, { projectId, iid }, event);
-      } else if (push?.ref && push.ref_type === GitLabRefType.BRANCH) {
-        this.addEvent(groups.pushes, { projectId, branch: push.ref }, event);
-      } else if (push) {
-        const refType = GITLAB_SOURCE_REF_TYPES[push.ref_type];
-        this.addEvent(groups.refs, { projectId, ref: push.ref, refType }, event);
-      }
-    }
-    return groups;
   }
 
   private async loadProjects(projectIds: number[]) {
@@ -266,23 +229,5 @@ export class GitLabSourceService implements ActivitySource {
       }
     }
     return links;
-  }
-
-  private addTarget(groups: Map<string, SourceEvents<SourceItem>>, target: SourceItem) {
-    const key = this.gitlabSourceKeys.toKey(target);
-    if (!groups.has(key)) {
-      groups.set(key, { target, events: [] });
-    }
-  }
-
-  private addEvent<T extends SourceItem | SourceBranch | SourceRef>(
-    groups: Map<string, SourceEvents<T>>,
-    target: T,
-    event: GitLabEvent,
-  ) {
-    const key = this.gitlabSourceKeys.toKey(target);
-    const group = groups.get(key) ?? { target, events: [] };
-    group.events.push(event);
-    groups.set(key, group);
   }
 }

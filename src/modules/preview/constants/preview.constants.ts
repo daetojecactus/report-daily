@@ -1,4 +1,5 @@
 import { ActivityReason } from 'src/modules/application/report/activity/activity.enums';
+import { SourceTargetType } from 'src/modules/application/source/source.enums';
 
 export const PREVIEW_INDENT = '  ';
 
@@ -38,6 +39,13 @@ export const PREVIEW_HOUR_SECONDS = 60 * 60;
 export const PREVIEW_MILESTONE_ALIAS = 'milestone';
 
 export const PREVIEW_ITERATION_ALIAS = 'iteration';
+
+export const PREVIEW_PAGE_ALIAS = 'page';
+
+export const PREVIEW_TARGET_NAMES: Record<SourceTargetType, string> = {
+  [SourceTargetType.WIKI_PAGE]: 'Wiki page',
+  [SourceTargetType.MILESTONE]: 'Milestone',
+};
 
 export const PREVIEW_TAG_VERSION_PATTERN = /\d+(?:\.\d+)*/;
 

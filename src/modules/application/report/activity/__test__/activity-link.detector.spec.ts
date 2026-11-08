@@ -33,6 +33,7 @@ function classify(facts: SourceFact[]) {
       issues: [createIssue({ facts })],
       standaloneMergeRequests: [],
       standalonePushes: [],
+      standaloneEvents: [],
     },
     { username: ME, role: JobRole.DEVELOPER },
     createIndex(),

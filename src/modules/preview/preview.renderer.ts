@@ -17,19 +17,26 @@ import {
   PREVIEW_INDENT,
   PREVIEW_MINUTE_SECONDS,
   PREVIEW_REASONS,
+  PREVIEW_TARGET_NAMES,
 } from './constants/preview.constants';
 
 @Injectable()
 export class PreviewRenderer {
   render(day: GroupedDailyData, results: ActivityResult[], trace: boolean) {
-    const items = [...day.issues, ...day.standaloneMergeRequests, ...day.standalonePushes];
-    const resultOf = (item: GroupedIssue | GroupedMergeRequest | StandalonePush) =>
+    const items = [
+      ...day.issues,
+      ...day.standaloneMergeRequests,
+      ...day.standalonePushes,
+      ...day.standaloneEvents,
+    ];
+    const resultOf = (item: (typeof items)[number]) =>
       results.find(
         ({ line }) =>
           line.issue === item ||
+          line.event === item ||
           (line.issue === null && (line.mergeRequests[0] ?? line.pushes[0]) === item),
       );
-    const describe = (item: GroupedIssue | GroupedMergeRequest | StandalonePush) => {
+    const describe = (item: (typeof items)[number]) => {
       const result = resultOf(item);
       return result ? this.describeResult(result, PREVIEW_INDENT.repeat(2), trace) : [];
     };
@@ -47,6 +54,13 @@ export class PreviewRenderer {
       ...day.standalonePushes
         .filter((push) => push.projectId === projectId)
         .flatMap((push) => this.describePush(push, PREVIEW_INDENT, describe(push))),
+      ...day.standaloneEvents
+        .filter((item) => item.projectId === projectId)
+        .flatMap((item) => [
+          `${PREVIEW_INDENT}${PREVIEW_TARGET_NAMES[item.targetType]} ${item.title}`,
+          ...describe(item),
+          `${PREVIEW_INDENT.repeat(2)}events: ${this.describeEvents(item.events)}`,
+        ]),
     ]);
   }
 

@@ -19,6 +19,11 @@ export enum SourceRefType {
   TAG = 'tag',
 }
 
+export enum SourceTargetType {
+  WIKI_PAGE = 'wiki_page',
+  MILESTONE = 'milestone',
+}
+
 export enum SourceEventAction {
   OPENED = 'opened',
   CREATED = 'created',
@@ -29,6 +34,8 @@ export enum SourceEventAction {
   PUSHED_TO = 'pushed to',
   PUSHED_NEW = 'pushed new',
   DELETED = 'deleted',
+  UPDATED = 'updated',
+  DESTROYED = 'destroyed',
 }
 
 export enum SourceActionKind {

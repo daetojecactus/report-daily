@@ -12,7 +12,7 @@ import type {
   GitLabStateEvent,
   GitLabWeightEvent,
 } from 'src/modules/vendors/gitlab/gitlab.interface';
-import type { SourceActionKind, SourceRefType } from '../source.enums';
+import type { SourceActionKind, SourceRefType, SourceTargetType } from '../source.enums';
 
 export interface SourceItem {
   projectId: number;
@@ -42,6 +42,13 @@ export interface SourcePlanHistory {
   events: SourcePlanEvent[];
 }
 
+export interface SourceTarget {
+  projectId: number;
+  targetType: SourceTargetType;
+  id: number | string;
+  title: string;
+}
+
 export interface SourceLinkReference {
   path: string;
   iid: number;
@@ -68,6 +75,7 @@ export interface SourceEventGroups {
   mergeRequests: Map<string, SourceEvents<SourceItem>>;
   pushes: Map<string, SourceEvents<SourceBranch>>;
   refs: Map<string, SourceEvents<SourceRef>>;
+  targets: Map<string, SourceEvents<SourceTarget>>;
 }
 
 export interface SourceLinks {
@@ -107,6 +115,7 @@ export interface DayActivity {
   pushes: SourceEvents<SourceBranch>[];
   directPushes: SourceEvents<SourceBranch>[];
   refs: SourceEvents<SourceRef>[];
+  targets: SourceEvents<SourceTarget>[];
   pushCommits: Map<number, GitLabCommit[]>;
 }
 

@@ -2,6 +2,7 @@ import type {
   GroupedIssue,
   GroupedMergeRequest,
   SourceFact,
+  StandaloneEvent,
   StandalonePush,
 } from 'src/modules/application/source/source.interface';
 import type {
@@ -29,6 +30,7 @@ export interface ActivityLine {
   issue: GroupedIssue | null;
   mergeRequests: GroupedMergeRequest[];
   pushes: StandalonePush[];
+  event: StandaloneEvent | null;
 }
 
 export interface ActivityFact extends SourceFact {

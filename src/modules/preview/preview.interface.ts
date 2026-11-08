@@ -10,6 +10,7 @@ export interface PreviewAliases {
   tags: Map<string, string>;
   milestones: Map<string, string>;
   iterations: Map<string, string>;
+  pages: Map<string, string>;
   commits: Map<string, string>;
   commitTitles: Map<string, string>;
 }

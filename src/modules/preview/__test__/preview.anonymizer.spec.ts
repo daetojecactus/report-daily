@@ -4,6 +4,7 @@ import {
   LabelAction,
   SourceActionKind,
   SourceRefType,
+  SourceTargetType,
 } from 'src/modules/application/source/source.enums';
 import type {
   CleanNote,
@@ -286,6 +287,15 @@ function createDay(): GroupedDailyData {
         events: [],
       },
     ],
+    standaloneEvents: [
+      {
+        projectId: 501,
+        targetType: SourceTargetType.WIKI_PAGE,
+        title: 'Acme billing runbook',
+        events: [],
+      },
+      { projectId: 502, targetType: SourceTargetType.MILESTONE, title: 'Acme Q4', events: [] },
+    ],
   };
 }
 
@@ -376,6 +386,12 @@ describe('PreviewAnonymizer', () => {
     expect(issue.facts.at(-1)?.value).toBe('iteration-1');
     expect([issue.weight, issue.startOfDay.weight, issue.facts.at(-2)?.value]).toEqual([5, 3, '5']);
     expect([issue.timeSpent, issue.mergeRequests[0].timeSpent]).toEqual([5400, 1800]);
+  });
+
+  it('gives wiki pages and milestones of the day aliases', () => {
+    const { day } = anonymize();
+
+    expect(day.standaloneEvents.map(({ title }) => title)).toEqual(['page-1', 'milestone-1']);
   });
 
   it('keeps the kind of a link and hides the reference of a move', () => {
