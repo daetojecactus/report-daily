@@ -254,6 +254,26 @@ describe('ActivityCodeDetector', () => {
     ]);
   });
 
+  it('works on a task mentioned in a commit of another branch', () => {
+    const mention = fact(SourceActionKind.COMMIT_MENTIONED, at(11), { value: 'abc1234' });
+    const ownCommit = refEvent(at(11), SourceEventAction.PUSHED_TO, {
+      commitCount: 1,
+      commits: [{ id: 'abc1234def5678', title: 'fix: #12 the login' }],
+    });
+
+    expect(summarize(detect(issueLine(createIssue({ facts: [mention] }))))).toEqual([
+      {
+        action: ActivityAction.CODE,
+        weight: 300,
+        state: null,
+        details: [ActivityDetail.MENTIONED],
+      },
+    ]);
+    expect(
+      codeOf(createMergeRequest({ events: [ownCommit] }), createIssue({ facts: [mention] })),
+    ).toEqual({ action: ActivityAction.CODE, weight: 300, state: null, details: [] });
+  });
+
   it('helps with a task of someone else', () => {
     const mergeRequest = othersMergeRequest({
       facts: [

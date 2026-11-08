@@ -71,6 +71,7 @@ export enum ActivityDetail {
   MOVED = 'moved',
   WEIGHT = 'weight',
   CHANGED = 'changed',
+  MENTIONED = 'mentioned',
 }
 
 export enum EngagementLevel {

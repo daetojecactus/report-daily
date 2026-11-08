@@ -47,6 +47,7 @@ function isNoteBody(value: string) {
     PREVIEW_NOTE_PREFIXES.includes(value) ||
     (status !== null && isStatus(status[1])) ||
     (branch !== null && BRANCH.test(branch[1])) ||
+    /^mentioned in commit sha-\d+$/.test(value) ||
     (USER_NOTE.test(value) && value.replaceAll(USER_NOTE_WORDS, '').trim() === '')
   );
 }
@@ -79,6 +80,7 @@ const CHECKS: Record<string, (value: string) => boolean> = {
     BRANCH.test(value) ||
     PLAN.test(value) ||
     /^\d+$/.test(value) ||
+    /^sha-\d+$/.test(value) ||
     value === 'value',
   milestone: (value) => PLAN.test(value),
   iteration: (value) => PLAN.test(value),

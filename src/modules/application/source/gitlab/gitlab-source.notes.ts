@@ -1,8 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import type { GitLabNote } from 'src/modules/vendors/gitlab/gitlab.interface';
 import {
+  GITLAB_SOURCE_KNOWN_NOTES,
   GITLAB_SOURCE_MENTION_PATTERN,
   GITLAB_SOURCE_NOTE_ACTIONS,
+  GITLAB_SOURCE_NOTE_SHAPE_REPLACEMENTS,
+  GITLAB_SOURCE_NOTE_SHAPE_WORDS,
 } from './constants/gitlab-source.constants';
 import type { SourceUserChange } from './gitlab-source.interface';
 
@@ -19,6 +22,22 @@ export class GitLabSourceNotes {
       }
     }
     return null;
+  }
+
+  isKnown(note: GitLabNote) {
+    return GITLAB_SOURCE_KNOWN_NOTES.some((pattern) => pattern.test(note.body));
+  }
+
+  toShape(note: GitLabNote) {
+    const [line = ''] = note.body.split('\n');
+    return GITLAB_SOURCE_NOTE_SHAPE_REPLACEMENTS.reduce(
+      (text, [pattern, replacement]) => text.replace(pattern, replacement),
+      line,
+    )
+      .trim()
+      .split(' ')
+      .slice(0, GITLAB_SOURCE_NOTE_SHAPE_WORDS)
+      .join(' ');
   }
 
   parseUserChange(note: GitLabNote, change: SourceUserChange) {

@@ -61,4 +61,5 @@ export enum SourceActionKind {
   ITERATION_REMOVED = 'iteration_removed',
   WEIGHT_SET = 'weight_set',
   WEIGHT_REMOVED = 'weight_removed',
+  COMMIT_MENTIONED = 'commit_mentioned',
 }
