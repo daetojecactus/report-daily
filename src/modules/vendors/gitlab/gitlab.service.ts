@@ -21,6 +21,10 @@ export class GitLabService {
     return (await this.gitlabRepository.findLastUserEvent(userId)) !== null;
   }
 
+  async findLastActivityAt(userId: number) {
+    return (await this.gitlabRepository.findLastUserEvent(userId))?.created_at ?? null;
+  }
+
   async findRecentProjectIds(userId: number, date: string, days: number) {
     const events = await this.gitlabRepository.findUserEvents(
       userId,

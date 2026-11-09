@@ -1,3 +1,4 @@
+import { ReportStatus } from 'src/modules/application/report/report.enums';
 import { Permission } from 'src/modules/application/user/user.enums';
 import type { EmployeesLocale } from '../../i18n.interface';
 
@@ -27,6 +28,19 @@ export const enEmployees: EmployeesLocale = {
       noChannels: 'not connected',
       reachable: 'connected',
       unreachable: 'unreachable, the bot is blocked',
+      lastActivity: 'Last activity in GitLab',
+      activityHidden: 'not visible: the profile is closed or there are no events yet',
+      activityUnknown: 'could not check',
+      lastReport: 'Last report',
+      noReport: 'none yet',
+      reportStatuses: {
+        [ReportStatus.PENDING]: 'queued',
+        [ReportStatus.GENERATING]: 'being built',
+        [ReportStatus.READY]: 'built',
+        [ReportStatus.DELIVERED]: 'delivered',
+        [ReportStatus.EMPTY]: 'no actions',
+        [ReportStatus.FAILED]: 'could not build',
+      },
     },
   },
   employeeAdd: {
@@ -66,6 +80,13 @@ export const enEmployees: EmployeesLocale = {
     deleted: (name) => `Employee deleted: **${name}**.`,
     self: 'You cannot block or delete yourself.',
     ownerOnly: 'Only an owner can block or delete an employee with permissions.',
+    reportNow: 'Report now',
+    reportQueued: (name) =>
+      `Building today's report for **${name}**. It goes to the employee; if there are no actions or the build fails, I'll write here.`,
+    reportEmpty: (name) => `**${name}** has no actions in GitLab today, so no report was sent.`,
+    reportFailed: (name) => `Could not build the report for **${name}**: GitLab did not answer.`,
+    reportUnavailable: (name) =>
+      `**${name}** cannot get a report: the employee is not active or has no Telegram connected.`,
   },
   employeePermissions: {
     open: 'Permissions',

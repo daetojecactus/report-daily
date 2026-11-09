@@ -5,4 +5,5 @@ export enum EmployeeManageAction {
   UNBLOCK = 'unblock',
   DELETE = 'delete',
   CONFIRM_DELETE = 'confirm',
+  REPORT = 'report',
 }

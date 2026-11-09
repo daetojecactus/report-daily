@@ -1,3 +1,4 @@
+import { ReportStatus } from 'src/modules/application/report/report.enums';
 import { Permission } from 'src/modules/application/user/user.enums';
 import type { EmployeesLocale } from '../../i18n.interface';
 
@@ -27,6 +28,19 @@ export const ruEmployees: EmployeesLocale = {
       noChannels: 'не подключены',
       reachable: 'подключён',
       unreachable: 'недоступен, бот заблокирован',
+      lastActivity: 'Последняя активность в GitLab',
+      activityHidden: 'не видно — профиль закрыт или событий ещё нет',
+      activityUnknown: 'не удалось проверить',
+      lastReport: 'Последний отчёт',
+      noReport: 'ещё не было',
+      reportStatuses: {
+        [ReportStatus.PENDING]: 'в очереди',
+        [ReportStatus.GENERATING]: 'собирается',
+        [ReportStatus.READY]: 'собран',
+        [ReportStatus.DELIVERED]: 'доставлен',
+        [ReportStatus.EMPTY]: 'действий не было',
+        [ReportStatus.FAILED]: 'не удалось собрать',
+      },
     },
   },
   employeeAdd: {
@@ -66,6 +80,13 @@ export const ruEmployees: EmployeesLocale = {
     deleted: (name) => `Сотрудник удалён: **${name}**.`,
     self: 'Нельзя заблокировать или удалить себя.',
     ownerOnly: 'Сотрудника с правами может заблокировать или удалить только владелец.',
+    reportNow: 'Отчёт сейчас',
+    reportQueued: (name) =>
+      `Собираю отчёт за сегодня для **${name}**. Он придёт сотруднику; если действий нет или сборка не удастся, напишу сюда.`,
+    reportEmpty: (name) => `У **${name}** за сегодня нет действий в GitLab, отчёт не отправлен.`,
+    reportFailed: (name) => `Не получилось собрать отчёт для **${name}**: GitLab не ответил.`,
+    reportUnavailable: (name) =>
+      `**${name}** не получит отчёт: сотрудник не активен или у него нет подключённого Telegram.`,
   },
   employeePermissions: {
     open: 'Права',

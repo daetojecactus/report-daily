@@ -5,7 +5,6 @@ import { getErrorMessage } from 'src/common/utils/error.util';
 import { Channel } from 'src/common/enums/channel.enums';
 import { BotService } from 'src/modules/application/bot/bot.service';
 import { DeliveryService } from 'src/modules/application/delivery/delivery.service';
-import { I18nService } from 'src/modules/application/i18n/i18n.service';
 import { ReportStatus } from 'src/modules/application/report/report.enums';
 import { ReportService } from 'src/modules/application/report/report.service';
 import { DeliveryTelegramQueueProducer } from '../delivery-telegram/delivery-telegram-queue.producer';
@@ -26,7 +25,6 @@ export class ReportQueueProcessor extends WorkerHost implements OnModuleDestroy 
     private readonly deliveryService: DeliveryService,
     private readonly deliveryTelegramQueueProducer: DeliveryTelegramQueueProducer,
     private readonly botService: BotService,
-    private readonly i18nService: I18nService,
   ) {
     super();
   }
@@ -39,28 +37,23 @@ export class ReportQueueProcessor extends WorkerHost implements OnModuleDestroy 
     if (job.name !== REPORT_BUILD_JOB) {
       throw new Error(`${ReportQueueMessages.UNKNOWN_JOB}: ${job.name}`);
     }
-    const { userId, date, language, dayText, maxAgeMs, reply } = job.data as ReportJobData;
-    const locale = this.i18nService.getLocale(language);
+    const { userId, date, maxAgeMs, reply, notices } = job.data as ReportJobData;
     try {
       const saved =
         maxAgeMs === 0 ? null : await this.reportService.findFresh(userId, date, maxAgeMs);
       const report = saved ?? (await this.reportService.build(userId, date));
       if (report.status === ReportStatus.EMPTY || !report.content) {
-        await this.botService.sendTo(reply, {
-          text: locale.report.empty(dayText),
-        });
-      } else if (reply.channel === Channel.TELEGRAM) {
-        const delivery = await this.deliveryService.createForReport(report, reply.channel);
-        await this.deliveryTelegramQueueProducer.addDelivery(delivery.id);
+        await this.botService.sendTo(reply, { text: notices.empty });
       } else {
-        await this.botService.sendTo(reply, { text: report.content });
+        const delivery = await this.deliveryService.createForReport(report, Channel.TELEGRAM);
+        await this.deliveryTelegramQueueProducer.addDelivery(delivery.id);
       }
     } catch (error) {
       this.logger.warn(
         `${ReportQueueMessages.ATTEMPT_FAILED}: ${job.id}: ${getErrorMessage(error)}`,
       );
       if (job.attemptsMade + 1 >= (job.opts.attempts ?? 1)) {
-        await this.botService.sendTo(reply, { text: locale.report.failed });
+        await this.botService.sendTo(reply, { text: notices.failed });
       }
       throw error;
     }

@@ -7,6 +7,7 @@ import type {
   ReportPhrase,
 } from 'src/modules/application/report/phrase/phrase.enums';
 import type { ActivityTier } from 'src/modules/application/report/activity/activity.enums';
+import type { ReportStatus } from 'src/modules/application/report/report.enums';
 import type { SummaryPhrase } from 'src/modules/application/report/phrase/phrase.interface';
 import type { TraitDimension, WorkflowState } from 'src/modules/application/trait/trait.enums';
 import type { TraitDimensionValueMap } from 'src/modules/application/trait/trait.interface';
@@ -200,6 +201,12 @@ export interface EmployeesLocale {
       noChannels: string;
       reachable: string;
       unreachable: string;
+      lastActivity: string;
+      activityHidden: string;
+      activityUnknown: string;
+      lastReport: string;
+      noReport: string;
+      reportStatuses: Record<ReportStatus, string>;
     };
   };
   employeeAdd: {
@@ -234,6 +241,11 @@ export interface EmployeesLocale {
     deleted: (name: string) => string;
     self: string;
     ownerOnly: string;
+    reportNow: string;
+    reportQueued: (name: string) => string;
+    reportEmpty: (name: string) => string;
+    reportFailed: (name: string) => string;
+    reportUnavailable: (name: string) => string;
   };
   employeePermissions: {
     open: string;

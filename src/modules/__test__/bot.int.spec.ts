@@ -472,6 +472,32 @@ describe('Telegram bot', () => {
     expect(channel.externalId).toBe(String(pickedId));
   });
 
+  it('sends a report to an employee from the card and tells the owner the outcome', async () => {
+    const { user, telegramId } = await createEmployee({ displayName: `Reported${nextTelegramId}` });
+    await fakeGitLab.addUser({
+      id: telegramId,
+      username: `user${telegramId}`,
+      name: `User ${telegramId}`,
+      state: 'active',
+      avatar_url: 'https://gitlab.example.com/avatar.png',
+      web_url: `https://gitlab.example.com/user${telegramId}`,
+      hasActivity: false,
+    });
+
+    await fakeBotApi.pushUpdate(buttonPress(TEST_OWNER_TELEGRAM_ID, `mng:report:${user.id}`, 1951));
+
+    expect(
+      (await fakeBotApi.waitForRequest('editMessageText', (body) => body.message_id === 1951)).text,
+    ).toContain(`Building today's report for <b>${user.displayName}</b>`);
+    const outcome = await fakeBotApi.waitForRequest(
+      'sendMessage',
+      (body) =>
+        body.chat_id === String(TEST_OWNER_TELEGRAM_ID) &&
+        String(body.text).includes('has no actions in GitLab today'),
+    );
+    expect(outcome.text).toContain(user.displayName);
+  });
+
   it('blocks, unblocks and deletes an employee from the card', async () => {
     const { user, telegramId } = await createEmployee({
       displayName: `Managed${nextTelegramId}`,

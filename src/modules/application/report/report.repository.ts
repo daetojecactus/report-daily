@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { SQL } from 'drizzle-orm';
+import { desc, type SQL } from 'drizzle-orm';
 import { DatabaseService } from 'src/modules/infrastructure/database/database.service';
 import type { ReportInsert, ReportUpdate } from './report.interface';
 import { reports } from './report.schema';
@@ -14,6 +14,16 @@ export class ReportRepository {
 
   async findOne(filter: SQL) {
     const [report] = await this.databaseService.db.select().from(reports).where(filter).limit(1);
+    return report ?? null;
+  }
+
+  async findLatest(filter: SQL) {
+    const [report] = await this.databaseService.db
+      .select()
+      .from(reports)
+      .where(filter)
+      .orderBy(desc(reports.reportDate))
+      .limit(1);
     return report ?? null;
   }
 

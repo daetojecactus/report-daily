@@ -1,7 +1,6 @@
 import type { Queue } from 'bullmq';
 import { describe, expect, it, vi } from 'vitest';
 import { Channel } from 'src/common/enums/channel.enums';
-import { Language } from 'src/modules/application/i18n/i18n.enums';
 import { REPORT_BUILD_JOB } from '../constants/report-queue.constants';
 import { ReportQueueProducer } from '../report-queue.producer';
 
@@ -11,10 +10,9 @@ describe('ReportQueueProducer', () => {
     const data = {
       userId: '019a4d2e-7c1b-7f3a-9c2d-000000000001',
       date: '2026-11-09',
-      language: Language.RU,
-      dayText: 'сегодня',
       maxAgeMs: 300_000,
       reply: { channel: Channel.TELEGRAM, chatId: '1', externalId: '1' },
+      notices: { empty: 'empty', failed: 'failed' },
     };
 
     await new ReportQueueProducer(queue as unknown as Queue).addReport(data);
