@@ -96,6 +96,27 @@ export interface TraitsLocale {
     everyone: string;
     addValue: string;
     drop: string;
+    unmapped: (count: number) => string;
+  };
+  traitNames: {
+    title: (count: number) => string;
+    hint: (days: number) => string;
+    empty: (days: number) => string;
+    ignoredTitle: (count: number) => string;
+    ignoredHint: string;
+    ignoredEmpty: string;
+    showIgnored: (count: number) => string;
+    showUnmapped: string;
+    backToTraits: string;
+    card: string;
+    ignoredCard: string;
+    map: string;
+    ignore: string;
+    restore: string;
+    back: string;
+    notFound: string;
+    ignored: (label: string) => string;
+    restored: (label: string) => string;
   };
   traitManage: {
     askValue: (label: string, whom: string, dimension: string, value: string) => string;

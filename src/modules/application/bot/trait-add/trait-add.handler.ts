@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ChatInputType } from 'src/common/enums/channel.enums';
-import { SOURCE_NAME_SCOPE_SEPARATOR } from 'src/common/constants/source-name.constants';
-import { toSourceKey } from 'src/common/utils/source-name.util';
+import { isValidSourceKey, toSourceKey } from 'src/common/utils/source-name.util';
 import type { Locale } from 'src/modules/application/i18n/i18n.interface';
 import {
   TRAIT_DICTIONARY,
@@ -11,6 +10,7 @@ import { TraitDimension } from 'src/modules/application/trait/trait.enums';
 import type { TraitMapping, TraitValue } from 'src/modules/application/trait/trait.interface';
 import { Source } from 'src/modules/application/source/source.enums';
 import { TraitService } from 'src/modules/application/trait/trait.service';
+import { TraitNameService } from 'src/modules/application/trait/trait-name/trait-name.service';
 import { JobRole, Permission } from 'src/modules/application/user/user.enums';
 import { BotSection } from '../bot.decorator';
 import { BotAccess, BotNamespace } from '../bot.enums';
@@ -33,6 +33,7 @@ export class TraitAddHandler implements BotHandler {
 
   constructor(
     private readonly traitService: TraitService,
+    private readonly traitNameService: TraitNameService,
     private readonly traitsView: TraitsView,
   ) {}
 
@@ -53,6 +54,8 @@ export class TraitAddHandler implements BotHandler {
         return this.askLabel(locale);
       case TraitAddAction.MORE:
         return this.addToLabel(locale, button.data.id);
+      case TraitAddAction.NAME:
+        return this.mapName(locale, button.data.id);
       case TraitAddAction.ROLE:
         return this.chooseRole(locale, dialog, button.data.role);
       case TraitAddAction.DIMENSIONS:
@@ -82,10 +85,7 @@ export class TraitAddHandler implements BotHandler {
   private async receiveLabel(locale: Locale, text: string): Promise<BotReply> {
     const label = text.trim();
     const sourceKey = toSourceKey(label);
-    if (
-      label.length > TRAIT_SOURCE_NAME_MAX_LENGTH ||
-      sourceKey.split(SOURCE_NAME_SCOPE_SEPARATOR).some((part) => part === '')
-    ) {
+    if (label.length > TRAIT_SOURCE_NAME_MAX_LENGTH || !isValidSourceKey(sourceKey)) {
       return this.askLabel(locale, locale.traitAdd.invalid(TRAIT_SOURCE_NAME_MAX_LENGTH));
     }
     const [existing] = await this.traitService.findByKey(Source.GITLAB, sourceKey);
@@ -101,16 +101,20 @@ export class TraitAddHandler implements BotHandler {
 
   private async addToLabel(locale: Locale, id: string): Promise<BotReply> {
     const mapping = await this.traitService.findById(id);
-    if (!mapping) {
-      return {
-        screen: {
-          text: locale.traitList.notFound,
-          buttons: [[this.traitsView.toListButton(locale)]],
-        },
-        dialog: null,
-      };
-    }
-    return this.askRole(locale, mapping.sourceName);
+    return mapping
+      ? this.askRole(locale, mapping.sourceName)
+      : this.showNotFound(locale, locale.traitList.notFound);
+  }
+
+  private async mapName(locale: Locale, id: string): Promise<BotReply> {
+    const name = await this.traitNameService.findById(id);
+    return name
+      ? this.receiveLabel(locale, name.sourceName)
+      : this.showNotFound(locale, locale.traitNames.notFound);
+  }
+
+  private showNotFound(locale: Locale, text: string): BotReply {
+    return { screen: { text, buttons: [[this.traitsView.toListButton(locale)]] }, dialog: null };
   }
 
   private askRole(locale: Locale, label: string): BotReply {

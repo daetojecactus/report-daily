@@ -31,7 +31,11 @@ export const TRAIT_ADD_BUTTON_SCHEMA = z.union([
     .tuple([NAMESPACE_SCHEMA, z.literal(TraitAddAction.START)])
     .transform(([, action]) => ({ action })),
   z
-    .tuple([NAMESPACE_SCHEMA, z.literal(TraitAddAction.MORE), z.uuid()])
+    .tuple([
+      NAMESPACE_SCHEMA,
+      z.union([z.literal(TraitAddAction.MORE), z.literal(TraitAddAction.NAME)]),
+      z.uuid(),
+    ])
     .transform(([, action, id]) => ({ action, id })),
   z
     .tuple([

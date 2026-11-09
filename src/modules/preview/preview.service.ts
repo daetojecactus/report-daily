@@ -4,6 +4,7 @@ import { ActivityService } from 'src/modules/application/report/activity/activit
 import { Source } from 'src/modules/application/source/source.enums';
 import { SourceService } from 'src/modules/application/source/source.service';
 import { TraitService } from 'src/modules/application/trait/trait.service';
+import { TraitNameService } from 'src/modules/application/trait/trait-name/trait-name.service';
 import { UserService } from 'src/modules/application/user/user.service';
 import { UserSourceService } from 'src/modules/application/user/user-source/user-source.service';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
@@ -17,6 +18,7 @@ export class PreviewService {
     private readonly userSourceService: UserSourceService,
     private readonly sourceService: SourceService,
     private readonly traitService: TraitService,
+    private readonly traitNameService: TraitNameService,
     private readonly activityService: ActivityService,
     private readonly previewRenderer: PreviewRenderer,
   ) {}
@@ -29,6 +31,7 @@ export class PreviewService {
     }
     const timeZone = user.timezone ?? this.configService.get('APP_TIMEZONE', { infer: true });
     const day = await this.sourceService.collect(account, date, timeZone);
+    await this.traitNameService.record(Source.GITLAB, this.sourceService.findNames(day));
     const index = await this.traitService.loadIndex(Source.GITLAB, user.role);
     const results = this.activityService.classify(
       day,

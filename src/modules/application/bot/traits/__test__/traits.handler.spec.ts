@@ -12,6 +12,7 @@ import {
 } from 'src/modules/application/trait/trait.enums';
 import type { TraitMapping } from 'src/modules/application/trait/trait.interface';
 import type { TraitService } from 'src/modules/application/trait/trait.service';
+import type { TraitNameService } from 'src/modules/application/trait/trait-name/trait-name.service';
 import { JobRole } from 'src/modules/application/user/user.enums';
 import { TraitsHandler } from '../traits.handler';
 import { TraitsView } from '../traits.view';
@@ -44,7 +45,14 @@ describe('TraitsHandler', () => {
     findById: vi.fn<(id: string) => Promise<TraitMapping | null>>(),
     findByKey: vi.fn<(source: Source, sourceKey: string) => Promise<TraitMapping[]>>(),
   };
-  const handler = new TraitsHandler(traitService as unknown as TraitService, new TraitsView());
+  const traitNameService = {
+    countUnmapped: vi.fn<(source: Source, ignored: boolean) => Promise<number>>(),
+  };
+  const handler = new TraitsHandler(
+    traitService as unknown as TraitService,
+    traitNameService as unknown as TraitNameService,
+    new TraitsView(),
+  );
 
   function open(input: ChatInput) {
     return handler.handle({
@@ -64,6 +72,7 @@ describe('TraitsHandler', () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
+    traitNameService.countUnmapped.mockResolvedValue(3);
   });
 
   it('shows an empty list with the add button', async () => {
@@ -74,6 +83,7 @@ describe('TraitsHandler', () => {
       screen: {
         text: [locale.traitList.title(0), locale.traitList.empty].join('\n'),
         buttons: [
+          [{ text: 'No traits · 3', data: 'trtnm:list:new:0' }],
           [
             { text: 'Add', data: 'trtadd:start' },
             { text: 'Menu', data: 'adm:menu' },
@@ -97,11 +107,13 @@ describe('TraitsHandler', () => {
     const { screen } = await open(button('trt:list:0'));
 
     expect(traitService.findSourceNamePage).toHaveBeenCalledWith(8, 0);
+    expect(traitNameService.countUnmapped).toHaveBeenCalledWith(Source.GITLAB, false);
     expect(screen.text).toBe([locale.traitList.title(10), locale.traitList.page(1, 2)].join('\n'));
     expect(screen.buttons).toEqual([
       [{ text: 'level::1 · Low', data: `trt:card:${mapping(1).id}:0` }],
       [{ text: 'level::2 · Blocked', data: `trt:card:${mapping(2).id}:0` }],
       [{ text: 'Next ›', data: 'trt:list:1' }],
+      [{ text: 'No traits · 3', data: 'trtnm:list:new:0' }],
       [
         { text: 'Add', data: 'trtadd:start' },
         { text: 'Menu', data: 'adm:menu' },

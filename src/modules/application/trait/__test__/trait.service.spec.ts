@@ -12,9 +12,13 @@ import {
 import type { TraitIndex, TraitPair } from '../trait.interface';
 import type { TraitRepository } from '../trait.repository';
 import { TraitService } from '../trait.service';
+import type { TraitNameService } from '../trait-name/trait-name.service';
 
 function createIndex(mappings: Record<string, TraitPair[]>): TraitIndex {
-  return new Map(Object.entries(mappings).map(([name, pairs]) => [toSourceKey(name), pairs]));
+  return {
+    pairs: new Map(Object.entries(mappings).map(([name, pairs]) => [toSourceKey(name), pairs])),
+    ignored: new Set([toSourceKey('team::infra')]),
+  };
 }
 
 const INDEX = createIndex({
@@ -41,13 +45,18 @@ const INDEX = createIndex({
 });
 
 describe('TraitService', () => {
-  const service = new TraitService({} as TraitRepository);
+  const service = new TraitService({} as TraitRepository, {} as TraitNameService);
 
   it('finds the traits of a name in any spelling', () => {
     expect(service.findTraits(INDEX, 'Status::Ready_for QA')).toEqual([]);
     expect(service.findTraits(INDEX, ' Status::QA_Passed ')).toEqual([
       { dimension: TraitDimension.WORKFLOW_STATE, value: WorkflowState.QA_PASSED },
     ]);
+  });
+
+  it('knows an ignored name in any spelling', () => {
+    expect(service.isIgnored(INDEX, ' Team::Infra ')).toBe(true);
+    expect(service.isIgnored(INDEX, 'team::backend')).toBe(false);
   });
 
   it('treats a scoped and an unscoped name as the team mapped them', () => {

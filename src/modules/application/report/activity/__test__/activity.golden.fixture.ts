@@ -73,11 +73,11 @@ const MAPPINGS: [string, TraitDimension, TraitValue][] = [
 ];
 
 export function createGoldenIndex(): TraitIndex {
-  const index: TraitIndex = new Map();
+  const pairs: TraitIndex['pairs'] = new Map();
   for (const [name, dimension, value] of MAPPINGS) {
-    index.set(toSourceKey(name), [...(index.get(toSourceKey(name)) ?? []), { dimension, value }]);
+    pairs.set(toSourceKey(name), [...(pairs.get(toSourceKey(name)) ?? []), { dimension, value }]);
   }
-  return index;
+  return { pairs, ignored: new Set() };
 }
 
 export function loadGoldenDays(): GoldenDay[] {

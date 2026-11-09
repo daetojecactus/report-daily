@@ -8,6 +8,8 @@ import type { TraitValue } from 'src/modules/application/trait/trait.interface';
 import type { JobRole } from 'src/modules/application/user/user.enums';
 import { BotNamespace } from '../bot.enums';
 import { BOT_BUTTON_DATA_SEPARATOR } from '../constants/bot.constants';
+import type { TraitNameList } from '../trait-names/trait-names.enums';
+import { TraitNamesAction } from '../trait-names/trait-names.enums';
 import { TRAITS_BUTTONS_PER_ROW } from './constants/traits.constants';
 import { TraitsAction } from './traits.enums';
 
@@ -51,6 +53,23 @@ export class TraitsView {
 
   toCardData(id: string, page = 0) {
     return [BotNamespace.TRAITS, TraitsAction.CARD, id, page].join(BOT_BUTTON_DATA_SEPARATOR);
+  }
+
+  toNamesData(list: TraitNameList, page = 0) {
+    return [BotNamespace.TRAIT_NAMES, TraitNamesAction.LIST, list, page].join(
+      BOT_BUTTON_DATA_SEPARATOR,
+    );
+  }
+
+  toPageButtons(locale: Locale, current: number, pages: number, toData: (page: number) => string) {
+    const buttons: ScreenButton[] = [];
+    if (current > 0) {
+      buttons.push({ text: locale.traitList.previous, data: toData(current - 1) });
+    }
+    if (current < pages - 1) {
+      buttons.push({ text: locale.traitList.next, data: toData(current + 1) });
+    }
+    return buttons.length > 0 ? [buttons] : [];
   }
 
   toListButton(locale: Locale): ScreenButton {

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { SourceActionKind, SourceRefType } from 'src/modules/application/source/source.enums';
 import type { GroupedDailyData } from 'src/modules/application/source/source.interface';
 import { JobRole } from 'src/modules/application/user/user.enums';
-import { ActivityAction, ActivityDetail } from '../activity.enums';
+import { ActivityAction, ActivityDetail, ActivityRule } from '../activity.enums';
 import {
   at,
   createIndex,
@@ -14,7 +14,7 @@ import {
   pushEvent,
 } from './activity.fixture';
 
-function classify(overrides: Partial<GroupedDailyData>) {
+function classify(overrides: Partial<GroupedDailyData>, index = createIndex()) {
   return createService().classify(
     {
       projects: [],
@@ -25,11 +25,40 @@ function classify(overrides: Partial<GroupedDailyData>) {
       ...overrides,
     },
     { username: ME, role: JobRole.DEVELOPER },
-    createIndex(),
+    index,
   );
 }
 
 describe('ActivityService', () => {
+  it('drops the changes of ignored names and leaves a line with nothing else out', () => {
+    const changes = [
+      fact(SourceActionKind.LABEL_ADDED, at(10), { value: 'Team::Infra' }),
+      fact(SourceActionKind.LABEL_REMOVED, at(10, 1), { value: 'Team::Infra' }),
+      fact(SourceActionKind.STATUS_SET, at(10, 5), { value: 'Waiting' }),
+    ];
+    const index = createIndex(['team::infra', 'waiting']);
+
+    const [ignored] = classify({ issues: [createIssue({ facts: changes })] }, index);
+    expect(ignored.excluded).toBe(true);
+    expect(ignored.choice.main.action).toBe(ActivityAction.STATE_ONLY);
+    expect(ignored.signals.dropped.map(({ rule }) => rule)).toEqual([
+      ActivityRule.IGNORED_NAME,
+      ActivityRule.IGNORED_NAME,
+      ActivityRule.IGNORED_NAME,
+    ]);
+
+    const [counted] = classify({ issues: [createIssue({ facts: changes })] });
+    expect(counted.excluded).toBe(false);
+    expect(counted.choice.main.action).toBe(ActivityAction.EDITED);
+
+    const [commented] = classify(
+      { issues: [createIssue({ facts: [fact(SourceActionKind.COMMENTED, at(9)), ...changes] })] },
+      index,
+    );
+    expect(commented.excluded).toBe(false);
+    expect(commented.choice.main.action).toBe(ActivityAction.COMMENTED);
+  });
+
   it('classifies every line of the day', () => {
     const results = classify({
       issues: [createIssue({ facts: [fact(SourceActionKind.COMMENTED, at(10))] })],
