@@ -783,11 +783,11 @@ describe('GitLabSourceBuilder', () => {
       });
 
       expect(toOwn(grouped.facts)).toEqual([
-        action(SourceActionKind.DUE_DATE_SET, 9, 'November 15, 2026'),
-        action(SourceActionKind.START_DATE_SET, 10, 'November 2, 2026'),
-        action(SourceActionKind.DUE_DATE_SET, 10, 'November 20, 2026'),
-        action(SourceActionKind.DUE_DATE_REMOVED, 11, 'November 20, 2026'),
-        action(SourceActionKind.START_DATE_REMOVED, 12, 'November 2, 2026'),
+        action(SourceActionKind.DUE_DATE_SET, 9, '2026-11-15'),
+        action(SourceActionKind.START_DATE_SET, 10, '2026-11-02'),
+        action(SourceActionKind.DUE_DATE_SET, 10, '2026-11-20'),
+        action(SourceActionKind.DUE_DATE_REMOVED, 11, '2026-11-20'),
+        action(SourceActionKind.START_DATE_REMOVED, 12, '2026-11-02'),
       ]);
     });
 

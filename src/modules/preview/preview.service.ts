@@ -45,19 +45,22 @@ export class PreviewService {
       index,
     );
     const locale = this.i18nService.getLocale(language ?? user.language ?? DEFAULT_LANGUAGE);
-    const phrases = new Map(
-      results.map((result) => [result, this.phraseService.describe(result, user.gender, locale)]),
-    );
+    const summaries = this.activityService.summarize(results);
+    const texts = {
+      lines: new Map(
+        results.map((result) => [result, this.phraseService.describe(result, user.gender, locale)]),
+      ),
+      summaries: new Map(
+        summaries.map((summary) => [
+          summary,
+          this.phraseService.summarize(summary, user.gender, locale),
+        ]),
+      ),
+    };
     return [
       [account.username, user.role, date, timeZone].join(' · '),
       `issues: ${day.issues.length}, merge requests without an issue: ${day.standaloneMergeRequests.length}, pushes without a merge request: ${day.standalonePushes.length}`,
-      ...this.previewRenderer.render(
-        day,
-        results,
-        trace,
-        this.activityService.summarize(results),
-        phrases,
-      ),
+      ...this.previewRenderer.render(day, results, trace, summaries, texts),
     ].join('\n');
   }
 }

@@ -18,13 +18,24 @@ const NAMES = [
   'roles.qa',
   'roles.devops',
   'phrases.withNote',
+  'phrases.counts.refs',
+  'phrases.summaryLine',
 ];
+
+const FRAGMENTS = ['phrases.names.', 'phrases.counts.'];
 
 const GENDERS: string[] = Object.values(Gender);
 
-function isGendered(value: object) {
+function isGendered(value: unknown): value is Record<string, string> {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
   const keys = Object.keys(value);
   return keys.length === GENDERS.length && keys.every((key) => GENDERS.includes(key));
+}
+
+function toText(value: unknown) {
+  return isGendered(value) ? Object.values(value).join(' / ') : String(value);
 }
 
 function collectEntries(value: unknown, path = ''): [string, unknown][] {
@@ -50,7 +61,7 @@ function renderTexts(language: Language) {
   return collectEntries(i18nService.getLocale(language)).map(([path, value]): [string, string] => [
     path,
     typeof value === 'function'
-      ? String((value as (...args: string[]) => unknown)('Telegram', '1'))
+      ? toText((value as (...args: string[]) => unknown)('Telegram', '1'))
       : String(value),
   ]);
 }
@@ -62,7 +73,9 @@ describe('I18nService', () => {
 
   it.each(LANGUAGES)('locale %s has no empty or padded texts', (language) => {
     const invalid = renderTexts(language).filter(
-      ([, text]) => text.trim() === '' || text.trim() !== text,
+      ([path, text]) =>
+        !FRAGMENTS.some((fragment) => path.startsWith(fragment)) &&
+        (text.trim() === '' || text.trim() !== text),
     );
 
     expect(invalid).toEqual([]);

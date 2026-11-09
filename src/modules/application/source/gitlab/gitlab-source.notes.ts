@@ -4,6 +4,7 @@ import {
   GITLAB_SOURCE_DATE_ACTIONS,
   GITLAB_SOURCE_DATE_CHANGE_PATTERN,
   GITLAB_SOURCE_DATE_NOTE_PATTERN,
+  GITLAB_SOURCE_MONTHS,
   GITLAB_SOURCE_KNOWN_NOTES,
   GITLAB_SOURCE_LINK_KINDS,
   GITLAB_SOURCE_LINK_WINDOW_MS,
@@ -37,9 +38,14 @@ export class GitLabSourceNotes {
       return [];
     }
     return [...note.body.matchAll(GITLAB_SOURCE_DATE_CHANGE_PATTERN)].flatMap(
-      ([, action, field, date]) => {
+      ([, action, field, month, day, year]) => {
         const kind = GITLAB_SOURCE_DATE_ACTIONS.get(`${action} ${field}`);
-        return kind ? [{ kind, value: date ?? null }] : [];
+        const monthIndex = GITLAB_SOURCE_MONTHS.indexOf(month);
+        const value =
+          monthIndex === -1
+            ? null
+            : [year, String(monthIndex + 1).padStart(2, '0'), day.padStart(2, '0')].join('-');
+        return kind ? [{ kind, value }] : [];
       },
     );
   }
