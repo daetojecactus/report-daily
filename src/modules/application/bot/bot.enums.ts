@@ -27,4 +27,6 @@ export enum BotNamespace {
   TRAIT_MANAGE = 'trtmng',
   TRAIT_NAMES = 'trtnm',
   REPORT = 'rpt',
+  TEMPLATES = 'tpl',
+  TEMPLATE_ADD = 'tpladd',
 }

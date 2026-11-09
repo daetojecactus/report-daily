@@ -22,6 +22,7 @@ import { ReportComposer } from './report.composer';
 import { ReportRepository } from './report.repository';
 import { ReportService } from './report.service';
 import { TemplateContext } from './template/template.context';
+import { TemplateRepository } from './template/template.repository';
 import { TemplateService } from './template/template.service';
 
 @Module({
@@ -44,10 +45,11 @@ import { TemplateService } from './template/template.service';
     PhraseService,
     TemplateContext,
     TemplateService,
+    TemplateRepository,
     ReportComposer,
     ReportRepository,
     ReportService,
   ],
-  exports: [ActivityService, PhraseService, ReportComposer, ReportService],
+  exports: [ActivityService, PhraseService, ReportComposer, ReportService, TemplateService],
 })
 export class ReportModule {}

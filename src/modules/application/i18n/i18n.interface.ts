@@ -98,6 +98,40 @@ export interface CommonLocale {
     aiData: LocaleSwitch;
     on: string;
     off: string;
+    template: string;
+  };
+  templates: {
+    title: string;
+    current: (name: string) => string;
+    standard: string;
+    shared: (name: string) => string;
+    mine: string;
+    toSettings: string;
+    chosen: (name: string) => string;
+    notFound: string;
+    mineTitle: (count: number) => string;
+    mineEmpty: string;
+    create: string;
+    back: string;
+    use: string;
+    delete: string;
+    backToMine: string;
+    confirmDelete: (name: string) => string;
+    confirm: string;
+    cancel: string;
+    deleted: (name: string) => string;
+    askName: (max: number) => string;
+    nameInvalid: (max: number) => string;
+    askBody: (name: string, max: number) => string;
+    bodyInvalid: (max: number) => string;
+    syntaxError: (error: string) => string;
+    renderError: (error: string) => string;
+    preview: (date: string) => string;
+    emptyOutput: string;
+    noPreview: string;
+    save: string;
+    saved: (name: string) => string;
+    cancelled: string;
   };
 }
 

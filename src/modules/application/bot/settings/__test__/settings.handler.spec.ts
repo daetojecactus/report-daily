@@ -32,6 +32,7 @@ const MENU_BUTTONS = [
   ],
   [{ text: 'AI: yes', data: 'set:ai:off' }],
   [{ text: 'Data in AI: yes', data: 'set:aidata:off' }],
+  [{ text: 'Report template', data: 'tpl:menu' }],
 ];
 
 function button(data: string): ChatInput {
@@ -211,6 +212,7 @@ describe('SettingsHandler', () => {
     expect(screen.buttons?.slice(2)).toEqual([
       [{ text: 'AI: no', data: 'set:ai:on' }],
       [{ text: 'Data in AI: no', data: 'set:aidata:on' }],
+      [{ text: 'Report template', data: 'tpl:menu' }],
     ]);
   });
 

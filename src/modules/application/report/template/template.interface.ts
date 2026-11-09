@@ -1,3 +1,4 @@
+import type { PgUpdateSetSource } from 'drizzle-orm/pg-core';
 import type { Language } from 'src/modules/application/i18n/i18n.enums';
 import type { GroupedDailyData } from 'src/modules/application/source/source.interface';
 import type { Priority, TaskKind, WorkflowState } from 'src/modules/application/trait/trait.enums';
@@ -5,6 +6,13 @@ import type { Gender, JobRole } from 'src/modules/application/user/user.enums';
 import type { ActivityAction, ActivityDetail, ActivityTier } from '../activity/activity.enums';
 import type { ActivityResult, ActivitySummary } from '../activity/activity.interface';
 import type { TemplateItemType } from './template.enums';
+import type { reportTemplates } from './template.schema';
+
+export type ReportTemplate = typeof reportTemplates.$inferSelect;
+
+export type ReportTemplateInsert = typeof reportTemplates.$inferInsert;
+
+export type ReportTemplateUpdate = PgUpdateSetSource<typeof reportTemplates>;
 
 export interface TemplateEmployee {
   name: string;
