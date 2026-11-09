@@ -3,6 +3,8 @@ import {
   TELEGRAM_HTML_ESCAPES,
   TELEGRAM_HTML_SPECIAL_CHARACTERS,
   TELEGRAM_LINK_PROTOCOLS,
+  TELEGRAM_MESSAGE_LIMIT,
+  TELEGRAM_SPLIT_SEPARATORS,
 } from './constants/telegram.constants';
 
 interface FormattedToken {
@@ -21,6 +23,32 @@ export class TelegramFormatter {
       index = token.end;
     }
     return html;
+  }
+
+  split(markdown: string, limit = TELEGRAM_MESSAGE_LIMIT): string[] {
+    const parts: string[] = [];
+    let rest = markdown;
+    while (rest.length > limit) {
+      const cut = this.findCut(rest, limit);
+      parts.push(rest.slice(0, cut).trimEnd());
+      rest = rest.slice(cut).trimStart();
+    }
+    return [...parts, rest];
+  }
+
+  private findCut(text: string, limit: number) {
+    const window = text.slice(0, limit + 1);
+    for (const separator of TELEGRAM_SPLIT_SEPARATORS) {
+      const index = window.lastIndexOf(separator);
+      if (index > 0) {
+        return index;
+      }
+    }
+    let escapes = 0;
+    while (text[limit - escapes - 1] === '\\') {
+      escapes++;
+    }
+    return escapes % 2 === 1 ? limit - 1 : limit;
   }
 
   private readToken(markdown: string, index: number): FormattedToken {

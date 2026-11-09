@@ -17,32 +17,37 @@ import type {
 export class TelegramRenderer {
   constructor(private readonly telegramFormatter: TelegramFormatter) {}
 
-  renderMessage(screen: Screen): TelegramMessageContent {
-    const content = this.renderText(screen);
+  renderMessages(screen: Screen): TelegramMessageContent[] {
+    const parts = this.renderParts(screen);
+    const last = parts[parts.length - 1];
     if (screen.userPicker) {
-      content.reply_markup = this.toUserPicker(screen.userPicker);
+      last.reply_markup = this.toUserPicker(screen.userPicker);
     } else if (screen.buttons?.length) {
-      content.reply_markup = this.toInlineKeyboard(screen.buttons);
+      last.reply_markup = this.toInlineKeyboard(screen.buttons);
     } else {
-      content.reply_markup = { remove_keyboard: true };
+      last.reply_markup = { remove_keyboard: true };
     }
-    return content;
+    return parts;
   }
 
-  renderEdit(screen: Screen): TelegramMessageContent {
-    const content = this.renderText(screen);
+  renderEdit(screen: Screen): TelegramMessageContent | null {
+    const parts = this.renderParts(screen);
+    if (parts.length > 1) {
+      return null;
+    }
+    const [content] = parts;
     if (screen.buttons?.length) {
       content.reply_markup = this.toInlineKeyboard(screen.buttons);
     }
     return content;
   }
 
-  private renderText(screen: Screen): TelegramMessageContent {
-    return {
-      text: this.telegramFormatter.format(screen.text),
+  private renderParts(screen: Screen): TelegramMessageContent[] {
+    return this.telegramFormatter.split(screen.text).map((part) => ({
+      text: this.telegramFormatter.format(part),
       parse_mode: TelegramParseMode.HTML,
       link_preview_options: { is_disabled: true },
-    };
+    }));
   }
 
   private toInlineKeyboard(buttons: ScreenButton[][]): TelegramInlineKeyboardMarkup {

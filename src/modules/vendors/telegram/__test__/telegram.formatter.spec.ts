@@ -140,4 +140,43 @@ describe('TelegramFormatter', () => {
       '<b>**[a_b](https://x.y)** `c` \\ &lt;d&gt; &amp; &quot;e&quot;</b>',
     );
   });
+
+  describe('split', () => {
+    const project = (name: string, lines: number) =>
+      [`${name}:`, ...Array.from({ length: lines }, (_, index) => `• **Line** ${index}`)].join(
+        '\n',
+      );
+
+    it('keeps a short text whole', () => {
+      expect(formatter.split('project:\n• line')).toEqual(['project:\n• line']);
+    });
+
+    it('cuts between projects first, then between lines, then at a space', () => {
+      const report = [project('a', 3), project('b', 3)].join('\n\n');
+
+      expect(formatter.split(report, 60)).toEqual([project('a', 3), project('b', 3)]);
+      expect(formatter.split(project('a', 6), 50)).toEqual([
+        project('a', 3),
+        '• **Line** 3\n• **Line** 4\n• **Line** 5',
+      ]);
+      expect(formatter.split('one two three four', 9)).toEqual(['one two', 'three', 'four']);
+    });
+
+    it('keeps every part within the limit with its tags balanced', () => {
+      const report = Array.from({ length: 40 }, (_, index) => project(`p${index}`, 30)).join(
+        '\n\n',
+      );
+      const parts = formatter.split(report);
+
+      expect(parts.length).toBeGreaterThan(1);
+      expect(parts.every((part) => part.length <= 4096)).toBe(true);
+      expect(parts.join('\n\n')).toBe(report);
+      expect(parts.every((part) => hasBalancedTags(formatter.format(part)))).toBe(true);
+    });
+
+    it('does not cut an escape in a word longer than the limit', () => {
+      expect(formatter.split('aaaa\\*bbbb', 5)).toEqual(['aaaa', '\\*bbb', 'b']);
+      expect(formatter.split('aaa\\\\bbbb', 5)).toEqual(['aaa\\\\', 'bbbb']);
+    });
+  });
 });

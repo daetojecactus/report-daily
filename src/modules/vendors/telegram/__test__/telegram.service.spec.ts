@@ -329,6 +329,25 @@ describe('TelegramService', () => {
       });
     });
 
+    it('sends a long text in parts with the keyboard on the last one', async () => {
+      const text = Array.from({ length: 3 }, (_, index) =>
+        [`project ${index}:`, ...Array.from({ length: 60 }, () => '• a line of the report')].join(
+          '\n',
+        ),
+      ).join('\n\n');
+      repository.sendMessage
+        .mockResolvedValueOnce(sentMessage(300_000_007))
+        .mockResolvedValueOnce(sentMessage(300_000_008));
+
+      await expect(service.sendScreen(CHAT_ID, { ...SCREEN, text })).resolves.toBe('300000008');
+
+      const sent = repository.sendMessage.mock.calls.map(([, content]) => content);
+      expect(sent).toHaveLength(2);
+      expect(sent.every(({ text: part }) => part.length <= 4096)).toBe(true);
+      expect(sent[0].reply_markup).toBeUndefined();
+      expect(sent[1].reply_markup).toEqual(RENDERED_SCREEN.reply_markup);
+    });
+
     it('sends a user picker as a one-time reply keyboard', async () => {
       repository.sendMessage.mockResolvedValueOnce(sentMessage(300_000_007));
 
@@ -387,6 +406,15 @@ describe('TelegramService', () => {
 
       expect(repository.sendMessage).toHaveBeenCalledOnce();
       expect(repository.editMessageText).not.toHaveBeenCalled();
+    });
+
+    it('sends a text too long for one message anew', async () => {
+      repository.sendMessage.mockResolvedValue(sentMessage(300_000_009));
+
+      await service.editScreen(CHAT_ID, '300000003', { text: 'a line\n'.repeat(1000) });
+
+      expect(repository.editMessageText).not.toHaveBeenCalled();
+      expect(repository.sendMessage).toHaveBeenCalledTimes(2);
     });
 
     it('edits the message by its numeric id', async () => {
