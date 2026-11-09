@@ -34,6 +34,16 @@ export class ReportService {
     return this.reportRepository.upsert(values);
   }
 
+  findById(id: string) {
+    return this.findOne(eq(reports.id, id));
+  }
+
+  markDelivered(id: string) {
+    return this.reportRepository.updateOne(eq(reports.id, id), {
+      status: ReportStatus.DELIVERED,
+    });
+  }
+
   findByDate(userId: string, reportDate: string) {
     return this.findOne(and(eq(reports.userId, userId), eq(reports.reportDate, reportDate))!);
   }

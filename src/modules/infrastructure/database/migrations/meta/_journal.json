@@ -50,6 +50,13 @@
       "when": 1794227298323,
       "tag": "0006_reports",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1794229197182,
+      "tag": "0007_deliveries",
+      "breakpoints": true
     }
   ]
 }
