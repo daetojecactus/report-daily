@@ -1,5 +1,6 @@
 export enum BotCommand {
   START = 'start',
+  REPORT = 'report',
   SETTINGS = 'settings',
   ADMIN = 'admin',
   HELP = 'help',

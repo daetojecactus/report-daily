@@ -61,6 +61,7 @@ describe('BotModule', () => {
     it('starts and keeps the commands of the real handlers', () => {
       expect(app.get(RouterService).listMenu()).toEqual([
         { command: BotCommand.START, access: BotAccess.ANYONE },
+        { command: BotCommand.REPORT, access: BotAccess.EMPLOYEE },
         { command: BotCommand.SETTINGS, access: BotAccess.EMPLOYEE },
         { command: BotCommand.ADMIN, access: BotAccess.ADMIN },
         { command: BotCommand.HELP, access: BotAccess.ANYONE },

@@ -19,10 +19,16 @@ export const ruCommon: CommonLocale = {
   },
   commands: {
     [BotCommand.START]: 'Начать работу с ботом',
+    [BotCommand.REPORT]: 'Отчёт за сегодня',
     [BotCommand.SETTINGS]: 'Мои настройки',
     [BotCommand.ADMIN]: 'Управление ботом',
     [BotCommand.HELP]: 'Список команд',
     [BotCommand.CANCEL]: 'Прервать текущее действие',
+  },
+  report: {
+    building: 'Собираю отчёт за сегодня. Пришлю, как только будет готов.',
+    empty: 'За сегодня в GitLab нет ваших действий, отчёта нет.',
+    failed: 'Не получилось собрать отчёт: GitLab не ответил. Попробуйте ещё раз позже.',
   },
   roles: {
     [JobRole.DEVELOPER]: 'Разработчик',
