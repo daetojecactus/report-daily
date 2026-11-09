@@ -6,6 +6,7 @@ import type {
   PhraseName,
   ReportPhrase,
 } from 'src/modules/application/report/phrase/phrase.enums';
+import type { ActivityTier } from 'src/modules/application/report/activity/activity.enums';
 import type { SummaryPhrase } from 'src/modules/application/report/phrase/phrase.interface';
 import type { TraitDimension, WorkflowState } from 'src/modules/application/trait/trait.enums';
 import type { TraitDimensionValueMap } from 'src/modules/application/trait/trait.interface';
@@ -257,6 +258,7 @@ export interface PhrasesLocale {
     summaries: Record<SummaryPhrase, (count: number) => GenderedText>;
     summaryLine: (text: string, references: string) => string;
     dateLocale: string;
+    categories: Record<ActivityTier, string>;
   };
 }
 

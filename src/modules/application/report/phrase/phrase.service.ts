@@ -31,11 +31,15 @@ import {
   PHRASE_SUMMARY_NAMES,
 } from './constants/phrase.constants';
 import { PhraseCount, PhraseName, ReportPhrase } from './phrase.enums';
-import type { PhraseRule, SummaryPhrase } from './phrase.interface';
+import type { PhraseParts, PhraseRule, SummaryPhrase } from './phrase.interface';
 
 @Injectable()
 export class PhraseService {
-  describe({ line, signals, choice }: ActivityResult, gender: Gender, locale: Locale) {
+  describe(result: ActivityResult, gender: Gender, locale: Locale) {
+    return this.compose(result, gender, locale).text;
+  }
+
+  compose({ line, signals, choice }: ActivityResult, gender: Gender, locale: Locale): PhraseParts {
     const texts = locale.phrases;
     const { main } = choice;
     const state = this.toStateText(locale, line, signals.endStates);
@@ -45,15 +49,12 @@ export class PhraseService {
         ? texts.stateLine(state)
         : `${this.toGendered(texts.actions[key], gender)}${this.toValue(locale, key, line, main)}`;
     const context = this.findContext(main);
+    const actionText = [phrase, ...(context ? [texts.contexts[context]] : [])].join(' ');
     const title = this.toTitle(line);
-    const text = [
-      phrase,
-      ...(context ? [texts.contexts[context]] : []),
-      ...(title ? [texts.quote(title)] : []),
-    ].join(' ');
-    return PHRASE_NOTED_ACTIONS.has(main.action) && line.issue && state
-      ? texts.withNote(text, texts.stateNote(state))
-      : text;
+    const text = [actionText, ...(title ? [texts.quote(title)] : [])].join(' ');
+    const note =
+      PHRASE_NOTED_ACTIONS.has(main.action) && line.issue && state ? texts.stateNote(state) : null;
+    return { text: note ? texts.withNote(text, note) : text, actionText, title, note };
   }
 
   summarize({ results }: ActivitySummary, gender: Gender, locale: Locale) {
@@ -163,16 +164,17 @@ export class PhraseService {
     return (PHRASE_SUMMARIES as readonly ReportPhrase[]).includes(phrase);
   }
 
-  private toReference(locale: Locale, line: ActivityLine) {
+  findReference(line: ActivityLine) {
     if (line.issue) {
       return `${PHRASE_ISSUE_PREFIX}${line.issue.iid}`;
     }
     const mergeRequest = line.mergeRequests.at(0);
-    if (mergeRequest) {
-      return `${PHRASE_MERGE_REQUEST_PREFIX}${mergeRequest.iid}`;
-    }
+    return mergeRequest ? `${PHRASE_MERGE_REQUEST_PREFIX}${mergeRequest.iid}` : null;
+  }
+
+  private toReference(locale: Locale, line: ActivityLine) {
     const title = this.toTitle(line);
-    return title ? locale.phrases.quote(title) : '';
+    return this.findReference(line) ?? (title ? locale.phrases.quote(title) : '');
   }
 
   private toStateText(locale: Locale, line: ActivityLine, states: WorkflowState[]) {

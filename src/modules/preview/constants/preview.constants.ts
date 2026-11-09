@@ -7,6 +7,8 @@ export const PREVIEW_TRACE_FLAG = '--trace';
 
 export const PREVIEW_LANGUAGE_FLAG = '--lang=';
 
+export const PREVIEW_EMPTY_REPORT = '(no lines for the report)';
+
 export const PREVIEW_REASONS: Record<ActivityReason, string> = {
   [ActivityReason.ONLY]: 'the only action',
   [ActivityReason.TIER]: 'a higher tier',

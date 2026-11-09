@@ -1,3 +1,4 @@
+import { ActivityTier } from 'src/modules/application/report/activity/activity.enums';
 import {
   PhraseContext,
   PhraseCount,
@@ -584,5 +585,13 @@ export const ruPhrases: PhrasesLocale = {
     },
     summaryLine: (text, references) => `${text}: ${references}`,
     dateLocale: 'ru',
+    categories: {
+      [ActivityTier.OUTCOME]: 'Итоги',
+      [ActivityTier.CHECK]: 'Проверки',
+      [ActivityTier.TRANSITION]: 'Переходы',
+      [ActivityTier.WORK]: 'Работа',
+      [ActivityTier.PARTICIPATION]: 'Участие',
+      [ActivityTier.CONTEXT]: 'Состояние задач',
+    },
   },
 };
