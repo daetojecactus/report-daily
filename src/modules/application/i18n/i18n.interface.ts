@@ -34,6 +34,11 @@ export interface CommonLocale {
   sources: Record<Source, string>;
   languages: Record<Language, string>;
   commands: Record<BotCommand, string>;
+  report: {
+    building: string;
+    empty: string;
+    failed: string;
+  };
   roles: Record<JobRole, string>;
   genders: Record<Gender, string>;
   statuses: Record<UserStatus, string>;

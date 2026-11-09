@@ -7,6 +7,7 @@ import { UserModule } from 'src/modules/application/user/user.module';
 import { GitLabModule } from 'src/modules/vendors/gitlab/gitlab.module';
 import { TelegramModule } from 'src/modules/vendors/telegram/telegram.module';
 import { TelegramService } from 'src/modules/vendors/telegram/telegram.service';
+import { ReportQueueModule } from 'src/modules/queue/report/report-queue.module';
 import { AccessService } from './access/access.service';
 import { AdminHandler } from './admin/admin.handler';
 import { BotService } from './bot.service';
@@ -26,11 +27,20 @@ import { TraitsHandler } from './traits/traits.handler';
 import { TraitsView } from './traits/traits.view';
 import { StartHandler } from './handlers/start.handler';
 import { MenuService } from './menu/menu.service';
+import { ReportHandler } from './report/report.handler';
 import { RouterService } from './router/router.service';
 import { SettingsHandler } from './settings/settings.handler';
 
 @Module({
-  imports: [DiscoveryModule, I18nModule, TraitModule, UserModule, GitLabModule, TelegramModule],
+  imports: [
+    DiscoveryModule,
+    I18nModule,
+    TraitModule,
+    UserModule,
+    GitLabModule,
+    TelegramModule,
+    ReportQueueModule,
+  ],
   providers: [
     BotService,
     AccessService,
@@ -47,6 +57,7 @@ import { SettingsHandler } from './settings/settings.handler';
     EmployeeManageHandler,
     EmployeePermissionsHandler,
     SettingsHandler,
+    ReportHandler,
     TraitsHandler,
     TraitAddHandler,
     TraitManageHandler,

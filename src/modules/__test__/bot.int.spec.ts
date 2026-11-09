@@ -13,6 +13,8 @@ import { users } from 'src/modules/application/user/user.schema';
 import { userSources } from 'src/modules/application/user/user-source/user-source.schema';
 import { Source } from 'src/modules/application/source/source.enums';
 import { traitMappings } from 'src/modules/application/trait/trait.schema';
+import { ReportStatus } from 'src/modules/application/report/report.enums';
+import { reports } from 'src/modules/application/report/report.schema';
 import { TraitDimension, Priority } from 'src/modules/application/trait/trait.enums';
 import { DATABASE_INSTANCE } from 'src/modules/infrastructure/database/constants/database.constants';
 import { RedisService } from 'src/modules/infrastructure/redis/redis.service';
@@ -156,6 +158,29 @@ describe('Telegram bot', () => {
     expect(text).toContain(`/start — ${en.commands.start}`);
     expect(text).toContain(`/cancel — ${en.commands.cancel}`);
     expect(text).toContain(en.help.privacy);
+  });
+
+  it('builds and sends the report of today on /report', async () => {
+    const { user, telegramId } = await createEmployee();
+    await fakeGitLab.addUser({
+      id: telegramId,
+      username: `user${telegramId}`,
+      name: `User ${telegramId}`,
+      state: 'active',
+      avatar_url: 'https://gitlab.example.com/avatar.png',
+      web_url: `https://gitlab.example.com/user${telegramId}`,
+      hasActivity: false,
+    });
+
+    await fakeBotApi.pushUpdate(privateMessage(telegramId, '/report'));
+
+    expect((await replyTo(telegramId)).text).toBe(en.report.building);
+    await fakeBotApi.waitForRequest(
+      'sendMessage',
+      (body) => body.chat_id === String(telegramId) && body.text === en.report.empty,
+    );
+    const [report] = await db.select().from(reports).where(eq(reports.userId, user.id));
+    expect(report).toMatchObject({ status: ReportStatus.EMPTY, content: '' });
   });
 
   it('ends a dialog on cancel', async () => {
@@ -486,6 +511,7 @@ describe('Telegram bot', () => {
     );
     expect((menu.commands as { command: string }[]).map((item) => item.command)).toEqual([
       'start',
+      'report',
       'settings',
       'admin',
       'help',

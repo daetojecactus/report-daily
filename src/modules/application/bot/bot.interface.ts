@@ -15,6 +15,12 @@ export interface BotSectionOptions {
   namespace?: string;
 }
 
+export interface BotTarget {
+  channel: Channel;
+  chatId: string;
+  externalId: string;
+}
+
 export interface BotActor {
   channel: Channel;
   externalId: string;

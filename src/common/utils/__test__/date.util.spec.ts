@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
-import { addDays, getDayRange, isWithinDay, toDate } from '../date.util';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { addDays, getDayRange, getToday, isWithinDay, toDate } from '../date.util';
 
 describe('toDate', () => {
   it.each([
@@ -24,6 +24,19 @@ describe('addDays', () => {
     ['2024-02-28', 1, '2024-02-29'],
   ])('moves %s by %i days to %s', (date, days, result) => {
     expect(addDays(date, days)).toBe(result);
+  });
+});
+
+describe('getToday', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('takes the date in the time zone of the employee', () => {
+    vi.useFakeTimers({ now: Date.parse('2026-11-09T20:30:00Z') });
+
+    expect(getToday('Asia/Almaty')).toBe('2026-11-10');
+    expect(getToday('Europe/London')).toBe('2026-11-09');
   });
 });
 

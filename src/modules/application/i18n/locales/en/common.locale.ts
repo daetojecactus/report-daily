@@ -19,10 +19,16 @@ export const enCommon: CommonLocale = {
   },
   commands: {
     [BotCommand.START]: 'Start the bot',
+    [BotCommand.REPORT]: "Today's report",
     [BotCommand.SETTINGS]: 'My settings',
     [BotCommand.ADMIN]: 'Manage the bot',
     [BotCommand.HELP]: 'List of commands',
     [BotCommand.CANCEL]: 'Cancel the current action',
+  },
+  report: {
+    building: "Building today's report. I'll send it as soon as it is ready.",
+    empty: 'You have no actions in GitLab today, so there is no report.',
+    failed: 'Could not build the report: GitLab did not answer. Please try again later.',
   },
   roles: {
     [JobRole.DEVELOPER]: 'Developer',

@@ -17,6 +17,13 @@ export function addDays(date: string, days: number) {
   return Temporal.PlainDate.from(date).add({ days }).toString();
 }
 
+export function getToday(timeZone: string) {
+  return Temporal.Instant.fromEpochMilliseconds(Date.now())
+    .toZonedDateTimeISO(timeZone)
+    .toPlainDate()
+    .toString();
+}
+
 export function getDayRange(date: string, timeZone: string): DayRange {
   const start = Temporal.PlainDate.from(date).toZonedDateTime({ timeZone });
   return {

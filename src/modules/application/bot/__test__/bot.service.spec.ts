@@ -459,4 +459,20 @@ describe('BotService', () => {
 
     await expect(duplicate.init()).rejects.toThrow(BotMessages.DUPLICATE_COMMAND);
   });
+
+  it('sends a screen to a chat and marks the chat unreachable when the bot is blocked', async () => {
+    const target = { channel: Channel.TELEGRAM, chatId: EMPLOYEE_ID, externalId: EMPLOYEE_ID };
+    await botService.sendTo(target, { text: 'project:\n• Fixed a bug' });
+    expect(channel.sendScreen).toHaveBeenCalledWith(EMPLOYEE_ID, {
+      text: 'project:\n• Fixed a bug',
+    });
+
+    channel.sendScreen.mockRejectedValue(new ChatUnreachableError('blocked'));
+    await botService.sendTo(target, { text: 'project:\n• Fixed a bug' });
+    expect(channelService.updateReachable).toHaveBeenCalledWith(
+      Channel.TELEGRAM,
+      EMPLOYEE_ID,
+      false,
+    );
+  });
 });

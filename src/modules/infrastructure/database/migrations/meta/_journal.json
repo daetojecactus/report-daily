@@ -43,6 +43,13 @@
       "when": 1794207467032,
       "tag": "0005_trait_names",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1794227298323,
+      "tag": "0006_reports",
+      "breakpoints": true
     }
   ]
 }

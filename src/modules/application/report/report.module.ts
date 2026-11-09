@@ -1,5 +1,8 @@
 import { Module } from '@nestjs/common';
+import { I18nModule } from 'src/modules/application/i18n/i18n.module';
+import { SourceModule } from 'src/modules/application/source/source.module';
 import { TraitModule } from 'src/modules/application/trait/trait.module';
+import { UserModule } from 'src/modules/application/user/user.module';
 import { ActivityCodeDetector } from './activity/activity-code.detector';
 import { ActivityEventDetector } from './activity/activity-event.detector';
 import { ActivityLifecycleDetector } from './activity/activity-lifecycle.detector';
@@ -15,11 +18,14 @@ import { ActivityService } from './activity/activity.service';
 import { ActivitySignals } from './activity/activity.signals';
 import { ActivitySummaries } from './activity/activity.summaries';
 import { PhraseService } from './phrase/phrase.service';
+import { ReportComposer } from './report.composer';
+import { ReportRepository } from './report.repository';
+import { ReportService } from './report.service';
 import { TemplateContext } from './template/template.context';
 import { TemplateService } from './template/template.service';
 
 @Module({
-  imports: [TraitModule],
+  imports: [TraitModule, SourceModule, UserModule, I18nModule],
   providers: [
     ActivitySignals,
     ActivityRules,
@@ -38,7 +44,10 @@ import { TemplateService } from './template/template.service';
     PhraseService,
     TemplateContext,
     TemplateService,
+    ReportComposer,
+    ReportRepository,
+    ReportService,
   ],
-  exports: [ActivityService, PhraseService, TemplateContext, TemplateService],
+  exports: [ActivityService, PhraseService, ReportComposer, ReportService],
 })
 export class ReportModule {}

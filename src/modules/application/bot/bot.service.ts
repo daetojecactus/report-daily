@@ -13,7 +13,7 @@ import { ChannelService } from 'src/modules/application/user/channel/channel.ser
 import { AccessService } from './access/access.service';
 import { BOT_CHANNELS } from './constants/bot.constants';
 import { BotMessages } from './constants/bot.messages';
-import type { BotActor, BotDialog, BotRoute } from './bot.interface';
+import type { BotActor, BotDialog, BotRoute, BotTarget } from './bot.interface';
 import { DialogService } from './dialog/dialog.service';
 import { RouterService } from './router/router.service';
 
@@ -50,6 +50,18 @@ export class BotService {
       await channel.answerButton(event.input.callbackId);
     }
     await channel.sendScreen(event.chatId, { text: locale.bot.error });
+  }
+
+  async sendTo({ channel, chatId, externalId }: BotTarget, screen: Screen) {
+    try {
+      await this.getChannel(channel).sendScreen(chatId, screen);
+    } catch (error) {
+      if (!(error instanceof ChatUnreachableError)) {
+        throw error;
+      }
+      await this.channelService.updateReachable(channel, externalId, false);
+      this.logger.warn(`${BotMessages.CHANNEL_UNREACHABLE}: ${channel} ${externalId}`);
+    }
   }
 
   private async dispatch(actor: BotActor, input: ChatInput, locale: Locale): Promise<Screen> {
