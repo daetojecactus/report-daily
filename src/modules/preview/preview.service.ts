@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { DEFAULT_LANGUAGE } from 'src/modules/application/i18n/constants/i18n.constants';
+import type { Language } from 'src/modules/application/i18n/i18n.enums';
+import { I18nService } from 'src/modules/application/i18n/i18n.service';
 import { ActivityService } from 'src/modules/application/report/activity/activity.service';
+import { PhraseService } from 'src/modules/application/report/phrase/phrase.service';
 import { Source } from 'src/modules/application/source/source.enums';
 import { SourceService } from 'src/modules/application/source/source.service';
 import { TraitService } from 'src/modules/application/trait/trait.service';
@@ -20,10 +24,12 @@ export class PreviewService {
     private readonly traitService: TraitService,
     private readonly traitNameService: TraitNameService,
     private readonly activityService: ActivityService,
+    private readonly phraseService: PhraseService,
+    private readonly i18nService: I18nService,
     private readonly previewRenderer: PreviewRenderer,
   ) {}
 
-  async describe(username: string, date: string, trace: boolean) {
+  async describe(username: string, date: string, trace: boolean, language: Language | null) {
     const account = await this.userSourceService.findOneByUsername(Source.GITLAB, username);
     const user = account && (await this.userService.findById(account.userId));
     if (!account || !user) {
@@ -38,10 +44,20 @@ export class PreviewService {
       { username: account.username, role: user.role },
       index,
     );
+    const locale = this.i18nService.getLocale(language ?? user.language ?? DEFAULT_LANGUAGE);
+    const phrases = new Map(
+      results.map((result) => [result, this.phraseService.describe(result, user.gender, locale)]),
+    );
     return [
       [account.username, user.role, date, timeZone].join(' · '),
       `issues: ${day.issues.length}, merge requests without an issue: ${day.standaloneMergeRequests.length}, pushes without a merge request: ${day.standalonePushes.length}`,
-      ...this.previewRenderer.render(day, results, trace, this.activityService.summarize(results)),
+      ...this.previewRenderer.render(
+        day,
+        results,
+        trace,
+        this.activityService.summarize(results),
+        phrases,
+      ),
     ].join('\n');
   }
 }

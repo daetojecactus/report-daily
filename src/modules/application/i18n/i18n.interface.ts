@@ -1,6 +1,10 @@
 import type { Channel } from 'src/common/enums/channel.enums';
 import type { BotCommand } from 'src/modules/application/bot/bot.enums';
-import type { TraitDimension } from 'src/modules/application/trait/trait.enums';
+import type {
+  PhraseContext,
+  ReportPhrase,
+} from 'src/modules/application/report/phrase/phrase.enums';
+import type { TraitDimension, WorkflowState } from 'src/modules/application/trait/trait.enums';
 import type { TraitDimensionValueMap } from 'src/modules/application/trait/trait.interface';
 import type { Source } from 'src/modules/application/source/source.enums';
 import type { Language } from './i18n.enums';
@@ -233,4 +237,19 @@ export interface EmployeesLocale {
   };
 }
 
-export type Locale = CommonLocale & TraitsLocale & EmployeesLocale;
+export type GenderedText = string | Record<Gender, string>;
+
+export interface PhrasesLocale {
+  phrases: {
+    actions: Record<ReportPhrase, GenderedText>;
+    contexts: Record<PhraseContext, string>;
+    states: Record<WorkflowState, string>;
+    closed: string;
+    stateLine: (state: string) => string;
+    stateNote: (state: string) => string;
+    quote: (title: string) => string;
+    withNote: (text: string, note: string) => string;
+  };
+}
+
+export type Locale = CommonLocale & TraitsLocale & EmployeesLocale & PhrasesLocale;

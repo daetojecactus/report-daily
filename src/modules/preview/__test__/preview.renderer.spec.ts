@@ -226,6 +226,35 @@ describe('PreviewRenderer', () => {
     expect(lines).toContain('    main: commented · excluded from the report');
   });
 
+  it('prints the phrase of a line under its main action', () => {
+    const day: GroupedDailyData = {
+      projects: [],
+      issues: [reviewed],
+      standaloneMergeRequests: [],
+      standalonePushes: [],
+      standaloneEvents: [],
+    };
+    const results = createService().classify(
+      day,
+      { username: ME, role: JobRole.DEVELOPER },
+      createIndex(),
+    );
+
+    const lines = new PreviewRenderer().render(
+      day,
+      results,
+      false,
+      [],
+      new Map([[results[0], 'Доработал и отправил на ревью «Issue 12»']]),
+    );
+
+    expect(lines.slice(2, 5)).toEqual([
+      '  Issue #12 Issue 12 · opened',
+      '    main: state_set review · with_code',
+      '    text: Доработал и отправил на ревью «Issue 12»',
+    ]);
+  });
+
   it('prints the trace of the choice on request', () => {
     const lines = render({ issues: [reviewed] }, true);
     const main = lines.indexOf('    main: state_set review · with_code');

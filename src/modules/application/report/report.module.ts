@@ -14,6 +14,7 @@ import { ActivitySelector } from './activity/activity.selector';
 import { ActivityService } from './activity/activity.service';
 import { ActivitySignals } from './activity/activity.signals';
 import { ActivitySummaries } from './activity/activity.summaries';
+import { PhraseService } from './phrase/phrase.service';
 
 @Module({
   imports: [TraitModule],
@@ -32,7 +33,8 @@ import { ActivitySummaries } from './activity/activity.summaries';
     ActivitySelector,
     ActivitySummaries,
     ActivityService,
+    PhraseService,
   ],
-  exports: [ActivityService],
+  exports: [ActivityService, PhraseService],
 })
 export class ReportModule {}
