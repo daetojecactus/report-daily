@@ -28,6 +28,7 @@ import { TraitsView } from './traits/traits.view';
 import { StartHandler } from './handlers/start.handler';
 import { MenuService } from './menu/menu.service';
 import { ReportHandler } from './report/report.handler';
+import { ReportView } from './report/report.view';
 import { RouterService } from './router/router.service';
 import { SettingsHandler } from './settings/settings.handler';
 
@@ -58,6 +59,7 @@ import { SettingsHandler } from './settings/settings.handler';
     EmployeePermissionsHandler,
     SettingsHandler,
     ReportHandler,
+    ReportView,
     TraitsHandler,
     TraitAddHandler,
     TraitManageHandler,
@@ -69,6 +71,6 @@ import { SettingsHandler } from './settings/settings.handler';
       inject: [TelegramService],
     },
   ],
-  exports: [BotService],
+  exports: [BotService, ReportView],
 })
 export class BotModule {}

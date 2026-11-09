@@ -39,12 +39,16 @@ export class ReportQueueProcessor extends WorkerHost implements OnModuleDestroy 
     if (job.name !== REPORT_BUILD_JOB) {
       throw new Error(`${ReportQueueMessages.UNKNOWN_JOB}: ${job.name}`);
     }
-    const { userId, date, language, reply } = job.data as ReportJobData;
+    const { userId, date, language, dayText, maxAgeMs, reply } = job.data as ReportJobData;
     const locale = this.i18nService.getLocale(language);
     try {
-      const report = await this.reportService.build(userId, date);
-      if (report.status !== ReportStatus.READY || !report.content) {
-        await this.botService.sendTo(reply, { text: locale.report.empty });
+      const saved =
+        maxAgeMs === 0 ? null : await this.reportService.findFresh(userId, date, maxAgeMs);
+      const report = saved ?? (await this.reportService.build(userId, date));
+      if (report.status === ReportStatus.EMPTY || !report.content) {
+        await this.botService.sendTo(reply, {
+          text: locale.report.empty(dayText),
+        });
       } else if (reply.channel === Channel.TELEGRAM) {
         const delivery = await this.deliveryService.createForReport(report, reply.channel);
         await this.deliveryTelegramQueueProducer.addDelivery(delivery.id);

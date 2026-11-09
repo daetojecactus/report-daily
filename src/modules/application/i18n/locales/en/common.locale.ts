@@ -26,9 +26,21 @@ export const enCommon: CommonLocale = {
     [BotCommand.CANCEL]: 'Cancel the current action',
   },
   report: {
-    building: "Building today's report. I'll send it as soon as it is ready.",
-    empty: 'You have no actions in GitLab today, so there is no report.',
+    choose: 'Which day should the report cover?',
+    today: 'Today',
+    yesterday: 'Yesterday',
+    otherDay: 'Another day',
+    chooseDay: (days) => `Choose a day, no more than ${days} days back.`,
+    back: '‹ Back',
+    todayText: 'today',
+    yesterdayText: 'yesterday',
+    building: (day) => `Building the report for ${day}. I'll send it as soon as it is ready.`,
+    rebuilding: (day) =>
+      `Rebuilding the report for ${day}. I'll send the new one as soon as it is ready.`,
+    empty: (day) => `You have no actions in GitLab for ${day}, so there is no report.`,
     failed: 'Could not build the report: GitLab did not answer. Please try again later.',
+    rebuild: 'Rebuild',
+    wait: (seconds) => `You can rebuild once a minute. Try again in ${seconds} s.`,
   },
   roles: {
     [JobRole.DEVELOPER]: 'Developer',

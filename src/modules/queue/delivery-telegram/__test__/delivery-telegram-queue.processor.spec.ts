@@ -1,14 +1,19 @@
 import { type Job, RateLimitError } from 'bullmq';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Channel } from 'src/common/enums/channel.enums';
+import { ReportView } from 'src/modules/application/bot/report/report.view';
 import { ChatUnreachableError } from 'src/common/errors/chat-unreachable.error';
 import { DeliveryStatus } from 'src/modules/application/delivery/delivery.enums';
 import type { Delivery } from 'src/modules/application/delivery/delivery.interface';
 import type { DeliveryService } from 'src/modules/application/delivery/delivery.service';
+import { Language } from 'src/modules/application/i18n/i18n.enums';
+import { I18nService } from 'src/modules/application/i18n/i18n.service';
 import type { Report } from 'src/modules/application/report/report.interface';
 import type { ReportService } from 'src/modules/application/report/report.service';
 import type { UserChannel } from 'src/modules/application/user/channel/channel.interface';
 import type { ChannelService } from 'src/modules/application/user/channel/channel.service';
+import type { User } from 'src/modules/application/user/user.interface';
+import type { UserService } from 'src/modules/application/user/user.service';
 import {
   TelegramRejectedError,
   TelegramRetryableError,
@@ -25,7 +30,11 @@ const DELIVERY = {
   status: DeliveryStatus.QUEUED,
 } as Delivery;
 
-const REPORT = { id: 'report-1', content: 'project:\n• Fixed a bug' } as Report;
+const REPORT = {
+  id: 'report-1',
+  reportDate: '2026-11-09',
+  content: 'project:\n• Fixed a bug',
+} as Report;
 
 const CHAT = { channel: Channel.TELEGRAM, externalId: '1001' } as UserChannel;
 
@@ -54,12 +63,16 @@ describe('DeliveryTelegramQueueProcessor', () => {
     updateReachable: vi.fn<ChannelService['updateReachable']>(),
   };
   const telegramService = { sendScreen: vi.fn<TelegramService['sendScreen']>() };
+  const userService = { findById: vi.fn<UserService['findById']>() };
   const worker = { rateLimit: vi.fn() };
   const processor = new DeliveryTelegramQueueProcessor(
     deliveryService as unknown as DeliveryService,
     reportService as unknown as ReportService,
     channelService as unknown as ChannelService,
+    userService as unknown as UserService,
     telegramService as unknown as TelegramService,
+    new ReportView(),
+    new I18nService(),
   );
   Object.defineProperty(processor, 'worker', { get: () => worker });
 
@@ -68,6 +81,7 @@ describe('DeliveryTelegramQueueProcessor', () => {
     deliveryService.findById.mockResolvedValue(DELIVERY);
     reportService.findById.mockResolvedValue(REPORT);
     channelService.findByUser.mockResolvedValue([CHAT]);
+    userService.findById.mockResolvedValue({ language: Language.RU } as User);
   });
 
   it('sends the report to the Telegram chat and marks the delivery and the report', async () => {
@@ -76,7 +90,10 @@ describe('DeliveryTelegramQueueProcessor', () => {
     await processor.process(job());
 
     expect(deliveryService.countAttempt).toHaveBeenCalledWith('delivery-1');
-    expect(telegramService.sendScreen).toHaveBeenCalledWith('1001', { text: REPORT.content });
+    expect(telegramService.sendScreen).toHaveBeenCalledWith('1001', {
+      text: REPORT.content,
+      buttons: [[{ text: 'Пересобрать', data: 'rpt:rebuild:2026-11-09' }]],
+    });
     expect(deliveryService.markSent).toHaveBeenCalledWith('delivery-1', '300000007');
     expect(reportService.markDelivered).toHaveBeenCalledWith('report-1');
   });

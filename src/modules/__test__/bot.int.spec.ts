@@ -160,7 +160,7 @@ describe('Telegram bot', () => {
     expect(text).toContain(en.help.privacy);
   });
 
-  it('builds and sends the report of today on /report', async () => {
+  it('offers the days on /report and builds the chosen one', async () => {
     const { user, telegramId } = await createEmployee();
     await fakeGitLab.addUser({
       id: telegramId,
@@ -174,10 +174,11 @@ describe('Telegram bot', () => {
 
     await fakeBotApi.pushUpdate(privateMessage(telegramId, '/report'));
 
-    expect((await replyTo(telegramId)).text).toBe(en.report.building);
+    expect((await replyTo(telegramId)).text).toBe(en.report.choose);
+    expect((await press(telegramId, 'rpt:day:0', 1901)).text).toBe(en.report.building('today'));
     await fakeBotApi.waitForRequest(
       'sendMessage',
-      (body) => body.chat_id === String(telegramId) && body.text === en.report.empty,
+      (body) => body.chat_id === String(telegramId) && body.text === en.report.empty('today'),
     );
     const [report] = await db.select().from(reports).where(eq(reports.userId, user.id));
     expect(report).toMatchObject({ status: ReportStatus.EMPTY, content: '' });

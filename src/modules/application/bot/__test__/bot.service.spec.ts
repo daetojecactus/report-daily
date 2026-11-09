@@ -41,6 +41,9 @@ class TestHandler implements BotHandler {
 
   handle(context: BotContext): BotReply {
     this.contexts.push(context);
+    if (context.input.type === ChatInputType.BUTTON && context.input.data === 'test:new') {
+      return { screen: { text: 'Rebuilding' }, newMessage: true };
+    }
     if (context.input.type === ChatInputType.BUTTON) {
       return {
         screen: {
@@ -279,6 +282,16 @@ describe('BotService', () => {
       text: en.bot.forbidden,
     });
     expect(moduleRef.get(TestHandler).contexts).toEqual([]);
+  });
+
+  it('answers a button with a new message when the section asks for it', async () => {
+    asEmployee({ permissions: [Permission.USERS] });
+
+    await botService.handle(event(EMPLOYEE_ID, button('test:new')));
+
+    expect(channel.answerButton).toHaveBeenCalledWith('callback');
+    expect(channel.sendScreen).toHaveBeenCalledWith(EMPLOYEE_ID, { text: 'Rebuilding' });
+    expect(channel.editScreen).not.toHaveBeenCalled();
   });
 
   it('passes a picked user to the section of the dialog', async () => {
