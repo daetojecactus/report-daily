@@ -62,24 +62,25 @@ export class TelegramService implements ChatChannel {
   }
 
   async sendScreen(chatId: string, screen: Screen) {
-    const message = await this.reachChat(() =>
-      this.telegramRepository.sendMessage(chatId, this.telegramRenderer.renderMessage(screen)),
-    );
-    return String(message.message_id);
+    let messageId = '';
+    for (const content of this.telegramRenderer.renderMessages(screen)) {
+      const message = await this.reachChat(() =>
+        this.telegramRepository.sendMessage(chatId, content),
+      );
+      messageId = String(message.message_id);
+    }
+    return messageId;
   }
 
   async editScreen(chatId: string, messageId: string, screen: Screen) {
-    if (screen.userPicker) {
+    const content = screen.userPicker ? null : this.telegramRenderer.renderEdit(screen);
+    if (!content) {
       await this.sendScreen(chatId, screen);
       return;
     }
     try {
       await this.reachChat(() =>
-        this.telegramRepository.editMessageText(
-          chatId,
-          Number(messageId),
-          this.telegramRenderer.renderEdit(screen),
-        ),
+        this.telegramRepository.editMessageText(chatId, Number(messageId), content),
       );
     } catch (error) {
       if (!this.isBadRequest(error)) {
