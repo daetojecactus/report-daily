@@ -33,3 +33,18 @@ export const EMPLOYEES_BUTTON_SCHEMA = z.union([
     .tuple([z.literal(BotNamespace.EMPLOYEES), z.literal(EmployeesAction.SEARCH)])
     .transform(([, action]) => ({ action })),
 ]);
+
+export const EMPLOYEES_ACTIVITY_FORMAT: Intl.DateTimeFormatOptions = {
+  day: 'numeric',
+  month: 'long',
+  hour: '2-digit',
+  minute: '2-digit',
+};
+
+export const EMPLOYEES_REPORT_DATE_FORMAT: Intl.DateTimeFormatOptions = {
+  day: 'numeric',
+  month: 'long',
+  timeZone: 'UTC',
+};
+
+export const EMPLOYEES_REPORT_DATE_SUFFIX = 'T00:00:00Z';

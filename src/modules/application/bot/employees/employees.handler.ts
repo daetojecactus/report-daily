@@ -3,15 +3,13 @@ import { ChatInputType } from 'src/common/enums/channel.enums';
 import type { ScreenButton } from 'src/common/interfaces/chat-channel.interface';
 import { escapeMarkdown } from 'src/common/utils/markdown.util';
 import type { Locale } from 'src/modules/application/i18n/i18n.interface';
-import { ChannelService } from 'src/modules/application/user/channel/channel.service';
-import { UserSourceService } from 'src/modules/application/user/user-source/user-source.service';
 import { Permission, UserStatus } from 'src/modules/application/user/user.enums';
 import type { User } from 'src/modules/application/user/user.interface';
 import { UserService } from 'src/modules/application/user/user.service';
 import { ADMIN_MENU_DATA } from '../admin/constants/admin.constants';
 import { BotSection } from '../bot.decorator';
 import { BotNamespace } from '../bot.enums';
-import type { BotActor, BotContext, BotHandler, BotReply } from '../bot.interface';
+import type { BotContext, BotHandler, BotReply } from '../bot.interface';
 import { BOT_BUTTON_DATA_SEPARATOR } from '../constants/bot.constants';
 import {
   EMPLOYEES_BUTTON_SCHEMA,
@@ -22,10 +20,7 @@ import {
   EMPLOYEES_USERNAME_PREFIX,
 } from './constants/employees.constants';
 import { EmployeeAddAction } from '../employee-add/employee-add.enums';
-import { AccessService } from '../access/access.service';
-import { EmployeeBindAction } from '../employee-bind/employee-bind.enums';
-import { EmployeeManageAction } from '../employee-manage/employee-manage.enums';
-import { EmployeePermissionsAction } from '../employee-permissions/employee-permissions.enums';
+import { EmployeesCard } from './employees.card';
 import { EmployeesAction, EmployeesStep } from './employees.enums';
 
 @Injectable()
@@ -33,9 +28,7 @@ import { EmployeesAction, EmployeesStep } from './employees.enums';
 export class EmployeesHandler implements BotHandler {
   constructor(
     private readonly userService: UserService,
-    private readonly channelService: ChannelService,
-    private readonly userSourceService: UserSourceService,
-    private readonly accessService: AccessService,
+    private readonly employeesCard: EmployeesCard,
   ) {}
 
   async handle({ actor, input, dialog, locale }: BotContext): Promise<BotReply> {
@@ -54,7 +47,7 @@ export class EmployeesHandler implements BotHandler {
       case EmployeesAction.LIST:
         return this.showList(locale, button.data.page);
       case EmployeesAction.CARD:
-        return this.showCard(actor, locale, button.data.id, button.data.page);
+        return this.employeesCard.show(actor, locale, button.data.id, button.data.page);
       case EmployeesAction.SEARCH:
         return this.askQuery(locale);
     }
@@ -110,112 +103,6 @@ export class EmployeesHandler implements BotHandler {
           ],
         ],
       },
-      dialog: null,
-    };
-  }
-
-  private async showCard(
-    actor: BotActor,
-    locale: Locale,
-    id: string,
-    page: number,
-  ): Promise<BotReply> {
-    const back = [
-      [
-        {
-          text: locale.employees.backToList,
-          data: this.toData(EmployeesAction.LIST, page),
-        },
-      ],
-    ];
-    const user = await this.userService.findById(id);
-    if (!user) {
-      return {
-        screen: { text: locale.employees.notFound, buttons: back },
-        dialog: null,
-      };
-    }
-
-    const { card } = locale.employees;
-    const [channels, accounts] = await Promise.all([
-      this.channelService.findByUser(user.id),
-      this.userSourceService.findByUser(user.id),
-    ]);
-    const lines = [
-      `**${escapeMarkdown(user.displayName)}**`,
-      ...accounts.map(
-        (account) => `${locale.sources[account.source]}: @${escapeMarkdown(account.username)}`,
-      ),
-      `${card.role}: ${locale.roles[user.role]}`,
-      `${card.gender}: ${locale.genders[user.gender]}`,
-      `${card.status}: ${locale.statuses[user.status]}`,
-    ];
-    if (channels.length === 0) {
-      lines.push(`${card.channels}: ${card.noChannels}`);
-    }
-    for (const channel of channels) {
-      lines.push(
-        `${locale.channels[channel.channel]}: ${channel.reachable ? card.reachable : card.unreachable}`,
-      );
-    }
-    if (user.permissions.length > 0) {
-      lines.push(
-        `${card.permissions}: ${user.permissions
-          .map((permission) => locale.permissions[permission])
-          .join(', ')}`,
-      );
-    }
-
-    const actions: ScreenButton[][] = [];
-    if (!channels.some((channel) => channel.channel === actor.channel)) {
-      actions.push([
-        {
-          text: locale.employees.bind(locale.channels[actor.channel]),
-          data: this.toSectionData(BotNamespace.EMPLOYEE_BIND, EmployeeBindAction.START, user.id),
-        },
-      ]);
-    }
-    actions.push([
-      {
-        text: locale.employeeManage.changeRole,
-        data: this.toSectionData(BotNamespace.EMPLOYEE_MANAGE, EmployeeManageAction.ROLE, user.id),
-      },
-    ]);
-    if (actor.isOwner) {
-      actions.push([
-        {
-          text: locale.employeePermissions.open,
-          data: this.toSectionData(
-            BotNamespace.EMPLOYEE_PERMISSIONS,
-            EmployeePermissionsAction.OPEN,
-            user.id,
-          ),
-        },
-      ]);
-    }
-    if (this.accessService.canManage(actor, user)) {
-      const isBlocked = user.status === UserStatus.BLOCKED;
-      actions.push([
-        {
-          text: isBlocked ? locale.employeeManage.unblock : locale.employeeManage.block,
-          data: this.toSectionData(
-            BotNamespace.EMPLOYEE_MANAGE,
-            isBlocked ? EmployeeManageAction.UNBLOCK : EmployeeManageAction.BLOCK,
-            user.id,
-          ),
-        },
-        {
-          text: locale.employeeManage.delete,
-          data: this.toSectionData(
-            BotNamespace.EMPLOYEE_MANAGE,
-            EmployeeManageAction.DELETE,
-            user.id,
-          ),
-        },
-      ]);
-    }
-    return {
-      screen: { text: lines.join('\n'), buttons: [...actions, ...back] },
       dialog: null,
     };
   }
@@ -287,10 +174,6 @@ export class EmployeesHandler implements BotHandler {
       text: parts.join(EMPLOYEES_ITEM_SEPARATOR),
       data: this.toData(EmployeesAction.CARD, user.id, page),
     };
-  }
-
-  private toSectionData(namespace: BotNamespace, ...parts: string[]) {
-    return [namespace, ...parts].join(BOT_BUTTON_DATA_SEPARATOR);
   }
 
   private toData(...parts: (string | number)[]) {

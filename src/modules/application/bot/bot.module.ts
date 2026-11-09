@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { DiscoveryModule } from '@nestjs/core';
 import type { ChatChannel } from 'src/common/interfaces/chat-channel.interface';
 import { I18nModule } from 'src/modules/application/i18n/i18n.module';
+import { ReportModule } from 'src/modules/application/report/report.module';
 import { TraitModule } from 'src/modules/application/trait/trait.module';
 import { UserModule } from 'src/modules/application/user/user.module';
 import { GitLabModule } from 'src/modules/vendors/gitlab/gitlab.module';
@@ -17,6 +18,7 @@ import { EmployeeAddHandler } from './employee-add/employee-add.handler';
 import { EmployeeBindHandler } from './employee-bind/employee-bind.handler';
 import { EmployeeManageHandler } from './employee-manage/employee-manage.handler';
 import { EmployeePermissionsHandler } from './employee-permissions/employee-permissions.handler';
+import { EmployeesCard } from './employees/employees.card';
 import { EmployeesHandler } from './employees/employees.handler';
 import { CancelHandler } from './handlers/cancel.handler';
 import { HelpHandler } from './handlers/help.handler';
@@ -40,6 +42,7 @@ import { SettingsHandler } from './settings/settings.handler';
     UserModule,
     GitLabModule,
     TelegramModule,
+    ReportModule,
     ReportQueueModule,
   ],
   providers: [
@@ -53,6 +56,7 @@ import { SettingsHandler } from './settings/settings.handler';
     CancelHandler,
     AdminHandler,
     EmployeesHandler,
+    EmployeesCard,
     EmployeeAddHandler,
     EmployeeBindHandler,
     EmployeeManageHandler,

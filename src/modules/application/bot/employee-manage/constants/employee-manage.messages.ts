@@ -3,4 +3,5 @@ export enum EmployeeManageMessages {
   BLOCKED = 'Employee blocked',
   UNBLOCKED = 'Employee unblocked',
   DELETED = 'Employee deleted',
+  REPORT_REQUESTED = 'Report of the employee requested',
 }

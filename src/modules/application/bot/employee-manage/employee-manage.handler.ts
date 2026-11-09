@@ -1,9 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ChatInputType } from 'src/common/enums/channel.enums';
+import { ConfigService } from '@nestjs/config';
+import { getToday } from 'src/common/utils/date.util';
+import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
+import { ReportQueueProducer } from 'src/modules/queue/report/report-queue.producer';
+import { REPORT_TODAY_MAX_AGE_MS } from '../report/constants/report.constants';
+import { Channel, ChatInputType } from 'src/common/enums/channel.enums';
 import type { ScreenButton } from 'src/common/interfaces/chat-channel.interface';
 import { escapeMarkdown } from 'src/common/utils/markdown.util';
 import type { Locale } from 'src/modules/application/i18n/i18n.interface';
-import { JobRole, Permission } from 'src/modules/application/user/user.enums';
+import { JobRole, Permission, UserStatus } from 'src/modules/application/user/user.enums';
 import type { User } from 'src/modules/application/user/user.interface';
 import { ChannelService } from 'src/modules/application/user/channel/channel.service';
 import { UserService } from 'src/modules/application/user/user.service';
@@ -31,6 +36,8 @@ export class EmployeeManageHandler implements BotHandler {
     private readonly channelService: ChannelService,
     private readonly accessService: AccessService,
     private readonly menuService: MenuService,
+    private readonly configService: ConfigService<AppEnvs, true>,
+    private readonly reportQueueProducer: ReportQueueProducer,
   ) {}
 
   async handle({ actor, input, locale }: BotContext): Promise<BotReply> {
@@ -53,6 +60,8 @@ export class EmployeeManageHandler implements BotHandler {
         return this.askRole(locale, user);
       case EmployeeManageAction.SET_ROLE:
         return this.changeRole(actor, locale, user, button.data.role);
+      case EmployeeManageAction.REPORT:
+        return this.sendReport(actor, locale, user);
       default:
         return this.manage(actor, locale, user, button.data.action);
     }
@@ -64,7 +73,7 @@ export class EmployeeManageHandler implements BotHandler {
     user: User,
     action: Exclude<
       EmployeeManageAction,
-      EmployeeManageAction.ROLE | EmployeeManageAction.SET_ROLE
+      EmployeeManageAction.ROLE | EmployeeManageAction.SET_ROLE | EmployeeManageAction.REPORT
     >,
   ): Promise<BotReply> {
     if (!this.accessService.canManage(actor, user)) {
@@ -105,6 +114,33 @@ export class EmployeeManageHandler implements BotHandler {
         return this.reply(locale.employeeManage.deleted(name), [[this.toListButton(locale)]]);
       }
     }
+  }
+
+  private async sendReport(actor: BotActor, locale: Locale, user: User): Promise<BotReply> {
+    const name = escapeMarkdown(user.displayName);
+    const channels = await this.channelService.findByUser(user.id);
+    if (
+      user.status !== UserStatus.ACTIVE ||
+      !channels.some((channel) => channel.channel === Channel.TELEGRAM)
+    ) {
+      return this.reply(locale.employeeManage.reportUnavailable(name), [
+        [this.toCardButton(locale, user.id)],
+      ]);
+    }
+    await this.reportQueueProducer.addReport({
+      userId: user.id,
+      date: getToday(user.timezone ?? this.configService.get('APP_TIMEZONE', { infer: true })),
+      maxAgeMs: REPORT_TODAY_MAX_AGE_MS,
+      reply: { channel: actor.channel, chatId: actor.chatId, externalId: actor.externalId },
+      notices: {
+        empty: locale.employeeManage.reportEmpty(name),
+        failed: locale.employeeManage.reportFailed(name),
+      },
+    });
+    this.log(actor, user, EmployeeManageMessages.REPORT_REQUESTED);
+    return this.reply(locale.employeeManage.reportQueued(name), [
+      [this.toCardButton(locale, user.id)],
+    ]);
   }
 
   private async syncMenu(user: User | null) {

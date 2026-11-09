@@ -5,7 +5,7 @@ import { Channel, ChatInputType } from 'src/common/enums/channel.enums';
 import type { ChatInput } from 'src/common/interfaces/chat-channel.interface';
 import { Language } from 'src/modules/application/i18n/i18n.enums';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
-import { JobRole, Permission } from 'src/modules/application/user/user.enums';
+import { JobRole, Permission, UserStatus } from 'src/modules/application/user/user.enums';
 import type { UserChannel } from 'src/modules/application/user/channel/channel.interface';
 import type { ChannelService } from 'src/modules/application/user/channel/channel.service';
 import type { User } from 'src/modules/application/user/user.interface';
@@ -16,6 +16,7 @@ import type { BotActor } from '../../bot.interface';
 import type { MenuService } from '../../menu/menu.service';
 import { createEmployee } from '../../__test__/bot.fixture';
 import { EmployeeManageHandler } from '../employee-manage.handler';
+import type { ReportQueueProducer } from 'src/modules/queue/report/report-queue.producer';
 
 const locale = new I18nService().getLocale(Language.EN);
 const FOUND = createEmployee({ displayName: 'Anna *S*' });
@@ -40,6 +41,7 @@ describe('EmployeeManageHandler', () => {
     findByUser: vi.fn<(userId: string) => Promise<UserChannel[]>>(),
   };
   const menuService = { syncEmployee: vi.fn() };
+  const producer = { addReport: vi.fn<ReportQueueProducer['addReport']>() };
   const handler = new EmployeeManageHandler(
     userService as unknown as UserService,
     channelService as unknown as ChannelService,
@@ -49,6 +51,8 @@ describe('EmployeeManageHandler', () => {
       new I18nService(),
     ),
     menuService as unknown as MenuService,
+    { get: () => 'Europe/London' } as unknown as ConfigService<AppEnvs, true>,
+    producer as unknown as ReportQueueProducer,
   );
 
   function open(data: string, actor: Partial<BotActor> = {}) {
@@ -209,5 +213,40 @@ describe('EmployeeManageHandler', () => {
     `mng:other:${USER.id}`,
   ])('answers the outdated button %s', async (data) => {
     expect((await open(data)).screen).toEqual({ text: locale.bot.expired });
+  });
+
+  it('builds the report of today for the employee and tells the admin the outcome only', async () => {
+    vi.useFakeTimers({ now: Date.parse('2026-11-09T20:30:00Z') });
+
+    expect(await open(`mng:report:${USER.id}`, { chatId: '77', externalId: '77' })).toEqual({
+      screen: { text: locale.employeeManage.reportQueued('Anna \\*S\\*'), buttons: [[CARD]] },
+      dialog: null,
+    });
+    expect(producer.addReport).toHaveBeenCalledWith({
+      userId: USER.id,
+      date: '2026-11-09',
+      maxAgeMs: 300_000,
+      reply: { channel: Channel.TELEGRAM, chatId: '77', externalId: '77' },
+      notices: {
+        empty: locale.employeeManage.reportEmpty('Anna \\*S\\*'),
+        failed: locale.employeeManage.reportFailed('Anna \\*S\\*'),
+      },
+    });
+    vi.useRealTimers();
+  });
+
+  it('refuses a report for an employee without Telegram or not active', async () => {
+    channelService.findByUser.mockResolvedValueOnce([]);
+    userService.findById.mockResolvedValueOnce(USER).mockResolvedValueOnce({
+      ...USER,
+      status: UserStatus.BLOCKED,
+    });
+
+    for (let attempt = 0; attempt < 2; attempt++) {
+      expect((await open(`mng:report:${USER.id}`)).screen.text).toBe(
+        locale.employeeManage.reportUnavailable('Anna \\*S\\*'),
+      );
+    }
+    expect(producer.addReport).not.toHaveBeenCalled();
   });
 });

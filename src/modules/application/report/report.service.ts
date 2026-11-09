@@ -45,6 +45,10 @@ export class ReportService {
     });
   }
 
+  findLatest(userId: string) {
+    return this.reportRepository.findLatest(eq(reports.userId, userId));
+  }
+
   findFresh(userId: string, reportDate: string, maxAgeMs: number | null) {
     return this.findOne(
       and(

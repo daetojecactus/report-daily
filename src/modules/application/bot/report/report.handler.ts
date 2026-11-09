@@ -62,6 +62,7 @@ export class ReportHandler implements BotHandler {
         const dayText = this.reportView.toDayText(locale, date, today);
         await this.queue(
           actor,
+          locale,
           date,
           dayText,
           button.data.offset === 0 ? REPORT_TODAY_MAX_AGE_MS : null,
@@ -93,21 +94,26 @@ export class ReportHandler implements BotHandler {
       };
     }
     const dayText = this.reportView.toDayText(locale, date, today);
-    await this.queue(actor, date, dayText, 0);
+    await this.queue(actor, locale, date, dayText, 0);
     return { screen: { text: locale.report.rebuilding(dayText) }, newMessage: true };
   }
 
-  private async queue(actor: BotActor, date: string, dayText: string, maxAgeMs: number | null) {
+  private async queue(
+    actor: BotActor,
+    locale: Locale,
+    date: string,
+    dayText: string,
+    maxAgeMs: number | null,
+  ) {
     if (!actor.user) {
       return;
     }
     await this.reportQueueProducer.addReport({
       userId: actor.user.id,
       date,
-      language: actor.language,
-      dayText,
       maxAgeMs,
       reply: { channel: actor.channel, chatId: actor.chatId, externalId: actor.externalId },
+      notices: { empty: locale.report.empty(dayText), failed: locale.report.failed },
     });
   }
 }

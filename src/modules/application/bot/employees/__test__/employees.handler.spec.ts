@@ -12,9 +12,15 @@ import type { UserService } from 'src/modules/application/user/user.service';
 import type { UserSource } from 'src/modules/application/user/user-source/user-source.interface';
 import type { UserSourceService } from 'src/modules/application/user/user-source/user-source.service';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
+import { ReportStatus } from 'src/modules/application/report/report.enums';
+import type { Report } from 'src/modules/application/report/report.interface';
+import type { ReportService } from 'src/modules/application/report/report.service';
+import { GitLabRetryableError } from 'src/modules/vendors/gitlab/gitlab.error';
+import type { GitLabService } from 'src/modules/vendors/gitlab/gitlab.service';
 import { AccessService } from '../../access/access.service';
 import type { BotActor, BotDialog } from '../../bot.interface';
 import { createEmployee, createSourceAccount } from '../../__test__/bot.fixture';
+import { EmployeesCard } from '../employees.card';
 import { EmployeesHandler } from '../employees.handler';
 
 const locale = new I18nService().getLocale(Language.EN);
@@ -50,14 +56,22 @@ describe('EmployeesHandler', () => {
   const userSourceService = {
     findByUser: vi.fn<(userId: string) => Promise<UserSource[]>>(),
   };
+  const reportService = { findLatest: vi.fn<ReportService['findLatest']>() };
+  const gitlabService = { findLastActivityAt: vi.fn<GitLabService['findLastActivityAt']>() };
   const handler = new EmployeesHandler(
     userService as unknown as UserService,
-    channelService as unknown as ChannelService,
-    userSourceService as unknown as UserSourceService,
-    new AccessService(
-      { get: () => [] } as unknown as ConfigService<AppEnvs, true>,
-      {} as UserService,
-      new I18nService(),
+    new EmployeesCard(
+      { get: () => 'Asia/Almaty' } as unknown as ConfigService<AppEnvs, true>,
+      userService as unknown as UserService,
+      channelService as unknown as ChannelService,
+      userSourceService as unknown as UserSourceService,
+      new AccessService(
+        { get: () => [] } as unknown as ConfigService<AppEnvs, true>,
+        {} as UserService,
+        new I18nService(),
+      ),
+      reportService as unknown as ReportService,
+      gitlabService as unknown as GitLabService,
     ),
   );
 
@@ -81,6 +95,7 @@ describe('EmployeesHandler', () => {
   beforeEach(() => {
     vi.resetAllMocks();
     userSourceService.findByUser.mockResolvedValue([]);
+    reportService.findLatest.mockResolvedValue(null as unknown as Report);
   });
 
   it('shows the first page with navigation, search and menu', async () => {
@@ -166,6 +181,11 @@ describe('EmployeesHandler', () => {
     channelService.findByUser.mockResolvedValue([
       { ...createEmployee().channel, reachable: false },
     ]);
+    gitlabService.findLastActivityAt.mockResolvedValue('2026-11-09T12:42:00Z');
+    reportService.findLatest.mockResolvedValue({
+      reportDate: '2026-11-08',
+      status: ReportStatus.DELIVERED,
+    } as Report);
 
     const { screen } = await open(button(`emp:card:${user.id}:2`));
 
@@ -179,8 +199,11 @@ describe('EmployeesHandler', () => {
         'Status: active',
         'Telegram: unreachable, the bot is blocked',
         'Permissions: Employees, Traits',
+        'Last activity in GitLab: 9 November at 17:42',
+        'Last report: 8 November — delivered',
       ].join('\n'),
       buttons: [
+        [{ text: 'Report now', data: `mng:report:${user.id}` }],
         [{ text: 'Change role', data: `mng:role:${user.id}` }],
         [{ text: 'Permissions', data: `perm:open:${user.id}` }],
         [
@@ -200,6 +223,26 @@ describe('EmployeesHandler', () => {
 
     expect(screen.text).toContain('Channels: not connected');
     expect(screen.text).not.toContain('Permissions');
+    expect(screen.text).not.toContain('Last activity');
+    expect(screen.text).toContain('Last report: none yet');
+    expect(screen.buttons?.flat().map((item) => item.text)).not.toContain('Report now');
+  });
+
+  it('tells when the GitLab activity is hidden or cannot be checked', async () => {
+    const user = employee(1);
+    userService.findById.mockResolvedValue(user);
+    userSourceService.findByUser.mockResolvedValue([createSourceAccount({ userId: user.id })]);
+    channelService.findByUser.mockResolvedValue([]);
+    gitlabService.findLastActivityAt
+      .mockResolvedValueOnce(null)
+      .mockRejectedValueOnce(new GitLabRetryableError('GitLab answered 502'));
+
+    expect((await open(button(`emp:card:${user.id}:0`))).screen.text).toContain(
+      `Last activity in GitLab: ${locale.employees.card.activityHidden}`,
+    );
+    expect((await open(button(`emp:card:${user.id}:0`))).screen.text).toContain(
+      `Last activity in GitLab: ${locale.employees.card.activityUnknown}`,
+    );
   });
 
   it('offers to bind the channel of the admin when it is missing', async () => {
@@ -243,6 +286,7 @@ describe('EmployeesHandler', () => {
     const { screen } = await open(button(`emp:card:${user.id}:0`), null, toActor(user));
 
     expect(screen.buttons).toEqual([
+      [{ text: 'Report now', data: `mng:report:${user.id}` }],
       [{ text: 'Change role', data: `mng:role:${user.id}` }],
       [{ text: 'To the list', data: 'emp:list:0' }],
     ]);
