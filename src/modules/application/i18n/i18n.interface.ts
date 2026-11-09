@@ -35,9 +35,20 @@ export interface CommonLocale {
   languages: Record<Language, string>;
   commands: Record<BotCommand, string>;
   report: {
-    building: string;
-    empty: string;
+    choose: string;
+    today: string;
+    yesterday: string;
+    otherDay: string;
+    chooseDay: (days: number) => string;
+    back: string;
+    todayText: string;
+    yesterdayText: string;
+    building: (day: string) => string;
+    rebuilding: (day: string) => string;
+    empty: (day: string) => string;
     failed: string;
+    rebuild: string;
+    wait: (seconds: number) => string;
   };
   roles: Record<JobRole, string>;
   genders: Record<Gender, string>;

@@ -22,6 +22,14 @@ export class RedisService {
     await this.redisClient.instance.set(key, value, 'PX', ttlMs);
   }
 
+  async claim(key: string, ttlMs: number) {
+    return (await this.redisClient.instance.set(key, '1', 'PX', ttlMs, 'NX')) !== null;
+  }
+
+  getTtlMs(key: string) {
+    return this.redisClient.instance.pttl(key);
+  }
+
   async delete(key: string) {
     await this.redisClient.instance.del(key);
   }

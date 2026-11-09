@@ -46,6 +46,7 @@ export interface BotContext {
 export interface BotReply {
   screen: Screen;
   dialog?: BotDialog | null;
+  newMessage?: boolean;
 }
 
 export interface BotHandler {

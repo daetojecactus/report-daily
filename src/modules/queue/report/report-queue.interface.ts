@@ -5,5 +5,7 @@ export interface ReportJobData {
   userId: string;
   date: string;
   language: Language;
+  dayText: string;
+  maxAgeMs: number | null;
   reply: BotTarget;
 }

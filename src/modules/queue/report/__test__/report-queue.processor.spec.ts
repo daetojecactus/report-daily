@@ -20,15 +20,26 @@ const DATA: ReportJobData = {
   userId: 'user-1',
   date: '2026-11-09',
   language: Language.RU,
+  dayText: 'сегодня',
+  maxAgeMs: 300_000,
   reply: { channel: Channel.TELEGRAM, chatId: '2002', externalId: '1001' },
 };
 
-function job(attemptsMade = 0, name = REPORT_BUILD_JOB) {
-  return { id: 'report-user-1-2026-11-09', name, data: DATA, attemptsMade, opts: { attempts: 3 } };
+function job(attemptsMade = 0, name = REPORT_BUILD_JOB, data: Partial<ReportJobData> = {}) {
+  return {
+    id: 'report-user-1-2026-11-09',
+    name,
+    data: { ...DATA, ...data },
+    attemptsMade,
+    opts: { attempts: 3 },
+  };
 }
 
 describe('ReportQueueProcessor', () => {
-  const reportService = { build: vi.fn<ReportService['build']>() };
+  const reportService = {
+    build: vi.fn<ReportService['build']>(),
+    findFresh: vi.fn<ReportService['findFresh']>(),
+  };
   const deliveryService = { createForReport: vi.fn<DeliveryService['createForReport']>() };
   const producer = { addDelivery: vi.fn<DeliveryTelegramQueueProducer['addDelivery']>() };
   const botService = { sendTo: vi.fn<BotService['sendTo']>() };
@@ -58,12 +69,27 @@ describe('ReportQueueProcessor', () => {
     expect(botService.sendTo).not.toHaveBeenCalled();
   });
 
-  it('says that a day without actions has no report', async () => {
-    reportService.build.mockResolvedValue({ status: ReportStatus.EMPTY, content: '' } as Report);
+  it('delivers a fresh saved report without building the day again', async () => {
+    const saved = { status: ReportStatus.DELIVERED, content: 'project:\n• Fixed a bug' } as Report;
+    reportService.findFresh.mockResolvedValue(saved);
+    deliveryService.createForReport.mockResolvedValue({ id: 'delivery-2' } as Delivery);
 
     await run(job());
 
-    expect(botService.sendTo).toHaveBeenCalledWith(DATA.reply, { text: locale.report.empty });
+    expect(reportService.findFresh).toHaveBeenCalledWith('user-1', '2026-11-09', 300_000);
+    expect(reportService.build).not.toHaveBeenCalled();
+    expect(deliveryService.createForReport).toHaveBeenCalledWith(saved, Channel.TELEGRAM);
+  });
+
+  it('builds again on a rebuild without looking for a saved report', async () => {
+    reportService.build.mockResolvedValue({ status: ReportStatus.EMPTY, content: '' } as Report);
+
+    await run(job(0, REPORT_BUILD_JOB, { maxAgeMs: 0, dayText: '3 ноября' }));
+
+    expect(reportService.findFresh).not.toHaveBeenCalled();
+    expect(botService.sendTo).toHaveBeenCalledWith(DATA.reply, {
+      text: locale.report.empty('3 ноября'),
+    });
   });
 
   it('retries quietly and tells about the failure only after the last attempt', async () => {

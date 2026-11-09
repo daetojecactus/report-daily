@@ -1,9 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { and, eq, type SQL } from 'drizzle-orm';
+import { and, eq, gte, inArray, type SQL } from 'drizzle-orm';
 import { getErrorMessage } from 'src/common/utils/error.util';
 import { DEFAULT_LANGUAGE } from 'src/modules/application/i18n/constants/i18n.constants';
 import { UserService } from 'src/modules/application/user/user.service';
 import { UserSourceService } from 'src/modules/application/user/user-source/user-source.service';
+import { REPORT_REUSABLE_STATUSES } from './constants/report.constants';
 import { ReportMessages } from './constants/report.messages';
 import { ReportComposer } from './report.composer';
 import { ReportStatus } from './report.enums';
@@ -42,6 +43,17 @@ export class ReportService {
     return this.reportRepository.updateOne(eq(reports.id, id), {
       status: ReportStatus.DELIVERED,
     });
+  }
+
+  findFresh(userId: string, reportDate: string, maxAgeMs: number | null) {
+    return this.findOne(
+      and(
+        eq(reports.userId, userId),
+        eq(reports.reportDate, reportDate),
+        inArray(reports.status, REPORT_REUSABLE_STATUSES),
+        maxAgeMs === null ? undefined : gte(reports.generatedAt, new Date(Date.now() - maxAgeMs)),
+      )!,
+    );
   }
 
   findByDate(userId: string, reportDate: string) {

@@ -4,10 +4,14 @@ import { type Job, Worker } from 'bullmq';
 import { Channel } from 'src/common/enums/channel.enums';
 import { ChatUnreachableError } from 'src/common/errors/chat-unreachable.error';
 import { getErrorMessage } from 'src/common/utils/error.util';
+import { ReportView } from 'src/modules/application/bot/report/report.view';
 import { DeliveryStatus } from 'src/modules/application/delivery/delivery.enums';
 import { DeliveryService } from 'src/modules/application/delivery/delivery.service';
+import { DEFAULT_LANGUAGE } from 'src/modules/application/i18n/constants/i18n.constants';
+import { I18nService } from 'src/modules/application/i18n/i18n.service';
 import { ReportService } from 'src/modules/application/report/report.service';
 import { ChannelService } from 'src/modules/application/user/channel/channel.service';
+import { UserService } from 'src/modules/application/user/user.service';
 import {
   TelegramRejectedError,
   TelegramRetryableError,
@@ -30,7 +34,10 @@ export class DeliveryTelegramQueueProcessor extends WorkerHost implements OnModu
     private readonly deliveryService: DeliveryService,
     private readonly reportService: ReportService,
     private readonly channelService: ChannelService,
+    private readonly userService: UserService,
     private readonly telegramService: TelegramService,
+    private readonly reportView: ReportView,
+    private readonly i18nService: I18nService,
   ) {
     super();
   }
@@ -61,9 +68,14 @@ export class DeliveryTelegramQueueProcessor extends WorkerHost implements OnModu
     }
     await this.deliveryService.countAttempt(deliveryId);
     try {
-      const messageId = await this.telegramService.sendScreen(chat.externalId, {
-        text: report.content,
-      });
+      const user = await this.userService.findById(delivery.userId);
+      const messageId = await this.telegramService.sendScreen(
+        chat.externalId,
+        this.reportView.toReportScreen(
+          report,
+          this.i18nService.getLocale(user?.language ?? DEFAULT_LANGUAGE),
+        ),
+      );
       await this.deliveryService.markSent(deliveryId, messageId);
       await this.reportService.markDelivered(report.id);
     } catch (error) {

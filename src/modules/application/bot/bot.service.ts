@@ -13,7 +13,7 @@ import { ChannelService } from 'src/modules/application/user/channel/channel.ser
 import { AccessService } from './access/access.service';
 import { BOT_CHANNELS } from './constants/bot.constants';
 import { BotMessages } from './constants/bot.messages';
-import type { BotActor, BotDialog, BotRoute, BotTarget } from './bot.interface';
+import type { BotActor, BotDialog, BotReply, BotRoute, BotTarget } from './bot.interface';
 import { DialogService } from './dialog/dialog.service';
 import { RouterService } from './router/router.service';
 
@@ -35,12 +35,12 @@ export class BotService {
 
   async handle(event: ChatEvent) {
     const actor = await this.accessService.resolveActor(event);
-    const screen = await this.dispatch(
+    const { screen, newMessage } = await this.dispatch(
       actor,
       event.input,
       this.i18nService.getLocale(actor.language),
     );
-    await this.reply(event, screen, actor);
+    await this.reply(event, screen, actor, newMessage ?? false);
   }
 
   async replyFailure(event: ChatEvent) {
@@ -64,19 +64,23 @@ export class BotService {
     }
   }
 
-  private async dispatch(actor: BotActor, input: ChatInput, locale: Locale): Promise<Screen> {
+  private async dispatch(
+    actor: BotActor,
+    input: ChatInput,
+    locale: Locale,
+  ): Promise<Pick<BotReply, 'screen' | 'newMessage'>> {
     const isKnown = this.accessService.isKnown(actor);
     const dialog = isKnown ? await this.dialogService.find(actor) : null;
     const route = this.findRoute(input, dialog);
     if (!route) {
-      return this.explain(actor, input, locale);
+      return { screen: this.explain(actor, input, locale) };
     }
     if (!this.accessService.isAllowed(actor, route.access)) {
       if (dialog) {
         await this.dialogService.delete(actor);
       }
       return {
-        text: isKnown ? locale.bot.forbidden : this.denyText(actor, locale),
+        screen: { text: isKnown ? locale.bot.forbidden : this.denyText(actor, locale) },
       };
     }
     if (dialog && input.type === ChatInputType.COMMAND) {
@@ -89,7 +93,7 @@ export class BotService {
     } else if (reply.dialog) {
       await this.dialogService.save(actor, reply.dialog);
     }
-    return reply.screen;
+    return reply;
   }
 
   private findRoute(input: ChatInput, dialog: BotDialog | null): BotRoute | null {
@@ -124,13 +128,15 @@ export class BotService {
     return locale.bot.noAccess(locale.channels[actor.channel], actor.externalId);
   }
 
-  private async reply(event: ChatEvent, screen: Screen, actor: BotActor) {
+  private async reply(event: ChatEvent, screen: Screen, actor: BotActor, newMessage: boolean) {
     const channel = this.getChannel(event.channel);
     try {
       if (event.input.type === ChatInputType.BUTTON) {
         await channel.answerButton(event.input.callbackId);
-        await channel.editScreen(event.chatId, event.input.messageId, screen);
-        return;
+        if (!newMessage) {
+          await channel.editScreen(event.chatId, event.input.messageId, screen);
+          return;
+        }
       }
       await channel.sendScreen(event.chatId, screen);
     } catch (error) {
