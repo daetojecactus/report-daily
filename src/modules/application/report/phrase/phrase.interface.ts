@@ -20,3 +20,10 @@ export interface PhraseRule {
   assignee?: boolean;
   merged?: boolean;
 }
+
+export interface PhraseParts {
+  text: string;
+  actionText: string;
+  title: string | null;
+  note: string | null;
+}

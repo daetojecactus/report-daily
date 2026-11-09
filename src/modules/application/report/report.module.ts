@@ -15,6 +15,8 @@ import { ActivityService } from './activity/activity.service';
 import { ActivitySignals } from './activity/activity.signals';
 import { ActivitySummaries } from './activity/activity.summaries';
 import { PhraseService } from './phrase/phrase.service';
+import { TemplateContext } from './template/template.context';
+import { TemplateService } from './template/template.service';
 
 @Module({
   imports: [TraitModule],
@@ -34,7 +36,9 @@ import { PhraseService } from './phrase/phrase.service';
     ActivitySummaries,
     ActivityService,
     PhraseService,
+    TemplateContext,
+    TemplateService,
   ],
-  exports: [ActivityService, PhraseService],
+  exports: [ActivityService, PhraseService, TemplateContext, TemplateService],
 })
 export class ReportModule {}

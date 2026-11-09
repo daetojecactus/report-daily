@@ -44,6 +44,25 @@ describe('ActivitySummaries', () => {
     expect(summarize([issue(1, [sprint(1)]), issue(2, [sprint(2)])])).toEqual([]);
   });
 
+  it('sums up only inside one project', () => {
+    expect(
+      summarize([
+        issue(1, [sprint(1)]),
+        issue(2, [sprint(2)]),
+        issue(3, [sprint(3)], { projectId: 2 }),
+        issue(4, [sprint(4)], { projectId: 2 }),
+      ]),
+    ).toEqual([]);
+    expect(
+      summarize([
+        issue(1, [sprint(1)]),
+        issue(2, [sprint(2)], { projectId: 2 }),
+        issue(3, [sprint(3)]),
+        issue(4, [sprint(4)]),
+      ]),
+    ).toEqual([[ActivityAction.PLANNED, [ActivityDetail.ITERATION], [1, 3, 4]]]);
+  });
+
   it('keeps an issue with another own action out of the summary', () => {
     expect(
       summarize([

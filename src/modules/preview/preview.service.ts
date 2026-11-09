@@ -5,6 +5,8 @@ import type { Language } from 'src/modules/application/i18n/i18n.enums';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
 import { ActivityService } from 'src/modules/application/report/activity/activity.service';
 import { PhraseService } from 'src/modules/application/report/phrase/phrase.service';
+import { TemplateContext } from 'src/modules/application/report/template/template.context';
+import { TemplateService } from 'src/modules/application/report/template/template.service';
 import { Source } from 'src/modules/application/source/source.enums';
 import { SourceService } from 'src/modules/application/source/source.service';
 import { TraitService } from 'src/modules/application/trait/trait.service';
@@ -12,6 +14,7 @@ import { TraitNameService } from 'src/modules/application/trait/trait-name/trait
 import { UserService } from 'src/modules/application/user/user.service';
 import { UserSourceService } from 'src/modules/application/user/user-source/user-source.service';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
+import { PREVIEW_EMPTY_REPORT } from './constants/preview.constants';
 import { PreviewRenderer } from './preview.renderer';
 
 @Injectable()
@@ -26,6 +29,8 @@ export class PreviewService {
     private readonly activityService: ActivityService,
     private readonly phraseService: PhraseService,
     private readonly i18nService: I18nService,
+    private readonly templateContext: TemplateContext,
+    private readonly templateService: TemplateService,
     private readonly previewRenderer: PreviewRenderer,
   ) {}
 
@@ -44,7 +49,8 @@ export class PreviewService {
       { username: account.username, role: user.role },
       index,
     );
-    const locale = this.i18nService.getLocale(language ?? user.language ?? DEFAULT_LANGUAGE);
+    const reportLanguage = language ?? user.language ?? DEFAULT_LANGUAGE;
+    const locale = this.i18nService.getLocale(reportLanguage);
     const summaries = this.activityService.summarize(results);
     const texts = {
       lines: new Map(
@@ -57,10 +63,31 @@ export class PreviewService {
         ]),
       ),
     };
+    const report = await this.templateService.renderStandard(
+      this.templateContext.build(
+        {
+          date,
+          language: reportLanguage,
+          employee: {
+            name: user.displayName,
+            username: account.username,
+            role: user.role,
+            gender: user.gender,
+          },
+          day,
+          results,
+          summaries,
+        },
+        locale,
+      ),
+    );
     return [
       [account.username, user.role, date, timeZone].join(' · '),
       `issues: ${day.issues.length}, merge requests without an issue: ${day.standaloneMergeRequests.length}, pushes without a merge request: ${day.standalonePushes.length}`,
       ...this.previewRenderer.render(day, results, trace, summaries, texts),
+      '',
+      'Report',
+      report || PREVIEW_EMPTY_REPORT,
     ].join('\n');
   }
 }

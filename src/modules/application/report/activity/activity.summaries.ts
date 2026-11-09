@@ -4,7 +4,7 @@ import {
   ACTIVITY_SUMMARY_MIN_LINES,
 } from './constants/activity.constants';
 import { ActivityAction } from './activity.enums';
-import type { ActivityResult, ActivitySummary } from './activity.interface';
+import type { ActivityLine, ActivityResult, ActivitySummary } from './activity.interface';
 
 @Injectable()
 export class ActivitySummaries {
@@ -12,7 +12,7 @@ export class ActivitySummaries {
     const groups = new Map<string, ActivityResult[]>();
     for (const result of results.filter((item) => this.isSummarized(item))) {
       const { action, details } = result.choice.main;
-      const key = [action, ...details.toSorted()].join('|');
+      const key = [this.findProjectId(result.line), action, ...details.toSorted()].join('|');
       groups.set(key, [...(groups.get(key) ?? []), result]);
     }
     return [...groups.values()]
@@ -22,6 +22,16 @@ export class ActivitySummaries {
         details: group[0].choice.main.details,
         results: group,
       }));
+  }
+
+  findProjectId(line: ActivityLine) {
+    return (
+      line.issue?.projectId ??
+      line.mergeRequests.at(0)?.projectId ??
+      line.pushes.at(0)?.projectId ??
+      line.event?.projectId ??
+      null
+    );
   }
 
   private isSummarized({ choice, excluded }: ActivityResult) {

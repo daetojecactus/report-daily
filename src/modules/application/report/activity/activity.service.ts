@@ -25,6 +25,10 @@ export class ActivityService {
     return this.activitySummaries.collect(results);
   }
 
+  findProjectId(line: ActivityLine) {
+    return this.activitySummaries.findProjectId(line);
+  }
+
   classify(day: GroupedDailyData, employee: ActivityEmployee, index: TraitIndex): ActivityResult[] {
     return this.toLines(day).map((line) => {
       const signals = this.activitySignals.build(line, employee, index);
