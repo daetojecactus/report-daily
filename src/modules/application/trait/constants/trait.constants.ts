@@ -42,3 +42,7 @@ export const TRAIT_STATE_WEIGHTS: Record<WorkflowState, number> = {
   [WorkflowState.NEEDS_INFO]: 530,
   [WorkflowState.HANDOFF]: 540,
 };
+
+export const TRAIT_NAME_SEEN_DAYS = 30;
+
+export const TRAIT_DAY_MS = 24 * 60 * 60 * 1000;

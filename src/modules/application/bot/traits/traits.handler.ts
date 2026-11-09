@@ -3,7 +3,9 @@ import { ChatInputType } from 'src/common/enums/channel.enums';
 import type { ScreenButton } from 'src/common/interfaces/chat-channel.interface';
 import type { Locale } from 'src/modules/application/i18n/i18n.interface';
 import { TraitDimension } from 'src/modules/application/trait/trait.enums';
+import { Source } from 'src/modules/application/source/source.enums';
 import { TraitService } from 'src/modules/application/trait/trait.service';
+import { TraitNameService } from 'src/modules/application/trait/trait-name/trait-name.service';
 import { JobRole, Permission } from 'src/modules/application/user/user.enums';
 import { ADMIN_MENU_DATA } from '../admin/constants/admin.constants';
 import { BotSection } from '../bot.decorator';
@@ -12,6 +14,7 @@ import type { BotContext, BotHandler, BotReply } from '../bot.interface';
 import { BOT_BUTTON_DATA_SEPARATOR } from '../constants/bot.constants';
 import { TraitAddAction } from '../trait-add/trait-add.enums';
 import { TraitManageAction } from '../trait-manage/trait-manage.enums';
+import { TraitNameList } from '../trait-names/trait-names.enums';
 import {
   TRAITS_BUTTON_SCHEMA,
   TRAITS_ITEM_SEPARATOR,
@@ -26,6 +29,7 @@ import { TraitsView } from './traits.view';
 export class TraitsHandler implements BotHandler {
   constructor(
     private readonly traitService: TraitService,
+    private readonly traitNameService: TraitNameService,
     private readonly traitsView: TraitsView,
   ) {}
 
@@ -61,19 +65,7 @@ export class TraitsHandler implements BotHandler {
     } else if (pages > 1) {
       lines.push(locale.traitList.page(current + 1, pages));
     }
-    const navigation: ScreenButton[] = [];
-    if (current > 0) {
-      navigation.push({
-        text: locale.traitList.previous,
-        data: this.traitsView.toListData(current - 1),
-      });
-    }
-    if (current < pages - 1) {
-      navigation.push({
-        text: locale.traitList.next,
-        data: this.traitsView.toListData(current + 1),
-      });
-    }
+    const unmapped = await this.traitNameService.countUnmapped(Source.GITLAB, false);
 
     return {
       screen: {
@@ -88,7 +80,15 @@ export class TraitsHandler implements BotHandler {
               data: this.traitsView.toCardData(mapping.id, current),
             },
           ]),
-          ...(navigation.length > 0 ? [navigation] : []),
+          ...this.traitsView.toPageButtons(locale, current, pages, (target) =>
+            this.traitsView.toListData(target),
+          ),
+          [
+            {
+              text: locale.traitList.unmapped(unmapped),
+              data: this.traitsView.toNamesData(TraitNameList.UNMAPPED),
+            },
+          ],
           [
             {
               text: locale.traitList.add,

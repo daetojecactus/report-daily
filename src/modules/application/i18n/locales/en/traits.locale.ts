@@ -17,6 +17,30 @@ export const enTraits: TraitsLocale = {
     everyone: 'For everyone',
     addValue: 'Add a trait',
     drop: 'Delete the label',
+    unmapped: (count) => `No traits · ${count}`,
+  },
+  traitNames: {
+    title: (count) => `**No traits** · ${count}`,
+    hint: (days) =>
+      `Labels and statuses from tasks of the last ${days} days that have no trait: the bot does not know what they mean. Choose a name to map it to a trait or to ignore it.`,
+    empty: (days) =>
+      `No new names: everything the bot met in tasks of the last ${days} days is mapped or ignored.`,
+    ignoredTitle: (count) => `**Ignored** · ${count}`,
+    ignoredHint:
+      'Changes of these labels and statuses do not go to the report. Choose a name to count it again.',
+    ignoredEmpty: 'No such names.',
+    showIgnored: (count) => `Ignored · ${count}`,
+    showUnmapped: 'No traits',
+    backToTraits: 'To traits',
+    card: 'No trait: the bot does not know what this name means and shows its change in the report as a label edit.',
+    ignoredCard: 'Ignored: changes of this name do not go to the report.',
+    map: 'Map',
+    ignore: 'Ignore',
+    restore: 'Count again',
+    back: '‹ Back',
+    notFound: 'Name not found.',
+    ignored: (label) => `Done: ${label} is ignored now.`,
+    restored: (label) => `Done: ${label} counts again.`,
   },
   traitManage: {
     askValue: (label, whom, dimension, value) =>

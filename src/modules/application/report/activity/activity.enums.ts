@@ -127,4 +127,5 @@ export enum ActivityRule {
   REPEATED = 'repeated',
   MOVED_AWAY = 'moved_away',
   RECIPROCAL_LINK = 'reciprocal_link',
+  IGNORED_NAME = 'ignored_name',
 }

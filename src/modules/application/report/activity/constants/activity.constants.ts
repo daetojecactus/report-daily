@@ -208,9 +208,10 @@ export const ACTIVITY_SUMMARY_ACTIONS = new Set<ActivityAction>([
 
 export const ACTIVITY_SUMMARY_MIN_LINES = 3;
 
-export const ACTIVITY_ELSEWHERE_RULES = new Set<ActivityRule>([
+export const ACTIVITY_EXCLUDING_RULES = new Set<ActivityRule>([
   ActivityRule.MOVED_AWAY,
   ActivityRule.RECIPROCAL_LINK,
+  ActivityRule.IGNORED_NAME,
 ]);
 
 export const ACTIVITY_RESUMED_WORK_DAYS = 7;

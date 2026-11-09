@@ -28,6 +28,7 @@ import type {
 } from 'src/modules/application/trait/trait.interface';
 import type { TraitRepository } from 'src/modules/application/trait/trait.repository';
 import { TraitService } from 'src/modules/application/trait/trait.service';
+import type { TraitNameService } from 'src/modules/application/trait/trait-name/trait-name.service';
 import { JobRole } from 'src/modules/application/user/user.enums';
 import { ActivityCodeDetector } from '../activity-code.detector';
 import { ActivityEventDetector } from '../activity-event.detector';
@@ -80,14 +81,14 @@ const MAPPINGS: [string, TraitDimension, TraitValue][] = [
   ['test::unit', TraitDimension.FLAG, TaskFlag.UNIT_TESTS_REQUIRED],
 ];
 
-export function createIndex(): TraitIndex {
-  const index: TraitIndex = new Map();
+export function createIndex(ignored: string[] = []): TraitIndex {
+  const pairs = new Map<string, TraitPair[]>();
   for (const [name, dimension, value] of MAPPINGS) {
-    const pairs: TraitPair[] = index.get(toSourceKey(name)) ?? [];
-    pairs.push({ dimension, value });
-    index.set(toSourceKey(name), pairs);
+    const values = pairs.get(toSourceKey(name)) ?? [];
+    values.push({ dimension, value });
+    pairs.set(toSourceKey(name), values);
   }
-  return index;
+  return { pairs, ignored: new Set(ignored.map(toSourceKey)) };
 }
 
 export function at(hour: number, minute = 0, second = 0) {
@@ -245,7 +246,7 @@ export function createIssue(overrides: Partial<GroupedIssue> = {}): GroupedIssue
 
 export function createSignals() {
   return new ActivitySignals(
-    new TraitService({} as TraitRepository),
+    new TraitService({} as TraitRepository, {} as TraitNameService),
     new ActivityEngagement(),
     new ActivityRules(),
   );

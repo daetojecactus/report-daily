@@ -61,6 +61,7 @@ export class ActivitySignals {
       facts.filter((fact) => fact.own),
       employee,
       ownMergeRequests,
+      (name) => this.traitService.isIgnored(index, name),
     );
     const pushes = this.toPushes(line);
     const endNames = items.flatMap(({ item }) => [...item.labels, ...this.toStatus(item)]);

@@ -42,7 +42,10 @@ export interface TraitPair {
   value: TraitValue;
 }
 
-export type TraitIndex = Map<string, TraitPair[]>;
+export interface TraitIndex {
+  pairs: Map<string, TraitPair[]>;
+  ignored: Set<string>;
+}
 
 export interface TaskTraits {
   workflowStates: WorkflowState[];

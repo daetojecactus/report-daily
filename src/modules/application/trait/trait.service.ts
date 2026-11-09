@@ -17,10 +17,14 @@ import type {
 } from './trait.interface';
 import { TraitRepository } from './trait.repository';
 import { traitMappings } from './trait.schema';
+import { TraitNameService } from './trait-name/trait-name.service';
 
 @Injectable()
 export class TraitService {
-  constructor(private readonly traitRepository: TraitRepository) {}
+  constructor(
+    private readonly traitRepository: TraitRepository,
+    private readonly traitNameService: TraitNameService,
+  ) {}
 
   find(filter?: SQL) {
     return this.traitRepository.find(filter);
@@ -83,13 +87,16 @@ export class TraitService {
   }
 
   async loadIndex(source: Source, role: JobRole): Promise<TraitIndex> {
-    const mappings = await this.find(
-      and(
-        eq(traitMappings.source, source),
-        or(isNull(traitMappings.role), eq(traitMappings.role, role)),
+    const [mappings, ignored] = await Promise.all([
+      this.find(
+        and(
+          eq(traitMappings.source, source),
+          or(isNull(traitMappings.role), eq(traitMappings.role, role)),
+        ),
       ),
-    );
-    const index: TraitIndex = new Map();
+      this.traitNameService.findIgnoredKeys(source),
+    ]);
+    const pairs = new Map<string, TraitPair[]>();
     for (const mapping of mappings) {
       const overridden =
         mapping.role === null &&
@@ -100,16 +107,20 @@ export class TraitService {
             item.dimension === mapping.dimension,
         );
       if (!overridden) {
-        const pairs = index.get(mapping.sourceKey) ?? [];
-        pairs.push({ dimension: mapping.dimension, value: mapping.value });
-        index.set(mapping.sourceKey, pairs);
+        const values = pairs.get(mapping.sourceKey) ?? [];
+        values.push({ dimension: mapping.dimension, value: mapping.value });
+        pairs.set(mapping.sourceKey, values);
       }
     }
-    return index;
+    return { pairs, ignored };
   }
 
   findTraits(index: TraitIndex, sourceName: string): TraitPair[] {
-    return index.get(toSourceKey(sourceName)) ?? [];
+    return index.pairs.get(toSourceKey(sourceName)) ?? [];
+  }
+
+  isIgnored(index: TraitIndex, sourceName: string) {
+    return index.ignored.has(toSourceKey(sourceName));
   }
 
   findValues<Dimension extends TraitDimension>(

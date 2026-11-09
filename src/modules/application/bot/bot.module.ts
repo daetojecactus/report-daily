@@ -21,6 +21,7 @@ import { CancelHandler } from './handlers/cancel.handler';
 import { HelpHandler } from './handlers/help.handler';
 import { TraitAddHandler } from './trait-add/trait-add.handler';
 import { TraitManageHandler } from './trait-manage/trait-manage.handler';
+import { TraitNamesHandler } from './trait-names/trait-names.handler';
 import { TraitsHandler } from './traits/traits.handler';
 import { TraitsView } from './traits/traits.view';
 import { StartHandler } from './handlers/start.handler';
@@ -49,6 +50,7 @@ import { SettingsHandler } from './settings/settings.handler';
     TraitsHandler,
     TraitAddHandler,
     TraitManageHandler,
+    TraitNamesHandler,
     TraitsView,
     {
       provide: BOT_CHANNELS,

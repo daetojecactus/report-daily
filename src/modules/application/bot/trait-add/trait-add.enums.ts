@@ -1,6 +1,7 @@
 export enum TraitAddAction {
   START = 'start',
   MORE = 'more',
+  NAME = 'name',
   ROLE = 'role',
   DIMENSIONS = 'dims',
   DIMENSION = 'dim',

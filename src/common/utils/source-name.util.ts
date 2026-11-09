@@ -16,3 +16,7 @@ export function toSourceKey(label: string) {
     )
     .join(SOURCE_NAME_SCOPE_SEPARATOR);
 }
+
+export function isValidSourceKey(sourceKey: string) {
+  return sourceKey.split(SOURCE_NAME_SCOPE_SEPARATOR).every((part) => part !== '');
+}

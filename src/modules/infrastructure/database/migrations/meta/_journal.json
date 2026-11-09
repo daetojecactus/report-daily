@@ -36,6 +36,13 @@
       "when": 1793893175807,
       "tag": "0004_task_traits",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1794207467032,
+      "tag": "0005_trait_names",
+      "breakpoints": true
     }
   ]
 }

@@ -10,6 +10,8 @@ import type {
   TraitMappingInput,
 } from 'src/modules/application/trait/trait.interface';
 import type { TraitService } from 'src/modules/application/trait/trait.service';
+import type { TraitName } from 'src/modules/application/trait/trait-name/trait-name.interface';
+import type { TraitNameService } from 'src/modules/application/trait/trait-name/trait-name.service';
 import { JobRole } from 'src/modules/application/user/user.enums';
 import type { BotDialog } from '../../bot.interface';
 import { TraitAddHandler } from '../trait-add.handler';
@@ -26,6 +28,16 @@ const MAPPING: TraitMapping = {
   role: null,
   dimension: TraitDimension.PRIORITY,
   value: Priority.LOW,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+};
+const NAME: TraitName = {
+  id: '019a4d2e-7c1b-7f3a-9c2d-000000000009',
+  source: Source.GITLAB,
+  sourceName: LABEL,
+  sourceKey: LABEL,
+  ignored: false,
+  seenAt: new Date(),
   createdAt: new Date(),
   updatedAt: new Date(),
 };
@@ -51,7 +63,14 @@ describe('TraitAddHandler', () => {
     findByKey: vi.fn<(source: Source, sourceKey: string) => Promise<TraitMapping[]>>(),
     addValue: vi.fn<(input: TraitMappingInput) => Promise<TraitMapping | null>>(),
   };
-  const handler = new TraitAddHandler(traitService as unknown as TraitService, new TraitsView());
+  const traitNameService = {
+    findById: vi.fn<(id: string) => Promise<TraitName | null>>(),
+  };
+  const handler = new TraitAddHandler(
+    traitService as unknown as TraitService,
+    traitNameService as unknown as TraitNameService,
+    new TraitsView(),
+  );
 
   function open(input: ChatInput, current: BotDialog | null = null) {
     return handler.handle({
@@ -145,6 +164,35 @@ describe('TraitAddHandler', () => {
 
     expect(await open(button(`trtadd:more:${MAPPING.id}`))).toEqual({
       screen: { text: locale.traitList.notFound, buttons: [[LIST]] },
+      dialog: null,
+    });
+  });
+
+  it('maps a name the bot met in tasks starting from the role', async () => {
+    traitNameService.findById.mockResolvedValue(NAME);
+
+    const reply = await open(button(`trtadd:name:${NAME.id}`));
+
+    expect(reply.screen.text).toBe(locale.traitAdd.forWhom(BOLD));
+    expect(reply.dialog).toEqual(dialog('role', { label: LABEL }));
+    expect(traitNameService.findById).toHaveBeenCalledWith(NAME.id);
+  });
+
+  it('opens the card of a met name that got mapped meanwhile', async () => {
+    traitNameService.findById.mockResolvedValue(NAME);
+    traitService.findByKey.mockResolvedValue([MAPPING]);
+
+    expect(await open(button(`trtadd:name:${NAME.id}`))).toEqual({
+      screen: { text: locale.traitAdd.exists(BOLD), buttons: [[CARD], [LIST]] },
+      dialog: null,
+    });
+  });
+
+  it('says a met name is not found', async () => {
+    traitNameService.findById.mockResolvedValue(null);
+
+    expect(await open(button(`trtadd:name:${NAME.id}`))).toEqual({
+      screen: { text: locale.traitNames.notFound, buttons: [[LIST]] },
       dialog: null,
     });
   });

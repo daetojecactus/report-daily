@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { SOURCE_NAME_FACTS } from 'src/modules/application/source/constants/source.constants';
 import { SourceActionKind } from 'src/modules/application/source/source.enums';
 import {
   ACTIVITY_AUTO_STATUS_MS,
@@ -18,9 +19,19 @@ import type { ActivityDropped, ActivityEmployee, ActivityFact } from './activity
 
 @Injectable()
 export class ActivityRules {
-  clean(facts: ActivityFact[], employee: ActivityEmployee, ownMergeRequests: number[]) {
-    const undone = this.findUndone(facts);
-    const active = facts.filter((fact) => !undone.has(fact));
+  clean(
+    facts: ActivityFact[],
+    employee: ActivityEmployee,
+    ownMergeRequests: number[],
+    isIgnored: (name: string) => boolean,
+  ) {
+    const ignored = facts.filter(
+      (fact) => SOURCE_NAME_FACTS.has(fact.kind) && fact.value !== null && isIgnored(fact.value),
+    );
+    const skipped = new Set(ignored);
+    const counted = facts.filter((fact) => !skipped.has(fact));
+    const undone = this.findUndone(counted);
+    const active = counted.filter((fact) => !undone.has(fact));
     const creations = facts.filter((fact) => fact.kind === SourceActionKind.OPENED);
     const merges = facts.filter((fact) => fact.kind === SourceActionKind.MERGED);
     const arrivals = facts.filter((fact) => fact.kind === SourceActionKind.MOVED_IN);
@@ -39,10 +50,10 @@ export class ActivityRules {
       [ActivityRule.REPLACED, (fact) => this.isReplaced(fact, active)],
     ];
     const own: ActivityFact[] = [];
-    const dropped: ActivityDropped[] = [...undone].map((fact) => ({
-      fact,
-      rule: ActivityRule.UNDONE,
-    }));
+    const dropped: ActivityDropped[] = [
+      ...ignored.map((fact) => ({ fact, rule: ActivityRule.IGNORED_NAME })),
+      ...[...undone].map((fact) => ({ fact, rule: ActivityRule.UNDONE })),
+    ];
     for (const fact of active) {
       const rule =
         rules.find(([, applies]) => applies(fact))?.[0] ??
