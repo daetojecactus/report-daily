@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { Gender } from 'src/modules/application/user/user.enums';
 import { DEFAULT_LANGUAGE } from '../constants/i18n.constants';
 import { Language } from '../i18n.enums';
 import { I18nService } from '../i18n.service';
@@ -16,11 +17,22 @@ const NAMES = [
   'traits.values.area.ci_cd.name',
   'roles.qa',
   'roles.devops',
+  'phrases.withNote',
 ];
+
+const GENDERS: string[] = Object.values(Gender);
+
+function isGendered(value: object) {
+  const keys = Object.keys(value);
+  return keys.length === GENDERS.length && keys.every((key) => GENDERS.includes(key));
+}
 
 function collectEntries(value: unknown, path = ''): [string, unknown][] {
   if (typeof value !== 'object' || value === null) {
     return [[path, value]];
+  }
+  if (isGendered(value)) {
+    return [[path, Object.values(value).join(' / ')]];
   }
   return Object.entries(value).flatMap(([key, item]) =>
     collectEntries(item, path ? `${path}.${key}` : key),

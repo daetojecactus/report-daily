@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { I18nModule } from 'src/modules/application/i18n/i18n.module';
 import { ReportModule } from 'src/modules/application/report/report.module';
 import { SourceModule } from 'src/modules/application/source/source.module';
 import { TraitModule } from 'src/modules/application/trait/trait.module';
@@ -20,6 +21,7 @@ import { PreviewService } from './preview.service';
     SourceModule,
     TraitModule,
     ReportModule,
+    I18nModule,
   ],
   providers: [PreviewService, PreviewRenderer, PreviewRecorder, PreviewAnonymizer],
 })

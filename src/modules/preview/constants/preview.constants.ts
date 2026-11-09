@@ -5,6 +5,8 @@ export const PREVIEW_INDENT = '  ';
 
 export const PREVIEW_TRACE_FLAG = '--trace';
 
+export const PREVIEW_LANGUAGE_FLAG = '--lang=';
+
 export const PREVIEW_REASONS: Record<ActivityReason, string> = {
   [ActivityReason.ONLY]: 'the only action',
   [ActivityReason.TIER]: 'a higher tier',

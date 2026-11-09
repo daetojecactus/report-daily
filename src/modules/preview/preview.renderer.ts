@@ -28,6 +28,7 @@ export class PreviewRenderer {
     results: ActivityResult[],
     trace: boolean,
     summaries: ActivitySummary[] = [],
+    phrases = new Map<ActivityResult, string>(),
   ) {
     const summarized = new Set(summaries.flatMap((summary) => summary.results));
     const items = [
@@ -46,7 +47,13 @@ export class PreviewRenderer {
     const describe = (item: (typeof items)[number]) => {
       const result = resultOf(item);
       return result
-        ? this.describeResult(result, PREVIEW_INDENT.repeat(2), trace, summarized.has(result))
+        ? this.describeResult(
+            result,
+            PREVIEW_INDENT.repeat(2),
+            trace,
+            summarized.has(result),
+            phrases.get(result),
+          )
         : [];
     };
     const projects = [...new Set(items.map((item) => item.projectId))].flatMap((projectId) => [
@@ -105,13 +112,17 @@ export class PreviewRenderer {
     indent: string,
     trace: boolean,
     summarized: boolean,
+    phrase?: string,
   ) {
-    const main = `${indent}main: ${this.describeCandidate(choice.main)}${excluded ? ' · excluded from the report' : ''}${summarized ? ' · in a summary' : ''}`;
+    const main = [
+      `${indent}main: ${this.describeCandidate(choice.main)}${excluded ? ' · excluded from the report' : ''}${summarized ? ' · in a summary' : ''}`,
+      ...(phrase ? [`${indent}text: ${phrase}`] : []),
+    ];
     if (!trace) {
-      return [main];
+      return main;
     }
     return [
-      main,
+      ...main,
       `${indent}trace: ${PREVIEW_REASONS[choice.trace.reason]}`,
       ...choice.trace.ranked.map(({ candidate, tier, weight }, place) => {
         const parts = candidate.parts.length
