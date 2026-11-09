@@ -1,6 +1,19 @@
-import { PhraseContext, ReportPhrase } from 'src/modules/application/report/phrase/phrase.enums';
+import {
+  PhraseContext,
+  PhraseCount,
+  PhraseName,
+  ReportPhrase,
+} from 'src/modules/application/report/phrase/phrase.enums';
 import { WorkflowState } from 'src/modules/application/trait/trait.enums';
 import type { PhrasesLocale } from '../../i18n.interface';
+
+function count(value: number, one: string, many: string) {
+  return `${value} ${value === 1 ? one : many}`;
+}
+
+function tasks(value: number) {
+  return count(value, 'task', 'tasks');
+}
 
 export const enPhrases: PhrasesLocale = {
   phrases: {
@@ -93,7 +106,7 @@ export const enPhrases: PhrasesLocale = {
       [ReportPhrase.REFACTORED]: 'Refactored the code',
       [ReportPhrase.DRAFT_IN_PROGRESS]: 'Continued work on the merge request',
       [ReportPhrase.COMMITTED_TO_MAIN_BRANCH]: 'Committed to the main branch',
-      [ReportPhrase.PUSHED_TO_BRANCHES]: 'Pushed changes to several branches',
+      [ReportPhrase.PUSHED_TO_BRANCHES]: 'Pushed changes to',
       [ReportPhrase.CODE_WORK]: 'Worked on the code',
       [ReportPhrase.REQUIREMENTS_AND_PLANNED]: 'Clarified the requirements and planned the task',
       [ReportPhrase.REQUIREMENTS_AND_TAKEN_INTO_WORK]:
@@ -105,10 +118,10 @@ export const enPhrases: PhrasesLocale = {
       [ReportPhrase.DOCUMENTATION_PAGE_CREATED]: 'Created a documentation page',
       [ReportPhrase.DOCUMENTATION_UPDATED]: 'Updated the documentation',
       [ReportPhrase.MILESTONE_CREATED]: 'Created a milestone',
-      [ReportPhrase.MOVED_TO_ANOTHER_SPRINT]: 'Moved the task to another sprint',
-      [ReportPhrase.ADDED_TO_SPRINT]: 'Added the task to the sprint',
-      [ReportPhrase.MOVED_TO_ANOTHER_MILESTONE]: 'Moved the task to another milestone',
-      [ReportPhrase.ADDED_TO_MILESTONE]: 'Planned the task for the milestone',
+      [ReportPhrase.MOVED_TO_ANOTHER_SPRINT]: 'Moved the task to',
+      [ReportPhrase.ADDED_TO_SPRINT]: 'Added the task to',
+      [ReportPhrase.MOVED_TO_ANOTHER_MILESTONE]: 'Moved the task to',
+      [ReportPhrase.ADDED_TO_MILESTONE]: 'Planned the task for',
       [ReportPhrase.DUE_DATE_SET]: 'Set the due date',
       [ReportPhrase.START_DATE_SET]: 'Set the start date',
       [ReportPhrase.TASK_PLANNED]: 'Planned the task',
@@ -117,7 +130,7 @@ export const enPhrases: PhrasesLocale = {
       [ReportPhrase.TECH_DEBT_RECORDED]: 'Recorded technical debt',
       [ReportPhrase.FEATURE_PLANNED]: 'Planned a feature',
       [ReportPhrase.TASK_CREATED]: 'Created the task',
-      [ReportPhrase.MOVED_FROM_PROJECT]: 'Moved the task from another project',
+      [ReportPhrase.MOVED_FROM_PROJECT]: 'Moved the task from',
       [ReportPhrase.DUPLICATE_MARKED]: 'Marked a duplicate',
       [ReportPhrase.BLOCKER_MARKED]: 'Marked a blocking task',
       [ReportPhrase.PARENT_SET]: 'Set the parent task',
@@ -184,5 +197,36 @@ export const enPhrases: PhrasesLocale = {
     stateNote: (state) => `task ${state}`,
     quote: (title) => `"${title}"`,
     withNote: (text, note) => `${text} · ${note}`,
+    names: {
+      [PhraseName.SPRINT]: (name) => (name ? ` sprint ${name}` : ' the sprint'),
+      [PhraseName.OTHER_SPRINT]: (name) => (name ? ` sprint ${name}` : ' another sprint'),
+      [PhraseName.MILESTONE]: (name) => (name ? ` milestone ${name}` : ' the milestone'),
+      [PhraseName.OTHER_MILESTONE]: (name) => (name ? ` milestone ${name}` : ' another milestone'),
+      [PhraseName.DATE]: (name) => (name ? ` to ${name}` : ''),
+      [PhraseName.PROJECT]: (name) => (name ? ` project ${name}` : ' another project'),
+    },
+    counts: {
+      [PhraseCount.SUBTASKS]: (value) =>
+        value ? ` into ${count(value, 'subtask', 'subtasks')}` : '',
+      [PhraseCount.BRANCHES]: (value) =>
+        value ? ` ${count(value, 'branch', 'branches')}` : ' several branches',
+      [PhraseCount.REFS]: (value) => (value ? `: ${value}` : ''),
+    },
+    summaries: {
+      [ReportPhrase.MILESTONE_CREATED]: (value) =>
+        `Created ${count(value, 'milestone', 'milestones')}`,
+      [ReportPhrase.MOVED_TO_ANOTHER_SPRINT]: (value) => `Moved ${tasks(value)} to`,
+      [ReportPhrase.ADDED_TO_SPRINT]: (value) => `Added ${tasks(value)} to`,
+      [ReportPhrase.MOVED_TO_ANOTHER_MILESTONE]: (value) => `Moved ${tasks(value)} to`,
+      [ReportPhrase.ADDED_TO_MILESTONE]: (value) => `Planned ${tasks(value)} for`,
+      [ReportPhrase.DUE_DATE_SET]: (value) => `Set the due date of ${tasks(value)}`,
+      [ReportPhrase.START_DATE_SET]: (value) => `Set the start date of ${tasks(value)}`,
+      [ReportPhrase.TASK_PLANNED]: (value) => `Planned ${tasks(value)}`,
+      [ReportPhrase.ESTIMATE_CHANGED]: (value) => `Re-estimated ${tasks(value)}`,
+      [ReportPhrase.TASK_ESTIMATED]: (value) => `Estimated ${tasks(value)}`,
+      [ReportPhrase.MOVED_FROM_PROJECT]: (value) => `Moved ${tasks(value)} from other projects`,
+    },
+    summaryLine: (text, references) => `${text}: ${references}`,
+    dateLocale: 'en-GB',
   },
 };

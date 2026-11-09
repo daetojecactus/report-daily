@@ -162,7 +162,22 @@ export const GITLAB_SOURCE_PATH_SEPARATOR = '/';
 export const GITLAB_SOURCE_DATE_NOTE_PATTERN = /^(?:changed|removed) (?:start|due) date\b/;
 
 export const GITLAB_SOURCE_DATE_CHANGE_PATTERN =
-  /(changed|removed) (start|due) date(?: to)?(?: ([A-Z][a-z]+ \d{1,2}, \d{4}))?/g;
+  /(changed|removed) (start|due) date(?: to)?(?: ([A-Z][a-z]+) (\d{1,2}), (\d{4}))?/g;
+
+export const GITLAB_SOURCE_MONTHS = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
 
 export const GITLAB_SOURCE_DATE_ACTIONS = new Map<string, SourceActionKind>([
   ['changed due', SourceActionKind.DUE_DATE_SET],

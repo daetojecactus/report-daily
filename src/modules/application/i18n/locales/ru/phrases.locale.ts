@@ -1,6 +1,26 @@
-import { PhraseContext, ReportPhrase } from 'src/modules/application/report/phrase/phrase.enums';
+import {
+  PhraseContext,
+  PhraseCount,
+  PhraseName,
+  ReportPhrase,
+} from 'src/modules/application/report/phrase/phrase.enums';
 import { WorkflowState } from 'src/modules/application/trait/trait.enums';
 import type { PhrasesLocale } from '../../i18n.interface';
+
+const PLURAL = new Intl.PluralRules('ru');
+
+function count(value: number, one: string, few: string, many: string) {
+  const form = PLURAL.select(value);
+  return `${value} ${form === 'one' ? one : form === 'few' ? few : many}`;
+}
+
+function tasks(value: number) {
+  return count(value, 'задачу', 'задачи', 'задач');
+}
+
+function toTasks(value: number) {
+  return count(value, 'задаче', 'задачам', 'задачам');
+}
 
 export const ruPhrases: PhrasesLocale = {
   phrases: {
@@ -295,8 +315,8 @@ export const ruPhrases: PhrasesLocale = {
         female: 'Закоммитила в основную ветку',
       },
       [ReportPhrase.PUSHED_TO_BRANCHES]: {
-        male: 'Отправил изменения в несколько веток',
-        female: 'Отправила изменения в несколько веток',
+        male: 'Отправил изменения в',
+        female: 'Отправила изменения в',
       },
       [ReportPhrase.CODE_WORK]: { male: 'Работал над кодом', female: 'Работала над кодом' },
       [ReportPhrase.REQUIREMENTS_AND_PLANNED]: {
@@ -333,20 +353,17 @@ export const ruPhrases: PhrasesLocale = {
       },
       [ReportPhrase.MILESTONE_CREATED]: { male: 'Создал веху', female: 'Создала веху' },
       [ReportPhrase.MOVED_TO_ANOTHER_SPRINT]: {
-        male: 'Перенёс задачу в другой спринт',
-        female: 'Перенесла задачу в другой спринт',
+        male: 'Перенёс задачу в',
+        female: 'Перенесла задачу в',
       },
-      [ReportPhrase.ADDED_TO_SPRINT]: {
-        male: 'Взял задачу в спринт',
-        female: 'Взяла задачу в спринт',
-      },
+      [ReportPhrase.ADDED_TO_SPRINT]: { male: 'Взял задачу в', female: 'Взяла задачу в' },
       [ReportPhrase.MOVED_TO_ANOTHER_MILESTONE]: {
-        male: 'Перенёс задачу в другую веху',
-        female: 'Перенесла задачу в другую веху',
+        male: 'Перенёс задачу в',
+        female: 'Перенесла задачу в',
       },
       [ReportPhrase.ADDED_TO_MILESTONE]: {
-        male: 'Запланировал задачу в веху',
-        female: 'Запланировала задачу в веху',
+        male: 'Запланировал задачу в',
+        female: 'Запланировала задачу в',
       },
       [ReportPhrase.DUE_DATE_SET]: {
         male: 'Назначил срок задачи',
@@ -372,8 +389,8 @@ export const ruPhrases: PhrasesLocale = {
       },
       [ReportPhrase.TASK_CREATED]: { male: 'Создал задачу', female: 'Создала задачу' },
       [ReportPhrase.MOVED_FROM_PROJECT]: {
-        male: 'Перенёс задачу из другого проекта',
-        female: 'Перенесла задачу из другого проекта',
+        male: 'Перенёс задачу из',
+        female: 'Перенесла задачу из',
       },
       [ReportPhrase.DUPLICATE_MARKED]: {
         male: 'Отметил дубликат',
@@ -504,5 +521,68 @@ export const ruPhrases: PhrasesLocale = {
     stateNote: (state) => `задача ${state}`,
     quote: (title) => `«${title}»`,
     withNote: (text, note) => `${text} · ${note}`,
+    names: {
+      [PhraseName.SPRINT]: (name) => (name ? ` спринт ${name}` : ' спринт'),
+      [PhraseName.OTHER_SPRINT]: (name) => (name ? ` спринт ${name}` : ' другой спринт'),
+      [PhraseName.MILESTONE]: (name) => (name ? ` веху ${name}` : ' веху'),
+      [PhraseName.OTHER_MILESTONE]: (name) => (name ? ` веху ${name}` : ' другую веху'),
+      [PhraseName.DATE]: (name) => (name ? ` на ${name}` : ''),
+      [PhraseName.PROJECT]: (name) => (name ? ` проекта ${name}` : ' другого проекта'),
+    },
+    counts: {
+      [PhraseCount.SUBTASKS]: (value) =>
+        value ? ` на ${count(value, 'подзадачу', 'подзадачи', 'подзадач')}` : '',
+      [PhraseCount.BRANCHES]: (value) =>
+        value ? ` ${count(value, 'ветку', 'ветки', 'веток')}` : ' несколько веток',
+      [PhraseCount.REFS]: (value) => (value ? `: ${value}` : ''),
+    },
+    summaries: {
+      [ReportPhrase.MILESTONE_CREATED]: (value) => ({
+        male: `Создал ${count(value, 'веху', 'вехи', 'вех')}`,
+        female: `Создала ${count(value, 'веху', 'вехи', 'вех')}`,
+      }),
+      [ReportPhrase.MOVED_TO_ANOTHER_SPRINT]: (value) => ({
+        male: `Перенёс ${tasks(value)} в`,
+        female: `Перенесла ${tasks(value)} в`,
+      }),
+      [ReportPhrase.ADDED_TO_SPRINT]: (value) => ({
+        male: `Взял ${tasks(value)} в`,
+        female: `Взяла ${tasks(value)} в`,
+      }),
+      [ReportPhrase.MOVED_TO_ANOTHER_MILESTONE]: (value) => ({
+        male: `Перенёс ${tasks(value)} в`,
+        female: `Перенесла ${tasks(value)} в`,
+      }),
+      [ReportPhrase.ADDED_TO_MILESTONE]: (value) => ({
+        male: `Запланировал ${tasks(value)} в`,
+        female: `Запланировала ${tasks(value)} в`,
+      }),
+      [ReportPhrase.DUE_DATE_SET]: (value) => ({
+        male: `Назначил срок ${toTasks(value)}`,
+        female: `Назначила срок ${toTasks(value)}`,
+      }),
+      [ReportPhrase.START_DATE_SET]: (value) => ({
+        male: `Назначил дату начала ${toTasks(value)}`,
+        female: `Назначила дату начала ${toTasks(value)}`,
+      }),
+      [ReportPhrase.TASK_PLANNED]: (value) => ({
+        male: `Запланировал ${tasks(value)}`,
+        female: `Запланировала ${tasks(value)}`,
+      }),
+      [ReportPhrase.ESTIMATE_CHANGED]: (value) => ({
+        male: `Переоценил ${tasks(value)}`,
+        female: `Переоценила ${tasks(value)}`,
+      }),
+      [ReportPhrase.TASK_ESTIMATED]: (value) => ({
+        male: `Оценил ${tasks(value)}`,
+        female: `Оценила ${tasks(value)}`,
+      }),
+      [ReportPhrase.MOVED_FROM_PROJECT]: (value) => ({
+        male: `Перенёс ${tasks(value)} из других проектов`,
+        female: `Перенесла ${tasks(value)} из других проектов`,
+      }),
+    },
+    summaryLine: (text, references) => `${text}: ${references}`,
+    dateLocale: 'ru',
   },
 };

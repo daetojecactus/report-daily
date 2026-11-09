@@ -211,6 +211,25 @@ describe('PreviewRenderer', () => {
       'Summaries',
       '  estimated x3: group/project-1#1, group/project-1#2, group/project-1#3',
     ]);
+
+    const day: GroupedDailyData = {
+      projects: [],
+      issues: [planned(1), planned(2), planned(3)],
+      standaloneMergeRequests: [],
+      standalonePushes: [],
+      standaloneEvents: [],
+    };
+    const service = createService();
+    const results = service.classify(day, { username: ME, role: JobRole.DEVELOPER }, createIndex());
+    const summaries = service.summarize(results);
+    expect(
+      new PreviewRenderer()
+        .render(day, results, false, summaries, {
+          lines: new Map(),
+          summaries: new Map([[summaries[0], 'Оценил 3 задачи: #1, #2, #3']]),
+        })
+        .slice(-1),
+    ).toEqual(['    text: Оценил 3 задачи: #1, #2, #3']);
   });
 
   it('marks a task that is kept out of the report', () => {
@@ -240,13 +259,10 @@ describe('PreviewRenderer', () => {
       createIndex(),
     );
 
-    const lines = new PreviewRenderer().render(
-      day,
-      results,
-      false,
-      [],
-      new Map([[results[0], 'Доработал и отправил на ревью «Issue 12»']]),
-    );
+    const lines = new PreviewRenderer().render(day, results, false, [], {
+      lines: new Map([[results[0], 'Доработал и отправил на ревью «Issue 12»']]),
+      summaries: new Map(),
+    });
 
     expect(lines.slice(2, 5)).toEqual([
       '  Issue #12 Issue 12 · opened',

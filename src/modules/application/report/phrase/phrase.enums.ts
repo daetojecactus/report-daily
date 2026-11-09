@@ -153,3 +153,18 @@ export enum PhraseContext {
   AFTER_REVIEW = 'after_review',
   AUTO_MERGE = 'auto_merge',
 }
+
+export enum PhraseName {
+  SPRINT = 'sprint',
+  OTHER_SPRINT = 'other_sprint',
+  MILESTONE = 'milestone',
+  OTHER_MILESTONE = 'other_milestone',
+  DATE = 'date',
+  PROJECT = 'project',
+}
+
+export enum PhraseCount {
+  SUBTASKS = 'subtasks',
+  BRANCHES = 'branches',
+  REFS = 'refs',
+}

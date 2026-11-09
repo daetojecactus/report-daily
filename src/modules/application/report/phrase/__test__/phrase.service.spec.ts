@@ -13,11 +13,14 @@ import type { ActivityLine } from '../../activity/activity.interface';
 import {
   at,
   choose,
+  createIndex,
   createIssue,
+  createService,
   createMergeRequest,
   fact,
   issueLine,
   othersMergeRequest,
+  ME,
   pushLine,
   refEvent,
   toSignals,
@@ -49,6 +52,38 @@ function mergedBug() {
       mergeRequests: [mergeRequest],
     }),
   );
+}
+
+const SPRINT = '2026-11-05 – 2026-11-18';
+
+function planned(
+  iid: number,
+  facts = [fact(SourceActionKind.ITERATION_SET, at(10), { value: SPRINT })],
+) {
+  return createIssue({ iid, title: `Issue ${iid}`, facts });
+}
+
+function summarize(
+  issues: ReturnType<typeof createIssue>[],
+  { gender = Gender.MALE, language = Language.RU } = {},
+) {
+  const service = createService();
+  const results = service.classify(
+    {
+      projects: [],
+      issues,
+      standaloneMergeRequests: [],
+      standalonePushes: [],
+      standaloneEvents: [],
+    },
+    { username: ME, role: JobRole.PROJECT_MANAGER },
+    createIndex(),
+  );
+  return service
+    .summarize(results)
+    .map((summary) =>
+      new PhraseService().summarize(summary, gender, new I18nService().getLocale(language)),
+    );
 }
 
 function mergeRequestLine(mergeRequest = createMergeRequest()): ActivityLine {
@@ -170,6 +205,81 @@ describe('PhraseService', () => {
           ],
         }),
       ),
-    ).toBe('Отправил изменения в несколько веток');
+    ).toBe('Отправил изменения в 5 веток');
+  });
+
+  it('names the sprint, the milestone and the date in the language of the report', () => {
+    expect(describeLine(issueLine(planned(12)))).toBe(
+      'Взял задачу в спринт 5–18 ноября «Issue 12»',
+    );
+    expect(describeLine(issueLine(planned(12)), { language: Language.EN })).toBe(
+      'Added the task to sprint 5\u2009–\u200918 November "Issue 12"',
+    );
+    expect(
+      describeLine(
+        issueLine(
+          createIssue({
+            startOfDay: { ...createIssue().startOfDay, milestone: '17.4' },
+            facts: [fact(SourceActionKind.MILESTONE_SET, at(10), { value: '17.5' })],
+          }),
+        ),
+        { gender: Gender.FEMALE },
+      ),
+    ).toBe('Перенесла задачу в веху 17.5 «Issue 12»');
+    expect(
+      describeLine(
+        issueLine(
+          createIssue({
+            facts: [fact(SourceActionKind.DUE_DATE_SET, at(10), { value: '2026-11-20' })],
+          }),
+        ),
+      ),
+    ).toBe('Назначил срок задачи на 20 ноября «Issue 12»');
+  });
+
+  it('names the project a task came from and counts the subtasks in the right form', () => {
+    expect(
+      describeLine(
+        issueLine(
+          createIssue({
+            facts: [fact(SourceActionKind.MOVED_IN, at(10), { value: 'team/old#7' })],
+          }),
+        ),
+      ),
+    ).toBe('Перенёс задачу из проекта team/old «Issue 12»');
+    const decomposed = (count: number) =>
+      issueLine(
+        createIssue({
+          facts: Array.from({ length: count }, (_, index) =>
+            fact(SourceActionKind.CHILD_ADDED, at(10, index)),
+          ),
+        }),
+      );
+    expect(describeLine(decomposed(1))).toBe('Декомпозировал задачу на 1 подзадачу «Issue 12»');
+    expect(describeLine(decomposed(3))).toBe('Декомпозировал задачу на 3 подзадачи «Issue 12»');
+    expect(describeLine(decomposed(5), { language: Language.EN })).toBe(
+      'Broke the task down into 5 subtasks "Issue 12"',
+    );
+  });
+
+  it('phrases a summary with the value all its lines share', () => {
+    expect(summarize([planned(1), planned(2), planned(3)])).toEqual([
+      'Взял 3 задачи в спринт 5–18 ноября: #1, #2, #3',
+    ]);
+    expect(
+      summarize(
+        [
+          planned(1),
+          planned(2),
+          planned(3, [fact(SourceActionKind.ITERATION_SET, at(10), { value: 'Sprint 9' })]),
+          planned(4),
+          planned(5),
+        ],
+        { gender: Gender.FEMALE },
+      ),
+    ).toEqual(['Взяла 5 задач в спринт: #1, #2, #3, #4, #5']);
+    expect(summarize([planned(1), planned(2), planned(3)], { language: Language.EN })).toEqual([
+      'Added 3 tasks to sprint 5\u2009–\u200918 November: #1, #2, #3',
+    ]);
   });
 });

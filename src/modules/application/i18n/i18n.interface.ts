@@ -2,8 +2,11 @@ import type { Channel } from 'src/common/enums/channel.enums';
 import type { BotCommand } from 'src/modules/application/bot/bot.enums';
 import type {
   PhraseContext,
+  PhraseCount,
+  PhraseName,
   ReportPhrase,
 } from 'src/modules/application/report/phrase/phrase.enums';
+import type { SummaryPhrase } from 'src/modules/application/report/phrase/phrase.interface';
 import type { TraitDimension, WorkflowState } from 'src/modules/application/trait/trait.enums';
 import type { TraitDimensionValueMap } from 'src/modules/application/trait/trait.interface';
 import type { Source } from 'src/modules/application/source/source.enums';
@@ -249,6 +252,11 @@ export interface PhrasesLocale {
     stateNote: (state: string) => string;
     quote: (title: string) => string;
     withNote: (text: string, note: string) => string;
+    names: Record<PhraseName, (name: string | null) => string>;
+    counts: Record<PhraseCount, (count: number | null) => string>;
+    summaries: Record<SummaryPhrase, (count: number) => GenderedText>;
+    summaryLine: (text: string, references: string) => string;
+    dateLocale: string;
   };
 }
 

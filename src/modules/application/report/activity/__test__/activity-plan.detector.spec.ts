@@ -44,8 +44,8 @@ describe('ActivityPlanDetector', () => {
   it('plans a due date and a start date and takes their removal for an edit', () => {
     expect(
       planned([
-        fact(SourceActionKind.START_DATE_SET, at(10), { value: 'November 2, 2026' }),
-        fact(SourceActionKind.DUE_DATE_SET, at(10), { value: 'November 20, 2026' }),
+        fact(SourceActionKind.START_DATE_SET, at(10), { value: '2026-11-02' }),
+        fact(SourceActionKind.DUE_DATE_SET, at(10), { value: '2026-11-20' }),
       ]),
     ).toEqual([
       {
@@ -56,9 +56,9 @@ describe('ActivityPlanDetector', () => {
       },
     ]);
     expect(
-      planned([
-        fact(SourceActionKind.DUE_DATE_REMOVED, at(10), { value: 'November 20, 2026' }),
-      ]).map(({ action, details }) => [action, details]),
+      planned([fact(SourceActionKind.DUE_DATE_REMOVED, at(10), { value: '2026-11-20' })]).map(
+        ({ action, details }) => [action, details],
+      ),
     ).toEqual([[ActivityAction.EDITED, [ActivityDetail.DUE_DATE]]]);
   });
 

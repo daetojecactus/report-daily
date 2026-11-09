@@ -1,3 +1,7 @@
+import type {
+  ActivityResult,
+  ActivitySummary,
+} from 'src/modules/application/report/activity/activity.interface';
 import type { GroupedDailyData } from 'src/modules/application/source/source.interface';
 import type { JobRole } from 'src/modules/application/user/user.enums';
 
@@ -26,4 +30,9 @@ export interface PreviewFixture {
 export interface PreviewFixtureFile {
   name: string;
   fixture: PreviewFixture;
+}
+
+export interface PreviewTexts {
+  lines: Map<ActivityResult, string>;
+  summaries: Map<ActivitySummary, string>;
 }

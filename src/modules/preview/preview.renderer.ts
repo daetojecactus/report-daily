@@ -20,6 +20,7 @@ import {
   PREVIEW_REASONS,
   PREVIEW_TARGET_NAMES,
 } from './constants/preview.constants';
+import type { PreviewTexts } from './preview.interface';
 
 @Injectable()
 export class PreviewRenderer {
@@ -28,7 +29,7 @@ export class PreviewRenderer {
     results: ActivityResult[],
     trace: boolean,
     summaries: ActivitySummary[] = [],
-    phrases = new Map<ActivityResult, string>(),
+    texts: PreviewTexts = { lines: new Map(), summaries: new Map() },
   ) {
     const summarized = new Set(summaries.flatMap((summary) => summary.results));
     const items = [
@@ -52,7 +53,7 @@ export class PreviewRenderer {
             PREVIEW_INDENT.repeat(2),
             trace,
             summarized.has(result),
-            phrases.get(result),
+            texts.lines.get(result),
           )
         : [];
     };
@@ -78,10 +79,14 @@ export class PreviewRenderer {
           `${PREVIEW_INDENT.repeat(2)}events: ${this.describeEvents(item.events)}`,
         ]),
     ]);
-    return [...projects, ...this.describeSummaries(day, summaries)];
+    return [...projects, ...this.describeSummaries(day, summaries, texts.summaries)];
   }
 
-  private describeSummaries(day: GroupedDailyData, summaries: ActivitySummary[]) {
+  private describeSummaries(
+    day: GroupedDailyData,
+    summaries: ActivitySummary[],
+    texts: Map<ActivitySummary, string>,
+  ) {
     if (!summaries.length) {
       return [];
     }
@@ -100,10 +105,14 @@ export class PreviewRenderer {
     return [
       '',
       'Summaries',
-      ...summaries.map(
-        ({ action, details, results }) =>
+      ...summaries.flatMap((summary) => {
+        const { action, details, results } = summary;
+        const text = texts.get(summary);
+        return [
           `${PREVIEW_INDENT}${[action, details.join(', ')].filter(Boolean).join(' · ')} x${results.length}: ${results.map(refOf).join(', ')}`,
-      ),
+          ...(text ? [`${PREVIEW_INDENT.repeat(2)}text: ${text}`] : []),
+        ];
+      }),
     ];
   }
 

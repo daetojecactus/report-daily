@@ -1,7 +1,8 @@
 import { TaskFlag, TaskKind, WorkflowState } from 'src/modules/application/trait/trait.enums';
+import { SourceActionKind } from 'src/modules/application/source/source.enums';
 import { JobRole } from 'src/modules/application/user/user.enums';
 import { ActivityAction, ActivityDetail } from '../../activity/activity.enums';
-import { PhraseContext, ReportPhrase } from '../phrase.enums';
+import { PhraseContext, PhraseCount, PhraseName, ReportPhrase } from '../phrase.enums';
 import type { PhraseRule } from '../phrase.interface';
 
 const MANAGERS = [JobRole.PROJECT_MANAGER, JobRole.SYSTEM_ANALYST];
@@ -508,3 +509,71 @@ export const PHRASE_NOTED_ACTIONS = new Set<ActivityAction>([
   ActivityAction.ESTIMATED,
   ActivityAction.EDITED,
 ]);
+
+export const PHRASE_NAMES = new Map<ReportPhrase, PhraseName>([
+  [ReportPhrase.ADDED_TO_SPRINT, PhraseName.SPRINT],
+  [ReportPhrase.MOVED_TO_ANOTHER_SPRINT, PhraseName.OTHER_SPRINT],
+  [ReportPhrase.ADDED_TO_MILESTONE, PhraseName.MILESTONE],
+  [ReportPhrase.MOVED_TO_ANOTHER_MILESTONE, PhraseName.OTHER_MILESTONE],
+  [ReportPhrase.DUE_DATE_SET, PhraseName.DATE],
+  [ReportPhrase.START_DATE_SET, PhraseName.DATE],
+  [ReportPhrase.MOVED_FROM_PROJECT, PhraseName.PROJECT],
+]);
+
+export const PHRASE_NAME_FACTS: Record<PhraseName, SourceActionKind[]> = {
+  [PhraseName.SPRINT]: [SourceActionKind.ITERATION_SET],
+  [PhraseName.OTHER_SPRINT]: [SourceActionKind.ITERATION_SET],
+  [PhraseName.MILESTONE]: [SourceActionKind.MILESTONE_SET],
+  [PhraseName.OTHER_MILESTONE]: [SourceActionKind.MILESTONE_SET],
+  [PhraseName.DATE]: [SourceActionKind.DUE_DATE_SET, SourceActionKind.START_DATE_SET],
+  [PhraseName.PROJECT]: [SourceActionKind.MOVED_IN],
+};
+
+export const PHRASE_SUMMARY_NAMES = new Set<PhraseName>([
+  PhraseName.SPRINT,
+  PhraseName.OTHER_SPRINT,
+  PhraseName.MILESTONE,
+  PhraseName.OTHER_MILESTONE,
+  PhraseName.DATE,
+]);
+
+export const PHRASE_COUNTS = new Map<ReportPhrase, PhraseCount>([
+  [ReportPhrase.DECOMPOSED, PhraseCount.SUBTASKS],
+  [ReportPhrase.PUSHED_TO_BRANCHES, PhraseCount.BRANCHES],
+  [ReportPhrase.TAGS_PUSHED, PhraseCount.REFS],
+  [ReportPhrase.BRANCHES_DELETED, PhraseCount.REFS],
+]);
+
+export const PHRASE_SUMMARIES = [
+  ReportPhrase.MILESTONE_CREATED,
+  ReportPhrase.MOVED_TO_ANOTHER_SPRINT,
+  ReportPhrase.ADDED_TO_SPRINT,
+  ReportPhrase.MOVED_TO_ANOTHER_MILESTONE,
+  ReportPhrase.ADDED_TO_MILESTONE,
+  ReportPhrase.DUE_DATE_SET,
+  ReportPhrase.START_DATE_SET,
+  ReportPhrase.TASK_PLANNED,
+  ReportPhrase.ESTIMATE_CHANGED,
+  ReportPhrase.TASK_ESTIMATED,
+  ReportPhrase.MOVED_FROM_PROJECT,
+] as const;
+
+export const PHRASE_DATE_RANGE_PATTERN = /(\d{4}-\d{2}-\d{2}) – (\d{4}-\d{2}-\d{2})/g;
+
+export const PHRASE_DATE_PATTERN = /\d{4}-\d{2}-\d{2}/g;
+
+export const PHRASE_DATE_FORMAT: Intl.DateTimeFormatOptions = {
+  day: 'numeric',
+  month: 'long',
+  timeZone: 'UTC',
+};
+
+export const PHRASE_DATE_TIME_SUFFIX = 'T00:00:00Z';
+
+export const PHRASE_REFERENCE_SUFFIX_PATTERN = /#\d+$/;
+
+export const PHRASE_REFERENCE_SEPARATOR = ', ';
+
+export const PHRASE_ISSUE_PREFIX = '#';
+
+export const PHRASE_MERGE_REQUEST_PREFIX = '!';
