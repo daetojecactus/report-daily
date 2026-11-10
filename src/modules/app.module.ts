@@ -6,8 +6,9 @@ import { AppConfigModule } from 'src/modules/infrastructure/config/config.module
 import { DatabaseModule } from 'src/modules/infrastructure/database/database.module';
 import { LoggerModule } from 'src/modules/infrastructure/logger/logger.module';
 import { RedisModule } from 'src/modules/infrastructure/redis/redis.module';
+import { ScheduleRootModule } from 'src/modules/infrastructure/scheduler/schedule-root.module';
 import { QueueModule } from 'src/modules/queue/queue.module';
-import { TasksModule } from 'src/modules/tasks/tasks.module';
+import { TaskModule } from 'src/modules/tasks/task.module';
 
 @Module({
   imports: [
@@ -16,8 +17,9 @@ import { TasksModule } from 'src/modules/tasks/tasks.module';
     DatabaseModule,
     RedisModule,
     BullRootModule,
+    ScheduleRootModule,
     QueueModule,
-    TasksModule,
+    TaskModule,
     HealthModule,
     TelegramPollerModule,
   ],

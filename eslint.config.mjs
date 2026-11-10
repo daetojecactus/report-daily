@@ -113,10 +113,10 @@ export default tseslint.config(
     rules: restrictImports(
       [
         'src/modules/api/**',
-        'src/modules/application/**',
         'src/modules/queue/**/*.processor',
+        'src/modules/application/**/*.repository',
       ],
-      'tasks declare schedules through queue producers only',
+      'tasks call application services, not transport, queue processors or repositories',
     ),
   },
   {
