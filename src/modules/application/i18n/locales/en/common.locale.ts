@@ -117,5 +117,45 @@ export const enCommon: CommonLocale = {
     },
     on: 'yes',
     off: 'no',
+    template: 'Report template',
+  },
+  templates: {
+    title: '**Report template**',
+    current: (name) => `Now: ${name}. Choose a template: Standard, a shared one or your own.`,
+    standard: 'Standard',
+    shared: (name) => `${name} (shared)`,
+    mine: 'My templates',
+    toSettings: '‹ Settings',
+    chosen: (name) => `Done: your report will come in the template "${name}".`,
+    notFound: 'Template not found: it may have been deleted.',
+    mineTitle: (count) => `**My templates** · ${count}`,
+    mineEmpty:
+      'No templates of your own yet. Press "Create": the bot asks for a name and the text.',
+    create: 'Create',
+    back: '‹ Back',
+    use: 'Use',
+    delete: 'Delete',
+    backToMine: '‹ My templates',
+    confirmDelete: (name) =>
+      `Delete the template **${name}**? If it is in use, the report goes back to Standard.`,
+    confirm: 'Yes, delete',
+    cancel: 'Cancel',
+    deleted: (name) => `The template **${name}** is deleted.`,
+    askName: (max) =>
+      `What should the template be called? The name shows in the list, up to ${max} characters.`,
+    nameInvalid: (max) => `The name must be 1 to ${max} characters long.`,
+    askBody: (name, max) =>
+      `**${name}**\nSend the template text in Liquid, up to ${max} characters. The report data is in \`context\`: projects \`context.projects\` (a project has \`name\` and lines \`items\`), a line has \`text\`, \`title\`, \`action\`, \`url\`. Example:\n\`{% for project in context.projects %}{{ project.name }}:\n{% for item in project.items %}• {{ item.text }}\n{% endfor %}{% endfor %}\`\nAll fields of the context are in the README, section "Your own templates".`,
+    bodyInvalid: (max) => `The template text must be 1 to ${max} characters long.`,
+    syntaxError: (error) => `The template has an error: ${error}. Fix it and send the text again.`,
+    renderError: (error) =>
+      `The template did not render on your data: ${error}. Fix it and send the text again.`,
+    preview: (date) => `Preview on your report for ${date}:`,
+    emptyOutput: '(the template printed nothing)',
+    noPreview:
+      'The template has no errors. There is no preview: you have no built report yet, `/report` gives one.',
+    save: 'Save',
+    saved: (name) => `The template **${name}** is saved.`,
+    cancelled: 'Creating the template is cancelled.',
   },
 };

@@ -48,6 +48,7 @@ export class ReportRepository {
           content: values.content,
           error: values.error,
           generatedAt: values.generatedAt,
+          templateId: values.templateId,
           updatedAt: new Date(),
         },
       })

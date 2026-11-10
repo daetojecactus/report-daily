@@ -28,3 +28,7 @@ export const TEMPLATE_WEEKDAY_FORMAT: Intl.DateTimeFormatOptions = {
   weekday: 'long',
   timeZone: 'UTC',
 };
+
+export const TEMPLATE_NAME_MAX_LENGTH = 64;
+
+export const TEMPLATE_BODY_MAX_LENGTH = 4000;

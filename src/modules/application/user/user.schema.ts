@@ -1,5 +1,15 @@
 import { sql } from 'drizzle-orm';
-import { boolean, check, pgEnum, pgTable, text, time } from 'drizzle-orm/pg-core';
+import {
+  type AnyPgColumn,
+  boolean,
+  check,
+  pgEnum,
+  pgTable,
+  text,
+  time,
+  uuid,
+} from 'drizzle-orm/pg-core';
+import { reportTemplates } from '../report/template/template.schema';
 import { Language } from '../i18n/i18n.enums';
 import { Gender, JobRole, Permission, UserStatus } from './user.enums';
 import { createdAt, primaryId, updatedAt } from '../../infrastructure/database/database.columns';
@@ -33,6 +43,9 @@ export const users = pgTable(
     aiEnabled: boolean().notNull().default(true),
     aiDataOptOut: boolean().notNull().default(false),
     permissions: permission().array().notNull().default([]),
+    templateId: uuid().references((): AnyPgColumn => reportTemplates.id, {
+      onDelete: 'set null',
+    }),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { SourceActionKind } from 'src/modules/application/source/source.enums';
 import { at, createIssue, fact } from '../../activity/__test__/activity.fixture';
 import { createGoldenIndex, loadGoldenDays } from '../../activity/__test__/activity.golden.fixture';
+import type { TemplateRepository } from '../template.repository';
 import { TemplateService } from '../template.service';
 import { buildContext, createDay } from './template.fixture';
 
@@ -15,7 +16,7 @@ function commented(iid: number, title = `Issue ${iid}`, projectId = 1) {
 }
 
 describe('TemplateService', () => {
-  const service = new TemplateService();
+  const service = new TemplateService({} as TemplateRepository);
 
   it('renders the standard template as projects with their lines', async () => {
     const context = buildContext(
@@ -49,6 +50,12 @@ describe('TemplateService', () => {
     ).toBe(
       '**[Fix \\*bold\\* \\_it\\_ \\[x\\]](https://gitlab.example.com/group/project-1/-/issues/12)**',
     );
+  });
+
+  it('tells a syntax error of a template before it is saved', () => {
+    expect(service.check('{% for item in context.items %}{{ item.text }}{% endfor %}')).toBeNull();
+    expect(service.check('{% for item in context.items %}{{ item.text }}')).toContain('not closed');
+    expect(service.check('{{ item.text ')).not.toBeNull();
   });
 
   it('reads no files, no prototypes and stops at the limits', async () => {

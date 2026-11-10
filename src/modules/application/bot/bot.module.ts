@@ -31,6 +31,8 @@ import { StartHandler } from './handlers/start.handler';
 import { MenuService } from './menu/menu.service';
 import { ReportHandler } from './report/report.handler';
 import { ReportView } from './report/report.view';
+import { TemplateAddHandler } from './template-add/template-add.handler';
+import { TemplatesHandler } from './templates/templates.handler';
 import { RouterService } from './router/router.service';
 import { SettingsHandler } from './settings/settings.handler';
 
@@ -64,6 +66,8 @@ import { SettingsHandler } from './settings/settings.handler';
     SettingsHandler,
     ReportHandler,
     ReportView,
+    TemplatesHandler,
+    TemplateAddHandler,
     TraitsHandler,
     TraitAddHandler,
     TraitManageHandler,

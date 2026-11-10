@@ -17,6 +17,7 @@ import type { BotContext, BotHandler, BotReply } from '../bot.interface';
 import { BOT_BUTTON_DATA_SEPARATOR } from '../constants/bot.constants';
 import { MenuService } from '../menu/menu.service';
 import {
+  SETTINGS_TEMPLATES_DATA,
   SETTINGS_BUTTON_SCHEMA,
   SETTINGS_DEFAULT_TIME_ZONE,
   SETTINGS_HOURS,
@@ -147,6 +148,7 @@ export class SettingsHandler implements BotHandler {
               data: this.toData(action, isOn ? SETTINGS_OFF : SETTINGS_ON),
             },
           ]),
+          [{ text: settings.template, data: SETTINGS_TEMPLATES_DATA }],
         ],
       },
       dialog: null,

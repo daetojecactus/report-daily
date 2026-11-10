@@ -4,7 +4,7 @@ import { getErrorMessage } from 'src/common/utils/error.util';
 import { DEFAULT_LANGUAGE } from 'src/modules/application/i18n/constants/i18n.constants';
 import { UserService } from 'src/modules/application/user/user.service';
 import { UserSourceService } from 'src/modules/application/user/user-source/user-source.service';
-import { REPORT_REUSABLE_STATUSES } from './constants/report.constants';
+import { REPORT_REUSABLE_STATUSES, REPORT_SNAPSHOT_STATUSES } from './constants/report.constants';
 import { ReportMessages } from './constants/report.messages';
 import { ReportComposer } from './report.composer';
 import { ReportStatus } from './report.enums';
@@ -45,6 +45,12 @@ export class ReportService {
     });
   }
 
+  findLatestSnapshot(userId: string) {
+    return this.reportRepository.findLatest(
+      and(eq(reports.userId, userId), inArray(reports.status, REPORT_SNAPSHOT_STATUSES))!,
+    );
+  }
+
   findLatest(userId: string) {
     return this.reportRepository.findLatest(eq(reports.userId, userId));
   }
@@ -72,7 +78,7 @@ export class ReportService {
     }
     await this.save({ userId, reportDate, status: ReportStatus.GENERATING, error: null });
     try {
-      const { context, content } = await this.reportComposer.compose({
+      const { context, content, templateId } = await this.reportComposer.compose({
         user,
         account,
         date: reportDate,
@@ -84,6 +90,7 @@ export class ReportService {
         status: context.isEmpty ? ReportStatus.EMPTY : ReportStatus.READY,
         snapshot: context,
         content,
+        templateId,
         error: null,
         generatedAt: new Date(),
       });

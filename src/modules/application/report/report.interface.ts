@@ -29,4 +29,5 @@ export interface ReportDraft {
   summaries: ActivitySummary[];
   context: ReportContext;
   content: string;
+  templateId: string | null;
 }

@@ -17,6 +17,7 @@ export interface UserSettingsUpdate {
   aiEnabled?: boolean;
   aiDataOptOut?: boolean;
   gender?: Gender;
+  templateId?: string | null;
 }
 
 export interface UserWithChannel {

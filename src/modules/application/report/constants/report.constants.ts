@@ -5,3 +5,5 @@ export const REPORT_REUSABLE_STATUSES = [
   ReportStatus.DELIVERED,
   ReportStatus.EMPTY,
 ];
+
+export const REPORT_SNAPSHOT_STATUSES = [ReportStatus.READY, ReportStatus.DELIVERED];

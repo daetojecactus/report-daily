@@ -53,6 +53,56 @@ Node.js reads this variable when the process starts, before `.env` is loaded wit
 - **Development:** start the bot with the variable: `NODE_EXTRA_CA_CERTS=/path/to/company-ca.pem pnpm watch`, and the same for `pnpm preview`.
 - **Docker:** mount the file into the container and set `NODE_EXTRA_CA_CERTS` in the `environment` of the service.
 
+## Your own templates
+
+Reports come in the built-in «Standard» template: projects with their lines. Any employee can write their own template in the bot: `/settings` → «Report template» → «My templates» → «Create». The bot asks for a name and the text, checks the syntax and shows a preview on your latest report. Templates are written in [Liquid](https://liquidjs.com/tutorials/intro-to-liquid.html) and produce Markdown: `**bold**`, `_italic_`, `` `code` `` and `[text](url)`.
+
+Everything taken from the data is escaped for Markdown, so a task title with `*` or `_` does not break the message. A link from the data goes in without escaping: `[{{ item.title }}]({{ item.url | raw }})`. Links point only to your GitLab. A template cannot read files and stops after one second of rendering.
+
+The data is in `context`:
+
+| Field | What it is |
+|---|---|
+| `context.date`, `context.dateText`, `context.weekday` | The day: `2026-11-09`, «9 ноября», «понедельник» in the report language |
+| `context.user` | `name`, `username`, `role`, `roleName` |
+| `context.isEmpty`, `context.itemsCount` | Whether the day has lines, and how many |
+| `context.projects` | Projects with `name`, `url` and their lines `items`, the more important first |
+| `context.items` | All lines |
+| `context.groups` | Lines by `category`: `outcome`, `check`, `transition`, `work`, `participation`, `context`; with `name` and `items` |
+
+A line (`item`) has:
+- `text`: the whole line, for example «Fixed a bug after testing "Login form"»;
+- `actionText`: the phrase without the title;
+- `note`, `title`;
+- `action`, `details` and `secondary` (other actions of the line);
+- `category`, `kind`, `priority`, `state`;
+- `type`: `issue`, `merge_request`, `push`, `event` or `summary`;
+- `ref` (`#12`, `!5`), `url`, `projectName`.
+
+The «Standard» template:
+
+```liquid
+{%- for project in context.projects -%}
+{{ project.name }}:
+{%- for item in project.items %}
+• {{ item.text }}
+{%- endfor %}
+{%- unless forloop.last %}
+
+{% endunless -%}
+{%- endfor -%}
+```
+
+Lines by category, with the date and links:
+
+```liquid
+**{{ context.dateText }}, {{ context.weekday }}**
+{% for group in context.groups %}
+_{{ group.name }}_
+{% for item in group.items %}• {% if item.url %}[{{ item.actionText }}]({{ item.url | raw }}){% else %}{{ item.text }}{% endif %}
+{% endfor %}{% endfor %}
+```
+
 ## License
 
 [Apache-2.0](LICENSE)
