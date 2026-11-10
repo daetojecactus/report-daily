@@ -48,3 +48,5 @@ export const AI_MARKUP_PATTERN = /[*`~]+/g;
 export const AI_LEAD_PATTERN = /^(?:>\s*|#+\s*|[-•]\s*|\[[^\]]+\]\s*)+/;
 
 export const AI_SPACES_PATTERN = /\s+/g;
+
+export const AI_FINAL_PERIOD_PATTERN = /\.+$/;
