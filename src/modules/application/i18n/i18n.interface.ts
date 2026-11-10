@@ -129,6 +129,7 @@ export interface CommonLocale {
     preview: (date: string) => string;
     emptyOutput: string;
     noPreview: string;
+    previewHint: string;
     save: string;
     saved: (name: string) => string;
     cancelled: string;

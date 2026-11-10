@@ -155,6 +155,8 @@ export const enCommon: CommonLocale = {
     emptyOutput: '(the template printed nothing)',
     noPreview:
       'The template has no errors. There is no preview: you have no built report yet, `/report` gives one.',
+    previewHint:
+      'To fix it, send the corrected text or press "Edit text". The template is saved only by "Save".',
     save: 'Save',
     saved: (name) => `The template **${name}** is saved.`,
     cancelled: 'Creating the template is cancelled.',

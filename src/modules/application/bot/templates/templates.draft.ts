@@ -36,7 +36,11 @@ export class TemplatesDraft {
     }
     const report = actor.user ? await this.reportService.findLatestSnapshot(actor.user.id) : null;
     if (!report?.snapshot) {
-      return { body, error: null, preview: locale.templates.noPreview };
+      return {
+        body,
+        error: null,
+        preview: [locale.templates.noPreview, '', locale.templates.previewHint].join('\n'),
+      };
     }
     try {
       const output = await this.templateService.render(body, report.snapshot);
@@ -51,6 +55,8 @@ export class TemplatesDraft {
           ),
           '',
           output || locale.templates.emptyOutput,
+          '',
+          locale.templates.previewHint,
         ].join('\n'),
       };
     } catch (error) {

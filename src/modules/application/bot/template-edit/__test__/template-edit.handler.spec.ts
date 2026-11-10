@@ -22,6 +22,7 @@ import { TemplateEditHandler } from '../template-edit.handler';
 const locale = new I18nService().getLocale(Language.EN);
 const USER = createEmployee().user;
 const BODY = '{% for item in context.items %}{{ item.text }}{% endfor %}';
+const NO_PREVIEW = [locale.templates.noPreview, '', locale.templates.previewHint].join('\n');
 
 function template(values: Partial<ReportTemplate> = {}): ReportTemplate {
   return {
@@ -127,10 +128,27 @@ describe('TemplateEditHandler', () => {
     expect(
       (await open(text('{% if %}'), dialog('body', { templateId: OWN.id }))).screen.text,
     ).toContain('The template has an error:');
-    expect(await open(text(BODY), dialog('body', { templateId: OWN.id }))).toMatchObject({
-      screen: { text: locale.templates.noPreview },
+    expect(await open(text(BODY), dialog('body', { templateId: OWN.id }))).toEqual({
+      screen: {
+        text: NO_PREVIEW,
+        buttons: [
+          [
+            { text: 'Save', data: 'tpledit:save' },
+            { text: 'Edit text', data: `tpledit:text:${OWN.id}` },
+          ],
+          [{ text: 'Cancel', data: 'tpledit:cancel' }],
+        ],
+      },
       dialog: dialog('preview', { templateId: OWN.id, body: BODY }),
     });
+    expect(
+      (
+        await open(
+          text('{{ context.date }}'),
+          dialog('preview', { templateId: OWN.id, body: BODY }),
+        )
+      ).dialog,
+    ).toEqual(dialog('preview', { templateId: OWN.id, body: '{{ context.date }}' }));
     expect(
       await open(button('tpledit:save'), dialog('preview', { templateId: OWN.id, body: BODY })),
     ).toEqual({

@@ -19,6 +19,7 @@ import { TemplatesAction } from '../templates/templates.enums';
 import {
   TEMPLATE_ADD_BUTTON_SCHEMA,
   TEMPLATE_ADD_DRAFT_SCHEMA,
+  TEMPLATE_ADD_TEXT_STEPS,
 } from './constants/template-add.constants';
 import { TemplateAddMessages } from './constants/template-add.messages';
 import { TemplateAddAction, TemplateAddStep } from './template-add.enums';
@@ -48,7 +49,7 @@ export class TemplateAddHandler implements BotHandler {
     if (input.type === ChatInputType.TEXT && dialog?.step === TemplateAddStep.NAME) {
       return this.receiveName(locale, shared, input.text);
     }
-    if (input.type === ChatInputType.TEXT && dialog?.step === TemplateAddStep.BODY) {
+    if (input.type === ChatInputType.TEXT && TEMPLATE_ADD_TEXT_STEPS.includes(dialog?.step ?? '')) {
       return this.receiveBody(locale, actor, dialog, input.text);
     }
     if (!button) {
@@ -61,6 +62,8 @@ export class TemplateAddHandler implements BotHandler {
       case TemplateAddAction.START:
       case TemplateAddAction.SHARED:
         return this.askName(locale, shared);
+      case TemplateAddAction.TEXT:
+        return this.editBody(locale, dialog);
       case TemplateAddAction.SAVE:
         return this.save(locale, actor, dialog);
       case TemplateAddAction.CANCEL:
@@ -115,13 +118,20 @@ export class TemplateAddHandler implements BotHandler {
     };
   }
 
+  private editBody(locale: Locale, dialog: BotDialog | null): BotReply {
+    const draft = this.readDraft(dialog, TemplateAddStep.PREVIEW);
+    return draft
+      ? this.askBody(locale, draft.shared, draft.name)
+      : { screen: { text: locale.bot.expired }, dialog: null };
+  }
+
   private async receiveBody(
     locale: Locale,
     actor: BotActor,
-    dialog: BotDialog,
+    dialog: BotDialog | null,
     text: string,
   ): Promise<BotReply> {
-    const draft = this.readDraft(dialog, TemplateAddStep.BODY);
+    const draft = this.readDraft(dialog, ...TEMPLATE_ADD_TEXT_STEPS);
     if (!draft) {
       return { screen: { text: locale.bot.expired }, dialog: null };
     }
@@ -136,8 +146,9 @@ export class TemplateAddHandler implements BotHandler {
         buttons: [
           [
             { text: locale.templates.save, data: this.toData(TemplateAddAction.SAVE) },
-            this.toCancelButton(locale),
+            { text: locale.templates.editText, data: this.toData(TemplateAddAction.TEXT) },
           ],
+          [this.toCancelButton(locale)],
         ],
       },
       dialog: this.toDialog(TemplateAddStep.PREVIEW, { shared, name, body }),
@@ -183,8 +194,8 @@ export class TemplateAddHandler implements BotHandler {
     };
   }
 
-  private readDraft(dialog: BotDialog | null, step: string) {
-    if (dialog?.namespace !== BotNamespace.TEMPLATE_ADD || dialog.step !== step) {
+  private readDraft(dialog: BotDialog | null, ...steps: string[]) {
+    if (dialog?.namespace !== BotNamespace.TEMPLATE_ADD || !steps.includes(dialog.step)) {
       return null;
     }
     const draft = TEMPLATE_ADD_DRAFT_SCHEMA.safeParse(dialog.data);
