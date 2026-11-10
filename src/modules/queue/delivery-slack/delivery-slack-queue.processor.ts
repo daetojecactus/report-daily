@@ -18,12 +18,16 @@ import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { SlackRejectedError } from 'src/modules/vendors/slack/slack.error';
 import { SlackService } from 'src/modules/vendors/slack/slack.service';
 import {
+  DELIVERY_SLACK_BROADCAST_JOB,
   DELIVERY_SLACK_LIMITER,
   DELIVERY_SLACK_QUEUE,
   DELIVERY_SLACK_SEND_JOB,
 } from './constants/delivery-slack-queue.constants';
 import { DeliverySlackQueueMessages } from './constants/delivery-slack-queue.messages';
-import type { DeliverySlackJobData } from './delivery-slack-queue.interface';
+import type {
+  DeliverySlackBroadcastData,
+  DeliverySlackJobData,
+} from './delivery-slack-queue.interface';
 
 @Processor(DELIVERY_SLACK_QUEUE, { limiter: DELIVERY_SLACK_LIMITER })
 export class DeliverySlackQueueProcessor extends WorkerHost implements OnModuleDestroy {
@@ -49,9 +53,38 @@ export class DeliverySlackQueueProcessor extends WorkerHost implements OnModuleD
   }
 
   async process(job: Job) {
-    if (job.name !== DELIVERY_SLACK_SEND_JOB) {
-      throw new Error(`${DeliverySlackQueueMessages.UNKNOWN_JOB}: ${job.name}`);
+    switch (job.name) {
+      case DELIVERY_SLACK_SEND_JOB:
+        return this.sendDelivery(job);
+      case DELIVERY_SLACK_BROADCAST_JOB:
+        return this.sendBroadcast(job);
+      default:
+        throw new Error(`${DeliverySlackQueueMessages.UNKNOWN_JOB}: ${job.name}`);
     }
+  }
+
+  private async sendBroadcast(job: Job) {
+    const { chatId, text } = job.data as DeliverySlackBroadcastData;
+    try {
+      await this.slackService.sendScreen(chatId, { text });
+    } catch (error) {
+      if (error instanceof ChatUnreachableError) {
+        await this.channelService.updateReachable(Channel.SLACK, chatId, false);
+        this.warn({ jobId: job.id, chatId }, error, DeliverySlackQueueMessages.CHAT_UNREACHABLE);
+        return;
+      }
+      if (error instanceof SlackRejectedError) {
+        this.warn({ jobId: job.id, chatId }, error, DeliverySlackQueueMessages.REJECTED);
+        return;
+      }
+      if (job.attemptsMade + 1 >= (job.opts.attempts ?? 1)) {
+        this.warn({ jobId: job.id, chatId }, error, DeliverySlackQueueMessages.ATTEMPT_FAILED);
+      }
+      throw error;
+    }
+  }
+
+  private async sendDelivery(job: Job) {
     const { deliveryId } = job.data as DeliverySlackJobData;
     const delivery = await this.deliveryService.findById(deliveryId);
     if (delivery?.status !== DeliveryStatus.QUEUED) {
@@ -109,6 +142,10 @@ export class DeliverySlackQueueProcessor extends WorkerHost implements OnModuleD
 
   private async fail(deliveryId: string, error: unknown, message: DeliverySlackQueueMessages) {
     await this.deliveryService.markFailed(deliveryId, getErrorMessage(error));
-    this.logger.warn({ deliveryId, error: getErrorMessage(error) }, message);
+    this.warn({ deliveryId }, error, message);
+  }
+
+  private warn(context: object, error: unknown, message: DeliverySlackQueueMessages) {
+    this.logger.warn({ ...context, error: getErrorMessage(error) }, message);
   }
 }

@@ -58,6 +58,10 @@ export class AccessService {
     };
   }
 
+  findOwnerIds(channel: Channel) {
+    return this.owners[channel];
+  }
+
   isKnown(actor: BotActor) {
     return actor.isOwner || actor.user !== null;
   }

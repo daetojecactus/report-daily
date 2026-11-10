@@ -196,11 +196,11 @@ export const enCommon: CommonLocale = {
   broadcast: {
     title: '**Broadcast**',
     askText: (max) =>
-      `Send the message for every active employee with Telegram, up to ${max} characters. Telegram formatting is not kept: plain text goes out.`,
+      `Send the message for every active employee, up to ${max} characters. It goes to each of their channels. Formatting is not kept: plain text goes out.`,
     textInvalid: (max) => `The broadcast text must be 1 to ${max} characters long.`,
     preview: '**Broadcast preview**',
     recipients: (count) => `Recipients: ${count}.`,
-    noRecipients: 'No recipients: no active employee has a reachable Telegram.',
+    noRecipients: 'No recipients: no active employee has a reachable channel.',
     previewHint: 'To fix it, send a new text or press "Edit text".',
     send: (count) => `Send (${count})`,
     editText: 'Edit text',

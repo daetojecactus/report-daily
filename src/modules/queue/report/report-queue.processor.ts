@@ -12,8 +12,7 @@ import { ReportService } from 'src/modules/application/report/report.service';
 import { ChannelService } from 'src/modules/application/user/channel/channel.service';
 import { DeliveryMode } from 'src/modules/infrastructure/config/config.enums';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
-import { DeliverySlackQueueProducer } from '../delivery-slack/delivery-slack-queue.producer';
-import { DeliveryTelegramQueueProducer } from '../delivery-telegram/delivery-telegram-queue.producer';
+import { DeliveryQueueProducer } from '../delivery/delivery-queue.producer';
 import {
   REPORT_BUILD_JOB,
   REPORT_CONCURRENCY,
@@ -30,8 +29,7 @@ export class ReportQueueProcessor extends WorkerHost implements OnModuleDestroy 
   constructor(
     private readonly reportService: ReportService,
     private readonly deliveryService: DeliveryService,
-    private readonly deliveryTelegramQueueProducer: DeliveryTelegramQueueProducer,
-    private readonly deliverySlackQueueProducer: DeliverySlackQueueProducer,
+    private readonly deliveryQueueProducer: DeliveryQueueProducer,
     private readonly channelService: ChannelService,
     private readonly botService: BotService,
     configService: ConfigService<AppEnvs, true>,
@@ -79,7 +77,7 @@ export class ReportQueueProcessor extends WorkerHost implements OnModuleDestroy 
         target,
         this.redirect && !own,
       );
-      await this.addDelivery(target, delivery.id);
+      await this.deliveryQueueProducer.addDelivery(target, delivery.id);
     }
   }
 
@@ -87,14 +85,5 @@ export class ReportQueueProcessor extends WorkerHost implements OnModuleDestroy 
     return (await this.channelService.findByUser(userId))
       .filter((item) => item.reachable && this.botService.hasChannel(item.channel))
       .map((item) => item.channel);
-  }
-
-  private addDelivery(channel: Channel, deliveryId: string) {
-    switch (channel) {
-      case Channel.TELEGRAM:
-        return this.deliveryTelegramQueueProducer.addDelivery(deliveryId);
-      case Channel.SLACK:
-        return this.deliverySlackQueueProducer.addDelivery(deliveryId);
-    }
   }
 }

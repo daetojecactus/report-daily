@@ -1,6 +1,9 @@
 import type { Queue } from 'bullmq';
 import { describe, expect, it, vi } from 'vitest';
-import { DELIVERY_SLACK_SEND_JOB } from '../constants/delivery-slack-queue.constants';
+import {
+  DELIVERY_SLACK_BROADCAST_JOB,
+  DELIVERY_SLACK_SEND_JOB,
+} from '../constants/delivery-slack-queue.constants';
 import { DeliverySlackQueueProducer } from '../delivery-slack-queue.producer';
 
 describe('DeliverySlackQueueProducer', () => {
@@ -19,6 +22,23 @@ describe('DeliverySlackQueueProducer', () => {
         removeOnFail: true,
         jobId: 'delivery-019a-1',
       },
+    );
+  });
+
+  it('adds one broadcast job per chat in one call', async () => {
+    const queue = { addBulk: vi.fn<Queue['addBulk']>() };
+
+    await new DeliverySlackQueueProducer(queue as unknown as Queue).addBroadcast('b-1', [
+      { chatId: 'U0ANNA01', text: 'Standup' },
+      { chatId: 'U0BORIS1', text: 'Standup' },
+    ]);
+
+    expect(queue.addBulk).toHaveBeenCalledWith(
+      ['U0ANNA01', 'U0BORIS1'].map((chatId) => ({
+        name: DELIVERY_SLACK_BROADCAST_JOB,
+        data: { chatId, text: 'Standup' },
+        opts: expect.objectContaining({ attempts: 5, jobId: `broadcast-b-1-${chatId}` }) as object,
+      })),
     );
   });
 });

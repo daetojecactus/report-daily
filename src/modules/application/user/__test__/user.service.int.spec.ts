@@ -215,15 +215,21 @@ describe('User module', () => {
     it('finds the chats of active employees with a reachable channel for a broadcast', async () => {
       const active = await insertUser({ status: UserStatus.ACTIVE, scheduleEnabled: false });
       const chat = await insertChannel(active.id);
+      const slack = await insertChannel(active.id, { channel: Channel.SLACK });
       const unreachable = await insertUser({ status: UserStatus.ACTIVE });
       const hidden = await insertChannel(unreachable.id, { reachable: false });
       const blocked = await insertUser({ status: UserStatus.BLOCKED });
       const closed = await insertChannel(blocked.id);
-      const chats = await userService.findRecipientChats(Channel.TELEGRAM);
+      const ids = (channels: Channel[]) =>
+        userService
+          .findRecipients(channels)
+          .then((rows) => rows.map(({ externalId }) => externalId));
 
-      expect(chats).toContain(chat.externalId);
-      expect(chats).not.toContain(hidden.externalId);
-      expect(chats).not.toContain(closed.externalId);
+      const both = await ids([Channel.TELEGRAM, Channel.SLACK]);
+      expect(both).toEqual(expect.arrayContaining([chat.externalId, slack.externalId]));
+      expect(both).not.toContain(hidden.externalId);
+      expect(both).not.toContain(closed.externalId);
+      expect(await ids([Channel.TELEGRAM])).not.toContain(slack.externalId);
     });
 
     it('finds active employees with a reachable channel and the schedule on', async () => {

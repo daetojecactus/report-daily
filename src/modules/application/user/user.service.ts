@@ -74,12 +74,12 @@ export class UserService {
     );
   }
 
-  async findRecipientChats(channel: Channel) {
+  async findRecipients(channels: Channel[]) {
     const rows = await this.userRepository.findReachable(
-      channel,
+      channels,
       eq(users.status, UserStatus.ACTIVE),
     );
-    return rows.map(({ channel: chat }) => chat.externalId);
+    return rows.map(({ channel }) => channel);
   }
 
   findOneByChannel(channel: Channel, externalId: string) {

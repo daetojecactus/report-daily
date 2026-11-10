@@ -12,7 +12,7 @@ import { TelegramModule } from 'src/modules/vendors/telegram/telegram.module';
 import { SlackModule } from 'src/modules/vendors/slack/slack.module';
 import { SlackService } from 'src/modules/vendors/slack/slack.service';
 import { TelegramService } from 'src/modules/vendors/telegram/telegram.service';
-import { DeliveryTelegramQueueModule } from 'src/modules/queue/delivery-telegram/delivery-telegram-queue.module';
+import { DeliveryQueueModule } from 'src/modules/queue/delivery/delivery-queue.module';
 import { ReportQueueModule } from 'src/modules/queue/report/report-queue.module';
 import { AccessService } from './access/access.service';
 import { AdminHandler } from './admin/admin.handler';
@@ -59,7 +59,7 @@ import { SettingsHandler } from './settings/settings.handler';
     ReportQueueModule,
     SettingsModule,
     AiModule,
-    DeliveryTelegramQueueModule,
+    DeliveryQueueModule,
   ],
   providers: [
     BotService,
