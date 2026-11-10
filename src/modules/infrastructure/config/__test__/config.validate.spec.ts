@@ -61,6 +61,36 @@ describe('validateEnv', () => {
     expect(message).toContain('GITLAB_TOKEN');
   });
 
+  it('leaves AI off without the LLM variables, also when they are empty', () => {
+    expect(validateEnv(ENV)).not.toHaveProperty('LLM_MODEL');
+    expect(validateEnv({ ...ENV, LLM_BASE_URL: '', LLM_TOKEN: '', LLM_MODEL: '' }).LLM_MODEL).toBe(
+      '',
+    );
+  });
+
+  it('accepts all three LLM variables, a local server too', () => {
+    expect(
+      validateEnv({
+        ...ENV,
+        LLM_BASE_URL: 'http://127.0.0.1:11434/v1',
+        LLM_TOKEN: 'ollama',
+        LLM_MODEL: 'qwen3:8b',
+      }),
+    ).toMatchObject({ LLM_BASE_URL: 'http://127.0.0.1:11434/v1', LLM_MODEL: 'qwen3:8b' });
+  });
+
+  it('asks for the whole LLM group when only a part of it is set', () => {
+    const message = getValidationMessage({
+      ...ENV,
+      LLM_BASE_URL: 'https://secret-llm.example.com',
+    });
+
+    expect(message).toContain('LLM_TOKEN');
+    expect(message).toContain('LLM_MODEL');
+    expect(message).not.toContain('LLM_BASE_URL');
+    expect(message).not.toContain('secret');
+  });
+
   it.each(['Mars/Base', '+05:00'])('rejects the time zone %s', (value) => {
     expect(getValidationMessage({ ...ENV, APP_TIMEZONE: value })).toContain('APP_TIMEZONE');
   });
