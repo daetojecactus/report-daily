@@ -354,14 +354,16 @@ export interface EmployeesLocale {
   };
   employeeBind: {
     prompt: (channel: string, name: string) => string;
+    promptId: (channel: string, name: string) => string;
+    idHint: Record<Channel, string>;
     pick: (channel: string) => string;
-    pickPrompt: string;
+    pickPrompt: Record<Channel, string>;
     pickButton: string;
     invalid: (channel: string) => string;
     taken: (name: string) => string;
     alreadyBound: (channel: string) => string;
     bound: (channel: string, name: string) => string;
-    hint: string;
+    hint: Record<Channel, string>;
     cancel: string;
     cancelled: string;
   };

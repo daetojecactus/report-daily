@@ -14,14 +14,18 @@ import { createEmployee } from '../../__test__/bot.fixture';
 import { EmployeeBindHandler } from '../employee-bind.handler';
 
 const locale = new I18nService().getLocale(Language.EN);
+const texts = locale.employeeBind;
 const found = createEmployee({ displayName: 'Anna *S*' });
 const USER = found.user;
+const NAME = 'Anna \\*S\\*';
 const ID_DIALOG: BotDialog = {
   namespace: 'bind',
   step: 'id',
-  data: { userId: USER.id },
+  data: { userId: USER.id, channel: 'telegram' },
 };
-const CANCEL = { text: 'Cancel', data: `bind:cancel:${USER.id}` };
+const SLACK_DIALOG: BotDialog = { ...ID_DIALOG, data: { userId: USER.id, channel: 'slack' } };
+const CANCEL = { text: 'Cancel', data: `bind:cancel:${USER.id}:telegram` };
+const SLACK_CANCEL = { text: 'Cancel', data: `bind:cancel:${USER.id}:slack` };
 
 function button(data: string): ChatInput {
   return { type: ChatInputType.BUTTON, data, messageId: '1', callbackId: '1' };
@@ -46,18 +50,24 @@ describe('EmployeeBindHandler', () => {
     channel: Channel.TELEGRAM,
     isUserId: (value: string) => /^\d+$/.test(value),
   };
+  const slack = {
+    channel: Channel.SLACK,
+    isUserId: (value: string) => /^[UW][A-Z0-9]{2,20}$/.test(value),
+  };
   const menuService = { syncEmployee: vi.fn() };
-  const handler = new EmployeeBindHandler(
-    userService as unknown as UserService,
-    channelService as unknown as ChannelService,
-    menuService as unknown as MenuService,
-    [telegram as unknown as ChatChannel],
-  );
+  const createHandler = (channels: unknown[]) =>
+    new EmployeeBindHandler(
+      userService as unknown as UserService,
+      channelService as unknown as ChannelService,
+      menuService as unknown as MenuService,
+      channels as ChatChannel[],
+    );
+  const handler = createHandler([telegram, slack]);
 
-  function open(input: ChatInput, dialog: BotDialog | null = null) {
+  function open(input: ChatInput, dialog: BotDialog | null = null, channel = Channel.TELEGRAM) {
     return handler.handle({
       actor: {
-        channel: Channel.TELEGRAM,
+        channel,
         externalId: '1',
         chatId: '1',
         language: Language.EN,
@@ -83,22 +93,48 @@ describe('EmployeeBindHandler', () => {
   });
 
   it('offers to choose the employee in Telegram or to enter the ID', async () => {
-    expect(await open(button(`bind:start:${USER.id}`))).toEqual({
+    expect(await open(button(`bind:start:${USER.id}:telegram`))).toEqual({
       screen: {
-        text: locale.employeeBind.prompt('Telegram', 'Anna \\*S\\*'),
-        buttons: [[{ text: 'Choose in Telegram', data: `bind:pick:${USER.id}` }], [CANCEL]],
+        text: [texts.prompt('Telegram', NAME), texts.idHint.telegram].join('\n'),
+        buttons: [
+          [{ text: 'Choose in Telegram', data: `bind:pick:${USER.id}:telegram` }],
+          [CANCEL],
+        ],
       },
       dialog: ID_DIALOG,
     });
   });
 
   it('shows the Telegram user picker', async () => {
-    expect(await open(button(`bind:pick:${USER.id}`))).toEqual({
+    expect(await open(button(`bind:pick:${USER.id}:telegram`))).toEqual({
       screen: {
-        text: locale.employeeBind.pickPrompt,
-        userPicker: { text: locale.employeeBind.pickButton },
+        text: texts.pickPrompt.telegram,
+        userPicker: { text: texts.pickButton },
       },
       dialog: ID_DIALOG,
+    });
+  });
+
+  it('asks for the Slack ID in Telegram, where there is no Slack picker', async () => {
+    const reply = {
+      screen: {
+        text: [texts.promptId('Slack', NAME), texts.idHint.slack].join('\n'),
+        buttons: [[SLACK_CANCEL]],
+      },
+      dialog: SLACK_DIALOG,
+    };
+
+    expect(await open(button(`bind:start:${USER.id}:slack`))).toEqual(reply);
+    expect(await open(button(`bind:pick:${USER.id}:slack`))).toEqual(reply);
+  });
+
+  it('shows the Slack member picker in Slack', async () => {
+    expect(await open(button(`bind:pick:${USER.id}:slack`), null, Channel.SLACK)).toEqual({
+      screen: {
+        text: texts.pickPrompt.slack,
+        userPicker: { text: texts.pickButton },
+      },
+      dialog: SLACK_DIALOG,
     });
   });
 
@@ -112,6 +148,21 @@ describe('EmployeeBindHandler', () => {
     expect(reply.dialog).toBeNull();
   });
 
+  it('does not take a member picked in another channel', async () => {
+    const reply = await open(
+      { type: ChatInputType.PICKED_USER, externalId: '777000222' },
+      SLACK_DIALOG,
+    );
+
+    expect(userService.bindChannel).not.toHaveBeenCalled();
+    expect(reply).toEqual({
+      screen: {
+        text: `${texts.invalid('Slack')} ${texts.idHint.slack}`,
+        buttons: [[SLACK_CANCEL]],
+      },
+    });
+  });
+
   it('binds a valid ID and activates the employee', async () => {
     const reply = await open(text(' 777000111 '), ID_DIALOG);
 
@@ -119,7 +170,7 @@ describe('EmployeeBindHandler', () => {
     expect(menuService.syncEmployee).toHaveBeenCalledWith(USER, [found.channel]);
     expect(reply).toEqual({
       screen: {
-        text: ['Telegram bound: **Anna \\*S\\***.', locale.employeeBind.hint].join('\n\n'),
+        text: [`Telegram bound: **${NAME}**.`, texts.hint.telegram].join('\n\n'),
         buttons: [
           [{ text: 'Open the card', data: `emp:card:${USER.id}:0` }],
           [{ text: 'To the list', data: 'emp:list:0' }],
@@ -129,16 +180,23 @@ describe('EmployeeBindHandler', () => {
     });
   });
 
-  it('asks again for something that is not an ID', async () => {
-    const reply = await open(text('@anna'), ID_DIALOG);
+  it('binds a Slack ID entered in Telegram', async () => {
+    const reply = await open(text(' U0ANNA01 '), SLACK_DIALOG);
+
+    expect(userService.findOneByChannel).toHaveBeenCalledWith(Channel.SLACK, 'U0ANNA01');
+    expect(userService.bindChannel).toHaveBeenCalledWith(USER.id, Channel.SLACK, 'U0ANNA01');
+    expect(reply.screen.text).toBe([`Slack bound: **${NAME}**.`, texts.hint.slack].join('\n\n'));
+  });
+
+  it.each<[string, string, BotDialog, string]>([
+    ['Telegram', '@anna', ID_DIALOG, `${texts.invalid('Telegram')} ${texts.idHint.telegram}`],
+    ['Slack', '777000111', SLACK_DIALOG, `${texts.invalid('Slack')} ${texts.idHint.slack}`],
+  ])('asks again for something that is not a %s ID', async (_name, value, dialog, invalid) => {
+    const reply = await open(text(value), dialog);
 
     expect(userService.bindChannel).not.toHaveBeenCalled();
-    expect(reply).toEqual({
-      screen: {
-        text: locale.employeeBind.invalid('Telegram'),
-        buttons: [[CANCEL]],
-      },
-    });
+    expect(reply.screen.text).toBe(invalid);
+    expect(reply.dialog).toBeUndefined();
   });
 
   it('asks again for an ID of another employee', async () => {
@@ -147,19 +205,18 @@ describe('EmployeeBindHandler', () => {
     const reply = await open(text('777000111'), ID_DIALOG);
 
     expect(userService.bindChannel).not.toHaveBeenCalled();
-    expect(reply.screen.text).toBe(locale.employeeBind.taken('Boris'));
-    expect(reply.dialog).toBeUndefined();
+    expect(reply).toEqual({ screen: { text: texts.taken('Boris'), buttons: [[CANCEL]] } });
   });
 
   it.each<[string, ChatInput, BotDialog | null]>([
-    ['the button', button(`bind:start:${USER.id}`), null],
+    ['the button', button(`bind:start:${USER.id}:telegram`), null],
     ['the ID', text('777000111'), ID_DIALOG],
   ])('refuses %s when the employee already has Telegram', async (_name, input, dialog) => {
     channelService.findByUser.mockResolvedValue([found.channel]);
 
     expect(await open(input, dialog)).toEqual({
       screen: {
-        text: locale.employeeBind.alreadyBound('Telegram'),
+        text: texts.alreadyBound('Telegram'),
         buttons: [[{ text: 'Open the card', data: `emp:card:${USER.id}:0` }]],
       },
       dialog: null,
@@ -170,7 +227,7 @@ describe('EmployeeBindHandler', () => {
   it('reports a deleted employee', async () => {
     userService.findById.mockResolvedValue(null);
 
-    expect(await open(button(`bind:start:${USER.id}`))).toEqual({
+    expect(await open(button(`bind:start:${USER.id}:telegram`))).toEqual({
       screen: {
         text: locale.employees.notFound,
         buttons: [[{ text: 'To the list', data: 'emp:list:0' }]],
@@ -180,28 +237,49 @@ describe('EmployeeBindHandler', () => {
   });
 
   it('cancels binding and offers the card', async () => {
-    expect(await open(button(`bind:cancel:${USER.id}`), ID_DIALOG)).toEqual({
+    expect(await open(button(`bind:cancel:${USER.id}:telegram`), ID_DIALOG)).toEqual({
       screen: {
-        text: locale.employeeBind.cancelled,
+        text: texts.cancelled,
         buttons: [[{ text: 'Open the card', data: `emp:card:${USER.id}:0` }]],
       },
       dialog: null,
     });
   });
 
-  it('drops a dialog without the employee', async () => {
-    expect(await open(text('777000111'), { ...ID_DIALOG, data: {} })).toEqual({
-      screen: { text: locale.bot.expired },
-      dialog: null,
-    });
-  });
-
-  it.each(['bind:start:not-a-uuid', 'bind:other:' + USER.id, 'bind:start'])(
-    'answers the outdated button %s',
+  it.each([{}, { userId: USER.id }])(
+    'drops a dialog %j without the employee or the channel',
     async (data) => {
-      expect((await open(button(data))).screen).toEqual({
-        text: locale.bot.expired,
+      expect(await open(text('777000111'), { ...ID_DIALOG, data })).toEqual({
+        screen: { text: locale.bot.expired },
+        dialog: null,
       });
     },
   );
+
+  it.each([
+    'bind:start:not-a-uuid:telegram',
+    `bind:other:${USER.id}:telegram`,
+    `bind:start:${USER.id}`,
+    `bind:start:${USER.id}:email`,
+  ])('answers the outdated button %s', async (data) => {
+    expect((await open(button(data))).screen).toEqual({ text: locale.bot.expired });
+  });
+
+  it('answers a button of a channel that is no longer configured', async () => {
+    const reply = await createHandler([telegram]).handle({
+      actor: {
+        channel: Channel.TELEGRAM,
+        externalId: '1',
+        chatId: '1',
+        language: Language.EN,
+        isOwner: true,
+        user: null,
+      },
+      locale,
+      input: button(`bind:start:${USER.id}:slack`),
+      dialog: null,
+    });
+
+    expect(reply.screen).toEqual({ text: locale.bot.expired });
+  });
 });

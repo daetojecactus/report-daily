@@ -22,7 +22,7 @@ import {
   EMPLOYEES_QUERY_MAX_LENGTH,
   EMPLOYEES_USERNAME_PREFIX,
 } from '../employees/constants/employees.constants';
-import { EmployeeBindAction } from '../employee-bind/employee-bind.enums';
+import { EmployeesCard } from '../employees/employees.card';
 import { EmployeesAction } from '../employees/employees.enums';
 import {
   EMPLOYEE_ADD_BUTTON_SCHEMA,
@@ -39,6 +39,7 @@ export class EmployeeAddHandler implements BotHandler {
   constructor(
     private readonly userService: UserService,
     private readonly gitlabService: GitLabService,
+    private readonly employeesCard: EmployeesCard,
   ) {}
 
   async handle({ actor, input, dialog, locale }: BotContext): Promise<BotReply> {
@@ -227,14 +228,7 @@ export class EmployeeAddHandler implements BotHandler {
       screen: {
         text: lines.join('\n\n'),
         buttons: [
-          [
-            {
-              text: locale.employees.bind(locale.channels[actor.channel]),
-              data: [BotNamespace.EMPLOYEE_BIND, EmployeeBindAction.START, user.id].join(
-                BOT_BUTTON_DATA_SEPARATOR,
-              ),
-            },
-          ],
+          this.employeesCard.toBindButtons(locale, user.id, []),
           [this.toCardButton(locale, user.id)],
           [this.toListButton(locale)],
         ],

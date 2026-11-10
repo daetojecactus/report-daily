@@ -1,7 +1,7 @@
 import type { ConfigService } from '@nestjs/config';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Channel, ChatInputType } from 'src/common/enums/channel.enums';
-import type { ChatInput } from 'src/common/interfaces/chat-channel.interface';
+import type { ChatChannel, ChatInput } from 'src/common/interfaces/chat-channel.interface';
 import { Language } from 'src/modules/application/i18n/i18n.enums';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
 import type { UserChannel } from 'src/modules/application/user/channel/channel.interface';
@@ -58,6 +58,7 @@ describe('EmployeesHandler', () => {
   };
   const reportService = { findLatest: vi.fn<ReportService['findLatest']>() };
   const gitlabService = { findLastActivityAt: vi.fn<GitLabService['findLastActivityAt']>() };
+  const chatChannels = [{ channel: Channel.TELEGRAM }] as ChatChannel[];
   const handler = new EmployeesHandler(
     userService as unknown as UserService,
     new EmployeesCard(
@@ -72,6 +73,7 @@ describe('EmployeesHandler', () => {
       ),
       reportService as unknown as ReportService,
       gitlabService as unknown as GitLabService,
+      chatChannels,
     ),
   );
 
@@ -94,6 +96,7 @@ describe('EmployeesHandler', () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
+    chatChannels.splice(1);
     userSourceService.findByUser.mockResolvedValue([]);
     reportService.findLatest.mockResolvedValue(null as unknown as Report);
   });
@@ -245,14 +248,23 @@ describe('EmployeesHandler', () => {
     );
   });
 
-  it('offers to bind the channel of the admin when it is missing', async () => {
+  it('offers to bind every configured channel the employee does not have', async () => {
     const user = employee(1);
     userService.findById.mockResolvedValue(user);
     channelService.findByUser.mockResolvedValue([]);
+    chatChannels.push({ channel: Channel.SLACK } as ChatChannel);
 
-    const { screen } = await open(button(`emp:card:${user.id}:3`));
+    expect((await open(button(`emp:card:${user.id}:3`))).screen.buttons?.[0]).toEqual([
+      { text: 'Bind Telegram', data: `bind:start:${user.id}:telegram` },
+      { text: 'Bind Slack', data: `bind:start:${user.id}:slack` },
+    ]);
 
-    expect(screen.buttons?.[0]).toEqual([{ text: 'Bind Telegram', data: `bind:start:${user.id}` }]);
+    channelService.findByUser.mockResolvedValue([createEmployee().channel]);
+
+    expect(
+      (await open(button(`emp:card:${user.id}:3`), null, { channel: Channel.SLACK })).screen
+        .buttons,
+    ).toContainEqual([{ text: 'Bind Slack', data: `bind:start:${user.id}:slack` }]);
   });
 
   it('offers to unblock a blocked employee', async () => {

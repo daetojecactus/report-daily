@@ -18,6 +18,7 @@ import type { GitLabUser } from 'src/modules/vendors/gitlab/gitlab.interface';
 import type { GitLabService } from 'src/modules/vendors/gitlab/gitlab.service';
 import type { BotDialog } from '../../bot.interface';
 import { createEmployee } from '../../__test__/bot.fixture';
+import type { EmployeesCard } from '../../employees/employees.card';
 import { EmployeeAddHandler } from '../employee-add.handler';
 
 const locale = new I18nService().getLocale(Language.EN);
@@ -52,9 +53,16 @@ describe('EmployeeAddHandler', () => {
     searchUsers: vi.fn<(query: string) => Promise<GitLabUser[]>>(),
     hasVisibleActivity: vi.fn<(id: number) => Promise<boolean>>(),
   };
+  const employeesCard = {
+    toBindButtons: (_locale: unknown, userId: string) => [
+      { text: 'Bind Telegram', data: `bind:start:${userId}:telegram` },
+      { text: 'Bind Slack', data: `bind:start:${userId}:slack` },
+    ],
+  };
   const handler = new EmployeeAddHandler(
     userService as unknown as UserService,
     gitlabService as unknown as GitLabService,
+    employeesCard as unknown as EmployeesCard,
   );
 
   function open(input: ChatInput, current: BotDialog | null = null) {
@@ -225,7 +233,10 @@ describe('EmployeeAddHandler', () => {
       screen: {
         text: ['Employee added: **Anna \\*Smirnova\\***.', locale.employeeAdd.pending].join('\n\n'),
         buttons: [
-          [{ text: 'Bind Telegram', data: `bind:start:${created.id}` }],
+          [
+            { text: 'Bind Telegram', data: `bind:start:${created.id}:telegram` },
+            { text: 'Bind Slack', data: `bind:start:${created.id}:slack` },
+          ],
           [{ text: 'Open the card', data: `emp:card:${created.id}:0` }],
           [{ text: 'To the list', data: 'emp:list:0' }],
         ],

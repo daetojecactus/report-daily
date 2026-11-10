@@ -1,7 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Channel } from 'src/common/enums/channel.enums';
-import type { ScreenButton } from 'src/common/interfaces/chat-channel.interface';
+import type { ChatChannel, ScreenButton } from 'src/common/interfaces/chat-channel.interface';
 import { getErrorMessage } from 'src/common/utils/error.util';
 import { escapeMarkdown } from 'src/common/utils/markdown.util';
 import type { Locale } from 'src/modules/application/i18n/i18n.interface';
@@ -10,6 +10,7 @@ import { ChannelService } from 'src/modules/application/user/channel/channel.ser
 import { UserSourceService } from 'src/modules/application/user/user-source/user-source.service';
 import { UserStatus } from 'src/modules/application/user/user.enums';
 import type { User } from 'src/modules/application/user/user.interface';
+import type { UserChannel } from 'src/modules/application/user/channel/channel.interface';
 import { UserService } from 'src/modules/application/user/user.service';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import {
@@ -21,7 +22,7 @@ import { GitLabService } from 'src/modules/vendors/gitlab/gitlab.service';
 import { AccessService } from '../access/access.service';
 import { BotNamespace } from '../bot.enums';
 import type { BotActor, BotReply } from '../bot.interface';
-import { BOT_BUTTON_DATA_SEPARATOR } from '../constants/bot.constants';
+import { BOT_BUTTON_DATA_SEPARATOR, BOT_CHANNELS } from '../constants/bot.constants';
 import { EmployeeBindAction } from '../employee-bind/employee-bind.enums';
 import { EmployeeManageAction } from '../employee-manage/employee-manage.enums';
 import { EmployeePermissionsAction } from '../employee-permissions/employee-permissions.enums';
@@ -45,6 +46,7 @@ export class EmployeesCard {
     private readonly accessService: AccessService,
     private readonly reportService: ReportService,
     private readonly gitlabService: GitLabService,
+    @Inject(BOT_CHANNELS) private readonly channels: ChatChannel[],
   ) {}
 
   async show(actor: BotActor, locale: Locale, id: string, page: number): Promise<BotReply> {
@@ -129,13 +131,9 @@ export class EmployeesCard {
         },
       ]);
     }
-    if (!channels.some((channel) => channel.channel === actor.channel)) {
-      actions.push([
-        {
-          text: locale.employees.bind(locale.channels[actor.channel]),
-          data: this.toSectionData(BotNamespace.EMPLOYEE_BIND, EmployeeBindAction.START, user.id),
-        },
-      ]);
+    const bindButtons = this.toBindButtons(locale, user.id, channels);
+    if (bindButtons.length > 0) {
+      actions.push(bindButtons);
     }
     actions.push([
       {
@@ -203,6 +201,20 @@ export class EmployeesCard {
       this.logger.warn(`${EmployeesMessages.ACTIVITY_FAILED}: ${getErrorMessage(error)}`);
       return locale.employees.card.activityUnknown;
     }
+  }
+
+  toBindButtons(locale: Locale, userId: string, bound: UserChannel[]): ScreenButton[] {
+    return this.channels
+      .filter(({ channel }) => !bound.some((item) => item.channel === channel))
+      .map(({ channel }) => ({
+        text: locale.employees.bind(locale.channels[channel]),
+        data: this.toSectionData(
+          BotNamespace.EMPLOYEE_BIND,
+          EmployeeBindAction.START,
+          userId,
+          channel,
+        ),
+      }));
   }
 
   private toSectionData(namespace: BotNamespace, ...parts: string[]) {
