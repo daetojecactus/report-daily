@@ -68,11 +68,20 @@ export class UserService {
     );
   }
 
-  findScheduled(channel: Channel) {
-    return this.userRepository.findReachable(
+  async findScheduled(channel: Channel) {
+    const rows = await this.userRepository.findReachable(
       channel,
       and(eq(users.status, UserStatus.ACTIVE), eq(users.scheduleEnabled, true)),
     );
+    return rows.map(({ user }) => user);
+  }
+
+  async findRecipientChats(channel: Channel) {
+    const rows = await this.userRepository.findReachable(
+      channel,
+      eq(users.status, UserStatus.ACTIVE),
+    );
+    return rows.map(({ channel: chat }) => chat.externalId);
   }
 
   findOneByChannel(channel: Channel, externalId: string) {

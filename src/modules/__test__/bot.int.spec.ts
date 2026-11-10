@@ -270,6 +270,7 @@ describe('Telegram bot', () => {
           [{ text: 'Traits', callback_data: 'trt:list:0' }],
           [{ text: 'Templates', callback_data: 'tpls:list' }],
           [{ text: 'Settings', callback_data: 'aset:menu' }],
+          [{ text: 'Broadcast', callback_data: 'bcast:start' }],
         ],
       },
     });
@@ -734,5 +735,37 @@ describe('Telegram bot', () => {
 
     expect((await press(telegramId, 'aset:forever', 2004)).text).toBe(en.bot.forbidden);
     expect(await db.select().from(settings)).toMatchObject([{ reportsPaused: false }]);
+  });
+
+  it('lets the owner preview and send a broadcast to the employees', async () => {
+    const { telegramId: recipientId } = await createEmployee();
+    const message = `Standup moves to 11:00 ${recipientId}`;
+
+    expect((await press(TEST_OWNER_TELEGRAM_ID, 'bcast:start', 2101)).text).toContain(
+      en.broadcast.askText(4000),
+    );
+    await fakeBotApi.pushUpdate(privateMessage(TEST_OWNER_TELEGRAM_ID, message));
+    expect(
+      await fakeBotApi.waitForRequest(
+        'sendMessage',
+        (body) =>
+          body.chat_id === String(TEST_OWNER_TELEGRAM_ID) && String(body.text).includes(message),
+      ),
+    ).toBeDefined();
+    expect((await press(TEST_OWNER_TELEGRAM_ID, 'bcast:send', 2102)).text).toMatch(
+      /^The broadcast is going out\. Recipients: \d+\.$/,
+    );
+    expect(
+      await fakeBotApi.waitForRequest(
+        'sendMessage',
+        (body) => body.chat_id === String(recipientId) && body.text === message,
+      ),
+    ).toBeDefined();
+  });
+
+  it('keeps the broadcast closed to an employee with every permission', async () => {
+    const { telegramId } = await createEmployee({ permissions: Object.values(Permission) });
+
+    expect((await press(telegramId, 'bcast:start', 2103)).text).toBe(en.bot.forbidden);
   });
 });

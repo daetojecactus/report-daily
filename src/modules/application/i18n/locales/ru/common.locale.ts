@@ -60,7 +60,6 @@ export const ruCommon: CommonLocale = {
   permissions: {
     [Permission.USERS]: 'Сотрудники',
     [Permission.TRAITS]: 'Признаки',
-    [Permission.BROADCAST]: 'Рассылка',
     [Permission.SETTINGS]: 'Настройки',
     [Permission.TEMPLATES]: 'Шаблоны',
   },
@@ -90,6 +89,7 @@ export const ruCommon: CommonLocale = {
   admin: {
     title: '**Управление**',
     noSections: 'Для ваших прав здесь пока ничего нет.',
+    broadcast: 'Рассылка',
   },
   settings: {
     title: '**Мои настройки**',
@@ -185,6 +185,26 @@ export const ruCommon: CommonLocale = {
       `Удалить общий шаблон **${name}**? Выбрали сотрудников: ${count}, у них отчёт вернётся к «Стандартному».`,
     saved: (name) =>
       `Общий шаблон **${name}** сохранён. Сотрудники выберут его в /settings → «Шаблон отчёта».`,
+  },
+  broadcast: {
+    title: '**Рассылка**',
+    askText: (max) =>
+      `Пришлите текст сообщения для всех активных сотрудников с Telegram, до ${max} символов. Оформление Telegram не сохранится — уйдёт обычный текст.`,
+    textInvalid: (max) => `Текст рассылки должен быть от 1 до ${max} символов.`,
+    preview: '**Предпросмотр рассылки**',
+    recipients: (count) => `Получателей: ${count}.`,
+    noRecipients: 'Получателей нет: ни у одного активного сотрудника нет доступного Telegram.',
+    previewHint: 'Чтобы поправить, пришлите новый текст или нажмите «Изменить текст».',
+    send: (count) => `Отправить (${count})`,
+    editText: 'Изменить текст',
+    cancel: 'Отмена',
+    sent: (count) => `Рассылка отправляется. Получателей: ${count}.`,
+    sentRedirected: (count) =>
+      `Режим проверки: рассылка ушла владельцам, сотрудникам — нет. Получателей было бы: ${count}.`,
+    redirected: (count) =>
+      `↪ Рассылка — режим проверки \`DELIVERY_MODE=redirect\`, сотрудникам она не отправлена. Получателей было бы: ${count}.`,
+    cancelled: 'Рассылка отменена.',
+    menu: '‹ Меню',
   },
   delivery: {
     redirected: (name) =>

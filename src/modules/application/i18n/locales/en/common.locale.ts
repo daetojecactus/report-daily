@@ -61,7 +61,6 @@ export const enCommon: CommonLocale = {
   permissions: {
     [Permission.USERS]: 'Employees',
     [Permission.TRAITS]: 'Traits',
-    [Permission.BROADCAST]: 'Broadcast',
     [Permission.SETTINGS]: 'Settings',
     [Permission.TEMPLATES]: 'Templates',
   },
@@ -91,6 +90,7 @@ export const enCommon: CommonLocale = {
   admin: {
     title: '**Management**',
     noSections: 'Nothing here for your permissions yet.',
+    broadcast: 'Broadcast',
   },
   settings: {
     title: '**My settings**',
@@ -187,6 +187,26 @@ export const enCommon: CommonLocale = {
       `Delete the shared template **${name}**? Employees using it: ${count}; their reports go back to Standard.`,
     saved: (name) =>
       `The shared template **${name}** is saved. Employees pick it in /settings → "Report template".`,
+  },
+  broadcast: {
+    title: '**Broadcast**',
+    askText: (max) =>
+      `Send the message for every active employee with Telegram, up to ${max} characters. Telegram formatting is not kept: plain text goes out.`,
+    textInvalid: (max) => `The broadcast text must be 1 to ${max} characters long.`,
+    preview: '**Broadcast preview**',
+    recipients: (count) => `Recipients: ${count}.`,
+    noRecipients: 'No recipients: no active employee has a reachable Telegram.',
+    previewHint: 'To fix it, send a new text or press "Edit text".',
+    send: (count) => `Send (${count})`,
+    editText: 'Edit text',
+    cancel: 'Cancel',
+    sent: (count) => `The broadcast is going out. Recipients: ${count}.`,
+    sentRedirected: (count) =>
+      `Check mode: the broadcast went to the owners, not to the employees. Recipients would be: ${count}.`,
+    redirected: (count) =>
+      `↪ Broadcast: check mode \`DELIVERY_MODE=redirect\`, not sent to the employees. Recipients would be: ${count}.`,
+    cancelled: 'Broadcast cancelled.',
+    menu: '‹ Menu',
   },
   delivery: {
     redirected: (name) =>

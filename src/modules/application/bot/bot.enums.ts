@@ -32,4 +32,5 @@ export enum BotNamespace {
   SHARED_TEMPLATES = 'tpls',
   TEMPLATE_EDIT = 'tpledit',
   ADMIN_SETTINGS = 'aset',
+  BROADCAST = 'bcast',
 }

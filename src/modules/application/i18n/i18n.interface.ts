@@ -78,6 +78,7 @@ export interface CommonLocale {
   admin: {
     title: string;
     noSections: string;
+    broadcast: string;
   };
   settings: {
     title: string;
@@ -152,6 +153,23 @@ export interface CommonLocale {
     backToList: string;
     confirmDelete: (name: string, count: number) => string;
     saved: (name: string) => string;
+  };
+  broadcast: {
+    title: string;
+    askText: (max: number) => string;
+    textInvalid: (max: number) => string;
+    preview: string;
+    recipients: (count: number) => string;
+    noRecipients: string;
+    previewHint: string;
+    send: (count: number) => string;
+    editText: string;
+    cancel: string;
+    sent: (count: number) => string;
+    sentRedirected: (count: number) => string;
+    redirected: (count: number) => string;
+    cancelled: string;
+    menu: string;
   };
   delivery: {
     redirected: (name: string) => string;

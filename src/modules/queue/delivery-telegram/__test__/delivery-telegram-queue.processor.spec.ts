@@ -21,7 +21,10 @@ import {
   TelegramRetryableError,
 } from 'src/modules/vendors/telegram/telegram.error';
 import type { TelegramService } from 'src/modules/vendors/telegram/telegram.service';
-import { DELIVERY_TELEGRAM_SEND_JOB } from '../constants/delivery-telegram-queue.constants';
+import {
+  DELIVERY_TELEGRAM_BROADCAST_JOB,
+  DELIVERY_TELEGRAM_SEND_JOB,
+} from '../constants/delivery-telegram-queue.constants';
 import { DeliveryTelegramQueueMessages } from '../constants/delivery-telegram-queue.messages';
 import { DeliveryTelegramQueueProcessor } from '../delivery-telegram-queue.processor';
 
@@ -45,6 +48,16 @@ function job(attemptsMade = 0) {
   return {
     name: DELIVERY_TELEGRAM_SEND_JOB,
     data: { deliveryId: 'delivery-1' },
+    attemptsMade,
+    opts: { attempts: 5 },
+  } as unknown as Job;
+}
+
+function broadcastJob(attemptsMade = 0) {
+  return {
+    id: 'broadcast-b-1-2001',
+    name: DELIVERY_TELEGRAM_BROADCAST_JOB,
+    data: { chatId: '2001', text: 'Standup at 11' },
     attemptsMade,
     opts: { attempts: 5 },
   } as unknown as Job;
@@ -133,6 +146,39 @@ describe('DeliveryTelegramQueueProcessor', () => {
 
     expect(channelService.updateReachable).not.toHaveBeenCalled();
     expect(deliveryService.markFailed).toHaveBeenCalledWith('delivery-1', 'blocked');
+  });
+
+  it('sends a broadcast message to its chat without touching deliveries', async () => {
+    await processor.process(broadcastJob());
+
+    expect(telegramService.sendScreen).toHaveBeenCalledWith('2001', { text: 'Standup at 11' });
+    expect(deliveryService.findById).not.toHaveBeenCalled();
+  });
+
+  it('pauses the queue for a broadcast message on 429', async () => {
+    telegramService.sendScreen.mockRejectedValue(new TelegramRetryableError('429', 3));
+
+    await expect(processor.process(broadcastJob())).rejects.toBeInstanceOf(RateLimitError);
+    expect(worker.rateLimit).toHaveBeenCalledWith(3000);
+  });
+
+  it('marks the chat of a broadcast message unreachable and does not retry', async () => {
+    telegramService.sendScreen.mockRejectedValue(new ChatUnreachableError('blocked'));
+
+    await expect(processor.process(broadcastJob())).resolves.toBeUndefined();
+    expect(channelService.updateReachable).toHaveBeenCalledWith(Channel.TELEGRAM, '2001', false);
+  });
+
+  it('retries a broadcast message on a network error', async () => {
+    telegramService.sendScreen.mockRejectedValue(new TelegramRetryableError('timeout'));
+
+    await expect(processor.process(broadcastJob(4))).rejects.toThrow('timeout');
+  });
+
+  it('refuses an unknown job', async () => {
+    await expect(processor.process({ name: 'other', data: {} } as unknown as Job)).rejects.toThrow(
+      'Unknown Telegram delivery job: other',
+    );
   });
 
   it('skips a delivery that is gone or already handled', async () => {

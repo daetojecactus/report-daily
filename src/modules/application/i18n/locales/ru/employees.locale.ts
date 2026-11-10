@@ -94,7 +94,6 @@ export const ruEmployees: EmployeesLocale = {
     descriptions: {
       [Permission.USERS]: 'добавлять, менять, блокировать и удалять сотрудников',
       [Permission.TRAITS]: 'сопоставлять лейблы GitLab с признаками задачи',
-      [Permission.BROADCAST]: 'делать рассылку всем сотрудникам',
       [Permission.SETTINGS]: 'пауза отчётов, AI, состояние системы',
       [Permission.TEMPLATES]: 'создавать, править и удалять общие шаблоны отчёта',
     },

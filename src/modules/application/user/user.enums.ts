@@ -20,7 +20,6 @@ export enum UserStatus {
 export enum Permission {
   USERS = 'users',
   TRAITS = 'traits',
-  BROADCAST = 'broadcast',
   SETTINGS = 'settings',
   TEMPLATES = 'templates',
 }

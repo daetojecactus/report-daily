@@ -212,6 +212,20 @@ describe('User module', () => {
       expect(await userService.findOneByChannel(Channel.TELEGRAM, String(nextId++))).toBeNull();
     });
 
+    it('finds the chats of active employees with a reachable channel for a broadcast', async () => {
+      const active = await insertUser({ status: UserStatus.ACTIVE, scheduleEnabled: false });
+      const chat = await insertChannel(active.id);
+      const unreachable = await insertUser({ status: UserStatus.ACTIVE });
+      const hidden = await insertChannel(unreachable.id, { reachable: false });
+      const blocked = await insertUser({ status: UserStatus.BLOCKED });
+      const closed = await insertChannel(blocked.id);
+      const chats = await userService.findRecipientChats(Channel.TELEGRAM);
+
+      expect(chats).toContain(chat.externalId);
+      expect(chats).not.toContain(hidden.externalId);
+      expect(chats).not.toContain(closed.externalId);
+    });
+
     it('finds active employees with a reachable channel and the schedule on', async () => {
       const active = await insertUser({ status: UserStatus.ACTIVE });
       await insertChannel(active.id);
