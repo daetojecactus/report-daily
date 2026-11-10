@@ -31,4 +31,5 @@ export enum BotNamespace {
   TEMPLATE_ADD = 'tpladd',
   SHARED_TEMPLATES = 'tpls',
   TEMPLATE_EDIT = 'tpledit',
+  ADMIN_SETTINGS = 'aset',
 }

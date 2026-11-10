@@ -152,6 +152,21 @@ export interface CommonLocale {
     confirmDelete: (name: string, count: number) => string;
     saved: (name: string) => string;
   };
+  adminSettings: {
+    title: string;
+    reportsOn: string;
+    pausedToday: string;
+    pausedUntil: (date: string) => string;
+    pausedForever: string;
+    hint: string;
+    pauseToday: string;
+    pauseUntil: string;
+    pauseForever: string;
+    resume: string;
+    chooseDay: (days: number) => string;
+    back: string;
+    menu: string;
+  };
 }
 
 export interface TraitsLocale {

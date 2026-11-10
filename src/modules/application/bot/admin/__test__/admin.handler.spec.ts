@@ -53,6 +53,7 @@ describe('AdminHandler', () => {
           [{ text: 'Employees', data: 'emp:list:0' }],
           [{ text: 'Traits', data: 'trt:list:0' }],
           [{ text: 'Templates', data: 'tpls:list' }],
+          [{ text: 'Settings', data: 'aset:menu' }],
         ],
       },
       dialog: null,
@@ -72,6 +73,14 @@ describe('AdminHandler', () => {
 
     expect(open(actor({ user }), COMMAND).screen.buttons).toEqual([
       [{ text: 'Traits', data: 'trt:list:0' }],
+    ]);
+  });
+
+  it('shows the settings section to an admin with the settings permission', () => {
+    const user = createEmployee({ permissions: [Permission.SETTINGS] }).user;
+
+    expect(open(actor({ user }), COMMAND).screen.buttons).toEqual([
+      [{ text: 'Settings', data: 'aset:menu' }],
     ]);
   });
 
