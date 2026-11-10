@@ -267,6 +267,7 @@ describe('Telegram bot', () => {
         inline_keyboard: [
           [{ text: 'Employees', callback_data: 'emp:list:0' }],
           [{ text: 'Traits', callback_data: 'trt:list:0' }],
+          [{ text: 'Templates', callback_data: 'tpls:list' }],
         ],
       },
     });

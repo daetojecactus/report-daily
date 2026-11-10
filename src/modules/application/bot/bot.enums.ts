@@ -29,4 +29,5 @@ export enum BotNamespace {
   REPORT = 'rpt',
   TEMPLATES = 'tpl',
   TEMPLATE_ADD = 'tpladd',
+  SHARED_TEMPLATES = 'tpls',
 }

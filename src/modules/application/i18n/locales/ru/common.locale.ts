@@ -62,6 +62,7 @@ export const ruCommon: CommonLocale = {
     [Permission.TRAITS]: 'Признаки',
     [Permission.BROADCAST]: 'Рассылка',
     [Permission.SETTINGS]: 'Настройки',
+    [Permission.TEMPLATES]: 'Шаблоны',
   },
   bot: {
     noAccess: (channel, id) =>
@@ -155,5 +156,19 @@ export const ruCommon: CommonLocale = {
     save: 'Сохранить',
     saved: (name) => `Шаблон **${name}** сохранён.`,
     cancelled: 'Создание шаблона отменено.',
+  },
+  sharedTemplates: {
+    title: (count) => `**Общие шаблоны** · ${count}`,
+    hint: 'Общий шаблон любой сотрудник может выбрать себе в /settings → «Шаблон отчёта».',
+    empty:
+      'Общих шаблонов пока нет. Нажмите «Создать»: бот спросит название и текст шаблона, а сотрудники выберут его в /settings.',
+    create: 'Создать',
+    menu: 'Меню',
+    usedBy: (count) => `Выбрали сотрудников: ${count}`,
+    backToList: '‹ Общие шаблоны',
+    confirmDelete: (name, count) =>
+      `Удалить общий шаблон **${name}**? Выбрали сотрудников: ${count}, у них отчёт вернётся к «Стандартному».`,
+    saved: (name) =>
+      `Общий шаблон **${name}** сохранён. Сотрудники выберут его в /settings → «Шаблон отчёта».`,
   },
 };

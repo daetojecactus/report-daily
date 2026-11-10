@@ -133,6 +133,17 @@ export interface CommonLocale {
     saved: (name: string) => string;
     cancelled: string;
   };
+  sharedTemplates: {
+    title: (count: number) => string;
+    hint: string;
+    empty: string;
+    create: string;
+    menu: string;
+    usedBy: (count: number) => string;
+    backToList: string;
+    confirmDelete: (name: string, count: number) => string;
+    saved: (name: string) => string;
+  };
 }
 
 export interface TraitsLocale {

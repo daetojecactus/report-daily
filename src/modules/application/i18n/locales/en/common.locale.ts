@@ -63,6 +63,7 @@ export const enCommon: CommonLocale = {
     [Permission.TRAITS]: 'Traits',
     [Permission.BROADCAST]: 'Broadcast',
     [Permission.SETTINGS]: 'Settings',
+    [Permission.TEMPLATES]: 'Templates',
   },
   bot: {
     noAccess: (channel, id) =>
@@ -157,5 +158,19 @@ export const enCommon: CommonLocale = {
     save: 'Save',
     saved: (name) => `The template **${name}** is saved.`,
     cancelled: 'Creating the template is cancelled.',
+  },
+  sharedTemplates: {
+    title: (count) => `**Shared templates** · ${count}`,
+    hint: 'Any employee can pick a shared template in /settings → "Report template".',
+    empty:
+      'No shared templates yet. Press "Create": the bot asks for a name and the text, and employees pick it in /settings.',
+    create: 'Create',
+    menu: 'Menu',
+    usedBy: (count) => `Employees using it: ${count}`,
+    backToList: '‹ Shared templates',
+    confirmDelete: (name, count) =>
+      `Delete the shared template **${name}**? Employees using it: ${count}; their reports go back to Standard.`,
+    saved: (name) =>
+      `The shared template **${name}** is saved. Employees pick it in /settings → "Report template".`,
   },
 };

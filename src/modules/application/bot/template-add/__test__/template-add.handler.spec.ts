@@ -12,8 +12,13 @@ import type {
 } from 'src/modules/application/report/template/template.interface';
 import type { TemplateRepository } from 'src/modules/application/report/template/template.repository';
 import { TemplateService } from 'src/modules/application/report/template/template.service';
-import type { BotDialog } from '../../bot.interface';
+import type { ConfigService } from '@nestjs/config';
+import type { UserService } from 'src/modules/application/user/user.service';
+import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
+import { AccessService } from '../../access/access.service';
+import type { BotActor, BotDialog } from '../../bot.interface';
 import { createEmployee } from '../../__test__/bot.fixture';
+import { Permission } from 'src/modules/application/user/user.enums';
 import { TemplateAddHandler } from '../template-add.handler';
 
 const locale = new I18nService().getLocale(Language.EN);
@@ -41,8 +46,17 @@ describe('TemplateAddHandler', () => {
   const handler = new TemplateAddHandler(
     new TemplateService(repository as unknown as TemplateRepository),
     reportService as unknown as ReportService,
+    new AccessService(
+      { get: () => [] } as unknown as ConfigService<AppEnvs, true>,
+      {} as UserService,
+      new I18nService(),
+    ),
   );
-  const open = (input: ChatInput, current: BotDialog | null = null) =>
+  const open = (
+    input: ChatInput,
+    current: BotDialog | null = null,
+    actor: Partial<BotActor> = {},
+  ) =>
     handler.handle({
       actor: {
         channel: Channel.TELEGRAM,
@@ -51,6 +65,7 @@ describe('TemplateAddHandler', () => {
         language: Language.EN,
         isOwner: false,
         user: USER,
+        ...actor,
       },
       locale,
       input,
@@ -71,25 +86,25 @@ describe('TemplateAddHandler', () => {
         text: locale.templates.askName(64),
         buttons: [[{ text: 'Cancel', data: 'tpladd:cancel' }]],
       },
-      dialog: dialog('name', {}),
+      dialog: dialog('name', { shared: false }),
     });
-    expect((await open(text('   '), dialog('name', {}))).screen.text).toContain(
+    expect((await open(text('   '), dialog('name', { shared: false }))).screen.text).toContain(
       locale.templates.nameInvalid(64),
     );
-    expect(await open(text(' QA daily '), dialog('name', {}))).toMatchObject({
+    expect(await open(text(' QA daily '), dialog('name', { shared: false }))).toMatchObject({
       screen: { text: locale.templates.askBody('QA daily', 4000) },
-      dialog: dialog('body', { name: 'QA daily' }),
+      dialog: dialog('body', { shared: false, name: 'QA daily' }),
     });
   });
 
   it('shows a syntax error and asks for the text again', async () => {
     const reply = await open(
       text('{% for item in context.items %}'),
-      dialog('body', { name: 'QA' }),
+      dialog('body', { shared: false, name: 'QA' }),
     );
 
     expect(reply.screen.text).toContain('The template has an error:');
-    expect(reply.dialog).toEqual(dialog('body', { name: 'QA' }));
+    expect(reply.dialog).toEqual(dialog('body', { shared: false, name: 'QA' }));
     expect(reportService.findLatestSnapshot).not.toHaveBeenCalled();
   });
 
@@ -99,7 +114,7 @@ describe('TemplateAddHandler', () => {
       snapshot: SNAPSHOT,
     } as Report);
 
-    expect(await open(text(BODY), dialog('body', { name: 'QA' }))).toEqual({
+    expect(await open(text(BODY), dialog('body', { shared: false, name: 'QA' }))).toEqual({
       screen: {
         text: [locale.templates.preview('6 November'), '', 'api\\_core'].join('\n'),
         buttons: [
@@ -109,16 +124,16 @@ describe('TemplateAddHandler', () => {
           ],
         ],
       },
-      dialog: dialog('preview', { name: 'QA', body: BODY }),
+      dialog: dialog('preview', { shared: false, name: 'QA', body: BODY }),
     });
   });
 
   it('says there is no preview without a saved report', async () => {
     reportService.findLatestSnapshot.mockResolvedValue(null as unknown as Report);
 
-    expect((await open(text(BODY), dialog('body', { name: 'QA' }))).screen.text).toBe(
-      locale.templates.noPreview,
-    );
+    expect(
+      (await open(text(BODY), dialog('body', { shared: false, name: 'QA' }))).screen.text,
+    ).toBe(locale.templates.noPreview);
   });
 
   it('saves the template of the employee and offers to use it', async () => {
@@ -128,7 +143,10 @@ describe('TemplateAddHandler', () => {
     } as ReportTemplate);
 
     expect(
-      await open(button('tpladd:save'), dialog('preview', { name: 'QA', body: BODY })),
+      await open(
+        button('tpladd:save'),
+        dialog('preview', { shared: false, name: 'QA', body: BODY }),
+      ),
     ).toEqual({
       screen: {
         text: locale.templates.saved('QA'),
@@ -145,7 +163,9 @@ describe('TemplateAddHandler', () => {
   });
 
   it('does not save without a previewed text and cancels on request', async () => {
-    expect(await open(button('tpladd:save'), dialog('body', { name: 'QA' }))).toEqual({
+    expect(
+      await open(button('tpladd:save'), dialog('body', { shared: false, name: 'QA' })),
+    ).toEqual({
       screen: { text: locale.bot.expired },
       dialog: null,
     });
@@ -157,5 +177,60 @@ describe('TemplateAddHandler', () => {
       },
       dialog: null,
     });
+  });
+
+  it('makes a shared template for the owner without an employee record', async () => {
+    const owner = { isOwner: true, user: null };
+    repository.create.mockResolvedValue({
+      id: '019a4d2e-7c1b-7f3a-9c2d-000000000008',
+      name: 'QA',
+    } as ReportTemplate);
+
+    expect((await open(button('tpladd:shared'), null, owner)).dialog).toEqual(
+      dialog('name', { shared: true }),
+    );
+    expect(
+      (await open(text(BODY), dialog('body', { shared: true, name: 'QA' }), owner)).screen.text,
+    ).toBe(locale.templates.noPreview);
+    expect(reportService.findLatestSnapshot).not.toHaveBeenCalled();
+    expect(
+      await open(
+        button('tpladd:save'),
+        dialog('preview', { shared: true, name: 'QA', body: BODY }),
+        owner,
+      ),
+    ).toEqual({
+      screen: {
+        text: locale.sharedTemplates.saved('QA'),
+        buttons: [[{ text: '‹ Shared templates', data: 'tpls:list' }]],
+      },
+      dialog: null,
+    });
+    expect(repository.create).toHaveBeenCalledWith({ name: 'QA', body: BODY, ownerId: null });
+  });
+
+  it('lets only the owner and the templates permission make shared templates', async () => {
+    expect(await open(button('tpladd:shared'))).toEqual({
+      screen: { text: locale.bot.forbidden },
+      dialog: null,
+    });
+    expect(
+      await open(
+        button('tpladd:save'),
+        dialog('preview', { shared: true, name: 'QA', body: BODY }),
+      ),
+    ).toEqual({ screen: { text: locale.bot.forbidden }, dialog: null });
+    expect(
+      (
+        await open(button('tpladd:shared'), null, {
+          user: { ...USER, permissions: [Permission.TEMPLATES] },
+        })
+      ).dialog,
+    ).toEqual(dialog('name', { shared: true }));
+    expect(await open(button('tpladd:start'), null, { isOwner: true, user: null })).toEqual({
+      screen: { text: locale.bot.forbidden },
+      dialog: null,
+    });
+    expect(repository.create).not.toHaveBeenCalled();
   });
 });

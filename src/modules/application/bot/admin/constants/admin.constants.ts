@@ -3,6 +3,7 @@ import { Permission } from 'src/modules/application/user/user.enums';
 import { BOT_BUTTON_DATA_SEPARATOR } from '../../constants/bot.constants';
 import { BotNamespace } from '../../bot.enums';
 import { EmployeesAction } from '../../employees/employees.enums';
+import { SharedTemplatesAction } from '../../shared-templates/shared-templates.enums';
 import { TraitsAction } from '../../traits/traits.enums';
 import { AdminAction } from '../admin.enums';
 
@@ -18,6 +19,12 @@ export const ADMIN_SECTIONS = [
   {
     permission: Permission.TRAITS,
     data: [BotNamespace.TRAITS, TraitsAction.LIST, 0].join(BOT_BUTTON_DATA_SEPARATOR),
+  },
+  {
+    permission: Permission.TEMPLATES,
+    data: [BotNamespace.SHARED_TEMPLATES, SharedTemplatesAction.LIST].join(
+      BOT_BUTTON_DATA_SEPARATOR,
+    ),
   },
 ];
 

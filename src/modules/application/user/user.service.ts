@@ -57,6 +57,10 @@ export class UserService {
     return this.userRepository.count();
   }
 
+  countByTemplate(templateId: string) {
+    return this.userRepository.count(eq(users.templateId, templateId));
+  }
+
   search(query: string, limit: number) {
     return this.userRepository.search(
       `%${query.replace(USER_LIKE_SPECIAL_CHARACTERS, '\\$&')}%`,
