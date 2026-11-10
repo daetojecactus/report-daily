@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { eq, sql, type SQL } from 'drizzle-orm';
+import { eq, lt, sql, type SQL } from 'drizzle-orm';
 import type { Channel } from 'src/common/enums/channel.enums';
 import type { Report } from 'src/modules/application/report/report.interface';
+import { DELIVERY_RETENTION_MS } from './constants/delivery.constants';
 import { DeliveryKind, DeliveryStatus } from './delivery.enums';
 import type { DeliveryInsert, DeliveryUpdate } from './delivery.interface';
 import { DeliveryRepository } from './delivery.repository';
@@ -25,6 +26,12 @@ export class DeliveryService {
 
   updateOne(filter: SQL, values: DeliveryUpdate) {
     return this.deliveryRepository.updateOne(filter, values);
+  }
+
+  deleteExpired(now: Date) {
+    return this.deliveryRepository.deleteMany(
+      lt(deliveries.createdAt, new Date(now.getTime() - DELIVERY_RETENTION_MS)),
+    );
   }
 
   findById(id: string) {

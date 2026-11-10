@@ -14,4 +14,16 @@ describe('SystemQueueProducer', () => {
       { name: 'schedule-tick', opts: { removeOnComplete: true, removeOnFail: true } },
     );
   });
+
+  it('keeps one cleanup every night at 03:00 in the time zone of the company', async () => {
+    const queue = { upsertJobScheduler: vi.fn<Queue['upsertJobScheduler']>() };
+
+    await new SystemQueueProducer(queue as unknown as Queue).scheduleCleanup('Asia/Almaty');
+
+    expect(queue.upsertJobScheduler).toHaveBeenCalledWith(
+      'cleanup',
+      { pattern: '0 3 * * *', tz: 'Asia/Almaty' },
+      { name: 'cleanup', opts: { removeOnComplete: true, removeOnFail: true } },
+    );
+  });
 });

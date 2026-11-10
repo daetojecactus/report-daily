@@ -4,6 +4,7 @@ import type { Queue } from 'bullmq';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createTestApp } from 'test/setup/test-app';
 import {
+  SYSTEM_CLEANUP_SCHEDULER_ID,
   SYSTEM_QUEUE,
   SYSTEM_SCHEDULE_TICK_SCHEDULER_ID,
 } from '../constants/system-queue.constants';
@@ -22,6 +23,7 @@ describe('System queue', () => {
 
   afterAll(async () => {
     await queue.removeJobScheduler(SYSTEM_SCHEDULE_TICK_SCHEDULER_ID);
+    await queue.removeJobScheduler(SYSTEM_CLEANUP_SCHEDULER_ID);
     await app.close();
   });
 
@@ -35,5 +37,17 @@ describe('System queue', () => {
       { key: SYSTEM_SCHEDULE_TICK_SCHEDULER_ID, pattern: '*/15 * * * *' },
     ]);
     expect((schedulers[0].next ?? 1) % QUARTER_MS).toBe(0);
+  });
+
+  it('keeps one nightly cleanup scheduler in the given time zone', async () => {
+    const producer = app.get(SystemQueueProducer);
+    await producer.scheduleCleanup('Asia/Almaty');
+    await producer.scheduleCleanup('Asia/Almaty');
+
+    const cleanups = (await queue.getJobSchedulers()).filter(
+      ({ key }) => key === SYSTEM_CLEANUP_SCHEDULER_ID,
+    );
+    expect(cleanups).toMatchObject([{ pattern: '0 3 * * *', tz: 'Asia/Almaty' }]);
+    expect(new Date(cleanups[0].next ?? 0).getUTCHours()).toBe(22);
   });
 });

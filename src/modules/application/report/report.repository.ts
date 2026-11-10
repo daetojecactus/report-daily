@@ -50,6 +50,11 @@ export class ReportRepository {
     return report ?? null;
   }
 
+  async deleteMany(filter: SQL) {
+    const result = await this.databaseService.db.delete(reports).where(filter);
+    return result.rowCount ?? 0;
+  }
+
   async upsert(values: ReportInsert) {
     const [report] = await this.databaseService.db
       .insert(reports)
