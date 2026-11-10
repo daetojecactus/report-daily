@@ -7,3 +7,5 @@ export const REPORT_REUSABLE_STATUSES = [
 ];
 
 export const REPORT_SNAPSHOT_STATUSES = [ReportStatus.READY, ReportStatus.DELIVERED];
+
+export const REPORT_RETENTION_DAYS = 30;

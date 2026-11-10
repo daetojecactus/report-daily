@@ -4,6 +4,7 @@ import { DeliveryModule } from 'src/modules/application/delivery/delivery.module
 import { I18nModule } from 'src/modules/application/i18n/i18n.module';
 import { ReportModule } from 'src/modules/application/report/report.module';
 import { ScheduleModule } from 'src/modules/application/schedule/schedule.module';
+import { SystemModule } from 'src/modules/application/system/system.module';
 import { UserModule } from 'src/modules/application/user/user.module';
 import { TelegramModule } from 'src/modules/vendors/telegram/telegram.module';
 import { DeliveryTelegramQueueModule } from './delivery-telegram/delivery-telegram-queue.module';
@@ -28,6 +29,7 @@ import { SystemQueueProcessor } from './system/system-queue.processor';
     TelegramModule,
     I18nModule,
     ScheduleModule,
+    SystemModule,
   ],
   providers: [
     InboundQueueProcessor,

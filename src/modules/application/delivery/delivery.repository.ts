@@ -26,6 +26,11 @@ export class DeliveryRepository {
     return delivery;
   }
 
+  async deleteMany(filter: SQL) {
+    const result = await this.databaseService.db.delete(deliveries).where(filter);
+    return result.rowCount ?? 0;
+  }
+
   async updateOne(filter: SQL, values: DeliveryUpdate) {
     const [delivery] = await this.databaseService.db
       .update(deliveries)

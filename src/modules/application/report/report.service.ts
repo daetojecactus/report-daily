@@ -1,10 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { and, eq, gte, inArray, type SQL } from 'drizzle-orm';
+import { and, eq, gte, inArray, lt, type SQL } from 'drizzle-orm';
+import { addDays } from 'src/common/utils/date.util';
 import { getErrorMessage } from 'src/common/utils/error.util';
 import { DEFAULT_LANGUAGE } from 'src/modules/application/i18n/constants/i18n.constants';
 import { UserService } from 'src/modules/application/user/user.service';
 import { UserSourceService } from 'src/modules/application/user/user-source/user-source.service';
-import { REPORT_REUSABLE_STATUSES, REPORT_SNAPSHOT_STATUSES } from './constants/report.constants';
+import {
+  REPORT_RETENTION_DAYS,
+  REPORT_REUSABLE_STATUSES,
+  REPORT_SNAPSHOT_STATUSES,
+} from './constants/report.constants';
 import { ReportMessages } from './constants/report.messages';
 import { ReportComposer } from './report.composer';
 import { ReportStatus } from './report.enums';
@@ -74,6 +79,12 @@ export class ReportService {
     return this.reportRepository.updateOne(
       and(eq(reports.userId, userId), eq(reports.reportDate, reportDate))!,
       { scheduledAt: null },
+    );
+  }
+
+  deleteExpired(today: string) {
+    return this.reportRepository.deleteMany(
+      lt(reports.reportDate, addDays(today, -REPORT_RETENTION_DAYS)),
     );
   }
 
