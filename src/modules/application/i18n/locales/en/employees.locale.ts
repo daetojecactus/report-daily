@@ -1,3 +1,4 @@
+import { Channel } from 'src/common/enums/channel.enums';
 import { ReportStatus } from 'src/modules/application/report/report.enums';
 import { Permission } from 'src/modules/application/user/user.enums';
 import type { EmployeesLocale } from '../../i18n.interface';
@@ -102,17 +103,31 @@ export const enEmployees: EmployeesLocale = {
   },
   employeeBind: {
     prompt: (channel, name) =>
-      `**${name}**\nChoose the employee in ${channel} or enter their ${channel} ID. The bot shows the ID to a person who writes to it without access.`,
+      `**${name}**\nChoose the employee in ${channel} or enter their ${channel} ID.`,
+    promptId: (channel, name) => `**${name}**\nEnter the employee's ${channel} ID.`,
+    idHint: {
+      [Channel.TELEGRAM]:
+        'A Telegram ID is a number. The bot shows it to a person who writes to it without access.',
+      [Channel.SLACK]:
+        'The Slack ID is in the member profile: "⋮" → "Copy member ID". The bot also shows it to a person who writes to it without access.',
+    },
     pick: (channel) => `Choose in ${channel}`,
-    pickPrompt:
-      'Press "Choose the employee" at the bottom of the screen and pick them from your chats or contacts. Cancel with /cancel.',
+    pickPrompt: {
+      [Channel.TELEGRAM]:
+        'Press "Choose the employee" at the bottom of the screen and pick them from your chats or contacts. Cancel with /cancel.',
+      [Channel.SLACK]: 'Choose the employee in the list below. Cancel with /cancel.',
+    },
     pickButton: 'Choose the employee',
-    invalid: (channel) =>
-      `This does not look like a ${channel} ID. Enter the number the bot showed the employee.`,
+    invalid: (channel) => `This does not look like a ${channel} ID.`,
     taken: (name) => `This account is already bound to **${name}**. Enter another ID.`,
     alreadyBound: (channel) => `The employee already has ${channel} bound.`,
     bound: (channel, name) => `${channel} bound: **${name}**.`,
-    hint: 'If the employee has not written to the bot yet, ask them to open it and press Start.',
+    hint: {
+      [Channel.TELEGRAM]:
+        'If the employee has not written to the bot yet, ask them to open it and press Start.',
+      [Channel.SLACK]:
+        'The bot writes to the employee in Slack direct messages itself, they do not need to do anything.',
+    },
     cancel: 'Cancel',
     cancelled: 'Binding cancelled.',
   },

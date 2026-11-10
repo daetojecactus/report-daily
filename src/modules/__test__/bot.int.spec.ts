@@ -412,7 +412,9 @@ describe('Telegram bot', () => {
     const employeeId = nextTelegramId++;
     const ownerChat = String(TEST_OWNER_TELEGRAM_ID);
 
-    await fakeBotApi.pushUpdate(buttonPress(TEST_OWNER_TELEGRAM_ID, `bind:start:${user.id}`, 701));
+    await fakeBotApi.pushUpdate(
+      buttonPress(TEST_OWNER_TELEGRAM_ID, `bind:start:${user.id}:telegram`, 701),
+    );
     expect(
       (await fakeBotApi.waitForRequest('editMessageText', (body) => body.message_id === 701)).text,
     ).toContain('Telegram ID');
@@ -442,7 +444,9 @@ describe('Telegram bot', () => {
     const pickedId = nextTelegramId++;
     const ownerChat = String(TEST_OWNER_TELEGRAM_ID);
 
-    await fakeBotApi.pushUpdate(buttonPress(TEST_OWNER_TELEGRAM_ID, `bind:pick:${user.id}`, 801));
+    await fakeBotApi.pushUpdate(
+      buttonPress(TEST_OWNER_TELEGRAM_ID, `bind:pick:${user.id}:telegram`, 801),
+    );
     expect(
       await fakeBotApi.waitForRequest(
         'sendMessage',

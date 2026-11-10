@@ -1,3 +1,4 @@
+import { Channel } from 'src/common/enums/channel.enums';
 import { ReportStatus } from 'src/modules/application/report/report.enums';
 import { Permission } from 'src/modules/application/user/user.enums';
 import type { EmployeesLocale } from '../../i18n.interface';
@@ -102,17 +103,30 @@ export const ruEmployees: EmployeesLocale = {
   },
   employeeBind: {
     prompt: (channel, name) =>
-      `**${name}**\nВыберите сотрудника в ${channel} или введите его ${channel} ID. ID бот показывает человеку, который пишет боту без доступа.`,
+      `**${name}**\nВыберите сотрудника в ${channel} или введите его ${channel} ID.`,
+    promptId: (channel, name) => `**${name}**\nВведите ${channel} ID сотрудника.`,
+    idHint: {
+      [Channel.TELEGRAM]:
+        'Telegram ID — число. Бот показывает его человеку, который пишет боту без доступа.',
+      [Channel.SLACK]:
+        'Slack ID есть в профиле участника: «⋮» → «Copy member ID». Ещё его показывает бот человеку, который пишет боту без доступа.',
+    },
     pick: (channel) => `Выбрать в ${channel}`,
-    pickPrompt:
-      'Нажмите «Выбрать сотрудника» внизу экрана и выберите его из чатов или контактов. Отменить — /cancel.',
+    pickPrompt: {
+      [Channel.TELEGRAM]:
+        'Нажмите «Выбрать сотрудника» внизу экрана и выберите его из чатов или контактов. Отменить — /cancel.',
+      [Channel.SLACK]: 'Выберите сотрудника в списке ниже. Отменить — /cancel.',
+    },
     pickButton: 'Выбрать сотрудника',
-    invalid: (channel) =>
-      `Это не похоже на ${channel} ID. Введите число, которое бот показал сотруднику.`,
+    invalid: (channel) => `Это не похоже на ${channel} ID.`,
     taken: (name) => `Этот аккаунт уже привязан к сотруднику **${name}**. Введите другой ID.`,
     alreadyBound: (channel) => `У сотрудника уже привязан ${channel}.`,
     bound: (channel, name) => `${channel} привязан: **${name}**.`,
-    hint: 'Если сотрудник ещё не писал боту, попросите его открыть бота и нажать Start.',
+    hint: {
+      [Channel.TELEGRAM]:
+        'Если сотрудник ещё не писал боту, попросите его открыть бота и нажать Start.',
+      [Channel.SLACK]: 'Бот пишет сотруднику в личку Slack сам, ему ничего делать не нужно.',
+    },
     cancel: 'Отмена',
     cancelled: 'Привязка отменена.',
   },
