@@ -38,12 +38,13 @@ export class DeliveryService {
     return this.findOne(eq(deliveries.id, id));
   }
 
-  createForReport(report: Report, channel: Channel) {
+  createForReport(report: Report, channel: Channel, redirected: boolean) {
     return this.create({
       userId: report.userId,
       channel,
       kind: DeliveryKind.REPORT,
       reportId: report.id,
+      redirected,
     });
   }
 

@@ -1,5 +1,6 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Logger, type OnModuleDestroy } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import type { Job } from 'bullmq';
 import { getErrorMessage } from 'src/common/utils/error.util';
 import { Channel } from 'src/common/enums/channel.enums';
@@ -7,6 +8,8 @@ import { BotService } from 'src/modules/application/bot/bot.service';
 import { DeliveryService } from 'src/modules/application/delivery/delivery.service';
 import { ReportStatus } from 'src/modules/application/report/report.enums';
 import { ReportService } from 'src/modules/application/report/report.service';
+import { DeliveryMode } from 'src/modules/infrastructure/config/config.enums';
+import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { DeliveryTelegramQueueProducer } from '../delivery-telegram/delivery-telegram-queue.producer';
 import {
   REPORT_BUILD_JOB,
@@ -19,14 +22,17 @@ import type { ReportJobData } from './report-queue.interface';
 @Processor(REPORT_QUEUE, { concurrency: REPORT_CONCURRENCY })
 export class ReportQueueProcessor extends WorkerHost implements OnModuleDestroy {
   private readonly logger = new Logger(ReportQueueProcessor.name);
+  private readonly redirect: boolean;
 
   constructor(
     private readonly reportService: ReportService,
     private readonly deliveryService: DeliveryService,
     private readonly deliveryTelegramQueueProducer: DeliveryTelegramQueueProducer,
     private readonly botService: BotService,
+    configService: ConfigService<AppEnvs, true>,
   ) {
     super();
+    this.redirect = configService.get('DELIVERY_MODE', { infer: true }) === DeliveryMode.REDIRECT;
   }
 
   async onModuleDestroy() {
@@ -37,7 +43,7 @@ export class ReportQueueProcessor extends WorkerHost implements OnModuleDestroy 
     if (job.name !== REPORT_BUILD_JOB) {
       throw new Error(`${ReportQueueMessages.UNKNOWN_JOB}: ${job.name}`);
     }
-    const { userId, date, maxAgeMs, notice } = job.data as ReportJobData;
+    const { userId, date, maxAgeMs, own, notice } = job.data as ReportJobData;
     try {
       const saved =
         maxAgeMs === 0 ? null : await this.reportService.findFresh(userId, date, maxAgeMs);
@@ -47,7 +53,11 @@ export class ReportQueueProcessor extends WorkerHost implements OnModuleDestroy 
           await this.botService.sendTo(notice.target, { text: notice.empty });
         }
       } else {
-        const delivery = await this.deliveryService.createForReport(report, Channel.TELEGRAM);
+        const delivery = await this.deliveryService.createForReport(
+          report,
+          Channel.TELEGRAM,
+          this.redirect && !own,
+        );
         await this.deliveryTelegramQueueProducer.addDelivery(delivery.id);
       }
     } catch (error) {

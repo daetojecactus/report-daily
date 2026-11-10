@@ -69,6 +69,7 @@ export class ScheduleService {
         userId,
         date,
         maxAgeMs: SCHEDULE_REPORT_MAX_AGE_MS,
+        own: false,
         notice: null,
       });
       return true;

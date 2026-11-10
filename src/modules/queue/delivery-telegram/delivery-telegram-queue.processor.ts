@@ -1,17 +1,22 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Logger, type OnModuleDestroy } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { type Job, Worker } from 'bullmq';
 import { Channel } from 'src/common/enums/channel.enums';
 import { ChatUnreachableError } from 'src/common/errors/chat-unreachable.error';
+import type { Screen } from 'src/common/interfaces/chat-channel.interface';
 import { getErrorMessage } from 'src/common/utils/error.util';
+import { escapeMarkdown } from 'src/common/utils/markdown.util';
 import { ReportView } from 'src/modules/application/bot/report/report.view';
 import { DeliveryStatus } from 'src/modules/application/delivery/delivery.enums';
+import type { Delivery } from 'src/modules/application/delivery/delivery.interface';
 import { DeliveryService } from 'src/modules/application/delivery/delivery.service';
 import { DEFAULT_LANGUAGE } from 'src/modules/application/i18n/constants/i18n.constants';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
 import { ReportService } from 'src/modules/application/report/report.service';
 import { ChannelService } from 'src/modules/application/user/channel/channel.service';
 import { UserService } from 'src/modules/application/user/user.service';
+import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import {
   TelegramRejectedError,
   TelegramRetryableError,
@@ -29,6 +34,7 @@ import type { DeliveryTelegramJobData } from './delivery-telegram-queue.interfac
 @Processor(DELIVERY_TELEGRAM_QUEUE, { limiter: DELIVERY_TELEGRAM_LIMITER })
 export class DeliveryTelegramQueueProcessor extends WorkerHost implements OnModuleDestroy {
   private readonly logger = new Logger(DeliveryTelegramQueueProcessor.name);
+  private readonly ownerIds: string[];
 
   constructor(
     private readonly deliveryService: DeliveryService,
@@ -38,8 +44,10 @@ export class DeliveryTelegramQueueProcessor extends WorkerHost implements OnModu
     private readonly telegramService: TelegramService,
     private readonly reportView: ReportView,
     private readonly i18nService: I18nService,
+    configService: ConfigService<AppEnvs, true>,
   ) {
     super();
+    this.ownerIds = configService.get('OWNER_TELEGRAM_IDS', { infer: true });
   }
 
   async onModuleDestroy() {
@@ -56,27 +64,32 @@ export class DeliveryTelegramQueueProcessor extends WorkerHost implements OnModu
       return;
     }
     const report = delivery.reportId ? await this.reportService.findById(delivery.reportId) : null;
-    const chat = (await this.channelService.findByUser(delivery.userId)).find(
-      (item) => item.channel === Channel.TELEGRAM,
-    );
-    if (!report?.content || !chat) {
+    const user = await this.userService.findById(delivery.userId);
+    const chatIds = await this.findChatIds(delivery);
+    if (!report?.content || !user || chatIds.length === 0) {
       await this.deliveryService.markFailed(
         deliveryId,
         DeliveryTelegramQueueMessages.NOTHING_TO_SEND,
       );
       return;
     }
+    const locale = this.i18nService.getLocale(user.language ?? DEFAULT_LANGUAGE);
+    const screen: Screen = delivery.redirected
+      ? {
+          text: [
+            locale.delivery.redirected(escapeMarkdown(user.displayName)),
+            '',
+            report.content,
+          ].join('\n'),
+        }
+      : this.reportView.toReportScreen(report, locale);
     await this.deliveryService.countAttempt(deliveryId);
     try {
-      const user = await this.userService.findById(delivery.userId);
-      const messageId = await this.telegramService.sendScreen(
-        chat.externalId,
-        this.reportView.toReportScreen(
-          report,
-          this.i18nService.getLocale(user?.language ?? DEFAULT_LANGUAGE),
-        ),
-      );
-      await this.deliveryService.markSent(deliveryId, messageId);
+      const messageIds: string[] = [];
+      for (const chatId of chatIds) {
+        messageIds.push(await this.telegramService.sendScreen(chatId, screen));
+      }
+      await this.deliveryService.markSent(deliveryId, messageIds[0]);
       await this.reportService.markDelivered(report.id);
     } catch (error) {
       if (error instanceof TelegramRetryableError && error.retryAfterSeconds) {
@@ -88,7 +101,9 @@ export class DeliveryTelegramQueueProcessor extends WorkerHost implements OnModu
         throw Worker.RateLimitError();
       }
       if (error instanceof ChatUnreachableError) {
-        await this.channelService.updateReachable(Channel.TELEGRAM, chat.externalId, false);
+        if (!delivery.redirected) {
+          await this.channelService.updateReachable(Channel.TELEGRAM, chatIds[0], false);
+        }
         await this.fail(deliveryId, error, DeliveryTelegramQueueMessages.CHAT_UNREACHABLE);
         return;
       }
@@ -101,6 +116,16 @@ export class DeliveryTelegramQueueProcessor extends WorkerHost implements OnModu
       }
       throw error;
     }
+  }
+
+  private async findChatIds(delivery: Delivery) {
+    if (delivery.redirected) {
+      return this.ownerIds;
+    }
+    const chat = (await this.channelService.findByUser(delivery.userId)).find(
+      (item) => item.channel === Channel.TELEGRAM,
+    );
+    return chat ? [chat.externalId] : [];
   }
 
   private async fail(deliveryId: string, error: unknown, message: DeliveryTelegramQueueMessages) {

@@ -188,6 +188,10 @@ export const enCommon: CommonLocale = {
     saved: (name) =>
       `The shared template **${name}** is saved. Employees pick it in /settings → "Report template".`,
   },
+  delivery: {
+    redirected: (name) =>
+      `↪ Report for **${name}**: check mode \`DELIVERY_MODE=redirect\`, not sent to the employee.`,
+  },
   adminSettings: {
     title: '**Settings**',
     reportsOn: 'Scheduled reports: on.',

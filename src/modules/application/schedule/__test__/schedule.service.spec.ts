@@ -64,6 +64,7 @@ describe('ScheduleService', () => {
       userId: 'anna',
       date: '2026-11-10',
       maxAgeMs: 300_000,
+      own: false,
       notice: null,
     });
     expect(queuedDates()).toEqual(['2026-11-10', '2026-11-10']);

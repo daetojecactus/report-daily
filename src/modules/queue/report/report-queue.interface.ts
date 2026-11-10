@@ -10,5 +10,6 @@ export interface ReportJobData {
   userId: string;
   date: string;
   maxAgeMs: number | null;
+  own: boolean;
   notice: ReportJobNotice | null;
 }

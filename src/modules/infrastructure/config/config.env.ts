@@ -20,7 +20,7 @@ import {
 } from './constants/config.constants';
 import { TELEGRAM_USER_ID_PATTERN } from 'src/common/constants/telegram.constants';
 import { TIME_ZONE_NAME_PATTERN } from 'src/common/constants/time.constants';
-import { LogLevel } from './config.enums';
+import { DeliveryMode, LogLevel } from './config.enums';
 
 function hasLlmEnv(env: AppEnvs) {
   return LLM_ENV_KEYS.some((key) => Boolean(env[key]));
@@ -81,6 +81,9 @@ export class AppEnvs {
   @IsString()
   @IsNotEmpty()
   GITLAB_TOKEN!: string;
+
+  @IsEnum(DeliveryMode)
+  DELIVERY_MODE: DeliveryMode = DeliveryMode.LIVE;
 
   @ValidateIf(hasLlmEnv)
   @IsUrl({

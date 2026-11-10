@@ -226,6 +226,7 @@ describe('EmployeeManageHandler', () => {
       userId: USER.id,
       date: '2026-11-09',
       maxAgeMs: 300_000,
+      own: false,
       notice: {
         target: { channel: Channel.TELEGRAM, chatId: '77', externalId: '77' },
         empty: locale.employeeManage.reportEmpty('Anna \\*S\\*'),

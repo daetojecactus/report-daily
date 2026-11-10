@@ -112,6 +112,7 @@ export class ReportHandler implements BotHandler {
       userId: actor.user.id,
       date,
       maxAgeMs,
+      own: true,
       notice: {
         target: { channel: actor.channel, chatId: actor.chatId, externalId: actor.externalId },
         empty: locale.report.empty(dayText),

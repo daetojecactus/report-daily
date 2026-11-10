@@ -93,6 +93,7 @@ describe('ReportHandler', () => {
       userId: 'user-1',
       date: '2026-11-10',
       maxAgeMs: 300_000,
+      own: true,
       notice: {
         target: REPLY,
         empty: locale.report.empty('сегодня'),
