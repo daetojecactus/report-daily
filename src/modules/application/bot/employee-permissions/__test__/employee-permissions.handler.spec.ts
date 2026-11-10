@@ -77,6 +77,7 @@ describe('EmployeePermissionsHandler', () => {
         `**Traits** — ${locale.employeePermissions.descriptions.traits}`,
         `**Broadcast** — ${locale.employeePermissions.descriptions.broadcast}`,
         `**Settings** — ${locale.employeePermissions.descriptions.settings}`,
+        `**Templates** — ${locale.employeePermissions.descriptions.templates}`,
       ].join('\n'),
     );
     expect(screen.buttons).toEqual([
@@ -84,6 +85,7 @@ describe('EmployeePermissionsHandler', () => {
       [{ text: 'Traits: no', data: `perm:grant:${USER.id}:traits` }],
       [{ text: 'Broadcast: no', data: `perm:grant:${USER.id}:broadcast` }],
       [{ text: 'Settings: no', data: `perm:grant:${USER.id}:settings` }],
+      [{ text: 'Templates: no', data: `perm:grant:${USER.id}:templates` }],
       [{ text: 'Open the card', data: `emp:card:${USER.id}:0` }],
     ]);
     expect(dialog).toBeNull();

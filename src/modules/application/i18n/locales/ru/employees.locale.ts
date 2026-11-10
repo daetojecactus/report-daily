@@ -96,6 +96,7 @@ export const ruEmployees: EmployeesLocale = {
       [Permission.TRAITS]: 'сопоставлять лейблы GitLab с признаками задачи',
       [Permission.BROADCAST]: 'делать рассылку всем сотрудникам',
       [Permission.SETTINGS]: 'пауза отчётов, AI, календарь, состояние системы',
+      [Permission.TEMPLATES]: 'создавать, править и удалять общие шаблоны отчёта',
     },
     granted: 'есть',
     revoked: 'нет',

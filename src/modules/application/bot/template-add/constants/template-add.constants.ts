@@ -19,6 +19,7 @@ export const TEMPLATE_ADD_BUTTON_SCHEMA = z
   .transform(([, action]) => ({ action }));
 
 export const TEMPLATE_ADD_DRAFT_SCHEMA = z.object({
+  shared: z.boolean(),
   name: z.string().min(1).max(TEMPLATE_NAME_MAX_LENGTH),
   body: z.string().min(1).max(TEMPLATE_BODY_MAX_LENGTH).optional(),
 });

@@ -60,6 +60,18 @@ export class TemplateService {
     return this.find(or(isNull(reportTemplates.ownerId), eq(reportTemplates.ownerId, userId)));
   }
 
+  findShared() {
+    return this.find(isNull(reportTemplates.ownerId));
+  }
+
+  findSharedById(id: string) {
+    return this.findOne(and(eq(reportTemplates.id, id), isNull(reportTemplates.ownerId))!);
+  }
+
+  deleteShared(id: string) {
+    return this.deleteOne(and(eq(reportTemplates.id, id), isNull(reportTemplates.ownerId))!);
+  }
+
   findOwn(userId: string) {
     return this.find(eq(reportTemplates.ownerId, userId));
   }

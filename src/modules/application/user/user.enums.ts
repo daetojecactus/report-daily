@@ -22,4 +22,5 @@ export enum Permission {
   TRAITS = 'traits',
   BROADCAST = 'broadcast',
   SETTINGS = 'settings',
+  TEMPLATES = 'templates',
 }

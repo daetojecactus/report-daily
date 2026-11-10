@@ -1,5 +1,6 @@
 export enum TemplateAddAction {
   START = 'start',
+  SHARED = 'shared',
   SAVE = 'save',
   CANCEL = 'cancel',
 }

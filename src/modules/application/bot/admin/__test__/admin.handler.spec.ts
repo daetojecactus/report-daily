@@ -52,6 +52,7 @@ describe('AdminHandler', () => {
         buttons: [
           [{ text: 'Employees', data: 'emp:list:0' }],
           [{ text: 'Traits', data: 'trt:list:0' }],
+          [{ text: 'Templates', data: 'tpls:list' }],
         ],
       },
       dialog: null,
