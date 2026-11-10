@@ -155,9 +155,9 @@ describe('AiService', () => {
     );
   });
 
-  it('takes the lines that start with the action and cleans the markup', async () => {
+  it('takes the lines that start with the action and cleans the markup and the final period', async () => {
     answer([
-      { id: '1', text: '**Fixed a bug** in the `login` form' },
+      { id: '1', text: '**Fixed a bug** in the `login` form.' },
       { id: '2', text: 'Looked at the cache' },
     ]);
 

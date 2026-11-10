@@ -16,6 +16,7 @@ import {
   AI_DATA_START,
   AI_ERROR_MAX_LENGTH,
   AI_ESCAPED_MARKUP_PATTERN,
+  AI_FINAL_PERIOD_PATTERN,
   AI_LEAD_PATTERN,
   AI_LIMIT_ATTEMPTS,
   AI_LIMIT_KEY_PREFIX,
@@ -179,6 +180,7 @@ export class AiService {
       .replace(AI_MARKUP_PATTERN, '')
       .replace(AI_LEAD_PATTERN, '')
       .replace(AI_SPACES_PATTERN, ' ')
-      .trim();
+      .trim()
+      .replace(AI_FINAL_PERIOD_PATTERN, '');
   }
 }
