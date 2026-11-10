@@ -4,6 +4,7 @@ export enum SettingsAction {
   TIME = 'time',
   TIME_ZONE = 'tz',
   GENDER = 'gender',
+  SCHEDULE = 'sched',
   AI = 'ai',
   AI_DATA = 'aidata',
 }

@@ -85,6 +85,13 @@
       "when": 1794291033027,
       "tag": "0011_report_scheduled_at",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1794291670601,
+      "tag": "0012_user_schedule_enabled",
+      "breakpoints": true
     }
   ]
 }

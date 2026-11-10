@@ -108,6 +108,11 @@ export const enCommon: CommonLocale = {
     timeZoneInvalid: 'Unknown time zone. Example: `Europe/Moscow`.',
     gender: 'Gender',
     chooseGender: 'Choose your gender: reports in Russian use it in the wording.',
+    schedule: {
+      name: 'Scheduled report',
+      description:
+        'send the report on its own at your time on days with actions; `/report` always works',
+    },
     ai: {
       name: 'AI',
       description: 'improve the wording of report lines with AI',

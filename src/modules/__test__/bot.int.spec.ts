@@ -608,7 +608,7 @@ describe('Telegram bot', () => {
     });
   });
 
-  it('lets an employee switch AI and data in AI and set the gender', async () => {
+  it('lets an employee switch the scheduled report, AI and data in AI and set the gender', async () => {
     const { user, telegramId } = await createEmployee();
 
     await fakeBotApi.pushUpdate(privateMessage(telegramId, '/settings'));
@@ -620,9 +620,11 @@ describe('Telegram bot', () => {
     ).toContainEqual([{ text: 'AI: no', callback_data: 'set:ai:on' }]);
     await press(telegramId, 'set:aidata:off', 1202);
     expect((await press(telegramId, 'set:gender:female', 1203)).text).toContain('Gender: female');
+    await press(telegramId, 'set:sched:off', 1204);
 
     const [stored] = await db.select().from(users).where(eq(users.id, user.id));
     expect(stored).toMatchObject({
+      scheduleEnabled: false,
       aiEnabled: false,
       aiDataOptOut: true,
       gender: Gender.FEMALE,

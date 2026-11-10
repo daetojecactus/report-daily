@@ -212,7 +212,7 @@ describe('User module', () => {
       expect(await userService.findOneByChannel(Channel.TELEGRAM, String(nextId++))).toBeNull();
     });
 
-    it('finds active employees with a reachable channel for the schedule', async () => {
+    it('finds active employees with a reachable channel and the schedule on', async () => {
       const active = await insertUser({ status: UserStatus.ACTIVE });
       await insertChannel(active.id);
       const unreachable = await insertUser({ status: UserStatus.ACTIVE });
@@ -220,7 +220,11 @@ describe('User module', () => {
       const blocked = await insertUser({ status: UserStatus.BLOCKED });
       await insertChannel(blocked.id);
       const withoutChannel = await insertUser({ status: UserStatus.ACTIVE });
-      const ids = new Set([active, unreachable, blocked, withoutChannel].map(({ id }) => id));
+      const switchedOff = await insertUser({ status: UserStatus.ACTIVE, scheduleEnabled: false });
+      await insertChannel(switchedOff.id);
+      const ids = new Set(
+        [active, unreachable, blocked, withoutChannel, switchedOff].map(({ id }) => id),
+      );
 
       expect(
         (await userService.findScheduled(Channel.TELEGRAM)).filter(({ id }) => ids.has(id)),

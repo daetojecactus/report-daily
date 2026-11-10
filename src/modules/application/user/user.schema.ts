@@ -40,6 +40,7 @@ export const users = pgTable(
     language: language(),
     timezone: text(),
     reportTime: time({ precision: 0 }).notNull().default(USER_DEFAULT_REPORT_TIME),
+    scheduleEnabled: boolean().notNull().default(true),
     aiEnabled: boolean().notNull().default(true),
     aiDataOptOut: boolean().notNull().default(false),
     permissions: permission().array().notNull().default([]),
