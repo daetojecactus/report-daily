@@ -1,10 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { getErrorMessage } from 'src/common/utils/error.util';
+import { SettingsService } from 'src/modules/application/settings/settings.service';
+import type { User } from 'src/modules/application/user/user.interface';
 import { RedisService } from 'src/modules/infrastructure/redis/redis.service';
 import type { LlmPrompt } from 'src/modules/vendors/llm/llm.interface';
 import { LlmService } from 'src/modules/vendors/llm/llm.service';
 import {
   AI_ANSWER_SCHEMA,
+  AI_COMMENT_MAX_LENGTH,
+  AI_COMMENTS_PER_LINE,
+  AI_COMMITS_PER_LINE,
+  AI_CUT_MARK,
   AI_DATA_END,
   AI_DATA_ESCAPES,
   AI_DATA_START,
@@ -23,7 +29,7 @@ import {
   AI_SPACES_PATTERN,
 } from './constants/ai.constants';
 import { AiMessages } from './constants/ai.messages';
-import type { AiLine, AiProfile, AiRewording } from './ai.interface';
+import type { AiLine, AiPolicy, AiProfile, AiRewording } from './ai.interface';
 
 @Injectable()
 export class AiService {
@@ -32,10 +38,25 @@ export class AiService {
   constructor(
     private readonly llmService: LlmService,
     private readonly redisService: RedisService,
+    private readonly settingsService: SettingsService,
   ) {}
 
   isEnabled() {
     return this.llmService.isEnabled();
+  }
+
+  async findPolicy(user: User): Promise<AiPolicy | null> {
+    if (!this.isEnabled() || !user.aiEnabled) {
+      return null;
+    }
+    const settings = await this.settingsService.findAi();
+    if (!settings.aiEnabled) {
+      return null;
+    }
+    return {
+      commits: settings.aiSendCommits && !user.aiDataOptOut,
+      comments: settings.aiSendComments && !user.aiDataOptOut,
+    };
   }
 
   async reword(lines: AiLine[], profile: AiProfile): Promise<AiRewording> {
@@ -87,11 +108,17 @@ export class AiService {
 
   private toPrompt(lines: AiLine[], { role, gender, locale }: AiProfile): LlmPrompt {
     const data = JSON.stringify({
-      lines: lines.map(({ id, action, title, kind }) => ({
+      lines: lines.map(({ id, action, title, kind, commits, comments }) => ({
         id,
         action,
         title,
         ...(kind ? { type: kind } : {}),
+        ...(commits.length ? { commits: commits.slice(0, AI_COMMITS_PER_LINE) } : {}),
+        ...(comments.length
+          ? {
+              comments: comments.slice(0, AI_COMMENTS_PER_LINE).map((comment) => this.cut(comment)),
+            }
+          : {}),
       })),
     });
     return {
@@ -124,6 +151,13 @@ export class AiService {
       }
     }
     return texts;
+  }
+
+  private cut(comment: string) {
+    const text = comment.replace(AI_SPACES_PATTERN, ' ').trim();
+    return text.length > AI_COMMENT_MAX_LENGTH
+      ? `${text.slice(0, AI_COMMENT_MAX_LENGTH)}${AI_CUT_MARK}`
+      : text;
   }
 
   private clean(text: string) {

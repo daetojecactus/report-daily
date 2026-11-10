@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { and, eq, gte, inArray, lt, type SQL } from 'drizzle-orm';
 import { addDays } from 'src/common/utils/date.util';
 import { getErrorMessage } from 'src/common/utils/error.util';
+import { AiService } from 'src/modules/application/ai/ai.service';
 import { DEFAULT_LANGUAGE } from 'src/modules/application/i18n/constants/i18n.constants';
 import { UserService } from 'src/modules/application/user/user.service';
 import { UserSourceService } from 'src/modules/application/user/user-source/user-source.service';
@@ -26,6 +27,7 @@ export class ReportService {
     private readonly reportComposer: ReportComposer,
     private readonly userService: UserService,
     private readonly userSourceService: UserSourceService,
+    private readonly aiService: AiService,
   ) {}
 
   find(filter?: SQL) {
@@ -105,7 +107,7 @@ export class ReportService {
         account,
         date: reportDate,
         language: user.language ?? DEFAULT_LANGUAGE,
-        ai: user.aiEnabled,
+        ai: await this.aiService.findPolicy(user),
       });
       const report = await this.save({
         userId,

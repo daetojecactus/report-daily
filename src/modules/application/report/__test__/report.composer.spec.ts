@@ -1,7 +1,7 @@
 import { Logger } from '@nestjs/common';
 import type { ConfigService } from '@nestjs/config';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { AiService } from 'src/modules/application/ai/ai.service';
+import type { AiPolicy } from 'src/modules/application/ai/ai.interface';
 import { Language } from 'src/modules/application/i18n/i18n.enums';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
 import { Source } from 'src/modules/application/source/source.enums';
@@ -14,6 +14,7 @@ import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { createEmployee } from '../../bot/__test__/bot.fixture';
 import type { ActivityService } from '../activity/activity.service';
 import { ReportComposer } from '../report.composer';
+import type { ReportRewriter } from '../report.rewriter';
 import type { TemplateContext } from '../template/template.context';
 import type { ReportContext, ReportTemplate } from '../template/template.interface';
 import type { TemplateRepository } from '../template/template.repository';
@@ -57,7 +58,7 @@ function template(values: Partial<ReportTemplate>): ReportTemplate {
 
 describe('ReportComposer', () => {
   const repository = { findOne: vi.fn<TemplateRepository['findOne']>() };
-  const aiService = { reword: vi.fn<AiService['reword']>() };
+  const reportRewriter = { rewrite: vi.fn<ReportRewriter['rewrite']>() };
   const composer = new ReportComposer(
     { get: () => 'UTC' } as unknown as ConfigService<AppEnvs, true>,
     {
@@ -67,12 +68,14 @@ describe('ReportComposer', () => {
     { loadIndex: () => Promise.resolve({}) } as unknown as TraitService,
     { record: () => Promise.resolve() } as unknown as TraitNameService,
     { classify: () => [], summarize: () => [] } as unknown as ActivityService,
-    { build: createContext } as unknown as TemplateContext,
+    {
+      buildWithSources: () => ({ context: createContext(), sources: new Map() }),
+    } as unknown as TemplateContext,
     new TemplateService(repository as unknown as TemplateRepository),
     new I18nService(),
-    aiService as unknown as AiService,
+    reportRewriter as unknown as ReportRewriter,
   );
-  const compose = (user: User, ai = false) =>
+  const compose = (user: User, ai: AiPolicy | null = null) =>
     composer.compose({ user, account: ACCOUNT, date: '2026-11-09', language: Language.EN, ai });
 
   beforeAll(() => {
@@ -103,28 +106,22 @@ describe('ReportComposer', () => {
     expect(await compose({ ...USER, templateId: template({}).id })).toMatchObject(standard);
   });
 
-  it('rewords the lines with a title through AI and keeps the summaries', async () => {
-    aiService.reword.mockResolvedValue({
-      texts: new Map([['1', 'Fixed a bug in the login form']]),
-      model: 'served-model',
-    });
+  it('lets the rewriter reword the lines by the AI policy and keeps the model', async () => {
+    reportRewriter.rewrite.mockResolvedValue('served-model');
+    const policy = { commits: true, comments: false };
 
-    expect(await compose(USER, true)).toMatchObject({
-      content: 'api:\n• Fixed a bug in the login form\n• Took 3 tasks into the sprint: #1, #2, #3',
-      aiModel: 'served-model',
-    });
-    expect(aiService.reword).toHaveBeenCalledWith(
-      [{ id: '1', action: 'Fixed a bug', title: 'Login form', kind: null }],
-      { role: USER.role, gender: USER.gender, locale: new I18nService().getLocale(Language.EN) },
-    );
+    expect(await compose(USER, policy)).toMatchObject({ aiModel: 'served-model' });
+    const [built, user, locale, passed] = reportRewriter.rewrite.mock.calls[0];
+    expect(built.sources).toBeInstanceOf(Map);
+    expect([user, locale, passed]).toEqual([
+      USER,
+      new I18nService().getLocale(Language.EN),
+      policy,
+    ]);
   });
 
-  it('keeps our lines when AI keeps them or the report goes without AI', async () => {
-    aiService.reword.mockResolvedValue({ texts: new Map(), model: null });
-    expect(await compose(USER, true)).toMatchObject({ content: STANDARD, aiModel: null });
-
-    aiService.reword.mockClear();
+  it('asks no AI when the report goes without it', async () => {
     expect(await compose(USER)).toMatchObject({ content: STANDARD, aiModel: null });
-    expect(aiService.reword).not.toHaveBeenCalled();
+    expect(reportRewriter.rewrite).not.toHaveBeenCalled();
   });
 });

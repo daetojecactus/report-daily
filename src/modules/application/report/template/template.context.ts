@@ -16,6 +16,7 @@ import {
 import { TemplateItemType } from './template.enums';
 import type {
   ReportContext,
+  TemplateBuild,
   TemplateDay,
   TemplateItem,
   TemplateProject,
@@ -35,10 +36,14 @@ export class TemplateContext {
     private readonly phraseService: PhraseService,
   ) {}
 
-  build(
+  build(day: TemplateDay, locale: Locale): ReportContext {
+    return this.buildWithSources(day, locale).context;
+  }
+
+  buildWithSources(
     { date, language, employee, day, results, summaries }: TemplateDay,
     locale: Locale,
-  ): ReportContext {
+  ): TemplateBuild {
     const projectName = (projectId: number | null) => {
       const project = day.projects.find((item) => item.id === projectId);
       return project?.name ?? project?.path ?? '';
@@ -48,6 +53,7 @@ export class TemplateContext {
     );
     const placed = new Set<ActivitySummary>();
     const entries: TemplateEntry[] = [];
+    const sources = new Map<TemplateItem, ActivityResult>();
     for (const result of results.filter((item) => !item.excluded)) {
       const projectId = this.activityService.findProjectId(result.line);
       const summary = summaryOf.get(result);
@@ -59,11 +65,9 @@ export class TemplateContext {
           item: this.toSummaryItem(summary, employee.gender, locale, projectName(projectId)),
         });
       } else if (!summary) {
-        entries.push({
-          projectId,
-          weight: this.toWeight(result),
-          item: this.toItem(result, employee.gender, locale, projectName(projectId)),
-        });
+        const item = this.toItem(result, employee.gender, locale, projectName(projectId));
+        sources.set(item, result);
+        entries.push({ projectId, weight: this.toWeight(result), item });
       }
     }
     const sorted = entries.toSorted((left, right) => right.weight - left.weight);
@@ -79,7 +83,7 @@ export class TemplateContext {
     );
     const items = projects.flatMap((project) => project.items);
     const at = new Date(`${date}${TEMPLATE_DATE_TIME_SUFFIX}`);
-    return {
+    const context: ReportContext = {
       version: TEMPLATE_CONTEXT_VERSION,
       date,
       dateText: new Intl.DateTimeFormat(locale.phrases.dateLocale, TEMPLATE_DATE_FORMAT).format(at),
@@ -106,6 +110,7 @@ export class TemplateContext {
         .filter((group) => group.items.length > 0),
       ai: { used: false },
     };
+    return { context, sources };
   }
 
   private toItem(

@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { AiModule } from 'src/modules/application/ai/ai.module';
 import { ReportModule } from 'src/modules/application/report/report.module';
 import { SourceModule } from 'src/modules/application/source/source.module';
 import { UserModule } from 'src/modules/application/user/user.module';
@@ -11,7 +12,15 @@ import { PreviewRenderer } from './preview.renderer';
 import { PreviewService } from './preview.service';
 
 @Module({
-  imports: [AppConfigModule, DatabaseModule, RedisModule, UserModule, SourceModule, ReportModule],
+  imports: [
+    AppConfigModule,
+    DatabaseModule,
+    RedisModule,
+    UserModule,
+    SourceModule,
+    ReportModule,
+    AiModule,
+  ],
   providers: [PreviewService, PreviewRenderer, PreviewRecorder, PreviewAnonymizer],
 })
 export class PreviewModule {}

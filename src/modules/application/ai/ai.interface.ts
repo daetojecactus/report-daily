@@ -7,6 +7,13 @@ export interface AiLine {
   action: string;
   title: string;
   kind: TaskKind | null;
+  commits: string[];
+  comments: string[];
+}
+
+export interface AiPolicy {
+  commits: boolean;
+  comments: boolean;
 }
 
 export interface AiProfile {

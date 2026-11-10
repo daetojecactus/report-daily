@@ -203,5 +203,24 @@ export const enCommon: CommonLocale = {
       `Through which day should reports pause? Up to ${days} days ahead; for longer, use "Pause with no end".`,
     back: '‹ Back',
     menu: '‹ Menu',
+    aiAlways:
+      'AI always gets the action phrase, the title and the type of the task. Comments of others, task descriptions, emails and tokens never.',
+    aiNotConfigured:
+      'AI is not set up: it needs the variables `LLM_BASE_URL`, `LLM_TOKEN` and `LLM_MODEL`.',
+    ai: {
+      name: 'AI for everyone',
+      description:
+        'improve the wording of report lines; an employee can switch it off in /settings',
+    },
+    aiCommits: {
+      name: 'Commits in AI',
+      description: "send the titles of the employee's commits of the day",
+    },
+    aiComments: {
+      name: 'Comments in AI',
+      description: "send excerpts of up to 150 characters from the employee's comments of the day",
+    },
+    on: 'yes',
+    off: 'no',
   },
 };

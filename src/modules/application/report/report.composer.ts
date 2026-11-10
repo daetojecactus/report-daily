@@ -1,19 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { getErrorMessage } from 'src/common/utils/error.util';
-import { AiService } from 'src/modules/application/ai/ai.service';
-import type { Locale } from 'src/modules/application/i18n/i18n.interface';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
 import { SourceService } from 'src/modules/application/source/source.service';
 import { TraitService } from 'src/modules/application/trait/trait.service';
 import { TraitNameService } from 'src/modules/application/trait/trait-name/trait-name.service';
-import type { User } from 'src/modules/application/user/user.interface';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { ActivityService } from './activity/activity.service';
 import { ReportMessages } from './constants/report.messages';
 import type { ReportDraft, ReportRequest } from './report.interface';
-import type { ReportContext, TemplateItem } from './template/template.interface';
-import { TemplateItemType } from './template/template.enums';
+import { ReportRewriter } from './report.rewriter';
+import type { ReportContext } from './template/template.interface';
 import { TemplateContext } from './template/template.context';
 import { TemplateService } from './template/template.service';
 
@@ -30,7 +27,7 @@ export class ReportComposer {
     private readonly templateContext: TemplateContext,
     private readonly templateService: TemplateService,
     private readonly i18nService: I18nService,
-    private readonly aiService: AiService,
+    private readonly reportRewriter: ReportRewriter,
   ) {}
 
   async compose({ user, account, date, language, ai }: ReportRequest): Promise<ReportDraft> {
@@ -45,7 +42,7 @@ export class ReportComposer {
     );
     const summaries = this.activityService.summarize(results);
     const locale = this.i18nService.getLocale(language);
-    const context = this.templateContext.build(
+    const built = this.templateContext.buildWithSources(
       {
         date,
         language,
@@ -61,29 +58,10 @@ export class ReportComposer {
       },
       locale,
     );
-    const aiModel = ai ? await this.reword(context, user, locale) : null;
+    const aiModel = ai ? await this.reportRewriter.rewrite(built, user, locale, ai) : null;
+    const { context } = built;
     const { content, templateId } = await this.render(user.id, user.templateId, context);
     return { timeZone, locale, day, results, summaries, context, content, templateId, aiModel };
-  }
-
-  private async reword(context: ReportContext, user: User, locale: Locale) {
-    const items = context.items.filter(
-      (item): item is TemplateItem & { title: string } =>
-        item.title !== null && item.type !== TemplateItemType.SUMMARY,
-    );
-    const { texts, model } = await this.aiService.reword(
-      items.map((item, index) => ({
-        id: String(index + 1),
-        action: item.actionText,
-        title: item.title,
-        kind: item.kind,
-      })),
-      { role: user.role, gender: user.gender, locale },
-    );
-    items.forEach((item, index) => {
-      item.text = texts.get(String(index + 1)) ?? item.text;
-    });
-    return model;
   }
 
   private async render(userId: string, templateId: string | null, context: ReportContext) {

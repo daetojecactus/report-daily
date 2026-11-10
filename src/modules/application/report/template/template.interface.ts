@@ -82,3 +82,8 @@ export interface ReportContext {
   groups: TemplateGroup[];
   ai: { used: boolean };
 }
+
+export interface TemplateBuild {
+  context: ReportContext;
+  sources: Map<TemplateItem, ActivityResult>;
+}

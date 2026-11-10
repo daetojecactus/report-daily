@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { AiService } from 'src/modules/application/ai/ai.service';
 import { DEFAULT_LANGUAGE } from 'src/modules/application/i18n/constants/i18n.constants';
 import { PhraseService } from 'src/modules/application/report/phrase/phrase.service';
 import { ReportComposer } from 'src/modules/application/report/report.composer';
@@ -17,6 +18,7 @@ export class PreviewService {
     private readonly reportComposer: ReportComposer,
     private readonly phraseService: PhraseService,
     private readonly previewRenderer: PreviewRenderer,
+    private readonly aiService: AiService,
   ) {}
 
   async describe(username: string, date: string, { trace, language, ai }: PreviewOptions) {
@@ -31,7 +33,7 @@ export class PreviewService {
         account,
         date,
         language: language ?? user.language ?? DEFAULT_LANGUAGE,
-        ai,
+        ai: ai ? await this.aiService.findPolicy(user) : null,
       });
     const texts = {
       lines: new Map(

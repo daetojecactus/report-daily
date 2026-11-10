@@ -1,3 +1,4 @@
+import type { AiPolicy } from 'src/modules/application/ai/ai.interface';
 import type { PgUpdateSetSource } from 'drizzle-orm/pg-core';
 import type { Language } from 'src/modules/application/i18n/i18n.enums';
 import type { Locale } from 'src/modules/application/i18n/i18n.interface';
@@ -19,7 +20,7 @@ export interface ReportRequest {
   account: UserSource;
   date: string;
   language: Language;
-  ai: boolean;
+  ai: AiPolicy | null;
 }
 
 export interface ReportDraft {
