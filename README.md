@@ -4,6 +4,27 @@ Self-hosted bot that turns GitLab activity into daily work reports in Telegram. 
 
 Version 2 is under development. The previous version lives in the [`v1`](https://github.com/daetojecactus/report-daily/tree/v1) branch.
 
+## What it does
+
+Every employee gets a report of their GitLab day in Telegram: on their own at the time they chose, on days with activity, or on demand for any of the last 14 days. A line comes from what the employee did: merges, reviews, status and label changes, comments, pushes. An OpenAI-compatible model can reword the lines; without it the bot writes them itself.
+
+| Command | Who | What |
+| --- | --- | --- |
+| `/start` | everyone | Greets an employee or an owner; tells anyone else their Telegram ID to pass to the owner |
+| `/report` | employees | The report of today, yesterday or another day of the last 14, with «Rebuild» |
+| `/settings` | employees | Language, report time and time zone, gender, scheduled report on or off, AI, report template |
+| `/admin` | owners and admins | The sections their permissions open; «Broadcast» for owners |
+| `/help`, `/cancel` | everyone | The commands; leaving a dialog |
+
+The owners are the Telegram IDs in `OWNER_TELEGRAM_IDS`: they can do everything, grant permissions and send broadcasts. An owner makes an employee an admin by granting permissions in the employee's card:
+
+| Permission | Opens |
+| --- | --- |
+| `users` | Employees: add, change, block, delete, «Report now» |
+| `traits` | Mapping GitLab labels and statuses to the bot's traits |
+| `settings` | The pause of scheduled reports and the AI settings |
+| `templates` | Shared report templates |
+
 ## Development
 
 Requirements: Node.js 26, pnpm 12, Docker.
@@ -21,12 +42,68 @@ Fill in `OWNER_TELEGRAM_IDS`, `TELEGRAM_BOT_TOKEN`, `GITLAB_URL` and `GITLAB_TOK
 | Command | What it does |
 | --- | --- |
 | `pnpm watch` | Build, run and restart on changes |
+| `pnpm start` | Run the built application, see [Running on a server](#running-on-a-server) |
 | `pnpm db:generate --name <name>` | Create a migration from schema changes |
 | `pnpm db:migrate` | Apply migrations |
-| `pnpm preview <gitlab-username> <YYYY-MM-DD>` | Print what an employee did in GitLab on a day, grouped by project. Nothing is sent |
+| `pnpm preview <gitlab-username> <YYYY-MM-DD> [--trace] [--lang=ru\|en] [--ai]` | Print what an employee did in GitLab on a day and the report. Nothing goes to Telegram; with `--ai` the lines go to the AI service |
 | `pnpm lint`, `pnpm typecheck` | Static checks |
 | `pnpm format` | Format TypeScript files with Prettier |
 | `pnpm test`, `pnpm test:int` | Unit and integration tests, integration tests need Docker |
+
+## Running on a server
+
+Requirements: Node.js 26, pnpm 12, PostgreSQL 18 and Redis 8. The bot needs outgoing access to Telegram, GitLab and, if you use it, the AI service. It needs no incoming connections: it polls Telegram itself.
+
+```bash
+git clone https://github.com/daetojecactus/report-daily.git
+cd report-daily
+pnpm install --frozen-lockfile
+cp .env.example .env
+pnpm db:migrate
+pnpm start
+```
+
+Fill in `.env` first, see [Environment variables](#environment-variables). `pnpm db:migrate` builds the application and applies the migrations, `pnpm start` runs it. Keep it running under a process manager with automatic restart, for example a systemd service. It calls Node.js directly, since a service may not have pnpm in its `PATH`; `which node` gives the path:
+
+```ini
+[Unit]
+Description=Report Daily
+After=network-online.target postgresql.service redis.service
+
+[Service]
+WorkingDirectory=/opt/report-daily
+ExecStart=/usr/bin/node --env-file=.env dist/main.js
+Restart=always
+TimeoutStopSec=45
+
+[Install]
+WantedBy=multi-user.target
+```
+
+On `SIGTERM` the bot stops polling and lets the running jobs finish, so give it about 45 seconds to stop.
+
+Before the team starts using the bot, check it on yourself: set `DELIVERY_MODE=redirect`, and scheduled reports and «Report now» go to the owners with a line saying whom they were for, and a broadcast comes to the owners as one copy. In `/admin` → «Settings» scheduled reports can also be paused for everyone.
+
+## Updating
+
+```bash
+git pull
+pnpm install --frozen-lockfile
+pnpm db:migrate
+```
+
+Then restart the service. Back up the database before an update: migrations only go forward.
+
+## Backups
+
+PostgreSQL holds everything that matters: employees and their permissions, settings, label mappings, templates and the reports of the last 30 days. Back it up every day:
+
+```bash
+pg_dump --format=custom --file=report-daily.dump "$DATABASE_URL"
+pg_restore --clean --dbname="$DATABASE_URL" report-daily.dump
+```
+
+Redis holds only short-lived state: open dialogs, queued messages and caches. It needs no backup; after losing it, open dialogs start over and messages still in the queue are lost.
 
 ## Environment variables
 
@@ -47,6 +124,18 @@ Fill in `OWNER_TELEGRAM_IDS`, `TELEGRAM_BOT_TOKEN`, `GITLAB_URL` and `GITLAB_TOK
 | `LOG_LEVEL` | no | `info` | `fatal`, `error`, `warn`, `info`, `debug`, `trace` or `silent` |
 | `PORT` | no | `3000` | Port of the health endpoints |
 | `NODE_EXTRA_CA_CERTS` | no | | Path to a PEM file with the CA certificate of a GitLab signed by a company CA. Not read from `.env`, see below |
+
+## Security
+
+- **Network.** The bot accepts no incoming connections. Keep the health port closed to the outside, and PostgreSQL and Redis password-protected and reachable only from the bot's host.
+- **Secrets** live only in `.env`, which must never be committed. Logs cut tokens: the Telegram token, the GitLab token header and the AI key.
+- **GitLab token.** Use a service account with the `read_api` and `read_user` scopes only. The bot never writes to GitLab.
+- **TLS** is always checked. For a company certificate authority see the next section.
+- **Owners.** Whoever controls an owner's Telegram account controls the bot, so owners should turn on two-step verification in Telegram.
+- **Access.** Permissions are checked on every action, and the bot answers only in private chats.
+- **Privacy.** Only the employee sees the text of their report; admins see the status of the last report. The exception is `DELIVERY_MODE=redirect`, switched on on purpose to check the bot.
+- **AI** gets the action phrase, the title and the type of the task and, if «Settings» allow, the employee's own commit titles and excerpts of their own comments of the day. It never gets other people's comments, task descriptions, emails or tokens. An employee can switch AI off or keep their data out of it in `/settings`, and the owner can switch it off for everyone. A failure of the AI never breaks a report.
+- **Templates** run in a sandbox: no file access, only the report data, and limits on size and rendering time.
 
 ## GitLab with a company certificate
 
