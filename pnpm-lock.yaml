@@ -214,6 +214,9 @@ importers:
       nestjs-pino:
         specifier: ^5.3.1
         version: 5.3.1(@nestjs/common@12.3.2(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)(supports-color@10.2.2))(@nestjs/core@12.3.2(@nestjs/common@12.3.2(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)(supports-color@10.2.2))(reflect-metadata@0.2.2)(rxjs@7.8.2))(pino-http@11.0.0)(pino@10.4.0)(rxjs@7.8.2)
+      openai:
+        specifier: 7.45.1
+        version: 7.45.1(undici@8.12.3)(zod@4.6.7)
       pg:
         specifier: ^8.23.1
         version: 8.23.1
@@ -3037,6 +3040,33 @@ packages:
   onetime@7.0.0:
     resolution: {integrity: sha512-VXJjc87FScF88uafS3JllDgvAm+c/Slfz06lorj2uAY34rlUu0Nt+v8wreiImcrgAjjIHp1rXpTDlLOGw29WwQ==}
     engines: {node: '>=18'}
+
+  openai@7.45.1:
+    resolution: {integrity: sha512-mutrJXwhJIMZ24Lab2COFtNp44OcpZSnV4O2O7q38wAHUa2m2fQqUO5pj1XS3PqLfOTeODBUS9YoadqDnnGk5A==}
+    engines: {node: '>=22.0.0'}
+    peerDependencies:
+      '@aws-sdk/credential-provider-node': '>=3.972.0 <4'
+      '@smithy/hash-node': '>=4.3.0 <5'
+      '@smithy/signature-v4': '>=5.4.0 <6'
+      google-auth-library: '>=9.15.1 <12'
+      undici: '>=5 <9'
+      ws: ^8.21.0
+      zod: ^3.25 || ^4.0
+    peerDependenciesMeta:
+      '@aws-sdk/credential-provider-node':
+        optional: true
+      '@smithy/hash-node':
+        optional: true
+      '@smithy/signature-v4':
+        optional: true
+      google-auth-library:
+        optional: true
+      undici:
+        optional: true
+      ws:
+        optional: true
+      zod:
+        optional: true
 
   optionator@0.9.4:
     resolution: {integrity: sha512-6IpQ7mKUxRcZNLIObR0hz7lxsapSSIYNZJwXPGeF0mTVqGKFIXj1DQcMoT22S3ROcLyY/rz0PWaWZ9ayWmad9g==}
@@ -6238,6 +6268,11 @@ snapshots:
   onetime@7.0.0:
     dependencies:
       mimic-function: 5.0.1
+
+  openai@7.45.1(undici@8.12.3)(zod@4.6.7):
+    optionalDependencies:
+      undici: 8.12.3
+      zod: 4.6.7
 
   optionator@0.9.4:
     dependencies:

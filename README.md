@@ -40,6 +40,9 @@ Fill in `OWNER_TELEGRAM_IDS`, `TELEGRAM_BOT_TOKEN`, `GITLAB_URL` and `GITLAB_TOK
 | `TELEGRAM_API_URL` | no | `https://api.telegram.org` | Bot API server, for example a self-hosted `telegram-bot-api` |
 | `GITLAB_URL` | yes | | GitLab address without `/api/v4`, for example `https://gitlab.example.com` |
 | `GITLAB_TOKEN` | yes | | Token of a GitLab service account with the `read_api` and `read_user` scopes |
+| `LLM_BASE_URL` | no | | Address of an OpenAI-compatible API, for example `https://api.openai.com/v1`, `https://openrouter.ai/api/v1` or a local `http://127.0.0.1:11434/v1` (Ollama). Set together with `LLM_TOKEN` and `LLM_MODEL`; without the three, AI is off |
+| `LLM_TOKEN` | no | | API key of that service. A local server that needs none takes any value |
+| `LLM_MODEL` | no | | Model name as the service calls it |
 | `LOG_LEVEL` | no | `info` | `fatal`, `error`, `warn`, `info`, `debug`, `trace` or `silent` |
 | `PORT` | no | `3000` | Port of the health endpoints |
 | `NODE_EXTRA_CA_CERTS` | no | | Path to a PEM file with the CA certificate of a GitLab signed by a company CA. Not read from `.env`, see below |
