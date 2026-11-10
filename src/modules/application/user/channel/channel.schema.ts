@@ -16,6 +16,7 @@ export const userChannels = pgTable(
     channel: channel().notNull(),
     externalId: text().notNull(),
     reachable: boolean().notNull().default(true),
+    receives: boolean().notNull().default(true),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },

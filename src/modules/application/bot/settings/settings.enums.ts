@@ -7,6 +7,7 @@ export enum SettingsAction {
   SCHEDULE = 'sched',
   AI = 'ai',
   AI_DATA = 'aidata',
+  RECEIVE = 'recv',
 }
 
 export enum SettingsStep {

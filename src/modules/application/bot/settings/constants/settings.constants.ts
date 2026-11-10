@@ -1,6 +1,7 @@
 import { BOT_BUTTON_DATA_SEPARATOR } from '../../constants/bot.constants';
 import { TemplatesAction } from '../../templates/templates.enums';
 import { z } from 'zod';
+import { Channel } from 'src/common/enums/channel.enums';
 import { Language } from 'src/modules/application/i18n/i18n.enums';
 import { USER_REPORT_TIME_STEP_MINUTES } from 'src/modules/application/user/constants/user.constants';
 import { Gender } from 'src/modules/application/user/user.enums';
@@ -80,6 +81,9 @@ export const SETTINGS_BUTTON_SCHEMA = z.union([
       SWITCH_SCHEMA,
     ])
     .transform(([, action, isOn]) => ({ action, isOn })),
+  z
+    .tuple([NAMESPACE_SCHEMA, z.literal(SettingsAction.RECEIVE), z.enum(Channel), SWITCH_SCHEMA])
+    .transform(([, action, channel, isOn]) => ({ action, channel, isOn })),
 ]);
 
 export const SETTINGS_TEMPLATES_DATA = [BotNamespace.TEMPLATES, TemplatesAction.MENU].join(

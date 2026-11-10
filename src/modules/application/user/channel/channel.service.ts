@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { and, eq, ne, type SQL } from 'drizzle-orm';
 import type { Channel } from 'src/common/enums/channel.enums';
-import type { UserChannelInsert } from './channel.interface';
+import type { UserChannel, UserChannelInsert } from './channel.interface';
 import { ChannelRepository } from './channel.repository';
 import { userChannels } from './channel.schema';
 
@@ -31,6 +31,30 @@ export class ChannelService {
 
   findByUser(userId: string) {
     return this.find(eq(userChannels.userId, userId));
+  }
+
+  toReceiving(channels: UserChannel[]) {
+    const chosen = channels.filter(({ receives }) => receives);
+    return chosen.length > 0 ? chosen : channels;
+  }
+
+  async findBound(userId: string, configured: Channel[]) {
+    return (await this.findByUser(userId)).filter(({ channel }) => configured.includes(channel));
+  }
+
+  async findReceiving(userId: string, configured: Channel[]) {
+    return this.toReceiving(await this.findBound(userId, configured)).filter(
+      ({ reachable }) => reachable,
+    );
+  }
+
+  async updateReceiving(userId: string, channels: Channel[], receiving: Channel[]) {
+    for (const channel of channels) {
+      await this.updateOne(
+        and(eq(userChannels.userId, userId), eq(userChannels.channel, channel))!,
+        { receives: receiving.includes(channel) },
+      );
+    }
   }
 
   updateReachable(channel: Channel, externalId: string, reachable: boolean) {

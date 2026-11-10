@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { and, asc, eq, exists, ilike, inArray, or, type SQL } from 'drizzle-orm';
+import { and, asc, eq, exists, ilike, inArray, notExists, or, type SQL } from 'drizzle-orm';
+import { alias } from 'drizzle-orm/pg-core';
 import type { Channel } from 'src/common/enums/channel.enums';
 import type { Source } from 'src/modules/application/source/source.enums';
 import { DatabaseService } from 'src/modules/infrastructure/database/database.service';
@@ -104,8 +105,10 @@ export class UserRepository {
       );
   }
 
-  async findReachable(channels: Channel[], filter?: SQL) {
-    const rows = await this.databaseService.db
+  findReceiving(channels: Channel[], filter?: SQL) {
+    const db = this.databaseService.db;
+    const chosen = alias(userChannels, 'chosen');
+    return db
       .select({ user: users, channel: userChannels })
       .from(users)
       .innerJoin(
@@ -114,9 +117,23 @@ export class UserRepository {
           eq(userChannels.userId, users.id),
           inArray(userChannels.channel, channels),
           eq(userChannels.reachable, true),
+          or(
+            eq(userChannels.receives, true),
+            notExists(
+              db
+                .select({ id: chosen.id })
+                .from(chosen)
+                .where(
+                  and(
+                    eq(chosen.userId, users.id),
+                    inArray(chosen.channel, channels),
+                    eq(chosen.receives, true),
+                  ),
+                ),
+            ),
+          ),
         ),
       )
       .where(filter);
-    return rows;
   }
 }

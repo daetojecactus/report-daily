@@ -120,6 +120,13 @@
       "when": 1794313644579,
       "tag": "0016_drop_broadcast_permission",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1794325695561,
+      "tag": "0017_channel_receives",
+      "breakpoints": true
     }
   ]
 }

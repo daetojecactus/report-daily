@@ -48,10 +48,10 @@ describe('ReportQueueProcessor', () => {
   };
   const deliveryService = { createForReport: vi.fn<DeliveryService['createForReport']>() };
   const producer = { addDelivery: vi.fn<DeliveryQueueProducer['addDelivery']>() };
-  const channelService = { findByUser: vi.fn<ChannelService['findByUser']>() };
+  const channelService = { findReceiving: vi.fn<ChannelService['findReceiving']>() };
   const botService = {
     sendTo: vi.fn<BotService['sendTo']>(),
-    hasChannel: vi.fn<BotService['hasChannel']>(),
+    listChannels: vi.fn<BotService['listChannels']>(),
   };
   const createProcessor = (mode: DeliveryMode) =>
     new ReportQueueProcessor(
@@ -78,7 +78,7 @@ describe('ReportQueueProcessor', () => {
 
     expect(deliveryService.createForReport).toHaveBeenCalledWith(report, Channel.SLACK, false);
     expect(producer.addDelivery).toHaveBeenCalledExactlyOnceWith(Channel.SLACK, 'delivery-4');
-    expect(channelService.findByUser).not.toHaveBeenCalled();
+    expect(channelService.findReceiving).not.toHaveBeenCalled();
   });
 
   it.each([null, undefined])(
@@ -90,18 +90,21 @@ describe('ReportQueueProcessor', () => {
         content: 'project:\n• Fixed a bug',
       } as Report;
       reportService.build.mockResolvedValue(report);
-      channelService.findByUser.mockResolvedValue([
-        { channel: Channel.TELEGRAM, reachable: true },
-        { channel: Channel.SLACK, reachable: true },
+      channelService.findReceiving.mockResolvedValue([
+        { channel: Channel.TELEGRAM },
+        { channel: Channel.SLACK },
       ] as UserChannel[]);
-      botService.hasChannel.mockReturnValue(true);
+      botService.listChannels.mockReturnValue([Channel.TELEGRAM, Channel.SLACK]);
       deliveryService.createForReport
         .mockResolvedValueOnce({ id: 'delivery-5' } as Delivery)
         .mockResolvedValueOnce({ id: 'delivery-6' } as Delivery);
 
       await run(job(0, REPORT_BUILD_JOB, { own: false, channel, notice: null }));
 
-      expect(channelService.findByUser).toHaveBeenCalledWith('user-1');
+      expect(channelService.findReceiving).toHaveBeenCalledWith('user-1', [
+        Channel.TELEGRAM,
+        Channel.SLACK,
+      ]);
       expect(deliveryService.createForReport.mock.calls).toEqual([
         [report, Channel.TELEGRAM, false],
         [report, Channel.SLACK, false],
@@ -113,17 +116,14 @@ describe('ReportQueueProcessor', () => {
     },
   );
 
-  it('skips unreachable channels and channels that are not configured', async () => {
+  it('delivers nothing when no channel of the employee gets reports', async () => {
     reportService.build.mockResolvedValue({
       userId: 'user-1',
       status: ReportStatus.READY,
       content: 'project:\n• Fixed a bug',
     } as Report);
-    channelService.findByUser.mockResolvedValue([
-      { channel: Channel.TELEGRAM, reachable: false },
-      { channel: Channel.SLACK, reachable: true },
-    ] as UserChannel[]);
-    botService.hasChannel.mockImplementation((channel) => channel === Channel.TELEGRAM);
+    channelService.findReceiving.mockResolvedValue([]);
+    botService.listChannels.mockReturnValue([Channel.TELEGRAM]);
 
     await run(job(0, REPORT_BUILD_JOB, { own: false, channel: null, notice: null }));
 

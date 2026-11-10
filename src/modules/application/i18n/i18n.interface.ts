@@ -99,6 +99,8 @@ export interface CommonLocale {
     schedule: LocaleSwitch;
     ai: LocaleSwitch;
     aiData: LocaleSwitch;
+    channels: LocaleSwitch;
+    lastChannel: string;
     on: string;
     off: string;
     template: string;

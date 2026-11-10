@@ -1,0 +1,1 @@
+ALTER TABLE "user_channels" ADD COLUMN "receives" boolean DEFAULT true NOT NULL;
