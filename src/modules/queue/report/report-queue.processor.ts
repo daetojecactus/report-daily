@@ -37,13 +37,15 @@ export class ReportQueueProcessor extends WorkerHost implements OnModuleDestroy 
     if (job.name !== REPORT_BUILD_JOB) {
       throw new Error(`${ReportQueueMessages.UNKNOWN_JOB}: ${job.name}`);
     }
-    const { userId, date, maxAgeMs, reply, notices } = job.data as ReportJobData;
+    const { userId, date, maxAgeMs, notice } = job.data as ReportJobData;
     try {
       const saved =
         maxAgeMs === 0 ? null : await this.reportService.findFresh(userId, date, maxAgeMs);
       const report = saved ?? (await this.reportService.build(userId, date));
       if (report.status === ReportStatus.EMPTY || !report.content) {
-        await this.botService.sendTo(reply, { text: notices.empty });
+        if (notice) {
+          await this.botService.sendTo(notice.target, { text: notice.empty });
+        }
       } else {
         const delivery = await this.deliveryService.createForReport(report, Channel.TELEGRAM);
         await this.deliveryTelegramQueueProducer.addDelivery(delivery.id);
@@ -52,8 +54,8 @@ export class ReportQueueProcessor extends WorkerHost implements OnModuleDestroy 
       this.logger.warn(
         `${ReportQueueMessages.ATTEMPT_FAILED}: ${job.id}: ${getErrorMessage(error)}`,
       );
-      if (job.attemptsMade + 1 >= (job.opts.attempts ?? 1)) {
-        await this.botService.sendTo(reply, { text: notices.failed });
+      if (notice && job.attemptsMade + 1 >= (job.opts.attempts ?? 1)) {
+        await this.botService.sendTo(notice.target, { text: notice.failed });
       }
       throw error;
     }

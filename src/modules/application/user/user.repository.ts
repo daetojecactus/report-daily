@@ -85,4 +85,20 @@ export class UserRepository {
       .limit(1);
     return row?.user ?? null;
   }
+
+  async findReachable(channel: Channel, filter?: SQL) {
+    const rows = await this.databaseService.db
+      .select({ user: users })
+      .from(users)
+      .innerJoin(
+        userChannels,
+        and(
+          eq(userChannels.userId, users.id),
+          eq(userChannels.channel, channel),
+          eq(userChannels.reachable, true),
+        ),
+      )
+      .where(filter);
+    return rows.map(({ user }) => user);
+  }
 }

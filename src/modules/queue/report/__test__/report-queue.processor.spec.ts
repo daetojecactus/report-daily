@@ -16,9 +16,13 @@ const DATA: ReportJobData = {
   userId: 'user-1',
   date: '2026-11-09',
   maxAgeMs: 300_000,
-  reply: { channel: Channel.TELEGRAM, chatId: '2002', externalId: '1001' },
-  notices: { empty: 'За сегодня отчёта нет.', failed: 'Не получилось собрать отчёт.' },
+  notice: {
+    target: { channel: Channel.TELEGRAM, chatId: '2002', externalId: '1001' },
+    empty: 'За сегодня отчёта нет.',
+    failed: 'Не получилось собрать отчёт.',
+  },
 };
+const NOTICE = DATA.notice!;
 
 function job(attemptsMade = 0, name = REPORT_BUILD_JOB, data: Partial<ReportJobData> = {}) {
   return {
@@ -81,7 +85,7 @@ describe('ReportQueueProcessor', () => {
     await run(job(0, REPORT_BUILD_JOB, { maxAgeMs: 0 }));
 
     expect(reportService.findFresh).not.toHaveBeenCalled();
-    expect(botService.sendTo).toHaveBeenCalledWith(DATA.reply, { text: DATA.notices.empty });
+    expect(botService.sendTo).toHaveBeenCalledWith(NOTICE.target, { text: NOTICE.empty });
   });
 
   it('retries quietly and tells about the failure only after the last attempt', async () => {
@@ -91,7 +95,22 @@ describe('ReportQueueProcessor', () => {
     expect(botService.sendTo).not.toHaveBeenCalled();
 
     await expect(run(job(2))).rejects.toThrow('GitLab answered 502');
-    expect(botService.sendTo).toHaveBeenCalledWith(DATA.reply, { text: DATA.notices.failed });
+    expect(botService.sendTo).toHaveBeenCalledWith(NOTICE.target, { text: NOTICE.failed });
+  });
+
+  it('tells nothing about an empty day or a failure of a scheduled report', async () => {
+    reportService.build.mockResolvedValueOnce({
+      status: ReportStatus.EMPTY,
+      content: '',
+    } as Report);
+    await run(job(0, REPORT_BUILD_JOB, { notice: null }));
+
+    reportService.build.mockRejectedValueOnce(new Error('GitLab answered 502'));
+    await expect(run(job(2, REPORT_BUILD_JOB, { notice: null }))).rejects.toThrow(
+      'GitLab answered 502',
+    );
+    expect(botService.sendTo).not.toHaveBeenCalled();
+    expect(deliveryService.createForReport).not.toHaveBeenCalled();
   });
 
   it('refuses an unknown job', async () => {

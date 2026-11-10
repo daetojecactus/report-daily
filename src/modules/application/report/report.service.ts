@@ -66,6 +66,17 @@ export class ReportService {
     );
   }
 
+  claimScheduled(userId: string, reportDate: string, scheduledAt: Date) {
+    return this.reportRepository.claimScheduled(userId, reportDate, scheduledAt);
+  }
+
+  releaseScheduled(userId: string, reportDate: string) {
+    return this.reportRepository.updateOne(
+      and(eq(reports.userId, userId), eq(reports.reportDate, reportDate))!,
+      { scheduledAt: null },
+    );
+  }
+
   findByDate(userId: string, reportDate: string) {
     return this.findOne(and(eq(reports.userId, userId), eq(reports.reportDate, reportDate))!);
   }

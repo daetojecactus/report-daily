@@ -226,8 +226,8 @@ describe('EmployeeManageHandler', () => {
       userId: USER.id,
       date: '2026-11-09',
       maxAgeMs: 300_000,
-      reply: { channel: Channel.TELEGRAM, chatId: '77', externalId: '77' },
-      notices: {
+      notice: {
+        target: { channel: Channel.TELEGRAM, chatId: '77', externalId: '77' },
         empty: locale.employeeManage.reportEmpty('Anna \\*S\\*'),
         failed: locale.employeeManage.reportFailed('Anna \\*S\\*'),
       },
