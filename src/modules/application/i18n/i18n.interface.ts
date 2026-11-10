@@ -167,6 +167,13 @@ export interface CommonLocale {
     chooseDay: (days: number) => string;
     back: string;
     menu: string;
+    aiAlways: string;
+    aiNotConfigured: string;
+    ai: LocaleSwitch;
+    aiCommits: LocaleSwitch;
+    aiComments: LocaleSwitch;
+    on: string;
+    off: string;
   };
 }
 

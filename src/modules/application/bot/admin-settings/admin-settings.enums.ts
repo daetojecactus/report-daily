@@ -5,4 +5,7 @@ export enum AdminSettingsAction {
   UNTIL = 'until',
   FOREVER = 'forever',
   RESUME = 'resume',
+  AI = 'ai',
+  AI_COMMITS = 'aicommits',
+  AI_COMMENTS = 'aicomments',
 }

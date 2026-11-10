@@ -109,7 +109,7 @@ describe('ReportService', () => {
       aiModel: 'served-model',
     });
     expect(await reportService.build(userId, DATE)).toMatchObject({ aiUsed: false, aiModel: null });
-    expect(compose).toHaveBeenLastCalledWith(expect.objectContaining({ ai: true }));
+    expect(compose).toHaveBeenLastCalledWith(expect.objectContaining({ ai: null }));
   });
 
   it('marks a day without lines empty', async () => {

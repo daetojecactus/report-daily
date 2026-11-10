@@ -12,6 +12,14 @@ export const AI_LINE_MAX_LENGTH = 200;
 
 export const AI_ERROR_MAX_LENGTH = 300;
 
+export const AI_COMMITS_PER_LINE = 5;
+
+export const AI_COMMENTS_PER_LINE = 3;
+
+export const AI_COMMENT_MAX_LENGTH = 150;
+
+export const AI_CUT_MARK = '…';
+
 export const AI_SCHEMA_NAME = 'report_lines';
 
 export const AI_ANSWER_SCHEMA = z.object({

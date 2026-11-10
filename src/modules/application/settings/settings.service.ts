@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import type { ReportsPause, Settings, SettingsUpdate } from './settings.interface';
+import { SETTINGS_AI_DEFAULTS } from './constants/settings.constants';
+import type { ReportsPause, Settings, SettingsAi, SettingsUpdate } from './settings.interface';
 import { SettingsRepository } from './settings.repository';
 
 @Injectable()
@@ -24,6 +25,18 @@ export class SettingsService {
 
   async findReportsPause(date: string) {
     return this.toReportsPause(await this.findOne(), date);
+  }
+
+  async findAi() {
+    return this.toAi(await this.findOne());
+  }
+
+  toAi(row: Settings | null): SettingsAi {
+    return {
+      aiEnabled: row?.aiEnabled ?? SETTINGS_AI_DEFAULTS.aiEnabled,
+      aiSendCommits: row?.aiSendCommits ?? SETTINGS_AI_DEFAULTS.aiSendCommits,
+      aiSendComments: row?.aiSendComments ?? SETTINGS_AI_DEFAULTS.aiSendComments,
+    };
   }
 
   toReportsPause(row: Settings | null, date: string): ReportsPause | null {

@@ -3,8 +3,9 @@ import { ConfigService } from '@nestjs/config';
 import { ChatInputType } from 'src/common/enums/channel.enums';
 import type { ScreenButton } from 'src/common/interfaces/chat-channel.interface';
 import { addDays, getToday } from 'src/common/utils/date.util';
+import { AiService } from 'src/modules/application/ai/ai.service';
 import type { Locale } from 'src/modules/application/i18n/i18n.interface';
-import type { ReportsPause } from 'src/modules/application/settings/settings.interface';
+import type { ReportsPause, SettingsAi } from 'src/modules/application/settings/settings.interface';
 import { SettingsService } from 'src/modules/application/settings/settings.service';
 import { Permission } from 'src/modules/application/user/user.enums';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
@@ -15,12 +16,15 @@ import type { BotActor, BotContext, BotHandler, BotReply } from '../bot.interfac
 import { BOT_BUTTON_DATA_SEPARATOR } from '../constants/bot.constants';
 import { AdminSettingsAction } from './admin-settings.enums';
 import {
+  ADMIN_SETTINGS_AI_SWITCHES,
   ADMIN_SETTINGS_BUTTON_SCHEMA,
   ADMIN_SETTINGS_DATE_FORMAT,
   ADMIN_SETTINGS_DATE_TIME_SUFFIX,
   ADMIN_SETTINGS_DAY_BUTTON_FORMAT,
   ADMIN_SETTINGS_DAYS_AHEAD,
   ADMIN_SETTINGS_DAYS_PER_ROW,
+  ADMIN_SETTINGS_OFF,
+  ADMIN_SETTINGS_ON,
 } from './constants/admin-settings.constants';
 import { AdminSettingsMessages } from './constants/admin-settings.messages';
 
@@ -32,6 +36,7 @@ export class AdminSettingsHandler implements BotHandler {
 
   constructor(
     private readonly settingsService: SettingsService,
+    private readonly aiService: AiService,
     configService: ConfigService<AppEnvs, true>,
   ) {
     this.timeZone = configService.get('APP_TIMEZONE', { infer: true });
@@ -68,15 +73,53 @@ export class AdminSettingsHandler implements BotHandler {
           AdminSettingsMessages.RESUMED,
         );
         return this.showMenu(locale, today);
+      case AdminSettingsAction.AI:
+      case AdminSettingsAction.AI_COMMITS:
+      case AdminSettingsAction.AI_COMMENTS:
+        return this.switchAi(actor, locale, today, button.data.action, button.data.isOn);
     }
+  }
+
+  private async switchAi(
+    actor: BotActor,
+    locale: Locale,
+    today: string,
+    action: AdminSettingsAction,
+    isOn: boolean,
+  ) {
+    const field = ADMIN_SETTINGS_AI_SWITCHES.find((item) => item.action === action)?.field;
+    if (field) {
+      await this.settingsService.update({ [field]: isOn });
+      this.logger.log(
+        { actorId: actor.user?.id ?? BotAccess.OWNER, [field]: isOn },
+        AdminSettingsMessages.AI_CHANGED,
+      );
+    }
+    return this.showMenu(locale, today);
   }
 
   private async showMenu(locale: Locale, today: string): Promise<BotReply> {
     const texts = locale.adminSettings;
-    const pause = await this.settingsService.findReportsPause(today);
+    const settings = await this.settingsService.findOne();
+    const pause = this.settingsService.toReportsPause(settings, today);
+    const ai = this.settingsService.toAi(settings);
+    const switches = this.aiService.isEnabled() ? ADMIN_SETTINGS_AI_SWITCHES : [];
     return {
       screen: {
-        text: [texts.title, this.toState(locale, pause, today), texts.hint].join('\n'),
+        text: [
+          texts.title,
+          this.toState(locale, pause, today),
+          texts.hint,
+          '',
+          ...(switches.length
+            ? [
+                texts.aiAlways,
+                ...switches.map(
+                  ({ text }) => `**${texts[text].name}** — ${texts[text].description}`,
+                ),
+              ]
+            : [texts.aiNotConfigured]),
+        ].join('\n'),
         buttons: [
           [{ text: texts.pauseToday, data: this.toData(AdminSettingsAction.TODAY) }],
           [{ text: texts.pauseUntil, data: this.toData(AdminSettingsAction.DAYS) }],
@@ -84,6 +127,9 @@ export class AdminSettingsHandler implements BotHandler {
           ...(pause
             ? [[{ text: texts.resume, data: this.toData(AdminSettingsAction.RESUME) }]]
             : []),
+          ...switches.map(({ action, field, text }) => [
+            this.toSwitchButton(texts, ai, action, field, text),
+          ]),
           [{ text: texts.menu, data: ADMIN_MENU_DATA }],
         ],
       },
@@ -150,6 +196,20 @@ export class AdminSettingsHandler implements BotHandler {
         this.toInstant(pause.until),
       ),
     );
+  }
+
+  private toSwitchButton(
+    texts: Locale['adminSettings'],
+    ai: SettingsAi,
+    action: AdminSettingsAction,
+    field: keyof SettingsAi,
+    text: 'ai' | 'aiCommits' | 'aiComments',
+  ) {
+    const isOn = ai[field];
+    return {
+      text: `${texts[text].name}: ${isOn ? texts.on : texts.off}`,
+      data: this.toData(action, isOn ? ADMIN_SETTINGS_OFF : ADMIN_SETTINGS_ON),
+    };
   }
 
   private isAhead(date: string, today: string) {

@@ -45,6 +45,22 @@ describe('SettingsService', () => {
     ]);
   });
 
+  it('has the AI defaults before anything is set and keeps a change', async () => {
+    expect(await settingsService.findAi()).toEqual({
+      aiEnabled: true,
+      aiSendCommits: true,
+      aiSendComments: false,
+    });
+
+    await settingsService.pauseReports(null);
+    await settingsService.update({ aiSendComments: true });
+    expect(await settingsService.findAi()).toEqual({
+      aiEnabled: true,
+      aiSendCommits: true,
+      aiSendComments: true,
+    });
+  });
+
   it('refuses a second row', async () => {
     await expect(db.insert(settings).values({ id: 2 })).rejects.toThrow();
   });

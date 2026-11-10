@@ -20,6 +20,7 @@ import { ActivitySignals } from './activity/activity.signals';
 import { ActivitySummaries } from './activity/activity.summaries';
 import { PhraseService } from './phrase/phrase.service';
 import { ReportComposer } from './report.composer';
+import { ReportRewriter } from './report.rewriter';
 import { ReportRepository } from './report.repository';
 import { ReportService } from './report.service';
 import { TemplateContext } from './template/template.context';
@@ -48,6 +49,7 @@ import { TemplateService } from './template/template.service';
     TemplateService,
     TemplateRepository,
     ReportComposer,
+    ReportRewriter,
     ReportRepository,
     ReportService,
   ],

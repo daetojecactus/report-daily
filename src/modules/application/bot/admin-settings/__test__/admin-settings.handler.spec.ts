@@ -4,6 +4,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vite
 import { Channel, ChatInputType } from 'src/common/enums/channel.enums';
 import type { ChatInput } from 'src/common/interfaces/chat-channel.interface';
 import { Language } from 'src/modules/application/i18n/i18n.enums';
+import type { AiService } from 'src/modules/application/ai/ai.service';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
 import type { Settings } from 'src/modules/application/settings/settings.interface';
 import type { SettingsRepository } from 'src/modules/application/settings/settings.repository';
@@ -20,12 +21,25 @@ const PAUSES = [
 ];
 const RESUME = [{ text: 'Resume', data: 'aset:resume' }];
 const MENU = [{ text: '‹ Menu', data: 'adm:menu' }];
+const AI_TEXT = [
+  texts.aiAlways,
+  `**${texts.ai.name}** — ${texts.ai.description}`,
+  `**${texts.aiCommits.name}** — ${texts.aiCommits.description}`,
+  `**${texts.aiComments.name}** — ${texts.aiComments.description}`,
+];
+
+function screenText(state: string, ai = [texts.aiNotConfigured]) {
+  return [texts.title, state, texts.hint, '', ...ai].join('\n');
+}
 
 function settings(values: Partial<Settings>): Settings {
   return {
     id: 1,
     reportsPaused: true,
     reportsPausedUntil: null,
+    aiEnabled: true,
+    aiSendCommits: true,
+    aiSendComments: false,
     updatedAt: new Date(),
     ...values,
   };
@@ -40,8 +54,10 @@ describe('AdminSettingsHandler', () => {
     findOne: vi.fn<SettingsRepository['findOne']>(),
     upsert: vi.fn<SettingsRepository['upsert']>(),
   };
+  const aiService = { isEnabled: vi.fn<AiService['isEnabled']>() };
   const handler = new AdminSettingsHandler(
     new SettingsService(repository as unknown as SettingsRepository),
+    aiService as unknown as AiService,
     { get: () => 'Asia/Almaty' } as unknown as ConfigService<AppEnvs, true>,
   );
   const open = (input: ChatInput) =>
@@ -77,7 +93,7 @@ describe('AdminSettingsHandler', () => {
 
     expect(await open(button('aset:menu'))).toEqual({
       screen: {
-        text: [texts.title, texts.reportsOn, texts.hint].join('\n'),
+        text: screenText(texts.reportsOn),
         buttons: [...PAUSES, MENU],
       },
       dialog: null,
@@ -88,7 +104,7 @@ describe('AdminSettingsHandler', () => {
     repository.findOne.mockResolvedValueOnce(settings({ reportsPausedUntil: '2026-11-10' }));
     expect(await open(button('aset:today'))).toEqual({
       screen: {
-        text: [texts.title, texts.pausedToday, texts.hint].join('\n'),
+        text: screenText(texts.pausedToday),
         buttons: [...PAUSES, RESUME, MENU],
       },
       dialog: null,
@@ -144,7 +160,7 @@ describe('AdminSettingsHandler', () => {
 
     repository.findOne.mockResolvedValueOnce(settings({ reportsPausedUntil: '2026-11-09' }));
     expect((await open(button('aset:menu'))).screen).toEqual({
-      text: [texts.title, texts.reportsOn, texts.hint].join('\n'),
+      text: screenText(texts.reportsOn),
       buttons: [...PAUSES, MENU],
     });
   });
@@ -156,5 +172,35 @@ describe('AdminSettingsHandler', () => {
     expect(await open(button('aset:until:soon'))).toEqual({
       screen: { text: locale.bot.expired },
     });
+  });
+
+  it('shows the AI switches with the defaults when AI is set up', async () => {
+    aiService.isEnabled.mockReturnValue(true);
+    repository.findOne.mockResolvedValue(null as unknown as Settings);
+
+    expect((await open(button('aset:menu'))).screen).toEqual({
+      text: screenText(texts.reportsOn, AI_TEXT),
+      buttons: [
+        ...PAUSES,
+        [{ text: 'AI for everyone: yes', data: 'aset:ai:off' }],
+        [{ text: 'Commits in AI: yes', data: 'aset:aicommits:off' }],
+        [{ text: 'Comments in AI: no', data: 'aset:aicomments:on' }],
+        MENU,
+      ],
+    });
+  });
+
+  it.each([
+    ['aset:ai:off', { aiEnabled: false }, 'AI for everyone: no'],
+    ['aset:aicommits:off', { aiSendCommits: false }, 'Commits in AI: no'],
+    ['aset:aicomments:on', { aiSendComments: true }, 'Comments in AI: yes'],
+  ])('stores the AI switch %s', async (data, update, label) => {
+    aiService.isEnabled.mockReturnValue(true);
+    repository.findOne.mockResolvedValue(settings({ reportsPaused: false, ...update }));
+
+    const { screen } = await open(button(data));
+
+    expect(repository.upsert).toHaveBeenCalledWith(update);
+    expect(screen.buttons?.flat().map(({ text }) => text)).toContain(label);
   });
 });
