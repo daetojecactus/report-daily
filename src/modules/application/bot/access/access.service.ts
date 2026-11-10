@@ -25,7 +25,7 @@ export class AccessService {
       [Channel.TELEGRAM]: configService.get('OWNER_TELEGRAM_IDS', {
         infer: true,
       }),
-      [Channel.SLACK]: [],
+      [Channel.SLACK]: configService.get('OWNER_SLACK_IDS', { infer: true }) ?? [],
     };
   }
 

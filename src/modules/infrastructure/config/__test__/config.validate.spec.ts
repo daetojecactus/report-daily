@@ -80,6 +80,30 @@ describe('validateEnv', () => {
     ).toMatchObject({ LLM_BASE_URL: 'http://127.0.0.1:11434/v1', LLM_MODEL: 'qwen3:8b' });
   });
 
+  it('accepts the whole Slack group and splits the Slack owners', () => {
+    expect(
+      validateEnv({
+        ...ENV,
+        SLACK_BOT_TOKEN: 'xoxb-secret',
+        SLACK_APP_TOKEN: 'xapp-secret',
+        OWNER_SLACK_IDS: ' U0OWNER01, W0OWNER02 ',
+      }).OWNER_SLACK_IDS,
+    ).toEqual(['U0OWNER01', 'W0OWNER02']);
+  });
+
+  it('asks for the whole Slack group and checks it without printing values', () => {
+    const message = getValidationMessage({
+      ...ENV,
+      SLACK_BOT_TOKEN: 'xoxp-secret',
+      OWNER_SLACK_IDS: 'secret-owner',
+    });
+
+    expect(message).toContain('SLACK_BOT_TOKEN');
+    expect(message).toContain('SLACK_APP_TOKEN');
+    expect(message).toContain('OWNER_SLACK_IDS');
+    expect(message).not.toContain('secret');
+  });
+
   it('asks for the whole LLM group when only a part of it is set', () => {
     const message = getValidationMessage({
       ...ENV,
