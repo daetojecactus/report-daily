@@ -43,6 +43,7 @@ Fill in `OWNER_TELEGRAM_IDS`, `TELEGRAM_BOT_TOKEN`, `GITLAB_URL` and `GITLAB_TOK
 | `LLM_BASE_URL` | no | | Address of an OpenAI-compatible API, for example `https://api.openai.com/v1`, `https://openrouter.ai/api/v1` or a local `http://127.0.0.1:11434/v1` (Ollama). Set together with `LLM_TOKEN` and `LLM_MODEL`; without the three, AI is off |
 | `LLM_TOKEN` | no | | API key of that service. A local server that needs none takes any value |
 | `LLM_MODEL` | no | | Model name as the service calls it |
+| `DELIVERY_MODE` | no | `live` | `live`, or `redirect` to check the bot before the team uses it: scheduled reports and «Report now» go to the owners with a line saying whom they were for, and nothing reaches the employees. An employee's own `/report` is answered as usual |
 | `LOG_LEVEL` | no | `info` | `fatal`, `error`, `warn`, `info`, `debug`, `trace` or `silent` |
 | `PORT` | no | `3000` | Port of the health endpoints |
 | `NODE_EXTRA_CA_CERTS` | no | | Path to a PEM file with the CA certificate of a GitLab signed by a company CA. Not read from `.env`, see below |

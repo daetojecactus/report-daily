@@ -1,3 +1,4 @@
+import type { ConfigService } from '@nestjs/config';
 import { type Job, RateLimitError } from 'bullmq';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Channel } from 'src/common/enums/channel.enums';
@@ -14,6 +15,7 @@ import type { UserChannel } from 'src/modules/application/user/channel/channel.i
 import type { ChannelService } from 'src/modules/application/user/channel/channel.service';
 import type { User } from 'src/modules/application/user/user.interface';
 import type { UserService } from 'src/modules/application/user/user.service';
+import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import {
   TelegramRejectedError,
   TelegramRetryableError,
@@ -28,6 +30,7 @@ const DELIVERY = {
   userId: 'user-1',
   reportId: 'report-1',
   status: DeliveryStatus.QUEUED,
+  redirected: false,
 } as Delivery;
 
 const REPORT = {
@@ -73,6 +76,7 @@ describe('DeliveryTelegramQueueProcessor', () => {
     telegramService as unknown as TelegramService,
     new ReportView(),
     new I18nService(),
+    { get: () => ['100', '101'] } as unknown as ConfigService<AppEnvs, true>,
   );
   Object.defineProperty(processor, 'worker', { get: () => worker });
 
@@ -81,7 +85,10 @@ describe('DeliveryTelegramQueueProcessor', () => {
     deliveryService.findById.mockResolvedValue(DELIVERY);
     reportService.findById.mockResolvedValue(REPORT);
     channelService.findByUser.mockResolvedValue([CHAT]);
-    userService.findById.mockResolvedValue({ language: Language.RU } as User);
+    userService.findById.mockResolvedValue({
+      language: Language.RU,
+      displayName: 'Анна_С',
+    } as User);
   });
 
   it('sends the report to the Telegram chat and marks the delivery and the report', async () => {
@@ -96,6 +103,36 @@ describe('DeliveryTelegramQueueProcessor', () => {
     });
     expect(deliveryService.markSent).toHaveBeenCalledWith('delivery-1', '300000007');
     expect(reportService.markDelivered).toHaveBeenCalledWith('report-1');
+  });
+
+  it('sends a redirected report to every owner with whom it was for and without buttons', async () => {
+    deliveryService.findById.mockResolvedValue({ ...DELIVERY, redirected: true });
+    telegramService.sendScreen.mockResolvedValueOnce('500').mockResolvedValueOnce('501');
+    const text = [
+      new I18nService().getLocale(Language.RU).delivery.redirected('Анна\\_С'),
+      '',
+      REPORT.content,
+    ].join('\n');
+
+    await processor.process(job());
+
+    expect(telegramService.sendScreen.mock.calls).toEqual([
+      ['100', { text }],
+      ['101', { text }],
+    ]);
+    expect(channelService.findByUser).not.toHaveBeenCalled();
+    expect(deliveryService.markSent).toHaveBeenCalledWith('delivery-1', '500');
+    expect(reportService.markDelivered).toHaveBeenCalledWith('report-1');
+  });
+
+  it('keeps the chat of the employee reachable when an owner blocked the bot', async () => {
+    deliveryService.findById.mockResolvedValue({ ...DELIVERY, redirected: true });
+    telegramService.sendScreen.mockRejectedValue(new ChatUnreachableError('blocked'));
+
+    await processor.process(job());
+
+    expect(channelService.updateReachable).not.toHaveBeenCalled();
+    expect(deliveryService.markFailed).toHaveBeenCalledWith('delivery-1', 'blocked');
   });
 
   it('skips a delivery that is gone or already handled', async () => {

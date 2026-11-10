@@ -7,3 +7,8 @@ export enum LogLevel {
   TRACE = 'trace',
   SILENT = 'silent',
 }
+
+export enum DeliveryMode {
+  LIVE = 'live',
+  REDIRECT = 'redirect',
+}

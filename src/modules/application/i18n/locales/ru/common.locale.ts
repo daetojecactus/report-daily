@@ -186,6 +186,10 @@ export const ruCommon: CommonLocale = {
     saved: (name) =>
       `Общий шаблон **${name}** сохранён. Сотрудники выберут его в /settings → «Шаблон отчёта».`,
   },
+  delivery: {
+    redirected: (name) =>
+      `↪ Отчёт для **${name}** — режим проверки \`DELIVERY_MODE=redirect\`, сотруднику он не отправлен.`,
+  },
   adminSettings: {
     title: '**Настройки**',
     reportsOn: 'Отчёты по расписанию: идут.',

@@ -153,6 +153,9 @@ export interface CommonLocale {
     confirmDelete: (name: string, count: number) => string;
     saved: (name: string) => string;
   };
+  delivery: {
+    redirected: (name: string) => string;
+  };
   adminSettings: {
     title: string;
     reportsOn: string;
