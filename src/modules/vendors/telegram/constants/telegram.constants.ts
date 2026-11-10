@@ -37,8 +37,6 @@ export const TELEGRAM_LINK_PROTOCOLS = ['http:', 'https:'];
 
 export const TELEGRAM_MESSAGE_LIMIT = 4096;
 
-export const TELEGRAM_SPLIT_SEPARATORS = ['\n\n', '\n', ' '];
-
 export const TELEGRAM_HTML_SPECIAL_CHARACTERS = /[&<>"]/g;
 
 export const TELEGRAM_HTML_ESCAPES: Record<string, string> = {

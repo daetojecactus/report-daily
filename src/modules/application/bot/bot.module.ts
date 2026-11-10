@@ -9,6 +9,8 @@ import { TraitModule } from 'src/modules/application/trait/trait.module';
 import { UserModule } from 'src/modules/application/user/user.module';
 import { GitLabModule } from 'src/modules/vendors/gitlab/gitlab.module';
 import { TelegramModule } from 'src/modules/vendors/telegram/telegram.module';
+import { SlackModule } from 'src/modules/vendors/slack/slack.module';
+import { SlackService } from 'src/modules/vendors/slack/slack.service';
 import { TelegramService } from 'src/modules/vendors/telegram/telegram.service';
 import { DeliveryTelegramQueueModule } from 'src/modules/queue/delivery-telegram/delivery-telegram-queue.module';
 import { ReportQueueModule } from 'src/modules/queue/report/report-queue.module';
@@ -52,6 +54,7 @@ import { SettingsHandler } from './settings/settings.handler';
     UserModule,
     GitLabModule,
     TelegramModule,
+    SlackModule,
     ReportModule,
     ReportQueueModule,
     SettingsModule,
@@ -91,8 +94,11 @@ import { SettingsHandler } from './settings/settings.handler';
     TraitsView,
     {
       provide: BOT_CHANNELS,
-      useFactory: (telegramService: TelegramService): ChatChannel[] => [telegramService],
-      inject: [TelegramService],
+      useFactory: (telegramService: TelegramService, slackService: SlackService): ChatChannel[] => [
+        telegramService,
+        ...(slackService.isEnabled() ? [slackService] : []),
+      ],
+      inject: [TelegramService, SlackService],
     },
   ],
   exports: [BotService, ReportView],
