@@ -10,6 +10,9 @@ import type { Report } from 'src/modules/application/report/report.interface';
 import type { ReportService } from 'src/modules/application/report/report.service';
 import { DeliveryMode } from 'src/modules/infrastructure/config/config.enums';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
+import type { UserChannel } from 'src/modules/application/user/channel/channel.interface';
+import type { ChannelService } from 'src/modules/application/user/channel/channel.service';
+import type { DeliverySlackQueueProducer } from '../../delivery-slack/delivery-slack-queue.producer';
 import type { DeliveryTelegramQueueProducer } from '../../delivery-telegram/delivery-telegram-queue.producer';
 import { REPORT_BUILD_JOB } from '../constants/report-queue.constants';
 import type { ReportJobData } from '../report-queue.interface';
@@ -20,6 +23,7 @@ const DATA: ReportJobData = {
   date: '2026-11-09',
   maxAgeMs: 300_000,
   own: true,
+  channel: Channel.TELEGRAM,
   notice: {
     target: { channel: Channel.TELEGRAM, chatId: '2002', externalId: '1001' },
     empty: 'За сегодня отчёта нет.',
@@ -45,12 +49,19 @@ describe('ReportQueueProcessor', () => {
   };
   const deliveryService = { createForReport: vi.fn<DeliveryService['createForReport']>() };
   const producer = { addDelivery: vi.fn<DeliveryTelegramQueueProducer['addDelivery']>() };
-  const botService = { sendTo: vi.fn<BotService['sendTo']>() };
+  const slackProducer = { addDelivery: vi.fn<DeliverySlackQueueProducer['addDelivery']>() };
+  const channelService = { findByUser: vi.fn<ChannelService['findByUser']>() };
+  const botService = {
+    sendTo: vi.fn<BotService['sendTo']>(),
+    hasChannel: vi.fn<BotService['hasChannel']>(),
+  };
   const createProcessor = (mode: DeliveryMode) =>
     new ReportQueueProcessor(
       reportService as unknown as ReportService,
       deliveryService as unknown as DeliveryService,
       producer as unknown as DeliveryTelegramQueueProducer,
+      slackProducer as unknown as DeliverySlackQueueProducer,
+      channelService as unknown as ChannelService,
       botService as unknown as BotService,
       { get: () => mode } as unknown as ConfigService<AppEnvs, true>,
     );
@@ -59,6 +70,66 @@ describe('ReportQueueProcessor', () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
+  });
+
+  it('delivers a report asked in Slack to Slack', async () => {
+    const report = { status: ReportStatus.READY, content: 'project:\n• Fixed a bug' } as Report;
+    reportService.build.mockResolvedValue(report);
+    deliveryService.createForReport.mockResolvedValue({ id: 'delivery-4' } as Delivery);
+
+    await run(job(0, REPORT_BUILD_JOB, { channel: Channel.SLACK }));
+
+    expect(deliveryService.createForReport).toHaveBeenCalledWith(report, Channel.SLACK, false);
+    expect(slackProducer.addDelivery).toHaveBeenCalledWith('delivery-4');
+    expect(producer.addDelivery).not.toHaveBeenCalled();
+    expect(channelService.findByUser).not.toHaveBeenCalled();
+  });
+
+  it.each([null, undefined])(
+    'delivers a report without a channel (%s) to every reachable configured channel',
+    async (channel) => {
+      const report = {
+        userId: 'user-1',
+        status: ReportStatus.READY,
+        content: 'project:\n• Fixed a bug',
+      } as Report;
+      reportService.build.mockResolvedValue(report);
+      channelService.findByUser.mockResolvedValue([
+        { channel: Channel.TELEGRAM, reachable: true },
+        { channel: Channel.SLACK, reachable: true },
+      ] as UserChannel[]);
+      botService.hasChannel.mockReturnValue(true);
+      deliveryService.createForReport
+        .mockResolvedValueOnce({ id: 'delivery-5' } as Delivery)
+        .mockResolvedValueOnce({ id: 'delivery-6' } as Delivery);
+
+      await run(job(0, REPORT_BUILD_JOB, { own: false, channel, notice: null }));
+
+      expect(channelService.findByUser).toHaveBeenCalledWith('user-1');
+      expect(deliveryService.createForReport.mock.calls).toEqual([
+        [report, Channel.TELEGRAM, false],
+        [report, Channel.SLACK, false],
+      ]);
+      expect(producer.addDelivery).toHaveBeenCalledWith('delivery-5');
+      expect(slackProducer.addDelivery).toHaveBeenCalledWith('delivery-6');
+    },
+  );
+
+  it('skips unreachable channels and channels that are not configured', async () => {
+    reportService.build.mockResolvedValue({
+      userId: 'user-1',
+      status: ReportStatus.READY,
+      content: 'project:\n• Fixed a bug',
+    } as Report);
+    channelService.findByUser.mockResolvedValue([
+      { channel: Channel.TELEGRAM, reachable: false },
+      { channel: Channel.SLACK, reachable: true },
+    ] as UserChannel[]);
+    botService.hasChannel.mockImplementation((channel) => channel === Channel.TELEGRAM);
+
+    await run(job(0, REPORT_BUILD_JOB, { own: false, channel: null, notice: null }));
+
+    expect(deliveryService.createForReport).not.toHaveBeenCalled();
   });
 
   it('delivers the built report to the Telegram of the employee', async () => {

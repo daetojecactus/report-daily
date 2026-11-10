@@ -4,7 +4,10 @@ import { DeliveryModule } from 'src/modules/application/delivery/delivery.module
 import { I18nModule } from 'src/modules/application/i18n/i18n.module';
 import { ReportModule } from 'src/modules/application/report/report.module';
 import { UserModule } from 'src/modules/application/user/user.module';
+import { SlackModule } from 'src/modules/vendors/slack/slack.module';
 import { TelegramModule } from 'src/modules/vendors/telegram/telegram.module';
+import { DeliverySlackQueueModule } from './delivery-slack/delivery-slack-queue.module';
+import { DeliverySlackQueueProcessor } from './delivery-slack/delivery-slack-queue.processor';
 import { DeliveryTelegramQueueModule } from './delivery-telegram/delivery-telegram-queue.module';
 import { DeliveryTelegramQueueProcessor } from './delivery-telegram/delivery-telegram-queue.processor';
 import { InboundQueueModule } from './inbound/inbound-queue.module';
@@ -17,13 +20,20 @@ import { ReportQueueProcessor } from './report/report-queue.processor';
     InboundQueueModule,
     ReportQueueModule,
     DeliveryTelegramQueueModule,
+    DeliverySlackQueueModule,
     BotModule,
     ReportModule,
     DeliveryModule,
     UserModule,
     TelegramModule,
+    SlackModule,
     I18nModule,
   ],
-  providers: [InboundQueueProcessor, ReportQueueProcessor, DeliveryTelegramQueueProcessor],
+  providers: [
+    InboundQueueProcessor,
+    ReportQueueProcessor,
+    DeliveryTelegramQueueProcessor,
+    DeliverySlackQueueProcessor,
+  ],
 })
 export class QueueModule {}

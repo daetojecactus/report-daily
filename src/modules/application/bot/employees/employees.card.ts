@@ -1,6 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Channel } from 'src/common/enums/channel.enums';
 import type { ChatChannel, ScreenButton } from 'src/common/interfaces/chat-channel.interface';
 import { getErrorMessage } from 'src/common/utils/error.util';
 import { escapeMarkdown } from 'src/common/utils/markdown.util';
@@ -116,10 +115,7 @@ export class EmployeesCard {
     );
 
     const actions: ScreenButton[][] = [];
-    if (
-      user.status === UserStatus.ACTIVE &&
-      channels.some((channel) => channel.channel === Channel.TELEGRAM)
-    ) {
+    if (user.status === UserStatus.ACTIVE && channels.length > 0) {
       actions.push([
         {
           text: locale.employeeManage.reportNow,

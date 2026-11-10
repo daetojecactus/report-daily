@@ -4,9 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { type Job, Worker } from 'bullmq';
 import { Channel } from 'src/common/enums/channel.enums';
 import { ChatUnreachableError } from 'src/common/errors/chat-unreachable.error';
-import type { Screen } from 'src/common/interfaces/chat-channel.interface';
 import { getErrorMessage } from 'src/common/utils/error.util';
-import { escapeMarkdown } from 'src/common/utils/markdown.util';
 import { ReportView } from 'src/modules/application/bot/report/report.view';
 import { DeliveryStatus } from 'src/modules/application/delivery/delivery.enums';
 import type { Delivery } from 'src/modules/application/delivery/delivery.interface';
@@ -107,16 +105,12 @@ export class DeliveryTelegramQueueProcessor extends WorkerHost implements OnModu
       );
       return;
     }
-    const locale = this.i18nService.getLocale(user.language ?? DEFAULT_LANGUAGE);
-    const screen: Screen = delivery.redirected
-      ? {
-          text: [
-            locale.delivery.redirected(escapeMarkdown(user.displayName)),
-            '',
-            report.content,
-          ].join('\n'),
-        }
-      : this.reportView.toReportScreen(report, locale);
+    const screen = this.reportView.toDeliveryScreen(
+      report,
+      this.i18nService.getLocale(user.language ?? DEFAULT_LANGUAGE),
+      user.displayName,
+      delivery.redirected,
+    );
     await this.deliveryService.countAttempt(deliveryId);
     try {
       const messageIds: string[] = [];

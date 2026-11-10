@@ -21,7 +21,9 @@ import {
   SLACK_UNREACHABLE_ERRORS,
   SLACK_WORD_SEPARATOR,
 } from './constants/slack.constants';
+import { SlackMessages } from './constants/slack.messages';
 import { SlackElementType, SlackEnvelopeType } from './slack.enums';
+import { SlackRejectedError } from './slack.error';
 import { SlackClient } from './slack.client';
 import { SlackRenderer } from './slack.renderer';
 import { SlackRepository } from './slack.repository';
@@ -74,7 +76,10 @@ export class SlackService implements ChatChannel {
         this.slackRepository.updateMessage(chatId, messageId, this.slackRenderer.render(screen)),
       );
     } catch (error) {
-      if (!this.isPlatformError(error, SLACK_MESSAGE_GONE_ERRORS)) {
+      if (
+        !(error instanceof SlackRejectedError) ||
+        !SLACK_MESSAGE_GONE_ERRORS.includes(error.code)
+      ) {
         throw error;
       }
       await this.sendScreen(chatId, screen);
@@ -146,20 +151,23 @@ export class SlackService implements ChatChannel {
     try {
       return await call();
     } catch (error) {
-      if (this.isPlatformError(error, SLACK_UNREACHABLE_ERRORS)) {
-        throw new ChatUnreachableError(error.data.error);
+      if (!this.isPlatformError(error)) {
+        throw error;
       }
-      throw error;
+      const code = error.data.error;
+      if (SLACK_UNREACHABLE_ERRORS.includes(code)) {
+        throw new ChatUnreachableError(code);
+      }
+      throw new SlackRejectedError(`${SlackMessages.REJECTED}: ${code}`, code);
     }
   }
 
-  private isPlatformError(error: unknown, codes: string[]): error is WebAPIPlatformError {
+  private isPlatformError(error: unknown): error is WebAPIPlatformError {
     return (
       error instanceof Error &&
       'code' in error &&
       error.code === ErrorCode.PlatformError &&
-      'data' in error &&
-      codes.includes((error as WebAPIPlatformError).data.error)
+      'data' in error
     );
   }
 }

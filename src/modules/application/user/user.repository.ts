@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { and, asc, eq, ilike, inArray, or, type SQL } from 'drizzle-orm';
+import { and, asc, eq, exists, ilike, inArray, or, type SQL } from 'drizzle-orm';
 import type { Channel } from 'src/common/enums/channel.enums';
 import type { Source } from 'src/modules/application/source/source.enums';
 import { DatabaseService } from 'src/modules/infrastructure/database/database.service';
@@ -84,6 +84,24 @@ export class UserRepository {
       .where(and(eq(userSources.source, source), eq(userSources.externalId, externalId)))
       .limit(1);
     return row?.user ?? null;
+  }
+
+  findWithReachableChannel(filter?: SQL) {
+    const db = this.databaseService.db;
+    return db
+      .select()
+      .from(users)
+      .where(
+        and(
+          filter,
+          exists(
+            db
+              .select({ id: userChannels.id })
+              .from(userChannels)
+              .where(and(eq(userChannels.userId, users.id), eq(userChannels.reachable, true))),
+          ),
+        ),
+      );
   }
 
   async findReachable(channel: Channel, filter?: SQL) {

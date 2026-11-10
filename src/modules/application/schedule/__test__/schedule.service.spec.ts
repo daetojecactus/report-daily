@@ -1,7 +1,6 @@
 import { Logger } from '@nestjs/common';
 import type { ConfigService } from '@nestjs/config';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { Channel } from 'src/common/enums/channel.enums';
 import type { Report } from 'src/modules/application/report/report.interface';
 import type { ReportService } from 'src/modules/application/report/report.service';
 import type { Settings } from 'src/modules/application/settings/settings.interface';
@@ -54,7 +53,7 @@ describe('ScheduleService', () => {
       expect(await service.tick(new Date(now))).toBe(1);
     }
 
-    expect(userService.findScheduled).toHaveBeenCalledWith(Channel.TELEGRAM);
+    expect(userService.findScheduled).toHaveBeenCalledWith();
     expect(reportService.claimScheduled).toHaveBeenCalledWith(
       'anna',
       '2026-11-10',
@@ -65,6 +64,7 @@ describe('ScheduleService', () => {
       date: '2026-11-10',
       maxAgeMs: 300_000,
       own: false,
+      channel: null,
       notice: null,
     });
     expect(queuedDates()).toEqual(['2026-11-10', '2026-11-10']);

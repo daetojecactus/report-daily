@@ -4,7 +4,7 @@ import { getToday } from 'src/common/utils/date.util';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { ReportQueueProducer } from 'src/modules/queue/report/report-queue.producer';
 import { REPORT_TODAY_MAX_AGE_MS } from '../report/constants/report.constants';
-import { Channel, ChatInputType } from 'src/common/enums/channel.enums';
+import { ChatInputType } from 'src/common/enums/channel.enums';
 import type { ScreenButton } from 'src/common/interfaces/chat-channel.interface';
 import { escapeMarkdown } from 'src/common/utils/markdown.util';
 import type { Locale } from 'src/modules/application/i18n/i18n.interface';
@@ -119,10 +119,7 @@ export class EmployeeManageHandler implements BotHandler {
   private async sendReport(actor: BotActor, locale: Locale, user: User): Promise<BotReply> {
     const name = escapeMarkdown(user.displayName);
     const channels = await this.channelService.findByUser(user.id);
-    if (
-      user.status !== UserStatus.ACTIVE ||
-      !channels.some((channel) => channel.channel === Channel.TELEGRAM)
-    ) {
+    if (user.status !== UserStatus.ACTIVE || channels.length === 0) {
       return this.reply(locale.employeeManage.reportUnavailable(name), [
         [this.toCardButton(locale, user.id)],
       ]);
@@ -132,6 +129,7 @@ export class EmployeeManageHandler implements BotHandler {
       date: getToday(user.timezone ?? this.configService.get('APP_TIMEZONE', { infer: true })),
       maxAgeMs: REPORT_TODAY_MAX_AGE_MS,
       own: false,
+      channel: null,
       notice: {
         target: { channel: actor.channel, chatId: actor.chatId, externalId: actor.externalId },
         empty: locale.employeeManage.reportEmpty(name),
