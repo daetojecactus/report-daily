@@ -359,4 +359,13 @@ export interface PhrasesLocale {
   };
 }
 
-export type Locale = CommonLocale & TraitsLocale & EmployeesLocale & PhrasesLocale;
+export interface AiLocale {
+  ai: {
+    system: string;
+    roles: Record<JobRole, string>;
+    genders: Record<Gender, string>;
+    request: (count: number) => string;
+  };
+}
+
+export type Locale = CommonLocale & TraitsLocale & EmployeesLocale & PhrasesLocale & AiLocale;

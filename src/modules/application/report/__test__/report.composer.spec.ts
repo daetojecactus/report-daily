@@ -1,6 +1,7 @@
 import { Logger } from '@nestjs/common';
 import type { ConfigService } from '@nestjs/config';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { AiService } from 'src/modules/application/ai/ai.service';
 import { Language } from 'src/modules/application/i18n/i18n.enums';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
 import { Source } from 'src/modules/application/source/source.enums';
@@ -20,9 +21,27 @@ import { TemplateService } from '../template/template.service';
 
 const USER = createEmployee().user;
 const ACCOUNT = { source: Source.GITLAB, username: 'dev.me' } as UserSource;
-const CONTEXT = {
-  projects: [{ name: 'api', url: null, items: [{ text: 'Fixed a bug' }] }],
-} as unknown as ReportContext;
+function createContext() {
+  const items = [
+    {
+      text: 'Fixed a bug «Login form»',
+      actionText: 'Fixed a bug',
+      title: 'Login form',
+      kind: null,
+      type: 'issue',
+    },
+    {
+      text: 'Took 3 tasks into the sprint: #1, #2, #3',
+      actionText: 'Took 3 tasks into the sprint',
+      title: null,
+      kind: null,
+      type: 'summary',
+    },
+  ];
+  return { projects: [{ name: 'api', url: null, items }], items } as unknown as ReportContext;
+}
+
+const STANDARD = 'api:\n• Fixed a bug «Login form»\n• Took 3 tasks into the sprint: #1, #2, #3';
 
 function template(values: Partial<ReportTemplate>): ReportTemplate {
   return {
@@ -38,6 +57,7 @@ function template(values: Partial<ReportTemplate>): ReportTemplate {
 
 describe('ReportComposer', () => {
   const repository = { findOne: vi.fn<TemplateRepository['findOne']>() };
+  const aiService = { reword: vi.fn<AiService['reword']>() };
   const composer = new ReportComposer(
     { get: () => 'UTC' } as unknown as ConfigService<AppEnvs, true>,
     {
@@ -47,12 +67,13 @@ describe('ReportComposer', () => {
     { loadIndex: () => Promise.resolve({}) } as unknown as TraitService,
     { record: () => Promise.resolve() } as unknown as TraitNameService,
     { classify: () => [], summarize: () => [] } as unknown as ActivityService,
-    { build: () => CONTEXT } as unknown as TemplateContext,
+    { build: createContext } as unknown as TemplateContext,
     new TemplateService(repository as unknown as TemplateRepository),
     new I18nService(),
+    aiService as unknown as AiService,
   );
-  const compose = (user: User) =>
-    composer.compose({ user, account: ACCOUNT, date: '2026-11-09', language: Language.EN });
+  const compose = (user: User, ai = false) =>
+    composer.compose({ user, account: ACCOUNT, date: '2026-11-09', language: Language.EN, ai });
 
   beforeAll(() => {
     Logger.overrideLogger(false);
@@ -72,7 +93,7 @@ describe('ReportComposer', () => {
   });
 
   it('uses Standard without a choice, for a template of someone else and when the template fails', async () => {
-    const standard = { content: 'api:\n• Fixed a bug', templateId: null };
+    const standard = { content: STANDARD, templateId: null, aiModel: null };
     expect(await compose(USER)).toMatchObject(standard);
 
     repository.findOne.mockResolvedValueOnce(template({ ownerId: 'someone-else' }));
@@ -80,5 +101,30 @@ describe('ReportComposer', () => {
 
     repository.findOne.mockResolvedValueOnce(template({ body: '{{ context.date | missing }}' }));
     expect(await compose({ ...USER, templateId: template({}).id })).toMatchObject(standard);
+  });
+
+  it('rewords the lines with a title through AI and keeps the summaries', async () => {
+    aiService.reword.mockResolvedValue({
+      texts: new Map([['1', 'Fixed a bug in the login form']]),
+      model: 'served-model',
+    });
+
+    expect(await compose(USER, true)).toMatchObject({
+      content: 'api:\n• Fixed a bug in the login form\n• Took 3 tasks into the sprint: #1, #2, #3',
+      aiModel: 'served-model',
+    });
+    expect(aiService.reword).toHaveBeenCalledWith(
+      [{ id: '1', action: 'Fixed a bug', title: 'Login form', kind: null }],
+      { role: USER.role, gender: USER.gender, locale: new I18nService().getLocale(Language.EN) },
+    );
+  });
+
+  it('keeps our lines when AI keeps them or the report goes without AI', async () => {
+    aiService.reword.mockResolvedValue({ texts: new Map(), model: null });
+    expect(await compose(USER, true)).toMatchObject({ content: STANDARD, aiModel: null });
+
+    aiService.reword.mockClear();
+    expect(await compose(USER)).toMatchObject({ content: STANDARD, aiModel: null });
+    expect(aiService.reword).not.toHaveBeenCalled();
   });
 });

@@ -37,6 +37,15 @@ describe('RedisService', () => {
     return redisClient.instance.pttl(key);
   }
 
+  it('counts within a window that expires from the first count', async () => {
+    const key = uniqueKey();
+
+    expect(await redisService.increment(key, LOCK_TTL_MS)).toBe(1);
+    expect(await redisService.increment(key, EXTENDED_LOCK_TTL_MS)).toBe(2);
+    expect(await ttlOf(key)).toBeLessThanOrEqual(LOCK_TTL_MS);
+    expect(await ttlOf(key)).toBeGreaterThan(0);
+  });
+
   it('stores a value without expiry until it is deleted', async () => {
     const key = uniqueKey();
 

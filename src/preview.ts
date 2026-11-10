@@ -4,6 +4,7 @@ import { NestFactory } from '@nestjs/core';
 import { toDate } from './common/utils/date.util';
 import { Language } from './modules/application/i18n/i18n.enums';
 import {
+  PREVIEW_AI_FLAG,
   PREVIEW_LANGUAGE_FLAG,
   PREVIEW_TRACE_FLAG,
 } from './modules/preview/constants/preview.constants';
@@ -21,7 +22,9 @@ if (
   !username ||
   !date ||
   (languageFlag && !language) ||
-  flags.some((flag) => flag !== PREVIEW_TRACE_FLAG && flag !== languageFlag)
+  flags.some(
+    (flag) => flag !== PREVIEW_TRACE_FLAG && flag !== PREVIEW_AI_FLAG && flag !== languageFlag,
+  )
 ) {
   Logger.error(PreviewMessages.USAGE);
   process.exit(1);
@@ -31,9 +34,11 @@ const app = await NestFactory.createApplicationContext(PreviewModule, {
   logger: ['error', 'warn'],
 });
 try {
-  const text = await app
-    .get(PreviewService)
-    .describe(username, date, flags.includes(PREVIEW_TRACE_FLAG), language);
+  const text = await app.get(PreviewService).describe(username, date, {
+    trace: flags.includes(PREVIEW_TRACE_FLAG),
+    language,
+    ai: flags.includes(PREVIEW_AI_FLAG),
+  });
   if (text === null) {
     Logger.error(`${PreviewMessages.EMPLOYEE_NOT_FOUND}: ${username}`);
     process.exitCode = 1;

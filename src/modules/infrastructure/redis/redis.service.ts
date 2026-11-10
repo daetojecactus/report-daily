@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { REDIS_ACQUIRE_LOCK_SCRIPT, REDIS_RELEASE_LOCK_SCRIPT } from './constants/redis.constants';
+import {
+  REDIS_ACQUIRE_LOCK_SCRIPT,
+  REDIS_INCREMENT_SCRIPT,
+  REDIS_RELEASE_LOCK_SCRIPT,
+} from './constants/redis.constants';
 import { RedisClient } from './redis.client';
 
 @Injectable()
@@ -24,6 +28,10 @@ export class RedisService {
 
   async claim(key: string, ttlMs: number) {
     return (await this.redisClient.instance.set(key, '1', 'PX', ttlMs, 'NX')) !== null;
+  }
+
+  async increment(key: string, ttlMs: number) {
+    return Number(await this.redisClient.instance.eval(REDIS_INCREMENT_SCRIPT, 1, key, ttlMs));
   }
 
   getTtlMs(key: string) {

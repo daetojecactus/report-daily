@@ -68,6 +68,8 @@ export class ReportRepository {
           error: values.error,
           generatedAt: values.generatedAt,
           templateId: values.templateId,
+          aiUsed: values.aiUsed,
+          aiModel: values.aiModel,
           updatedAt: new Date(),
         },
       })

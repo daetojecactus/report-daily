@@ -100,11 +100,12 @@ export class ReportService {
     }
     await this.save({ userId, reportDate, status: ReportStatus.GENERATING, error: null });
     try {
-      const { context, content, templateId } = await this.reportComposer.compose({
+      const { context, content, templateId, aiModel } = await this.reportComposer.compose({
         user,
         account,
         date: reportDate,
         language: user.language ?? DEFAULT_LANGUAGE,
+        ai: user.aiEnabled,
       });
       const report = await this.save({
         userId,
@@ -113,6 +114,8 @@ export class ReportService {
         snapshot: context,
         content,
         templateId,
+        aiUsed: aiModel !== null,
+        aiModel,
         error: null,
         generatedAt: new Date(),
       });
