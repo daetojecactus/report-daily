@@ -25,6 +25,7 @@ import { TemplateAddHandler } from '../template-add.handler';
 const locale = new I18nService().getLocale(Language.EN);
 const USER = createEmployee().user;
 const BODY = '{% for project in context.projects %}{{ project.name }}{% endfor %}';
+const NO_PREVIEW = [locale.templates.noPreview, '', locale.templates.previewHint].join('\n');
 const SNAPSHOT = {
   projects: [{ name: 'api_core', url: null, items: [] }],
 } as unknown as ReportContext;
@@ -118,16 +119,46 @@ describe('TemplateAddHandler', () => {
 
     expect(await open(text(BODY), dialog('body', { shared: false, name: 'QA' }))).toEqual({
       screen: {
-        text: [locale.templates.preview('6 November'), '', 'api\\_core'].join('\n'),
+        text: [
+          locale.templates.preview('6 November'),
+          '',
+          'api\\_core',
+          '',
+          locale.templates.previewHint,
+        ].join('\n'),
         buttons: [
           [
             { text: 'Save', data: 'tpladd:save' },
-            { text: 'Cancel', data: 'tpladd:cancel' },
+            { text: 'Edit text', data: 'tpladd:text' },
           ],
+          [{ text: 'Cancel', data: 'tpladd:cancel' }],
         ],
       },
       dialog: dialog('preview', { shared: false, name: 'QA', body: BODY }),
     });
+  });
+
+  it('goes back to the text from the preview and checks a new text sent on the preview', async () => {
+    const preview = dialog('preview', { shared: false, name: 'QA', body: BODY });
+
+    expect(await open(button('tpladd:text'), preview)).toEqual({
+      screen: {
+        text: locale.templates.askBody('QA', 4000),
+        buttons: [[{ text: 'Cancel', data: 'tpladd:cancel' }]],
+      },
+      dialog: dialog('body', { shared: false, name: 'QA' }),
+    });
+    expect(await open(text(' {{ context.date }} '), preview)).toMatchObject({
+      screen: { text: NO_PREVIEW },
+      dialog: dialog('preview', { shared: false, name: 'QA', body: '{{ context.date }}' }),
+    });
+    expect((await open(text('{% if %}'), preview)).dialog).toEqual(
+      dialog('body', { shared: false, name: 'QA' }),
+    );
+    expect(
+      await open(button('tpladd:text'), dialog('body', { shared: false, name: 'QA' })),
+    ).toEqual({ screen: { text: locale.bot.expired }, dialog: null });
+    expect(repository.create).not.toHaveBeenCalled();
   });
 
   it('says there is no preview without a saved report', async () => {
@@ -135,7 +166,7 @@ describe('TemplateAddHandler', () => {
 
     expect(
       (await open(text(BODY), dialog('body', { shared: false, name: 'QA' }))).screen.text,
-    ).toBe(locale.templates.noPreview);
+    ).toBe(NO_PREVIEW);
   });
 
   it('saves the template of the employee and offers to use it', async () => {
@@ -193,7 +224,7 @@ describe('TemplateAddHandler', () => {
     );
     expect(
       (await open(text(BODY), dialog('body', { shared: true, name: 'QA' }), owner)).screen.text,
-    ).toBe(locale.templates.noPreview);
+    ).toBe(NO_PREVIEW);
     expect(reportService.findLatestSnapshot).not.toHaveBeenCalled();
     expect(
       await open(

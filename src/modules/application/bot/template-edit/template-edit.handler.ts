@@ -21,6 +21,7 @@ import { TemplatesAction } from '../templates/templates.enums';
 import {
   TEMPLATE_EDIT_BUTTON_SCHEMA,
   TEMPLATE_EDIT_DRAFT_SCHEMA,
+  TEMPLATE_EDIT_TEXT_STEPS,
 } from './constants/template-edit.constants';
 import { TemplateEditMessages } from './constants/template-edit.messages';
 import { TemplateEditAction, TemplateEditStep } from './template-edit.enums';
@@ -52,7 +53,10 @@ export class TemplateEditHandler implements BotHandler {
     if (input.type === ChatInputType.TEXT && dialog?.step === TemplateEditStep.NAME) {
       return this.rename(actor, locale, template, input.text);
     }
-    if (input.type === ChatInputType.TEXT && dialog?.step === TemplateEditStep.BODY) {
+    if (
+      input.type === ChatInputType.TEXT &&
+      TEMPLATE_EDIT_TEXT_STEPS.includes(dialog?.step ?? '')
+    ) {
       return this.checkBody(locale, actor, template, input.text);
     }
     switch (button?.data.action) {
@@ -132,8 +136,12 @@ export class TemplateEditHandler implements BotHandler {
         buttons: [
           [
             { text: locale.templates.save, data: this.toData(TemplateEditAction.SAVE) },
-            this.toCancelButton(locale),
+            {
+              text: locale.templates.editText,
+              data: this.toData(TemplateEditAction.TEXT, template.id),
+            },
           ],
+          [this.toCancelButton(locale)],
         ],
       },
       dialog: this.toDialog(TemplateEditStep.PREVIEW, { templateId: template.id, body }),
