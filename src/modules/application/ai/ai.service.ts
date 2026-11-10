@@ -23,13 +23,14 @@ import {
   AI_LINE_BREAK_PATTERN,
   AI_LINE_MAX_LENGTH,
   AI_MARKUP_PATTERN,
+  AI_NAMES_PER_LINE,
   AI_PROMPT_SEPARATOR,
   AI_REQUESTS_PER_MINUTE,
   AI_SCHEMA_NAME,
   AI_SPACES_PATTERN,
 } from './constants/ai.constants';
 import { AiMessages } from './constants/ai.messages';
-import type { AiLine, AiPolicy, AiProfile, AiRewording } from './ai.interface';
+import type { AiLine, AiNames, AiPolicy, AiProfile, AiRewording } from './ai.interface';
 
 @Injectable()
 export class AiService {
@@ -108,7 +109,7 @@ export class AiService {
 
   private toPrompt(lines: AiLine[], { role, gender, locale }: AiProfile): LlmPrompt {
     const data = JSON.stringify({
-      lines: lines.map(({ id, action, title, kind, commits, comments }) => ({
+      lines: lines.map(({ id, action, title, kind, commits, comments, names }) => ({
         id,
         action,
         title,
@@ -119,6 +120,7 @@ export class AiService {
               comments: comments.slice(0, AI_COMMENTS_PER_LINE).map((comment) => this.cut(comment)),
             }
           : {}),
+        ...(names ? { names: this.toNames(names) } : {}),
       })),
     });
     return {
@@ -142,15 +144,26 @@ export class AiService {
         continue;
       }
       const text = this.clean(answer.text);
-      if (
-        text.length > line.action.length &&
-        text.length <= AI_LINE_MAX_LENGTH &&
-        text.toLowerCase().startsWith(line.action.toLowerCase())
-      ) {
+      if (text.length <= AI_LINE_MAX_LENGTH && this.keepsPhrase(line, text.toLowerCase())) {
         texts.set(line.id, text);
       }
     }
     return texts;
+  }
+
+  private keepsPhrase({ action, names }: AiLine, text: string) {
+    const phrase = action.toLowerCase();
+    if (names) {
+      return text.length > 0 && text !== phrase;
+    }
+    return text.length > phrase.length && text.startsWith(phrase);
+  }
+
+  private toNames({ added, removed }: AiNames) {
+    return {
+      ...(added.length ? { added: added.slice(0, AI_NAMES_PER_LINE) } : {}),
+      ...(removed.length ? { removed: removed.slice(0, AI_NAMES_PER_LINE) } : {}),
+    };
   }
 
   private cut(comment: string) {

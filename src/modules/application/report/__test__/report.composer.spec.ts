@@ -111,13 +111,14 @@ describe('ReportComposer', () => {
     const policy = { commits: true, comments: false };
 
     expect(await compose(USER, policy)).toMatchObject({ aiModel: 'served-model' });
-    const [built, user, locale, passed] = reportRewriter.rewrite.mock.calls[0];
+    const [built, request] = reportRewriter.rewrite.mock.calls[0];
     expect(built.sources).toBeInstanceOf(Map);
-    expect([user, locale, passed]).toEqual([
-      USER,
-      new I18nService().getLocale(Language.EN),
+    expect(request).toEqual({
+      user: USER,
+      locale: new I18nService().getLocale(Language.EN),
       policy,
-    ]);
+      index: {},
+    });
   });
 
   it('asks no AI when the report goes without it', async () => {
