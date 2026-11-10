@@ -32,6 +32,19 @@ describe('InboundQueueProducer', () => {
     );
   });
 
+  it('adds a Slack event under its own key', async () => {
+    const { queue, producer } = createProducer();
+    const slackEvent = { ...event, channel: Channel.SLACK, userId: 'U0EMPLOY1' };
+
+    await producer.addSlackEvent('Ev01', slackEvent);
+
+    expect(queue.add).toHaveBeenCalledWith(
+      INBOUND_EVENT_JOB,
+      { event: slackEvent },
+      { attempts: 1, jobId: 'slack-Ev01' },
+    );
+  });
+
   it('uses a job id that BullMQ accepts', async () => {
     const { queue, producer } = createProducer();
 

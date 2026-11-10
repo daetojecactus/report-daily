@@ -2,7 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { MARKDOWN_LINK_PROTOCOLS } from 'src/common/constants/markdown.constants';
 import { splitMarkdown } from 'src/common/utils/markdown.util';
 import {
+  SLACK_COMMAND_MENTION,
   SLACK_ESCAPES,
+  SLACK_SLASH_COMMAND,
   SLACK_SPECIAL_CHARACTERS,
   SLACK_SPLIT_LIMIT,
 } from './constants/slack.constants';
@@ -23,6 +25,13 @@ export class SlackFormatter {
       index = token.end;
     }
     return text;
+  }
+
+  formatCommands(markdown: string) {
+    return markdown.replace(
+      SLACK_COMMAND_MENTION,
+      (_, before: string, word: string) => `${before}${SLACK_SLASH_COMMAND} ${word}`,
+    );
   }
 
   split(markdown: string, limit = SLACK_SPLIT_LIMIT): string[] {

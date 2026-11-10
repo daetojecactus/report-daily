@@ -190,6 +190,9 @@ importers:
       '@nestjs/schedule':
         specifier: 12.0.2
         version: 12.0.2(@nestjs/common@12.3.2(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)(supports-color@10.2.2))(@nestjs/core@12.3.2(@nestjs/common@12.3.2(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)(supports-color@10.2.2))(reflect-metadata@0.2.2)(rxjs@7.8.2))
+      '@slack/socket-mode':
+        specifier: 3.1.0
+        version: 3.1.0(undici@8.12.3)
       '@slack/web-api':
         specifier: 8.2.0
         version: 8.2.0
@@ -1555,6 +1558,12 @@ packages:
   '@slack/logger@5.0.0':
     resolution: {integrity: sha512-VGXhmmgsAo9shdQYh4tFDndd+7nsgp0Y5h0UPDaUp8K359pBasI6YdkMqFW3mCOxLQkq09qj7o7cq6f3DuXcJQ==}
     engines: {node: '>= 20', npm: '>=9.6.4'}
+
+  '@slack/socket-mode@3.1.0':
+    resolution: {integrity: sha512-F9T+FKbtsYRKV23X8l6WW1fx7ncqsMufg+HLA4ffHf/MvZSCvPunFw576ekmY0Q03kgTAIByTKDJxnM+wn1okg==}
+    engines: {node: '>=20', npm: '>=9.6.4'}
+    peerDependencies:
+      undici: ^7.0.0 || ^8.0.0
 
   '@slack/types@3.3.0':
     resolution: {integrity: sha512-11r2kM9Zy/UlaV6OwPibZueVlyNJ5xtHEHK/iYDnPLyhQcxRtsifNAwNhJ1Lm0nszW4jrWCHThXCHCNJC/hvqg==}
@@ -4854,6 +4863,14 @@ snapshots:
   '@slack/logger@5.0.0':
     dependencies:
       '@types/node': 26.6.6
+
+  '@slack/socket-mode@3.1.0(undici@8.12.3)':
+    dependencies:
+      '@slack/logger': 5.0.0
+      '@slack/web-api': 8.2.0
+      '@types/node': 26.6.6
+      eventemitter3: 5.0.4
+      undici: 8.12.3
 
   '@slack/types@3.3.0': {}
 

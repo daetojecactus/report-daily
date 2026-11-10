@@ -40,3 +40,10 @@ export interface SlackPostedMessage {
   channel: string;
   ts: string;
 }
+
+export interface SlackEnvelope {
+  type: string;
+  body: unknown;
+  envelopeId: string;
+  ack: () => Promise<void>;
+}

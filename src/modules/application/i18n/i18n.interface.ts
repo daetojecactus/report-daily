@@ -70,6 +70,7 @@ export interface CommonLocale {
   help: {
     title: string;
     privacy: string;
+    sections: Record<BotCommand.REPORT | BotCommand.SETTINGS | BotCommand.ADMIN, string>;
   };
   cancel: {
     done: string;

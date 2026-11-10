@@ -81,6 +81,11 @@ export const ruCommon: CommonLocale = {
   help: {
     title: '**Команды**',
     privacy: 'Текст вашего отчёта видите только вы.',
+    sections: {
+      [BotCommand.REPORT]: 'Отчёт',
+      [BotCommand.SETTINGS]: 'Настройки',
+      [BotCommand.ADMIN]: 'Управление',
+    },
   },
   cancel: {
     done: 'Действие отменено.',

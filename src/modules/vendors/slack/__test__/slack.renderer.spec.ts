@@ -88,6 +88,12 @@ describe('SlackRenderer', () => {
     });
   });
 
+  it('writes the bot commands in the text as the Slack command', () => {
+    expect(renderer.render({ text: 'Commands — /help' }).text).toBe(
+      'Commands — /report-daily help',
+    );
+  });
+
   it('puts a long text into several sections and skips an empty one', () => {
     const text = Array.from({ length: 4 }, (_, index) => `${index}${'a'.repeat(1500)}`).join(
       '\n\n',
