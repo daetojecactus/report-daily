@@ -80,4 +80,87 @@ describe('SlackService', () => {
     await expect(service.setDefaultCommands()).resolves.toBeUndefined();
     await expect(service.setChatCommands()).resolves.toBeUndefined();
   });
+
+  it('runs the slash command as help and with a word as that command in the direct messages', () => {
+    expect(service.toChatEvent('slash_commands', { user_id: 'U0EMPLOY1', text: '' })).toEqual({
+      channel: 'slack',
+      userId: 'U0EMPLOY1',
+      chatId: 'U0EMPLOY1',
+      languageCode: null,
+      input: { type: 'command', command: 'help' },
+    });
+    expect(
+      service.toChatEvent('slash_commands', { user_id: 'U0EMPLOY1', text: ' Report today ' })
+        ?.input,
+    ).toEqual({ type: 'command', command: 'report' });
+  });
+
+  it('takes command words and other text from direct messages and skips bots and edits', () => {
+    const message = (event: Record<string, unknown>) => ({
+      event_id: 'Ev01',
+      event: {
+        type: 'message',
+        channel_type: 'im',
+        channel: 'D100',
+        user: 'U0EMPLOY1',
+        ...event,
+      },
+    });
+
+    expect(service.toChatEvent('events_api', message({ text: 'Settings' }))).toMatchObject({
+      chatId: 'D100',
+      input: { type: 'command', command: 'settings' },
+    });
+    expect(service.toChatEvent('events_api', message({ text: '/report' }))?.input).toEqual({
+      type: 'command',
+      command: 'report',
+    });
+    expect(service.toChatEvent('events_api', message({ text: 'QA daily' }))?.input).toEqual({
+      type: 'text',
+      text: 'QA daily',
+    });
+    expect(service.toChatEvent('events_api', message({ text: 'hi', bot_id: 'B1' }))).toBeNull();
+    expect(
+      service.toChatEvent('events_api', message({ text: 'hi', subtype: 'message_changed' })),
+    ).toBeNull();
+    expect(
+      service.toChatEvent('events_api', message({ text: 'hi', channel_type: 'channel' })),
+    ).toBeNull();
+    expect(service.findEventId(message({ text: 'hi' }))).toBe('Ev01');
+  });
+
+  it('turns a button press and a picked member into chat input', () => {
+    const actions = (action: Record<string, unknown>) => ({
+      type: 'block_actions',
+      user: { id: 'U0EMPLOY1' },
+      channel: { id: 'D100' },
+      message: { ts: '1731240000.000100' },
+      actions: [action],
+    });
+
+    expect(
+      service.toChatEvent('interactive', actions({ type: 'button', value: 'rpt:menu' })),
+    ).toMatchObject({
+      userId: 'U0EMPLOY1',
+      chatId: 'D100',
+      input: {
+        type: 'button',
+        data: 'rpt:menu',
+        messageId: '1731240000.000100',
+        callbackId: '',
+      },
+    });
+    expect(
+      service.toChatEvent(
+        'interactive',
+        actions({ type: 'users_select', selected_user: 'U0NEW01' }),
+      )?.input,
+    ).toEqual({ type: 'picked-user', externalId: 'U0NEW01' });
+  });
+
+  it('ignores other envelopes and payloads it does not understand', () => {
+    expect(service.toChatEvent('hello', {})).toBeNull();
+    expect(service.toChatEvent('interactive', { type: 'view_submission' })).toBeNull();
+    expect(service.toChatEvent('slash_commands', { text: 'report' })).toBeNull();
+  });
 });

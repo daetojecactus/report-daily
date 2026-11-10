@@ -4,9 +4,17 @@ import { SlackFormatter } from './slack.formatter';
 import { SlackRenderer } from './slack.renderer';
 import { SlackRepository } from './slack.repository';
 import { SlackService } from './slack.service';
+import { SlackSocket } from './slack.socket';
 
 @Module({
-  providers: [SlackClient, SlackRepository, SlackFormatter, SlackRenderer, SlackService],
-  exports: [SlackService],
+  providers: [
+    SlackClient,
+    SlackRepository,
+    SlackFormatter,
+    SlackRenderer,
+    SlackService,
+    SlackSocket,
+  ],
+  exports: [SlackService, SlackSocket],
 })
 export class SlackModule {}

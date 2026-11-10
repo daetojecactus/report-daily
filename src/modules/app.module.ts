@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { HealthModule } from 'src/modules/api/health/health.module';
+import { SlackListenerModule } from 'src/modules/api/slack/slack-listener.module';
 import { TelegramPollerModule } from 'src/modules/api/telegram/telegram-poller.module';
 import { BullRootModule } from 'src/modules/infrastructure/bull-root/bull-root.module';
 import { AppConfigModule } from 'src/modules/infrastructure/config/config.module';
@@ -22,6 +23,7 @@ import { TaskModule } from 'src/modules/tasks/task.module';
     TaskModule,
     HealthModule,
     TelegramPollerModule,
+    SlackListenerModule,
   ],
 })
 export class AppModule {}

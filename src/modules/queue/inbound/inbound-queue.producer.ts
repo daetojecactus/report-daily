@@ -6,6 +6,7 @@ import {
   INBOUND_EVENT_JOB,
   INBOUND_JOB_OPTIONS,
   INBOUND_QUEUE,
+  INBOUND_SLACK_JOB_ID_PREFIX,
   INBOUND_TELEGRAM_JOB_ID_PREFIX,
 } from './constants/inbound-queue.constants';
 import type { InboundEventJobData } from './inbound-queue.interface';
@@ -19,6 +20,14 @@ export class InboundQueueProducer {
     await this.inboundQueue.add(INBOUND_EVENT_JOB, data, {
       ...INBOUND_JOB_OPTIONS,
       jobId: `${INBOUND_TELEGRAM_JOB_ID_PREFIX}${updateId}`,
+    });
+  }
+
+  async addSlackEvent(key: string, event: ChatEvent) {
+    const data: InboundEventJobData = { event };
+    await this.inboundQueue.add(INBOUND_EVENT_JOB, data, {
+      ...INBOUND_JOB_OPTIONS,
+      jobId: `${INBOUND_SLACK_JOB_ID_PREFIX}${key}`,
     });
   }
 }

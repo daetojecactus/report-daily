@@ -82,6 +82,11 @@ export const enCommon: CommonLocale = {
   help: {
     title: '**Commands**',
     privacy: 'Only you can see the text of your report.',
+    sections: {
+      [BotCommand.REPORT]: 'Report',
+      [BotCommand.SETTINGS]: 'Settings',
+      [BotCommand.ADMIN]: 'Admin',
+    },
   },
   cancel: {
     done: 'Cancelled.',

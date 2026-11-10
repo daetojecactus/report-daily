@@ -21,7 +21,7 @@ export class SlackRenderer {
   constructor(private readonly slackFormatter: SlackFormatter) {}
 
   render(screen: Screen): SlackMessageContent {
-    const sections = this.toSections(screen.text);
+    const sections = this.toSections(this.slackFormatter.formatCommands(screen.text));
     const actions = screen.userPicker
       ? [this.toUserPicker(screen.userPicker)]
       : (screen.buttons ?? []).flatMap((row, index) => this.toActions(row, index));
