@@ -3,6 +3,7 @@ import { DiscoveryModule } from '@nestjs/core';
 import type { ChatChannel } from 'src/common/interfaces/chat-channel.interface';
 import { I18nModule } from 'src/modules/application/i18n/i18n.module';
 import { ReportModule } from 'src/modules/application/report/report.module';
+import { SettingsModule } from 'src/modules/application/settings/settings.module';
 import { TraitModule } from 'src/modules/application/trait/trait.module';
 import { UserModule } from 'src/modules/application/user/user.module';
 import { GitLabModule } from 'src/modules/vendors/gitlab/gitlab.module';
@@ -11,6 +12,7 @@ import { TelegramService } from 'src/modules/vendors/telegram/telegram.service';
 import { ReportQueueModule } from 'src/modules/queue/report/report-queue.module';
 import { AccessService } from './access/access.service';
 import { AdminHandler } from './admin/admin.handler';
+import { AdminSettingsHandler } from './admin-settings/admin-settings.handler';
 import { BotService } from './bot.service';
 import { BOT_CHANNELS } from './constants/bot.constants';
 import { DialogService } from './dialog/dialog.service';
@@ -49,6 +51,7 @@ import { SettingsHandler } from './settings/settings.handler';
     TelegramModule,
     ReportModule,
     ReportQueueModule,
+    SettingsModule,
   ],
   providers: [
     BotService,
@@ -60,6 +63,7 @@ import { SettingsHandler } from './settings/settings.handler';
     HelpHandler,
     CancelHandler,
     AdminHandler,
+    AdminSettingsHandler,
     EmployeesHandler,
     EmployeesCard,
     EmployeeAddHandler,

@@ -15,6 +15,7 @@ import { Source } from 'src/modules/application/source/source.enums';
 import { traitMappings } from 'src/modules/application/trait/trait.schema';
 import { ReportStatus } from 'src/modules/application/report/report.enums';
 import { reports } from 'src/modules/application/report/report.schema';
+import { settings } from 'src/modules/application/settings/settings.schema';
 import { TraitDimension, Priority } from 'src/modules/application/trait/trait.enums';
 import { DATABASE_INSTANCE } from 'src/modules/infrastructure/database/constants/database.constants';
 import { RedisService } from 'src/modules/infrastructure/redis/redis.service';
@@ -268,6 +269,7 @@ describe('Telegram bot', () => {
           [{ text: 'Employees', callback_data: 'emp:list:0' }],
           [{ text: 'Traits', callback_data: 'trt:list:0' }],
           [{ text: 'Templates', callback_data: 'tpls:list' }],
+          [{ text: 'Settings', callback_data: 'aset:menu' }],
         ],
       },
     });
@@ -708,5 +710,27 @@ describe('Telegram bot', () => {
       `The label <b>${label}</b> is deleted.`,
     );
     expect(await findStored()).toEqual([]);
+  });
+
+  it('lets an admin with the settings permission pause and resume scheduled reports', async () => {
+    const { telegramId } = await createEmployee({ permissions: [Permission.SETTINGS] });
+
+    expect((await press(telegramId, 'aset:menu', 2001)).text).toContain(en.adminSettings.reportsOn);
+    expect((await press(telegramId, 'aset:forever', 2002)).text).toContain(
+      en.adminSettings.pausedForever,
+    );
+    expect(await db.select().from(settings)).toMatchObject([
+      { reportsPaused: true, reportsPausedUntil: null },
+    ]);
+    expect((await press(telegramId, 'aset:resume', 2003)).text).toContain(
+      en.adminSettings.reportsOn,
+    );
+  });
+
+  it('keeps the settings closed without the settings permission', async () => {
+    const { telegramId } = await createEmployee();
+
+    expect((await press(telegramId, 'aset:forever', 2004)).text).toBe(en.bot.forbidden);
+    expect(await db.select().from(settings)).toMatchObject([{ reportsPaused: false }]);
   });
 });

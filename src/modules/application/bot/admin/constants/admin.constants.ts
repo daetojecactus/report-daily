@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { Permission } from 'src/modules/application/user/user.enums';
 import { BOT_BUTTON_DATA_SEPARATOR } from '../../constants/bot.constants';
+import { AdminSettingsAction } from '../../admin-settings/admin-settings.enums';
 import { BotNamespace } from '../../bot.enums';
 import { EmployeesAction } from '../../employees/employees.enums';
 import { SharedTemplatesAction } from '../../shared-templates/shared-templates.enums';
@@ -25,6 +26,10 @@ export const ADMIN_SECTIONS = [
     data: [BotNamespace.SHARED_TEMPLATES, SharedTemplatesAction.LIST].join(
       BOT_BUTTON_DATA_SEPARATOR,
     ),
+  },
+  {
+    permission: Permission.SETTINGS,
+    data: [BotNamespace.ADMIN_SETTINGS, AdminSettingsAction.MENU].join(BOT_BUTTON_DATA_SEPARATOR),
   },
 ];
 

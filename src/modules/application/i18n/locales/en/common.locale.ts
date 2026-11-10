@@ -183,4 +183,20 @@ export const enCommon: CommonLocale = {
     saved: (name) =>
       `The shared template **${name}** is saved. Employees pick it in /settings → "Report template".`,
   },
+  adminSettings: {
+    title: '**Settings**',
+    reportsOn: 'Scheduled reports: on.',
+    pausedToday: 'Scheduled reports: paused for today.',
+    pausedUntil: (date) => `Scheduled reports: paused through ${date}.`,
+    pausedForever: 'Scheduled reports: paused with no end.',
+    hint: 'During a pause the bot sends no scheduled reports to anyone. `/report` and "Report now" keep working.',
+    pauseToday: 'Pause for today',
+    pauseUntil: 'Pause until a day',
+    pauseForever: 'Pause with no end',
+    resume: 'Resume',
+    chooseDay: (days) =>
+      `Through which day should reports pause? Up to ${days} days ahead; for longer, use "Pause with no end".`,
+    back: '‹ Back',
+    menu: '‹ Menu',
+  },
 };
