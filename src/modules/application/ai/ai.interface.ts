@@ -9,6 +9,12 @@ export interface AiLine {
   kind: TaskKind | null;
   commits: string[];
   comments: string[];
+  names: AiNames | null;
+}
+
+export interface AiNames {
+  added: string[];
+  removed: string[];
 }
 
 export interface AiPolicy {

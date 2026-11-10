@@ -58,7 +58,9 @@ export class ReportComposer {
       },
       locale,
     );
-    const aiModel = ai ? await this.reportRewriter.rewrite(built, user, locale, ai) : null;
+    const aiModel = ai
+      ? await this.reportRewriter.rewrite(built, { user, locale, policy: ai, index })
+      : null;
     const { context } = built;
     const { content, templateId } = await this.render(user.id, user.templateId, context);
     return { timeZone, locale, day, results, summaries, context, content, templateId, aiModel };

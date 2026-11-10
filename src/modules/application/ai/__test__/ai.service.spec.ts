@@ -10,11 +10,12 @@ import { Gender, JobRole } from 'src/modules/application/user/user.enums';
 import type { RedisService } from 'src/modules/infrastructure/redis/redis.service';
 import { LlmFormat } from 'src/modules/vendors/llm/llm.enums';
 import type { LlmService } from 'src/modules/vendors/llm/llm.service';
+import type { AiLine } from '../ai.interface';
 import { AiService } from '../ai.service';
 
 const locale = new I18nService().getLocale(Language.EN);
 const PROFILE = { role: JobRole.QA, gender: Gender.FEMALE, locale };
-const LINES = [
+const LINES: AiLine[] = [
   {
     id: '1',
     action: 'Fixed a bug',
@@ -22,6 +23,7 @@ const LINES = [
     kind: TaskKind.BUG,
     commits: [],
     comments: [],
+    names: null,
   },
   {
     id: '2',
@@ -30,6 +32,7 @@ const LINES = [
     kind: null,
     commits: [],
     comments: [],
+    names: null,
   },
 ];
 const USER = createEmployee().user;
@@ -208,5 +211,33 @@ describe('AiService', () => {
 
     expect(await refused).toEqual({ texts: new Map(), model: null });
     expect(llmService.completeJson).not.toHaveBeenCalled();
+  });
+
+  it('sends the names the bot did not understand and lets such a line drop our phrase', async () => {
+    const line = {
+      ...LINES[0],
+      action: 'Updated the labels',
+      names: { added: ['stage::ready-for-qa', 'a', 'b', 'c', 'd', 'e'], removed: [] },
+    };
+    answer([{ id: '1', text: 'Handed the login form over to QA' }]);
+
+    expect((await service.reword([line], PROFILE)).texts.get('1')).toBe(
+      'Handed the login form over to QA',
+    );
+    const data = llmService.completeJson.mock.calls[0][0].prompt.user.split('\n')[2];
+    expect((JSON.parse(data) as { lines: { names: unknown }[] }).lines[0].names).toEqual({
+      added: ['stage::ready-for-qa', 'a', 'b', 'c', 'd'],
+    });
+  });
+
+  it('keeps our line when the answer for such a line is only our phrase', async () => {
+    answer([{ id: '1', text: 'updated the labels' }]);
+
+    expect(
+      await service.reword(
+        [{ ...LINES[0], action: 'Updated the labels', names: { added: [], removed: ['x'] } }],
+        PROFILE,
+      ),
+    ).toEqual({ texts: new Map(), model: null });
   });
 });

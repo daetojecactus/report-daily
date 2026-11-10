@@ -16,6 +16,8 @@ export const AI_COMMITS_PER_LINE = 5;
 
 export const AI_COMMENTS_PER_LINE = 3;
 
+export const AI_NAMES_PER_LINE = 5;
+
 export const AI_COMMENT_MAX_LENGTH = 150;
 
 export const AI_CUT_MARK = '…';
