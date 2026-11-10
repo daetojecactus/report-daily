@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { ChatInputType } from 'src/common/enums/channel.enums';
-import type { ScreenButton } from 'src/common/interfaces/chat-channel.interface';
+import { type Channel, ChatInputType } from 'src/common/enums/channel.enums';
+import type { ChatChannel, ScreenButton } from 'src/common/interfaces/chat-channel.interface';
 import { toTimeZone } from 'src/common/utils/time-zone.util';
 import { Language } from 'src/modules/application/i18n/i18n.enums';
 import type { Locale } from 'src/modules/application/i18n/i18n.interface';
@@ -14,7 +14,7 @@ import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { BotSection } from '../bot.decorator';
 import { BotAccess, BotCommand, BotNamespace } from '../bot.enums';
 import type { BotContext, BotHandler, BotReply } from '../bot.interface';
-import { BOT_BUTTON_DATA_SEPARATOR } from '../constants/bot.constants';
+import { BOT_BUTTON_DATA_SEPARATOR, BOT_CHANNELS } from '../constants/bot.constants';
 import { MenuService } from '../menu/menu.service';
 import {
   SETTINGS_TEMPLATES_DATA,
@@ -45,6 +45,7 @@ export class SettingsHandler implements BotHandler {
     private readonly channelService: ChannelService,
     private readonly menuService: MenuService,
     private readonly i18nService: I18nService,
+    @Inject(BOT_CHANNELS) private readonly channels: ChatChannel[],
   ) {
     this.defaultTimeZone = configService.get('APP_TIMEZONE', { infer: true });
   }
@@ -101,11 +102,34 @@ export class SettingsHandler implements BotHandler {
         return this.save(locale, user, actor.language, {
           aiDataOptOut: !button.data.isOn,
         });
+      case SettingsAction.RECEIVE:
+        return this.saveReceiving(
+          locale,
+          user,
+          actor.language,
+          button.data.channel,
+          button.data.isOn,
+        );
     }
   }
 
-  private showMenu(locale: Locale, user: User, language: Language): BotReply {
+  private async showMenu(
+    locale: Locale,
+    user: User,
+    language: Language,
+    notice?: string,
+  ): Promise<BotReply> {
     const { settings } = locale;
+    const bound = await this.findBound(user.id);
+    const receiving = this.channelService.toReceiving(bound);
+    const channelButtons = bound.map(({ channel }) => {
+      const isOn = receiving.some((item) => item.channel === channel);
+      return {
+        text: `${locale.channels[channel]}: ${isOn ? settings.on : settings.off}`,
+        data: this.toData(SettingsAction.RECEIVE, channel, isOn ? SETTINGS_OFF : SETTINGS_ON),
+      };
+    });
+    const hasChoice = channelButtons.length > 1;
     const switches = [
       { action: SettingsAction.SCHEDULE, text: settings.schedule, isOn: user.scheduleEnabled },
       { action: SettingsAction.AI, text: settings.ai, isOn: user.aiEnabled },
@@ -118,6 +142,7 @@ export class SettingsHandler implements BotHandler {
     return {
       screen: {
         text: [
+          ...(notice ? [notice, ''] : []),
           settings.title,
           `${settings.language}: ${locale.languages[language]}`,
           `${settings.reportTime}: ${user.reportTime.slice(0, SETTINGS_TIME_LENGTH)}`,
@@ -125,6 +150,9 @@ export class SettingsHandler implements BotHandler {
           `${settings.gender}: ${locale.genders[user.gender]}`,
           '',
           ...switches.map(({ text }) => `**${text.name}** — ${text.description}`),
+          ...(hasChoice
+            ? [`**${settings.channels.name}** — ${settings.channels.description}`]
+            : []),
         ].join('\n'),
         buttons: [
           [
@@ -153,6 +181,7 @@ export class SettingsHandler implements BotHandler {
               data: this.toData(action, isOn ? SETTINGS_OFF : SETTINGS_ON),
             },
           ]),
+          ...(hasChoice ? [channelButtons] : []),
           [{ text: settings.template, data: SETTINGS_TEMPLATES_DATA }],
         ],
       },
@@ -278,6 +307,41 @@ export class SettingsHandler implements BotHandler {
       },
       dialog: null,
     };
+  }
+
+  private async saveReceiving(
+    locale: Locale,
+    user: User,
+    language: Language,
+    channel: Channel,
+    isOn: boolean,
+  ) {
+    const bound = await this.findBound(user.id);
+    if (bound.some((item) => item.channel === channel)) {
+      const receiving = this.channelService
+        .toReceiving(bound)
+        .map((item) => item.channel)
+        .filter((item) => item !== channel);
+      if (isOn) {
+        receiving.push(channel);
+      }
+      if (receiving.length === 0) {
+        return this.showMenu(locale, user, language, locale.settings.lastChannel);
+      }
+      await this.channelService.updateReceiving(
+        user.id,
+        bound.map((item) => item.channel),
+        receiving,
+      );
+    }
+    return this.showMenu(locale, user, language);
+  }
+
+  private findBound(userId: string) {
+    return this.channelService.findBound(
+      userId,
+      this.channels.map(({ channel }) => channel),
+    );
   }
 
   private async save(locale: Locale, user: User, language: Language, update: UserSettingsUpdate) {

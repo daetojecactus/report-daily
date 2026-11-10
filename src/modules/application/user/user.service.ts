@@ -75,7 +75,7 @@ export class UserService {
   }
 
   async findRecipients(channels: Channel[]) {
-    const rows = await this.userRepository.findReachable(
+    const rows = await this.userRepository.findReceiving(
       channels,
       eq(users.status, UserStatus.ACTIVE),
     );

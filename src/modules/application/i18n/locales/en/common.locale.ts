@@ -126,6 +126,11 @@ export const enCommon: CommonLocale = {
       name: 'Data in AI',
       description: 'send the titles of my commits and excerpts of my comments to AI',
     },
+    channels: {
+      name: 'Channels',
+      description: 'where scheduled reports and broadcasts come; at least one stays on',
+    },
+    lastChannel: 'At least one channel has to get the reports. Turn another one on first.',
     on: 'yes',
     off: 'no',
     template: 'Report template',

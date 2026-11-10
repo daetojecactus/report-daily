@@ -1,11 +1,12 @@
 import type { ConfigService } from '@nestjs/config';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Channel, ChatInputType } from 'src/common/enums/channel.enums';
-import type { ChatInput } from 'src/common/interfaces/chat-channel.interface';
+import type { ChatChannel, ChatInput } from 'src/common/interfaces/chat-channel.interface';
 import { Language } from 'src/modules/application/i18n/i18n.enums';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
 import type { UserChannel } from 'src/modules/application/user/channel/channel.interface';
-import type { ChannelService } from 'src/modules/application/user/channel/channel.service';
+import type { ChannelRepository } from 'src/modules/application/user/channel/channel.repository';
+import { ChannelService } from 'src/modules/application/user/channel/channel.service';
 import { Gender } from 'src/modules/application/user/user.enums';
 import type { User, UserSettingsUpdate } from 'src/modules/application/user/user.interface';
 import type { UserService } from 'src/modules/application/user/user.service';
@@ -44,8 +45,12 @@ describe('SettingsHandler', () => {
   const userService = {
     updateSettings: vi.fn<(id: string, update: UserSettingsUpdate) => Promise<User | null>>(),
   };
+  const channels = new ChannelService({} as ChannelRepository);
   const channelService = {
     findByUser: vi.fn<(userId: string) => Promise<UserChannel[]>>(),
+    findBound: vi.fn<ChannelService['findBound']>(),
+    updateReceiving: vi.fn<ChannelService['updateReceiving']>(),
+    toReceiving: (bound: UserChannel[]) => channels.toReceiving(bound),
   };
   const menuService = { syncEmployee: vi.fn() };
   const handler = new SettingsHandler(
@@ -54,6 +59,7 @@ describe('SettingsHandler', () => {
     channelService as unknown as ChannelService,
     menuService as unknown as MenuService,
     i18nService,
+    [{ channel: Channel.TELEGRAM }, { channel: Channel.SLACK }] as ChatChannel[],
   );
 
   function open(input: ChatInput, dialog: BotDialog | null = null, user: User | null = USER) {
@@ -75,6 +81,7 @@ describe('SettingsHandler', () => {
   beforeEach(() => {
     vi.resetAllMocks();
     channelService.findByUser.mockResolvedValue([FOUND.channel]);
+    channelService.findBound.mockResolvedValue([FOUND.channel]);
   });
 
   it('shows the current settings on /settings', async () => {
@@ -281,6 +288,87 @@ describe('SettingsHandler', () => {
   ])('answers the outdated button %s', async (data) => {
     expect((await open(button(data))).screen).toEqual({
       text: en.bot.expired,
+    });
+  });
+
+  describe('with Telegram and Slack', () => {
+    const SLACK = { ...FOUND.channel, channel: Channel.SLACK, externalId: 'U0ANNA01' };
+    const CHANNELS_LINE = `**${en.settings.channels.name}** — ${en.settings.channels.description}`;
+
+    it('shows a switch for each channel', async () => {
+      channelService.findBound.mockResolvedValue([FOUND.channel, SLACK]);
+
+      const { screen } = await open({ type: ChatInputType.COMMAND, command: 'settings' });
+
+      expect(channelService.findBound).toHaveBeenCalledWith(USER.id, [
+        Channel.TELEGRAM,
+        Channel.SLACK,
+      ]);
+      expect(screen.text).toContain(CHANNELS_LINE);
+      expect(screen.buttons).toContainEqual([
+        { text: 'Telegram: yes', data: 'set:recv:telegram:off' },
+        { text: 'Slack: yes', data: 'set:recv:slack:off' },
+      ]);
+    });
+
+    it('hides the channels with only one channel', async () => {
+      const { screen } = await open({ type: ChatInputType.COMMAND, command: 'settings' });
+
+      expect(screen.text).not.toContain(CHANNELS_LINE);
+      expect(screen.buttons).toEqual(MENU_BUTTONS);
+    });
+
+    it('switches a channel off and on again', async () => {
+      channelService.findBound.mockResolvedValue([FOUND.channel, SLACK]);
+
+      await open(button('set:recv:slack:off'));
+      expect(channelService.updateReceiving).toHaveBeenLastCalledWith(
+        USER.id,
+        [Channel.TELEGRAM, Channel.SLACK],
+        [Channel.TELEGRAM],
+      );
+
+      channelService.findBound.mockResolvedValue([FOUND.channel, { ...SLACK, receives: false }]);
+      await open(button('set:recv:slack:on'));
+      expect(channelService.updateReceiving).toHaveBeenLastCalledWith(
+        USER.id,
+        [Channel.TELEGRAM, Channel.SLACK],
+        [Channel.TELEGRAM, Channel.SLACK],
+      );
+    });
+
+    it('keeps the last channel on', async () => {
+      channelService.findBound.mockResolvedValue([FOUND.channel, { ...SLACK, receives: false }]);
+
+      const { screen } = await open(button('set:recv:telegram:off'));
+
+      expect(channelService.updateReceiving).not.toHaveBeenCalled();
+      expect(screen.text.startsWith(`${en.settings.lastChannel}\n\n**My settings**`)).toBe(true);
+      expect(screen.buttons).toContainEqual([
+        { text: 'Telegram: yes', data: 'set:recv:telegram:off' },
+        { text: 'Slack: no', data: 'set:recv:slack:on' },
+      ]);
+    });
+
+    it('treats every channel as on when none is', async () => {
+      channelService.findBound.mockResolvedValue([
+        { ...FOUND.channel, receives: false },
+        { ...SLACK, receives: false },
+      ]);
+
+      await open(button('set:recv:telegram:off'));
+
+      expect(channelService.updateReceiving).toHaveBeenCalledWith(
+        USER.id,
+        [Channel.TELEGRAM, Channel.SLACK],
+        [Channel.SLACK],
+      );
+    });
+
+    it('ignores a switch of a channel the employee does not have', async () => {
+      await open(button('set:recv:slack:off'));
+
+      expect(channelService.updateReceiving).not.toHaveBeenCalled();
     });
   });
 });

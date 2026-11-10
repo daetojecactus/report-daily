@@ -82,8 +82,10 @@ export class ReportQueueProcessor extends WorkerHost implements OnModuleDestroy 
   }
 
   private async findChannels(userId: string) {
-    return (await this.channelService.findByUser(userId))
-      .filter((item) => item.reachable && this.botService.hasChannel(item.channel))
-      .map((item) => item.channel);
+    const channels = await this.channelService.findReceiving(
+      userId,
+      this.botService.listChannels(),
+    );
+    return channels.map((item) => item.channel);
   }
 }

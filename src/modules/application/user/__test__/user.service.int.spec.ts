@@ -232,6 +232,29 @@ describe('User module', () => {
       expect(await ids([Channel.TELEGRAM])).not.toContain(slack.externalId);
     });
 
+    it('sends a broadcast only to the channels an employee chose, or to all when none is on', async () => {
+      const chooser = await insertUser({ status: UserStatus.ACTIVE });
+      const muted = await insertChannel(chooser.id, { receives: false });
+      const chosen = await insertChannel(chooser.id, { channel: Channel.SLACK });
+      const undecided = await insertUser({ status: UserStatus.ACTIVE });
+      const first = await insertChannel(undecided.id, { receives: false });
+      const second = await insertChannel(undecided.id, {
+        channel: Channel.SLACK,
+        receives: false,
+      });
+      const ids = (await userService.findRecipients([Channel.TELEGRAM, Channel.SLACK])).map(
+        ({ externalId }) => externalId,
+      );
+
+      expect(ids).toEqual(
+        expect.arrayContaining([chosen.externalId, first.externalId, second.externalId]),
+      );
+      expect(ids).not.toContain(muted.externalId);
+      expect(
+        (await userService.findRecipients([Channel.TELEGRAM])).map(({ externalId }) => externalId),
+      ).toContain(muted.externalId);
+    });
+
     it('finds active employees with a reachable channel and the schedule on', async () => {
       const active = await insertUser({ status: UserStatus.ACTIVE });
       await insertChannel(active.id);

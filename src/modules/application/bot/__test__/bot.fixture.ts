@@ -38,6 +38,7 @@ export function createEmployee(values: Partial<User> = {}): UserWithChannel {
       channel: Channel.TELEGRAM,
       externalId: EMPLOYEE_ID,
       reachable: true,
+      receives: true,
       createdAt: new Date(),
       updatedAt: new Date(),
     },
