@@ -94,6 +94,10 @@ describe('SharedTemplatesHandler', () => {
           '{{ context.date }}',
         ].join('\n'),
         buttons: [
+          [
+            { text: 'Edit text', data: `tpledit:text:${SHARED.id}` },
+            { text: 'Rename', data: `tpledit:name:${SHARED.id}` },
+          ],
           [{ text: 'Delete', data: `tpls:del:${SHARED.id}` }],
           [{ text: '‹ Shared templates', data: 'tpls:list' }],
         ],

@@ -1,9 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ChatInputType } from 'src/common/enums/channel.enums';
-import { getErrorMessage } from 'src/common/utils/error.util';
 import { escapeMarkdown } from 'src/common/utils/markdown.util';
 import type { Locale } from 'src/modules/application/i18n/i18n.interface';
-import { ReportService } from 'src/modules/application/report/report.service';
 import {
   TEMPLATE_BODY_MAX_LENGTH,
   TEMPLATE_NAME_MAX_LENGTH,
@@ -16,11 +14,10 @@ import { AccessService } from '../access/access.service';
 import type { BotActor, BotContext, BotDialog, BotHandler, BotReply } from '../bot.interface';
 import { BOT_BUTTON_DATA_SEPARATOR } from '../constants/bot.constants';
 import { SharedTemplatesAction } from '../shared-templates/shared-templates.enums';
+import { TemplatesDraft } from '../templates/templates.draft';
 import { TemplatesAction } from '../templates/templates.enums';
 import {
   TEMPLATE_ADD_BUTTON_SCHEMA,
-  TEMPLATE_ADD_DATE_FORMAT,
-  TEMPLATE_ADD_DATE_TIME_SUFFIX,
   TEMPLATE_ADD_DRAFT_SCHEMA,
 } from './constants/template-add.constants';
 import { TemplateAddMessages } from './constants/template-add.messages';
@@ -33,7 +30,7 @@ export class TemplateAddHandler implements BotHandler {
 
   constructor(
     private readonly templateService: TemplateService,
-    private readonly reportService: ReportService,
+    private readonly templatesDraft: TemplatesDraft,
     private readonly accessService: AccessService,
   ) {}
 
@@ -98,8 +95,8 @@ export class TemplateAddHandler implements BotHandler {
   }
 
   private receiveName(locale: Locale, shared: boolean, text: string): BotReply {
-    const name = text.trim();
-    if (name.length === 0 || name.length > TEMPLATE_NAME_MAX_LENGTH) {
+    const name = this.templatesDraft.toName(text);
+    if (!name) {
       return this.askName(locale, shared, locale.templates.nameInvalid(TEMPLATE_NAME_MAX_LENGTH));
     }
     return this.askBody(locale, shared, name);
@@ -129,46 +126,13 @@ export class TemplateAddHandler implements BotHandler {
       return { screen: { text: locale.bot.expired }, dialog: null };
     }
     const { shared, name } = draft;
-    const body = text.trim();
-    if (body.length === 0 || body.length > TEMPLATE_BODY_MAX_LENGTH) {
-      return this.askBody(
-        locale,
-        shared,
-        name,
-        locale.templates.bodyInvalid(TEMPLATE_BODY_MAX_LENGTH),
-      );
-    }
-    const error = this.templateService.check(body);
+    const { body, error, preview } = await this.templatesDraft.checkBody(locale, actor, text);
     if (error) {
-      return this.askBody(
-        locale,
-        shared,
-        name,
-        locale.templates.syntaxError(escapeMarkdown(error)),
-      );
-    }
-    const report = actor.user ? await this.reportService.findLatestSnapshot(actor.user.id) : null;
-    let preview: string[];
-    try {
-      preview = report?.snapshot
-        ? [
-            locale.templates.preview(this.toDate(locale, report.reportDate)),
-            '',
-            (await this.templateService.render(body, report.snapshot)) ||
-              locale.templates.emptyOutput,
-          ]
-        : [locale.templates.noPreview];
-    } catch (renderError) {
-      return this.askBody(
-        locale,
-        shared,
-        name,
-        locale.templates.renderError(escapeMarkdown(getErrorMessage(renderError))),
-      );
+      return this.askBody(locale, shared, name, error);
     }
     return {
       screen: {
-        text: preview.join('\n'),
+        text: preview,
         buttons: [
           [
             { text: locale.templates.save, data: this.toData(TemplateAddAction.SAVE) },
@@ -225,12 +189,6 @@ export class TemplateAddHandler implements BotHandler {
     }
     const draft = TEMPLATE_ADD_DRAFT_SCHEMA.safeParse(dialog.data);
     return draft.success ? draft.data : null;
-  }
-
-  private toDate(locale: Locale, date: string) {
-    return new Intl.DateTimeFormat(locale.phrases.dateLocale, TEMPLATE_ADD_DATE_FORMAT).format(
-      new Date(`${date}${TEMPLATE_ADD_DATE_TIME_SUFFIX}`),
-    );
   }
 
   private toDialog(step: TemplateAddStep, data: Record<string, unknown>) {

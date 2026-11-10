@@ -55,7 +55,7 @@ Node.js reads this variable when the process starts, before `.env` is loaded wit
 
 ## Your own templates
 
-Reports come in the built-in «Standard» template: projects with their lines. Any employee can write their own template in the bot: `/settings` → «Report template» → «My templates» → «Create». The bot asks for a name and the text, checks the syntax and shows a preview on your latest report. Templates are written in [Liquid](https://liquidjs.com/tutorials/intro-to-liquid.html) and produce Markdown: `**bold**`, `_italic_`, `` `code` `` and `[text](url)`.
+Reports come in the built-in «Standard» template: projects with their lines. Any employee can write their own template in the bot: `/settings` → «Report template» → «My templates» → «Create». The bot asks for a name and the text, checks the syntax and shows a preview on your latest report. The template card has «Edit text» and «Rename». The owner and employees with the «Templates» permission make shared templates in `/admin` → «Templates»: everyone can pick them, and a change reaches everyone who picked one. Templates are written in [Liquid](https://liquidjs.com/tutorials/intro-to-liquid.html) and produce Markdown: `**bold**`, `_italic_`, `` `code` `` and `[text](url)`.
 
 Everything taken from the data is escaped for Markdown, so a task title with `*` or `_` does not break the message. A link from the data goes in without escaping: `[{{ item.title }}]({{ item.url | raw }})`. Links point only to your GitLab. A template cannot read files and stops after one second of rendering.
 

@@ -27,3 +27,11 @@ export const TEMPLATES_BUTTON_SCHEMA = z.union([
     ])
     .transform(([, action, id]) => ({ action, id })),
 ]);
+
+export const TEMPLATES_DATE_TIME_SUFFIX = 'T00:00:00Z';
+
+export const TEMPLATES_DATE_FORMAT: Intl.DateTimeFormatOptions = {
+  day: 'numeric',
+  month: 'long',
+  timeZone: 'UTC',
+};

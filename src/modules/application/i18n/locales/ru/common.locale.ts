@@ -156,6 +156,14 @@ export const ruCommon: CommonLocale = {
     save: 'Сохранить',
     saved: (name) => `Шаблон **${name}** сохранён.`,
     cancelled: 'Создание шаблона отменено.',
+    editText: 'Изменить текст',
+    rename: 'Переименовать',
+    askNewName: (name, max) => `Новое название для **${name}**? До ${max} символов.`,
+    renamed: (name) => `Готово: шаблон теперь называется **${name}**.`,
+    bodyReplaced: (name) =>
+      `Текст шаблона **${name}** обновлён. Следующий отчёт придёт по новому тексту.`,
+    editCancelled: 'Изменение отменено.',
+    backToTemplate: '‹ К шаблону',
   },
   sharedTemplates: {
     title: (count) => `**Общие шаблоны** · ${count}`,

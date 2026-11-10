@@ -141,6 +141,10 @@ describe('TemplatesHandler', () => {
             { text: 'Use', data: `tpl:use:${OWN.id}` },
             { text: 'Delete', data: `tpl:del:${OWN.id}` },
           ],
+          [
+            { text: 'Edit text', data: `tpledit:text:${OWN.id}` },
+            { text: 'Rename', data: `tpledit:name:${OWN.id}` },
+          ],
           [{ text: '‹ My templates', data: 'tpl:mine' }],
         ],
       },

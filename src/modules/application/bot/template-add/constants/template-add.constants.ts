@@ -6,14 +6,6 @@ import {
 import { BotNamespace } from '../../bot.enums';
 import { TemplateAddAction } from '../template-add.enums';
 
-export const TEMPLATE_ADD_DATE_TIME_SUFFIX = 'T00:00:00Z';
-
-export const TEMPLATE_ADD_DATE_FORMAT: Intl.DateTimeFormatOptions = {
-  day: 'numeric',
-  month: 'long',
-  timeZone: 'UTC',
-};
-
 export const TEMPLATE_ADD_BUTTON_SCHEMA = z
   .tuple([z.literal(BotNamespace.TEMPLATE_ADD), z.enum(TemplateAddAction)])
   .transform(([, action]) => ({ action }));

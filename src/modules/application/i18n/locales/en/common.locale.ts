@@ -158,6 +158,14 @@ export const enCommon: CommonLocale = {
     save: 'Save',
     saved: (name) => `The template **${name}** is saved.`,
     cancelled: 'Creating the template is cancelled.',
+    editText: 'Edit text',
+    rename: 'Rename',
+    askNewName: (name, max) => `A new name for **${name}**? Up to ${max} characters.`,
+    renamed: (name) => `Done: the template is now called **${name}**.`,
+    bodyReplaced: (name) =>
+      `The text of **${name}** is replaced. The next report comes with the new text.`,
+    editCancelled: 'The change is cancelled.',
+    backToTemplate: '‹ To the template',
   },
   sharedTemplates: {
     title: (count) => `**Shared templates** · ${count}`,

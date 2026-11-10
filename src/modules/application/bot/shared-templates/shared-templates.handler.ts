@@ -12,6 +12,7 @@ import { BotAccess, BotNamespace } from '../bot.enums';
 import type { BotActor, BotContext, BotHandler, BotReply } from '../bot.interface';
 import { BOT_BUTTON_DATA_SEPARATOR } from '../constants/bot.constants';
 import { TemplateAddAction } from '../template-add/template-add.enums';
+import { TemplateEditAction } from '../template-edit/template-edit.enums';
 import { SHARED_TEMPLATES_BUTTON_SCHEMA } from './constants/shared-templates.constants';
 import { SharedTemplatesMessages } from './constants/shared-templates.messages';
 import { SharedTemplatesAction } from './shared-templates.enums';
@@ -89,6 +90,13 @@ export class SharedTemplatesHandler implements BotHandler {
         escapeMarkdown(template.body),
       ],
       [
+        [
+          {
+            text: locale.templates.editText,
+            data: this.toEditData(TemplateEditAction.TEXT, id),
+          },
+          { text: locale.templates.rename, data: this.toEditData(TemplateEditAction.NAME, id) },
+        ],
         [{ text: locale.templates.delete, data: this.toData(SharedTemplatesAction.DELETE, id) }],
         [{ text: texts.backToList, data: this.toData(SharedTemplatesAction.LIST) }],
       ],
@@ -129,6 +137,10 @@ export class SharedTemplatesHandler implements BotHandler {
 
   private reply(lines: string[], buttons: ScreenButton[][]): BotReply {
     return { screen: { text: lines.join('\n'), buttons }, dialog: null };
+  }
+
+  private toEditData(action: TemplateEditAction, id: string) {
+    return [BotNamespace.TEMPLATE_EDIT, action, id].join(BOT_BUTTON_DATA_SEPARATOR);
   }
 
   private toData(...parts: string[]) {
