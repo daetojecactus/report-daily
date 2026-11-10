@@ -6,9 +6,10 @@ import { ReportModule } from 'src/modules/application/report/report.module';
 import { UserModule } from 'src/modules/application/user/user.module';
 import { SlackModule } from 'src/modules/vendors/slack/slack.module';
 import { TelegramModule } from 'src/modules/vendors/telegram/telegram.module';
-import { DeliverySlackQueueModule } from './delivery-slack/delivery-slack-queue.module';
 import { DeliverySlackQueueProcessor } from './delivery-slack/delivery-slack-queue.processor';
+import { DeliverySlackQueueModule } from './delivery-slack/delivery-slack-queue.module';
 import { DeliveryTelegramQueueModule } from './delivery-telegram/delivery-telegram-queue.module';
+import { DeliveryQueueModule } from './delivery/delivery-queue.module';
 import { DeliveryTelegramQueueProcessor } from './delivery-telegram/delivery-telegram-queue.processor';
 import { InboundQueueModule } from './inbound/inbound-queue.module';
 import { InboundQueueProcessor } from './inbound/inbound-queue.processor';
@@ -21,6 +22,7 @@ import { ReportQueueProcessor } from './report/report-queue.processor';
     ReportQueueModule,
     DeliveryTelegramQueueModule,
     DeliverySlackQueueModule,
+    DeliveryQueueModule,
     BotModule,
     ReportModule,
     DeliveryModule,

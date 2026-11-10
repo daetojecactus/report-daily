@@ -2,13 +2,15 @@ import { Logger } from '@nestjs/common';
 import type { ConfigService } from '@nestjs/config';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Channel, ChatInputType } from 'src/common/enums/channel.enums';
-import type { ChatInput } from 'src/common/interfaces/chat-channel.interface';
+import type { ChatChannel, ChatInput } from 'src/common/interfaces/chat-channel.interface';
 import { Language } from 'src/modules/application/i18n/i18n.enums';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
+import type { UserChannel } from 'src/modules/application/user/channel/channel.interface';
 import type { UserService } from 'src/modules/application/user/user.service';
 import { DeliveryMode } from 'src/modules/infrastructure/config/config.enums';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
-import type { DeliveryTelegramQueueProducer } from 'src/modules/queue/delivery-telegram/delivery-telegram-queue.producer';
+import type { DeliveryQueueProducer } from 'src/modules/queue/delivery/delivery-queue.producer';
+import type { AccessService } from '../../access/access.service';
 import type { BotDialog } from '../../bot.interface';
 import { BroadcastHandler } from '../broadcast.handler';
 
@@ -16,7 +18,16 @@ const locale = new I18nService().getLocale(Language.EN);
 const texts = locale.broadcast;
 const CANCEL = { text: 'Cancel', data: 'bcast:cancel' };
 const MENU = [[{ text: '‹ Menu', data: 'adm:menu' }]];
-const CHATS = ['2001', '2002', '2003'];
+const RECIPIENTS = [
+  { userId: 'user-1', channel: Channel.TELEGRAM, externalId: '2001' },
+  { userId: 'user-1', channel: Channel.SLACK, externalId: 'U0ANNA01' },
+  { userId: 'user-2', channel: Channel.TELEGRAM, externalId: '2002' },
+  { userId: 'user-3', channel: Channel.SLACK, externalId: 'U0BORIS1' },
+] as UserChannel[];
+const OWNERS: Record<Channel, string[]> = {
+  [Channel.TELEGRAM]: ['100', '101'],
+  [Channel.SLACK]: ['U0OWNER1'],
+};
 
 function dialog(step: string, data: Record<string, unknown> = {}): BotDialog {
   return { namespace: 'bcast', step, data };
@@ -31,15 +42,16 @@ function text(value: string): ChatInput {
 }
 
 describe('BroadcastHandler', () => {
-  const userService = { findRecipientChats: vi.fn<UserService['findRecipientChats']>() };
-  const producer = { addBroadcast: vi.fn<DeliveryTelegramQueueProducer['addBroadcast']>() };
+  const userService = { findRecipients: vi.fn<UserService['findRecipients']>() };
+  const accessService = { findOwnerIds: vi.fn<AccessService['findOwnerIds']>() };
+  const producer = { addBroadcast: vi.fn<DeliveryQueueProducer['addBroadcast']>() };
   const createHandler = (mode: DeliveryMode) =>
     new BroadcastHandler(
       userService as unknown as UserService,
-      producer as unknown as DeliveryTelegramQueueProducer,
-      {
-        get: (key: string) => (key === 'DELIVERY_MODE' ? mode : ['100', '101']),
-      } as unknown as ConfigService<AppEnvs, true>,
+      accessService as unknown as AccessService,
+      producer as unknown as DeliveryQueueProducer,
+      [{ channel: Channel.TELEGRAM }, { channel: Channel.SLACK }] as ChatChannel[],
+      { get: () => mode } as unknown as ConfigService<AppEnvs, true>,
     );
   const open = (input: ChatInput, current: BotDialog | null = null, mode = DeliveryMode.LIVE) =>
     createHandler(mode).handle({
@@ -62,7 +74,8 @@ describe('BroadcastHandler', () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
-    userService.findRecipientChats.mockResolvedValue(CHATS);
+    userService.findRecipients.mockResolvedValue(RECIPIENTS);
+    accessService.findOwnerIds.mockImplementation((channel) => OWNERS[channel]);
   });
 
   it('asks for the text', async () => {
@@ -75,7 +88,7 @@ describe('BroadcastHandler', () => {
     });
   });
 
-  it('previews the text as it will go out with the number of recipients', async () => {
+  it('previews the text as it will go out with the number of people in every channel', async () => {
     expect(await open(text('  Standup *moves* to 11:00  '), dialog('text'))).toEqual({
       screen: {
         text: [
@@ -93,7 +106,7 @@ describe('BroadcastHandler', () => {
       },
       dialog: dialog('preview', { text: 'Standup *moves* to 11:00' }),
     });
-    expect(userService.findRecipientChats).toHaveBeenCalledWith(Channel.TELEGRAM);
+    expect(userService.findRecipients).toHaveBeenCalledWith([Channel.TELEGRAM, Channel.SLACK]);
   });
 
   it('takes a new text on the preview and refuses an empty or a too long one', async () => {
@@ -110,7 +123,7 @@ describe('BroadcastHandler', () => {
   });
 
   it('offers no sending without recipients', async () => {
-    userService.findRecipientChats.mockResolvedValue([]);
+    userService.findRecipients.mockResolvedValue([]);
 
     const { screen } = await open(text('Standup'), dialog('text'));
 
@@ -118,17 +131,30 @@ describe('BroadcastHandler', () => {
     expect(screen.buttons).toEqual([[{ text: 'Edit text', data: 'bcast:text' }, CANCEL]]);
   });
 
-  it('queues the previewed text for every recipient', async () => {
+  it('queues the previewed text for every chat of every recipient in its channel', async () => {
     expect(await open(button('bcast:send'), dialog('preview', { text: 'Standup *11*' }))).toEqual({
       screen: { text: texts.sent(3), buttons: MENU },
       dialog: null,
     });
-    const [broadcastId, messages] = producer.addBroadcast.mock.calls[0];
+    const message = (chatId: string) => ({ chatId, text: 'Standup \\*11\\*' });
+    const [[, broadcastId]] = producer.addBroadcast.mock.calls;
     expect(broadcastId).toMatch(/^[\da-f-]{36}$/);
-    expect(messages).toEqual(CHATS.map((chatId) => ({ chatId, text: 'Standup \\*11\\*' })));
+    expect(producer.addBroadcast.mock.calls).toEqual([
+      [Channel.TELEGRAM, broadcastId, [message('2001'), message('2002')]],
+      [Channel.SLACK, broadcastId, [message('U0ANNA01'), message('U0BORIS1')]],
+    ]);
   });
 
-  it('sends one copy to the owners in the check mode', async () => {
+  it('skips a channel without recipients', async () => {
+    userService.findRecipients.mockResolvedValue(RECIPIENTS.slice(2, 3));
+
+    await open(button('bcast:send'), dialog('preview', { text: 'Standup' }));
+
+    expect(producer.addBroadcast).toHaveBeenCalledOnce();
+    expect(producer.addBroadcast.mock.calls[0][0]).toBe(Channel.TELEGRAM);
+  });
+
+  it('sends one copy to the owners of each channel in the check mode', async () => {
     expect(
       await open(
         button('bcast:send'),
@@ -136,10 +162,15 @@ describe('BroadcastHandler', () => {
         DeliveryMode.REDIRECT,
       ),
     ).toEqual({ screen: { text: texts.sentRedirected(3), buttons: MENU }, dialog: null });
-    const copy = [texts.redirected(3), '', 'Standup'].join('\n');
-    expect(producer.addBroadcast.mock.calls[0][1]).toEqual([
-      { chatId: '100', text: copy },
-      { chatId: '101', text: copy },
+    const copy = (chatId: string) => ({
+      chatId,
+      text: [texts.redirected(3), '', 'Standup'].join('\n'),
+    });
+    expect(
+      producer.addBroadcast.mock.calls.map(([channel, , messages]) => [channel, messages]),
+    ).toEqual([
+      [Channel.TELEGRAM, [copy('100'), copy('101')]],
+      [Channel.SLACK, [copy('U0OWNER1')]],
     ]);
   });
 

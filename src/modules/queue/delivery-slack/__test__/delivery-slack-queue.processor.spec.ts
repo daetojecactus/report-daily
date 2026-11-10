@@ -19,7 +19,10 @@ import type { UserService } from 'src/modules/application/user/user.service';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { SlackRejectedError } from 'src/modules/vendors/slack/slack.error';
 import type { SlackService } from 'src/modules/vendors/slack/slack.service';
-import { DELIVERY_SLACK_SEND_JOB } from '../constants/delivery-slack-queue.constants';
+import {
+  DELIVERY_SLACK_BROADCAST_JOB,
+  DELIVERY_SLACK_SEND_JOB,
+} from '../constants/delivery-slack-queue.constants';
 import { DeliverySlackQueueMessages } from '../constants/delivery-slack-queue.messages';
 import { DeliverySlackQueueProcessor } from '../delivery-slack-queue.processor';
 
@@ -47,6 +50,16 @@ function job(attemptsMade = 0, name = DELIVERY_SLACK_SEND_JOB) {
     name,
     data: { deliveryId: 'delivery-1' },
     attemptsMade,
+    opts: { attempts: 5 },
+  } as unknown as Job;
+}
+
+function broadcastJob() {
+  return {
+    id: 'broadcast-b-1-U0ANNA01',
+    name: DELIVERY_SLACK_BROADCAST_JOB,
+    data: { chatId: 'U0ANNA01', text: 'Standup at 11' },
+    attemptsMade: 0,
     opts: { attempts: 5 },
   } as unknown as Job;
 }
@@ -182,8 +195,35 @@ describe('DeliverySlackQueueProcessor', () => {
     expect(deliveryService.markFailed).toHaveBeenCalledWith('delivery-1', 'socket hang up');
   });
 
+  it('sends a broadcast message to its chat without touching deliveries', async () => {
+    slackService.sendScreen.mockResolvedValue('1.1');
+
+    await processor.process(broadcastJob());
+
+    expect(slackService.sendScreen).toHaveBeenCalledWith('U0ANNA01', { text: 'Standup at 11' });
+    expect(deliveryService.findById).not.toHaveBeenCalled();
+  });
+
+  it('marks the chat of a broadcast message unreachable and does not retry a refusal', async () => {
+    slackService.sendScreen.mockRejectedValueOnce(new ChatUnreachableError('user_not_found'));
+    await expect(processor.process(broadcastJob())).resolves.toBeUndefined();
+    expect(channelService.updateReachable).toHaveBeenCalledWith(Channel.SLACK, 'U0ANNA01', false);
+
+    slackService.sendScreen.mockRejectedValueOnce(
+      new SlackRejectedError('Slack rejected the request: invalid_blocks', 'invalid_blocks'),
+    );
+    await expect(processor.process(broadcastJob())).resolves.toBeUndefined();
+    expect(channelService.updateReachable).toHaveBeenCalledOnce();
+  });
+
+  it('retries a broadcast message on a network error', async () => {
+    slackService.sendScreen.mockRejectedValue(new Error('socket hang up'));
+
+    await expect(processor.process(broadcastJob())).rejects.toThrow('socket hang up');
+  });
+
   it('refuses an unknown job', async () => {
-    await expect(processor.process(job(0, 'broadcast'))).rejects.toThrow(
+    await expect(processor.process(job(0, 'other'))).rejects.toThrow(
       DeliverySlackQueueMessages.UNKNOWN_JOB,
     );
   });

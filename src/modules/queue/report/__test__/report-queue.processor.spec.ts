@@ -12,8 +12,7 @@ import { DeliveryMode } from 'src/modules/infrastructure/config/config.enums';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import type { UserChannel } from 'src/modules/application/user/channel/channel.interface';
 import type { ChannelService } from 'src/modules/application/user/channel/channel.service';
-import type { DeliverySlackQueueProducer } from '../../delivery-slack/delivery-slack-queue.producer';
-import type { DeliveryTelegramQueueProducer } from '../../delivery-telegram/delivery-telegram-queue.producer';
+import type { DeliveryQueueProducer } from '../../delivery/delivery-queue.producer';
 import { REPORT_BUILD_JOB } from '../constants/report-queue.constants';
 import type { ReportJobData } from '../report-queue.interface';
 import { ReportQueueProcessor } from '../report-queue.processor';
@@ -48,8 +47,7 @@ describe('ReportQueueProcessor', () => {
     findFresh: vi.fn<ReportService['findFresh']>(),
   };
   const deliveryService = { createForReport: vi.fn<DeliveryService['createForReport']>() };
-  const producer = { addDelivery: vi.fn<DeliveryTelegramQueueProducer['addDelivery']>() };
-  const slackProducer = { addDelivery: vi.fn<DeliverySlackQueueProducer['addDelivery']>() };
+  const producer = { addDelivery: vi.fn<DeliveryQueueProducer['addDelivery']>() };
   const channelService = { findByUser: vi.fn<ChannelService['findByUser']>() };
   const botService = {
     sendTo: vi.fn<BotService['sendTo']>(),
@@ -59,8 +57,7 @@ describe('ReportQueueProcessor', () => {
     new ReportQueueProcessor(
       reportService as unknown as ReportService,
       deliveryService as unknown as DeliveryService,
-      producer as unknown as DeliveryTelegramQueueProducer,
-      slackProducer as unknown as DeliverySlackQueueProducer,
+      producer as unknown as DeliveryQueueProducer,
       channelService as unknown as ChannelService,
       botService as unknown as BotService,
       { get: () => mode } as unknown as ConfigService<AppEnvs, true>,
@@ -80,8 +77,7 @@ describe('ReportQueueProcessor', () => {
     await run(job(0, REPORT_BUILD_JOB, { channel: Channel.SLACK }));
 
     expect(deliveryService.createForReport).toHaveBeenCalledWith(report, Channel.SLACK, false);
-    expect(slackProducer.addDelivery).toHaveBeenCalledWith('delivery-4');
-    expect(producer.addDelivery).not.toHaveBeenCalled();
+    expect(producer.addDelivery).toHaveBeenCalledExactlyOnceWith(Channel.SLACK, 'delivery-4');
     expect(channelService.findByUser).not.toHaveBeenCalled();
   });
 
@@ -110,8 +106,10 @@ describe('ReportQueueProcessor', () => {
         [report, Channel.TELEGRAM, false],
         [report, Channel.SLACK, false],
       ]);
-      expect(producer.addDelivery).toHaveBeenCalledWith('delivery-5');
-      expect(slackProducer.addDelivery).toHaveBeenCalledWith('delivery-6');
+      expect(producer.addDelivery.mock.calls).toEqual([
+        [Channel.TELEGRAM, 'delivery-5'],
+        [Channel.SLACK, 'delivery-6'],
+      ]);
     },
   );
 
@@ -141,7 +139,7 @@ describe('ReportQueueProcessor', () => {
 
     expect(reportService.build).toHaveBeenCalledWith('user-1', '2026-11-09');
     expect(deliveryService.createForReport).toHaveBeenCalledWith(report, Channel.TELEGRAM, false);
-    expect(producer.addDelivery).toHaveBeenCalledWith('delivery-1');
+    expect(producer.addDelivery).toHaveBeenCalledWith(Channel.TELEGRAM, 'delivery-1');
     expect(botService.sendTo).not.toHaveBeenCalled();
   });
 

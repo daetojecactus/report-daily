@@ -104,7 +104,7 @@ export class UserRepository {
       );
   }
 
-  async findReachable(channel: Channel, filter?: SQL) {
+  async findReachable(channels: Channel[], filter?: SQL) {
     const rows = await this.databaseService.db
       .select({ user: users, channel: userChannels })
       .from(users)
@@ -112,7 +112,7 @@ export class UserRepository {
         userChannels,
         and(
           eq(userChannels.userId, users.id),
-          eq(userChannels.channel, channel),
+          inArray(userChannels.channel, channels),
           eq(userChannels.reachable, true),
         ),
       )

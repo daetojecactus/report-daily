@@ -1,18 +1,21 @@
 import { randomUUID } from 'node:crypto';
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Channel, ChatInputType } from 'src/common/enums/channel.enums';
+import { ChatInputType } from 'src/common/enums/channel.enums';
+import type { ChatChannel } from 'src/common/interfaces/chat-channel.interface';
 import { escapeMarkdown } from 'src/common/utils/markdown.util';
 import type { Locale } from 'src/modules/application/i18n/i18n.interface';
+import type { UserChannel } from 'src/modules/application/user/channel/channel.interface';
 import { UserService } from 'src/modules/application/user/user.service';
 import { DeliveryMode } from 'src/modules/infrastructure/config/config.enums';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
-import { DeliveryTelegramQueueProducer } from 'src/modules/queue/delivery-telegram/delivery-telegram-queue.producer';
+import { DeliveryQueueProducer } from 'src/modules/queue/delivery/delivery-queue.producer';
+import { AccessService } from '../access/access.service';
 import { ADMIN_MENU_DATA } from '../admin/constants/admin.constants';
 import { BotSection } from '../bot.decorator';
 import { BotAccess, BotNamespace } from '../bot.enums';
 import type { BotActor, BotContext, BotDialog, BotHandler, BotReply } from '../bot.interface';
-import { BOT_BUTTON_DATA_SEPARATOR } from '../constants/bot.constants';
+import { BOT_BUTTON_DATA_SEPARATOR, BOT_CHANNELS } from '../constants/bot.constants';
 import { BroadcastAction, BroadcastStep } from './broadcast.enums';
 import {
   BROADCAST_BUTTON_SCHEMA,
@@ -27,15 +30,15 @@ import { BroadcastSectionMessages } from './constants/broadcast.messages';
 export class BroadcastHandler implements BotHandler {
   private readonly logger = new Logger(BroadcastHandler.name);
   private readonly redirect: boolean;
-  private readonly ownerIds: string[];
 
   constructor(
     private readonly userService: UserService,
-    private readonly deliveryTelegramQueueProducer: DeliveryTelegramQueueProducer,
+    private readonly accessService: AccessService,
+    private readonly deliveryQueueProducer: DeliveryQueueProducer,
+    @Inject(BOT_CHANNELS) private readonly channels: ChatChannel[],
     configService: ConfigService<AppEnvs, true>,
   ) {
     this.redirect = configService.get('DELIVERY_MODE', { infer: true }) === DeliveryMode.REDIRECT;
-    this.ownerIds = configService.get('OWNER_TELEGRAM_IDS', { infer: true });
   }
 
   async handle({ actor, input, dialog, locale }: BotContext): Promise<BotReply> {
@@ -79,7 +82,7 @@ export class BroadcastHandler implements BotHandler {
     if (text.length === 0 || text.length > BROADCAST_TEXT_MAX_LENGTH) {
       return this.askText(locale, locale.broadcast.textInvalid(BROADCAST_TEXT_MAX_LENGTH));
     }
-    const recipients = (await this.userService.findRecipientChats(Channel.TELEGRAM)).length;
+    const recipients = this.countPeople(await this.findRecipients());
     const texts = locale.broadcast;
     return {
       screen: {
@@ -108,27 +111,39 @@ export class BroadcastHandler implements BotHandler {
     if (!draft) {
       return { screen: { text: locale.bot.expired }, dialog: null };
     }
-    const chatIds = await this.userService.findRecipientChats(Channel.TELEGRAM);
+    const recipients = await this.findRecipients();
+    const people = this.countPeople(recipients);
     const text = escapeMarkdown(draft.text);
-    await this.deliveryTelegramQueueProducer.addBroadcast(
-      randomUUID(),
-      this.redirect
-        ? this.ownerIds.map((chatId) => ({
+    const broadcastId = randomUUID();
+    for (const { channel } of this.channels) {
+      const messages = this.redirect
+        ? this.accessService.findOwnerIds(channel).map((chatId) => ({
             chatId,
-            text: [locale.broadcast.redirected(chatIds.length), '', text].join('\n'),
+            text: [locale.broadcast.redirected(people), '', text].join('\n'),
           }))
-        : chatIds.map((chatId) => ({ chatId, text })),
-    );
+        : recipients
+            .filter((recipient) => recipient.channel === channel)
+            .map(({ externalId }) => ({ chatId: externalId, text }));
+      if (messages.length > 0) {
+        await this.deliveryQueueProducer.addBroadcast(channel, broadcastId, messages);
+      }
+    }
     this.logger.log(
-      { recipients: chatIds.length, redirected: this.redirect, actorId: actor.externalId },
+      { recipients: people, redirected: this.redirect, actorId: actor.externalId },
       BroadcastSectionMessages.SENT,
     );
     return this.toMenuReply(
       locale,
-      this.redirect
-        ? locale.broadcast.sentRedirected(chatIds.length)
-        : locale.broadcast.sent(chatIds.length),
+      this.redirect ? locale.broadcast.sentRedirected(people) : locale.broadcast.sent(people),
     );
+  }
+
+  private findRecipients() {
+    return this.userService.findRecipients(this.channels.map(({ channel }) => channel));
+  }
+
+  private countPeople(recipients: UserChannel[]) {
+    return new Set(recipients.map(({ userId }) => userId)).size;
   }
 
   private readDraft(dialog: BotDialog | null) {
