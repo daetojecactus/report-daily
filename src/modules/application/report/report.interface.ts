@@ -19,6 +19,7 @@ export interface ReportRequest {
   account: UserSource;
   date: string;
   language: Language;
+  ai: boolean;
 }
 
 export interface ReportDraft {
@@ -30,4 +31,5 @@ export interface ReportDraft {
   context: ReportContext;
   content: string;
   templateId: string | null;
+  aiModel: string | null;
 }

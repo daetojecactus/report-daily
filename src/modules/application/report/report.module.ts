@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { AiModule } from 'src/modules/application/ai/ai.module';
 import { I18nModule } from 'src/modules/application/i18n/i18n.module';
 import { SourceModule } from 'src/modules/application/source/source.module';
 import { TraitModule } from 'src/modules/application/trait/trait.module';
@@ -26,7 +27,7 @@ import { TemplateRepository } from './template/template.repository';
 import { TemplateService } from './template/template.service';
 
 @Module({
-  imports: [TraitModule, SourceModule, UserModule, I18nModule],
+  imports: [TraitModule, SourceModule, UserModule, I18nModule, AiModule],
   providers: [
     ActivitySignals,
     ActivityRules,

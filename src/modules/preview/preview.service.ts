@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { DEFAULT_LANGUAGE } from 'src/modules/application/i18n/constants/i18n.constants';
-import type { Language } from 'src/modules/application/i18n/i18n.enums';
 import { PhraseService } from 'src/modules/application/report/phrase/phrase.service';
 import { ReportComposer } from 'src/modules/application/report/report.composer';
 import { Source } from 'src/modules/application/source/source.enums';
 import { UserService } from 'src/modules/application/user/user.service';
 import { UserSourceService } from 'src/modules/application/user/user-source/user-source.service';
 import { PREVIEW_EMPTY_REPORT } from './constants/preview.constants';
+import type { PreviewOptions } from './preview.interface';
 import { PreviewRenderer } from './preview.renderer';
 
 @Injectable()
@@ -19,7 +19,7 @@ export class PreviewService {
     private readonly previewRenderer: PreviewRenderer,
   ) {}
 
-  async describe(username: string, date: string, trace: boolean, language: Language | null) {
+  async describe(username: string, date: string, { trace, language, ai }: PreviewOptions) {
     const account = await this.userSourceService.findOneByUsername(Source.GITLAB, username);
     const user = account && (await this.userService.findById(account.userId));
     if (!account || !user) {
@@ -31,6 +31,7 @@ export class PreviewService {
         account,
         date,
         language: language ?? user.language ?? DEFAULT_LANGUAGE,
+        ai,
       });
     const texts = {
       lines: new Map(

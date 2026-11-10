@@ -1,3 +1,4 @@
+import type { Language } from 'src/modules/application/i18n/i18n.enums';
 import type {
   ActivityResult,
   ActivitySummary,
@@ -35,4 +36,10 @@ export interface PreviewFixtureFile {
 export interface PreviewTexts {
   lines: Map<ActivityResult, string>;
   summaries: Map<ActivitySummary, string>;
+}
+
+export interface PreviewOptions {
+  trace: boolean;
+  language: Language | null;
+  ai: boolean;
 }

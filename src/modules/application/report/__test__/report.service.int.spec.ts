@@ -27,10 +27,12 @@ import type { ReportContext } from '../template/template.interface';
 
 const DATE = '2026-11-09';
 
-function draft(itemsCount: number, content: string) {
+function draft(itemsCount: number, content: string, aiModel: string | null = null) {
   return {
     context: { version: 1, isEmpty: itemsCount === 0, itemsCount } as ReportContext,
     content,
+    templateId: null,
+    aiModel,
   } as ReportDraft;
 }
 
@@ -96,6 +98,18 @@ describe('ReportService', () => {
     expect(compose).toHaveBeenCalledWith(
       expect.objectContaining({ date: DATE, language: Language.RU }),
     );
+  });
+
+  it('stores whether AI reworded the lines and with which model', async () => {
+    compose.mockResolvedValueOnce(draft(1, 'project:\n• Fixed a bug', 'served-model'));
+    compose.mockResolvedValueOnce(draft(1, 'project:\n• Fixed a bug'));
+
+    expect(await reportService.build(userId, DATE)).toMatchObject({
+      aiUsed: true,
+      aiModel: 'served-model',
+    });
+    expect(await reportService.build(userId, DATE)).toMatchObject({ aiUsed: false, aiModel: null });
+    expect(compose).toHaveBeenLastCalledWith(expect.objectContaining({ ai: true }));
   });
 
   it('marks a day without lines empty', async () => {

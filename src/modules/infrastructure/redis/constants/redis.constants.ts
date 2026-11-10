@@ -18,3 +18,11 @@ if redis.call('GET', KEYS[1]) == ARGV[1] then
 end
 return 0
 `;
+
+export const REDIS_INCREMENT_SCRIPT = `
+local count = redis.call('INCR', KEYS[1])
+if count == 1 then
+  redis.call('PEXPIRE', KEYS[1], ARGV[1])
+end
+return count
+`;

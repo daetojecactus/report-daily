@@ -1,4 +1,14 @@
-import { date, jsonb, pgEnum, pgTable, text, timestamp, unique, uuid } from 'drizzle-orm/pg-core';
+import {
+  boolean,
+  date,
+  jsonb,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  unique,
+  uuid,
+} from 'drizzle-orm/pg-core';
 import { reportTemplates } from './template/template.schema';
 import { createdAt, primaryId, updatedAt } from '../../infrastructure/database/database.columns';
 import { users } from '../user/user.schema';
@@ -20,6 +30,8 @@ export const reports = pgTable(
     snapshot: jsonb().$type<ReportContext>(),
     content: text(),
     templateId: uuid().references(() => reportTemplates.id, { onDelete: 'set null' }),
+    aiUsed: boolean().notNull().default(false),
+    aiModel: text(),
     error: text(),
     generatedAt: timestamp({ withTimezone: true }),
     createdAt: createdAt(),
