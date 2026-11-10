@@ -7,6 +7,7 @@ import { DatabaseModule } from 'src/modules/infrastructure/database/database.mod
 import { LoggerModule } from 'src/modules/infrastructure/logger/logger.module';
 import { RedisModule } from 'src/modules/infrastructure/redis/redis.module';
 import { QueueModule } from 'src/modules/queue/queue.module';
+import { TasksModule } from 'src/modules/tasks/tasks.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { QueueModule } from 'src/modules/queue/queue.module';
     RedisModule,
     BullRootModule,
     QueueModule,
+    TasksModule,
     HealthModule,
     TelegramPollerModule,
   ],

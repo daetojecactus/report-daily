@@ -93,8 +93,11 @@ describe('ReportHandler', () => {
       userId: 'user-1',
       date: '2026-11-10',
       maxAgeMs: 300_000,
-      reply: REPLY,
-      notices: { empty: locale.report.empty('сегодня'), failed: locale.report.failed },
+      notice: {
+        target: REPLY,
+        empty: locale.report.empty('сегодня'),
+        failed: locale.report.failed,
+      },
     });
   });
 
@@ -103,7 +106,7 @@ describe('ReportHandler', () => {
     await open(button('rpt:day:6'), actor(null));
 
     expect(
-      producer.addReport.mock.calls.map(([data]) => [data.date, data.notices.empty, data.maxAgeMs]),
+      producer.addReport.mock.calls.map(([data]) => [data.date, data.notice?.empty, data.maxAgeMs]),
     ).toEqual([
       ['2026-11-09', locale.report.empty('вчера'), null],
       ['2026-11-03', locale.report.empty('3 ноября'), null],

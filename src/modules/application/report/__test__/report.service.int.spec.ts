@@ -126,4 +126,26 @@ describe('ReportService', () => {
     await expect(reportService.build(userId, DATE)).rejects.toThrow();
     expect(compose).not.toHaveBeenCalled();
   });
+
+  it('claims a scheduled report once a day and keeps the claim through a build', async () => {
+    const scheduledAt = new Date('2026-11-09T13:00:00Z');
+    compose.mockResolvedValueOnce(draft(1, 'project:\n• Fixed a bug'));
+
+    expect(await reportService.claimScheduled(userId, DATE, scheduledAt)).toMatchObject({
+      status: ReportStatus.PENDING,
+      scheduledAt,
+    });
+    expect(await reportService.claimScheduled(userId, DATE, new Date())).toBeNull();
+    await reportService.build(userId, DATE);
+    expect(await reportService.findByDate(userId, DATE)).toMatchObject({
+      status: ReportStatus.READY,
+      scheduledAt,
+    });
+
+    await reportService.releaseScheduled(userId, DATE);
+    expect(await reportService.claimScheduled(userId, DATE, scheduledAt)).toMatchObject({
+      status: ReportStatus.READY,
+      scheduledAt,
+    });
+  });
 });

@@ -68,6 +68,10 @@ export class UserService {
     );
   }
 
+  findScheduled(channel: Channel) {
+    return this.userRepository.findReachable(channel, eq(users.status, UserStatus.ACTIVE));
+  }
+
   findOneByChannel(channel: Channel, externalId: string) {
     return this.userRepository.findOneByChannel(channel, externalId);
   }

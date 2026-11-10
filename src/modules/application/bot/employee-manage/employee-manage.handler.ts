@@ -131,8 +131,8 @@ export class EmployeeManageHandler implements BotHandler {
       userId: user.id,
       date: getToday(user.timezone ?? this.configService.get('APP_TIMEZONE', { infer: true })),
       maxAgeMs: REPORT_TODAY_MAX_AGE_MS,
-      reply: { channel: actor.channel, chatId: actor.chatId, externalId: actor.externalId },
-      notices: {
+      notice: {
+        target: { channel: actor.channel, chatId: actor.chatId, externalId: actor.externalId },
         empty: locale.employeeManage.reportEmpty(name),
         failed: locale.employeeManage.reportFailed(name),
       },

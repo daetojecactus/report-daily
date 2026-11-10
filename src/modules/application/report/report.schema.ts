@@ -16,6 +16,7 @@ export const reports = pgTable(
       .references(() => users.id, { onDelete: 'cascade' }),
     reportDate: date({ mode: 'string' }).notNull(),
     status: reportStatus().notNull(),
+    scheduledAt: timestamp({ withTimezone: true }),
     snapshot: jsonb().$type<ReportContext>(),
     content: text(),
     templateId: uuid().references(() => reportTemplates.id, { onDelete: 'set null' }),

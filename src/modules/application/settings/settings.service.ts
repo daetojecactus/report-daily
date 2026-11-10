@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { ReportsPause, SettingsUpdate } from './settings.interface';
+import type { ReportsPause, Settings, SettingsUpdate } from './settings.interface';
 import { SettingsRepository } from './settings.repository';
 
 @Injectable()
@@ -22,8 +22,11 @@ export class SettingsService {
     return this.update({ reportsPaused: false, reportsPausedUntil: null });
   }
 
-  async findReportsPause(date: string): Promise<ReportsPause | null> {
-    const row = await this.findOne();
+  async findReportsPause(date: string) {
+    return this.toReportsPause(await this.findOne(), date);
+  }
+
+  toReportsPause(row: Settings | null, date: string): ReportsPause | null {
     if (!row?.reportsPaused) {
       return null;
     }
