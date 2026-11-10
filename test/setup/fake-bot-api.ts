@@ -11,6 +11,7 @@ export type FakeUpdate = Omit<TelegramUpdate, 'update_id'>;
 export interface FakeBotApiRequest {
   method: string;
   body: Record<string, unknown>;
+  at: number;
 }
 
 export interface FakeBotApiFailure {
@@ -99,7 +100,7 @@ export async function startFakeBotApi() {
   };
 
   const callMethod = (method: string, body: Record<string, unknown>, response: ServerResponse) => {
-    requests.push({ method, body });
+    requests.push({ method, body, at: Date.now() });
     const isMessage = method === 'sendMessage' || method === 'editMessageText';
     const result: TelegramMessage | boolean = isMessage
       ? {
