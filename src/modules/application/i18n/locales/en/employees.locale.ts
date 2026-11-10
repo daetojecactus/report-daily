@@ -87,7 +87,7 @@ export const enEmployees: EmployeesLocale = {
     reportEmpty: (name) => `**${name}** has no actions in GitLab today, so no report was sent.`,
     reportFailed: (name) => `Could not build the report for **${name}**: GitLab did not answer.`,
     reportUnavailable: (name) =>
-      `**${name}** cannot get a report: the employee is not active or has no Telegram connected.`,
+      `**${name}** cannot get a report: the employee is not active or has no bound channel.`,
   },
   employeePermissions: {
     open: 'Permissions',

@@ -87,7 +87,7 @@ export const ruEmployees: EmployeesLocale = {
     reportEmpty: (name) => `У **${name}** за сегодня нет действий в GitLab, отчёт не отправлен.`,
     reportFailed: (name) => `Не получилось собрать отчёт для **${name}**: GitLab не ответил.`,
     reportUnavailable: (name) =>
-      `**${name}** не получит отчёт: сотрудник не активен или у него нет подключённого Telegram.`,
+      `**${name}** не получит отчёт: сотрудник не активен или у него нет привязанного канала.`,
   },
   employeePermissions: {
     open: 'Права',

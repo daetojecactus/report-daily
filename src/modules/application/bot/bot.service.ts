@@ -52,6 +52,10 @@ export class BotService {
     await channel.sendScreen(event.chatId, { text: locale.bot.error });
   }
 
+  hasChannel(channel: Channel) {
+    return this.channels.has(channel);
+  }
+
   async sendTo({ channel, chatId, externalId }: BotTarget, screen: Screen) {
     try {
       await this.getChannel(channel).sendScreen(chatId, screen);

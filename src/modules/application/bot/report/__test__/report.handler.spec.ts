@@ -94,6 +94,7 @@ describe('ReportHandler', () => {
       date: '2026-11-10',
       maxAgeMs: 300_000,
       own: true,
+      channel: REPLY.channel,
       notice: {
         target: REPLY,
         empty: locale.report.empty('сегодня'),

@@ -248,6 +248,18 @@ describe('EmployeesHandler', () => {
     );
   });
 
+  it('offers a report now to an employee who has only Slack', async () => {
+    const user = employee(1);
+    userService.findById.mockResolvedValue(user);
+    channelService.findByUser.mockResolvedValue([
+      { ...createEmployee().channel, channel: Channel.SLACK, externalId: 'U0ANNA01' },
+    ]);
+
+    expect((await open(button(`emp:card:${user.id}:0`))).screen.buttons?.[0]).toEqual([
+      { text: 'Report now', data: `mng:report:${user.id}` },
+    ]);
+  });
+
   it('offers to bind every configured channel the employee does not have', async () => {
     const user = employee(1);
     userService.findById.mockResolvedValue(user);

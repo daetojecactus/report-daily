@@ -12,6 +12,7 @@ describe('ReportQueueProducer', () => {
       date: '2026-11-09',
       maxAgeMs: 300_000,
       own: true,
+      channel: Channel.TELEGRAM,
       notice: {
         target: { channel: Channel.TELEGRAM, chatId: '1', externalId: '1' },
         empty: 'empty',

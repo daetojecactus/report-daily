@@ -240,9 +240,7 @@ describe('User module', () => {
         [active, unreachable, blocked, withoutChannel, switchedOff].map(({ id }) => id),
       );
 
-      expect(
-        (await userService.findScheduled(Channel.TELEGRAM)).filter(({ id }) => ids.has(id)),
-      ).toEqual([active]);
+      expect((await userService.findScheduled()).filter(({ id }) => ids.has(id))).toEqual([active]);
     });
 
     it('matches the id only within its channel', async () => {

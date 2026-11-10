@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Channel } from 'src/common/enums/channel.enums';
 import { getErrorMessage } from 'src/common/utils/error.util';
 import { ReportService } from 'src/modules/application/report/report.service';
 import { SettingsService } from 'src/modules/application/settings/settings.service';
@@ -29,7 +28,7 @@ export class ScheduleService {
   async tick(now: Date) {
     const settings = await this.settingsService.findOne();
     let queued = 0;
-    for (const user of await this.userService.findScheduled(Channel.TELEGRAM)) {
+    for (const user of await this.userService.findScheduled()) {
       const date = this.findDueDate(user, now);
       if (!date || this.settingsService.toReportsPause(settings, date)) {
         continue;
@@ -70,6 +69,7 @@ export class ScheduleService {
         date,
         maxAgeMs: SCHEDULE_REPORT_MAX_AGE_MS,
         own: false,
+        channel: null,
         notice: null,
       });
       return true;

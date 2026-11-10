@@ -5,6 +5,7 @@ import { ChatUnreachableError } from 'src/common/errors/chat-unreachable.error';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { SlackClient } from '../slack.client';
 import { SlackFormatter } from '../slack.formatter';
+import { SlackRejectedError } from '../slack.error';
 import { SlackRenderer } from '../slack.renderer';
 import type { SlackRepository } from '../slack.repository';
 import { SlackService } from '../slack.service';
@@ -70,9 +71,14 @@ describe('SlackService', () => {
     );
 
     repository.postMessage.mockRejectedValueOnce(platformError('invalid_blocks'));
-    await expect(service.sendScreen('U0123ABCD', SCREEN)).rejects.toBeInstanceOf(
-      WebAPIPlatformError,
-    );
+    await expect(service.sendScreen('U0123ABCD', SCREEN)).rejects.toMatchObject({
+      constructor: SlackRejectedError,
+      code: 'invalid_blocks',
+    });
+
+    const network = new Error('socket hang up');
+    repository.postMessage.mockRejectedValueOnce(network);
+    await expect(service.sendScreen('U0123ABCD', SCREEN)).rejects.toBe(network);
   });
 
   it('needs no button answers and no command menus', async () => {

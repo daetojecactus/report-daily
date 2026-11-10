@@ -1,3 +1,4 @@
+import type { Channel } from 'src/common/enums/channel.enums';
 import type { BotTarget } from 'src/modules/application/bot/bot.interface';
 
 export interface ReportJobNotice {
@@ -11,5 +12,6 @@ export interface ReportJobData {
   date: string;
   maxAgeMs: number | null;
   own: boolean;
+  channel: Channel | null;
   notice: ReportJobNotice | null;
 }

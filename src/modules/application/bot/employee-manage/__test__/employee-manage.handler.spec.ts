@@ -227,6 +227,7 @@ describe('EmployeeManageHandler', () => {
       date: '2026-11-09',
       maxAgeMs: 300_000,
       own: false,
+      channel: null,
       notice: {
         target: { channel: Channel.TELEGRAM, chatId: '77', externalId: '77' },
         empty: locale.employeeManage.reportEmpty('Anna \\*S\\*'),
@@ -236,7 +237,7 @@ describe('EmployeeManageHandler', () => {
     vi.useRealTimers();
   });
 
-  it('refuses a report for an employee without Telegram or not active', async () => {
+  it('refuses a report for an employee without a bound channel or not active', async () => {
     channelService.findByUser.mockResolvedValueOnce([]);
     userService.findById.mockResolvedValueOnce(USER).mockResolvedValueOnce({
       ...USER,
