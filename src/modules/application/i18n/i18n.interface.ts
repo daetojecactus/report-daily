@@ -94,6 +94,7 @@ export interface CommonLocale {
     timeZoneInvalid: string;
     gender: string;
     chooseGender: string;
+    schedule: LocaleSwitch;
     ai: LocaleSwitch;
     aiData: LocaleSwitch;
     on: string;

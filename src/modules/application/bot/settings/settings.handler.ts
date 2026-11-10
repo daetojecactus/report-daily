@@ -89,6 +89,10 @@ export class SettingsHandler implements BotHandler {
               gender: button.data.gender,
             })
           : this.askGender(locale);
+      case SettingsAction.SCHEDULE:
+        return this.save(locale, user, actor.language, {
+          scheduleEnabled: button.data.isOn,
+        });
       case SettingsAction.AI:
         return this.save(locale, user, actor.language, {
           aiEnabled: button.data.isOn,
@@ -103,6 +107,7 @@ export class SettingsHandler implements BotHandler {
   private showMenu(locale: Locale, user: User, language: Language): BotReply {
     const { settings } = locale;
     const switches = [
+      { action: SettingsAction.SCHEDULE, text: settings.schedule, isOn: user.scheduleEnabled },
       { action: SettingsAction.AI, text: settings.ai, isOn: user.aiEnabled },
       {
         action: SettingsAction.AI_DATA,

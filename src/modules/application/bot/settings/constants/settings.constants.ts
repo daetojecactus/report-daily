@@ -74,7 +74,11 @@ export const SETTINGS_BUTTON_SCHEMA = z.union([
     .tuple([NAMESPACE_SCHEMA, z.literal(SettingsAction.GENDER), z.enum(Gender)])
     .transform(([, action, gender]) => ({ action, gender })),
   z
-    .tuple([NAMESPACE_SCHEMA, z.enum([SettingsAction.AI, SettingsAction.AI_DATA]), SWITCH_SCHEMA])
+    .tuple([
+      NAMESPACE_SCHEMA,
+      z.enum([SettingsAction.SCHEDULE, SettingsAction.AI, SettingsAction.AI_DATA]),
+      SWITCH_SCHEMA,
+    ])
     .transform(([, action, isOn]) => ({ action, isOn })),
 ]);
 

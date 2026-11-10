@@ -30,6 +30,7 @@ const MENU_BUTTONS = [
     { text: 'Time zone', data: 'set:tz' },
     { text: 'Gender', data: 'set:gender' },
   ],
+  [{ text: 'Scheduled report: yes', data: 'set:sched:off' }],
   [{ text: 'AI: yes', data: 'set:ai:off' }],
   [{ text: 'Data in AI: yes', data: 'set:aidata:off' }],
   [{ text: 'Report template', data: 'tpl:menu' }],
@@ -86,6 +87,7 @@ describe('SettingsHandler', () => {
           'Time zone: `Asia/Almaty`, default',
           'Gender: male',
           '',
+          '**Scheduled report** — send the report on its own at your time on days with actions; `/report` always works',
           '**AI** — improve the wording of report lines with AI',
           '**Data in AI** — send the titles of my commits and excerpts of my comments to AI',
         ].join('\n'),
@@ -205,11 +207,13 @@ describe('SettingsHandler', () => {
   it('shows the switched off values with the buttons to switch them on', async () => {
     const { screen } = await open({ type: ChatInputType.COMMAND, command: 'settings' }, null, {
       ...USER,
+      scheduleEnabled: false,
       aiEnabled: false,
       aiDataOptOut: true,
     });
 
     expect(screen.buttons?.slice(2)).toEqual([
+      [{ text: 'Scheduled report: no', data: 'set:sched:on' }],
       [{ text: 'AI: no', data: 'set:ai:on' }],
       [{ text: 'Data in AI: no', data: 'set:aidata:on' }],
       [{ text: 'Report template', data: 'tpl:menu' }],
@@ -217,6 +221,8 @@ describe('SettingsHandler', () => {
   });
 
   it.each<[string, UserSettingsUpdate]>([
+    ['set:sched:off', { scheduleEnabled: false }],
+    ['set:sched:on', { scheduleEnabled: true }],
     ['set:ai:off', { aiEnabled: false }],
     ['set:ai:on', { aiEnabled: true }],
     ['set:aidata:off', { aiDataOptOut: true }],

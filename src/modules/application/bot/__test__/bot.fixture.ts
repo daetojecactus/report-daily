@@ -21,6 +21,7 @@ export function createEmployee(values: Partial<User> = {}): UserWithChannel {
     language: Language.EN,
     timezone: null,
     reportTime: '18:00:00',
+    scheduleEnabled: true,
     aiEnabled: true,
     aiDataOptOut: false,
     permissions: [],

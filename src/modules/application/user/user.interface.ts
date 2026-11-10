@@ -14,6 +14,7 @@ export interface UserSettingsUpdate {
   language?: Language;
   reportTime?: string;
   timezone?: string | null;
+  scheduleEnabled?: boolean;
   aiEnabled?: boolean;
   aiDataOptOut?: boolean;
   gender?: Gender;
