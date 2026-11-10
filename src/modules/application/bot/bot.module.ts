@@ -94,10 +94,8 @@ import { SettingsHandler } from './settings/settings.handler';
     TraitsView,
     {
       provide: BOT_CHANNELS,
-      useFactory: (telegramService: TelegramService, slackService: SlackService): ChatChannel[] => [
-        telegramService,
-        ...(slackService.isEnabled() ? [slackService] : []),
-      ],
+      useFactory: (telegramService: TelegramService, slackService: SlackService): ChatChannel[] =>
+        [telegramService, slackService].filter((channel) => channel.isEnabled()),
       inject: [TelegramService, SlackService],
     },
   ],

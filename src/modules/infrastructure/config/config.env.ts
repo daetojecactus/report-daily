@@ -20,6 +20,7 @@ import {
   SLACK_BOT_TOKEN_PATTERN,
   SLACK_ENV_KEYS,
   TELEGRAM_DEFAULT_API_URL,
+  TELEGRAM_ENV_KEYS,
 } from './constants/config.constants';
 import { SLACK_USER_ID_PATTERN } from 'src/common/constants/slack.constants';
 import { TELEGRAM_USER_ID_PATTERN } from 'src/common/constants/telegram.constants';
@@ -30,11 +31,16 @@ function hasLlmEnv(env: AppEnvs) {
   return LLM_ENV_KEYS.some((key) => Boolean(env[key]));
 }
 
+function isSet(value: unknown) {
+  return Array.isArray(value) ? value.length > 0 : Boolean(value);
+}
+
 function hasSlackEnv(env: AppEnvs) {
-  return SLACK_ENV_KEYS.some((key) => {
-    const value = env[key];
-    return Array.isArray(value) ? value.length > 0 : Boolean(value);
-  });
+  return SLACK_ENV_KEYS.some((key) => isSet(env[key]));
+}
+
+function needsTelegramEnv(env: AppEnvs) {
+  return TELEGRAM_ENV_KEYS.some((key) => isSet(env[key])) || !hasSlackEnv(env);
 }
 
 function toList({ value }: { value: unknown }) {
@@ -68,14 +74,16 @@ export class AppEnvs {
   APP_TIMEZONE!: string;
 
   @Transform(toList)
+  @ValidateIf(needsTelegramEnv)
   @IsArray()
   @ArrayNotEmpty()
   @Matches(TELEGRAM_USER_ID_PATTERN, { each: true })
-  OWNER_TELEGRAM_IDS!: string[];
+  OWNER_TELEGRAM_IDS?: string[];
 
+  @ValidateIf(needsTelegramEnv)
   @IsString()
   @IsNotEmpty()
-  TELEGRAM_BOT_TOKEN!: string;
+  TELEGRAM_BOT_TOKEN?: string;
 
   @IsUrl({
     protocols: ['http', 'https'],

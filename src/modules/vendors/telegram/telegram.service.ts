@@ -27,6 +27,7 @@ import type {
   TelegramUpdate,
   TelegramUser,
 } from './telegram.interface';
+import { TelegramClient } from './telegram.client';
 import { TelegramRenderer } from './telegram.renderer';
 import { TelegramRepository } from './telegram.repository';
 
@@ -37,7 +38,12 @@ export class TelegramService implements ChatChannel {
   constructor(
     private readonly telegramRepository: TelegramRepository,
     private readonly telegramRenderer: TelegramRenderer,
+    private readonly telegramClient: TelegramClient,
   ) {}
+
+  isEnabled() {
+    return this.telegramClient.isEnabled();
+  }
 
   isUserId(value: string) {
     return TELEGRAM_USER_ID_PATTERN.test(value);
