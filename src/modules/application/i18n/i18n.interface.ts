@@ -132,6 +132,13 @@ export interface CommonLocale {
     save: string;
     saved: (name: string) => string;
     cancelled: string;
+    editText: string;
+    rename: string;
+    askNewName: (name: string, max: number) => string;
+    renamed: (name: string) => string;
+    bodyReplaced: (name: string) => string;
+    editCancelled: string;
+    backToTemplate: string;
   };
   sharedTemplates: {
     title: (count: number) => string;

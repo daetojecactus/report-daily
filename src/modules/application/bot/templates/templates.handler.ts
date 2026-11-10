@@ -18,6 +18,7 @@ import {
 } from './constants/templates.constants';
 import { TemplatesMessages } from './constants/templates.messages';
 import { TemplateAddAction } from '../template-add/template-add.enums';
+import { TemplateEditAction } from '../template-edit/template-edit.enums';
 import { TemplatesAction } from './templates.enums';
 
 @Injectable()
@@ -146,6 +147,10 @@ export class TemplatesHandler implements BotHandler {
           { text: texts.use, data: this.toData(TemplatesAction.USE, template.id) },
           { text: texts.delete, data: this.toData(TemplatesAction.DELETE, template.id) },
         ],
+        [
+          { text: texts.editText, data: this.toEditData(TemplateEditAction.TEXT, template.id) },
+          { text: texts.rename, data: this.toEditData(TemplateEditAction.NAME, template.id) },
+        ],
         [{ text: texts.backToMine, data: this.toData(TemplatesAction.MINE) }],
       ],
     );
@@ -186,6 +191,10 @@ export class TemplatesHandler implements BotHandler {
 
   private reply(lines: string[], buttons: ScreenButton[][]): BotReply {
     return { screen: { text: lines.join('\n'), buttons }, dialog: null };
+  }
+
+  private toEditData(action: TemplateEditAction, id: string) {
+    return [BotNamespace.TEMPLATE_EDIT, action, id].join(BOT_BUTTON_DATA_SEPARATOR);
   }
 
   private toData(...parts: string[]) {

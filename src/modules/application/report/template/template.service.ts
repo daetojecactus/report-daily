@@ -80,6 +80,14 @@ export class TemplateService {
     return this.deleteOne(and(eq(reportTemplates.id, id), eq(reportTemplates.ownerId, userId))!);
   }
 
+  rename(id: string, name: string) {
+    return this.updateOne(eq(reportTemplates.id, id), { name });
+  }
+
+  replaceBody(id: string, body: string) {
+    return this.updateOne(eq(reportTemplates.id, id), { body });
+  }
+
   isAvailable(template: ReportTemplate, userId: string) {
     return template.ownerId === null || template.ownerId === userId;
   }

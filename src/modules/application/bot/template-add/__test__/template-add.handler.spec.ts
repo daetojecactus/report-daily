@@ -19,6 +19,7 @@ import { AccessService } from '../../access/access.service';
 import type { BotActor, BotDialog } from '../../bot.interface';
 import { createEmployee } from '../../__test__/bot.fixture';
 import { Permission } from 'src/modules/application/user/user.enums';
+import { TemplatesDraft } from '../../templates/templates.draft';
 import { TemplateAddHandler } from '../template-add.handler';
 
 const locale = new I18nService().getLocale(Language.EN);
@@ -43,9 +44,10 @@ function button(data: string): ChatInput {
 describe('TemplateAddHandler', () => {
   const repository = { create: vi.fn<TemplateRepository['create']>() };
   const reportService = { findLatestSnapshot: vi.fn<ReportService['findLatestSnapshot']>() };
+  const templateService = new TemplateService(repository as unknown as TemplateRepository);
   const handler = new TemplateAddHandler(
-    new TemplateService(repository as unknown as TemplateRepository),
-    reportService as unknown as ReportService,
+    templateService,
+    new TemplatesDraft(templateService, reportService as unknown as ReportService),
     new AccessService(
       { get: () => [] } as unknown as ConfigService<AppEnvs, true>,
       {} as UserService,
