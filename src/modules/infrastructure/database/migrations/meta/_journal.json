@@ -113,6 +113,13 @@
       "when": 1794308351649,
       "tag": "0015_delivery_redirected",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1794313644579,
+      "tag": "0016_drop_broadcast_permission",
+      "breakpoints": true
     }
   ]
 }

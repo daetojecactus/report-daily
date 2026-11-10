@@ -88,7 +88,7 @@ export class UserRepository {
 
   async findReachable(channel: Channel, filter?: SQL) {
     const rows = await this.databaseService.db
-      .select({ user: users })
+      .select({ user: users, channel: userChannels })
       .from(users)
       .innerJoin(
         userChannels,
@@ -99,6 +99,6 @@ export class UserRepository {
         ),
       )
       .where(filter);
-    return rows.map(({ user }) => user);
+    return rows;
   }
 }

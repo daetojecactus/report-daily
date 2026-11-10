@@ -3,6 +3,7 @@ import { Permission } from 'src/modules/application/user/user.enums';
 import { BOT_BUTTON_DATA_SEPARATOR } from '../../constants/bot.constants';
 import { AdminSettingsAction } from '../../admin-settings/admin-settings.enums';
 import { BotNamespace } from '../../bot.enums';
+import { BroadcastAction } from '../../broadcast/broadcast.enums';
 import { EmployeesAction } from '../../employees/employees.enums';
 import { SharedTemplatesAction } from '../../shared-templates/shared-templates.enums';
 import { TraitsAction } from '../../traits/traits.enums';
@@ -32,6 +33,10 @@ export const ADMIN_SECTIONS = [
     data: [BotNamespace.ADMIN_SETTINGS, AdminSettingsAction.MENU].join(BOT_BUTTON_DATA_SEPARATOR),
   },
 ];
+
+export const ADMIN_BROADCAST_DATA = [BotNamespace.BROADCAST, BroadcastAction.START].join(
+  BOT_BUTTON_DATA_SEPARATOR,
+);
 
 export const ADMIN_BUTTON_SCHEMA = z.tuple([
   z.literal(BotNamespace.ADMIN),

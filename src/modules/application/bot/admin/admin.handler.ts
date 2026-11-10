@@ -5,7 +5,11 @@ import { BotSection } from '../bot.decorator';
 import { BotAccess, BotCommand, BotNamespace } from '../bot.enums';
 import type { BotContext, BotHandler, BotReply } from '../bot.interface';
 import { BOT_BUTTON_DATA_SEPARATOR } from '../constants/bot.constants';
-import { ADMIN_BUTTON_SCHEMA, ADMIN_SECTIONS } from './constants/admin.constants';
+import {
+  ADMIN_BROADCAST_DATA,
+  ADMIN_BUTTON_SCHEMA,
+  ADMIN_SECTIONS,
+} from './constants/admin.constants';
 
 @Injectable()
 @BotSection({
@@ -24,20 +28,18 @@ export class AdminHandler implements BotHandler {
       return { screen: { text: locale.bot.expired } };
     }
 
-    const sections = ADMIN_SECTIONS.filter(({ permission }) =>
-      this.accessService.isAllowed(actor, permission),
-    );
+    const sections = [
+      ...ADMIN_SECTIONS.filter(({ permission }) =>
+        this.accessService.isAllowed(actor, permission),
+      ).map(({ permission, data }) => ({ text: locale.permissions[permission], data })),
+      ...(actor.isOwner ? [{ text: locale.admin.broadcast, data: ADMIN_BROADCAST_DATA }] : []),
+    ];
     const lines = [locale.admin.title];
     if (sections.length === 0) {
       lines.push(locale.admin.noSections);
     }
     return {
-      screen: {
-        text: lines.join('\n'),
-        buttons: sections.map(({ permission, data }) => [
-          { text: locale.permissions[permission], data },
-        ]),
-      },
+      screen: { text: lines.join('\n'), buttons: sections.map((section) => [section]) },
       dialog: null,
     };
   }

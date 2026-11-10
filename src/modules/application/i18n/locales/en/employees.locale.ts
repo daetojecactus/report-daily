@@ -94,7 +94,6 @@ export const enEmployees: EmployeesLocale = {
     descriptions: {
       [Permission.USERS]: 'add, change, block and delete employees',
       [Permission.TRAITS]: 'map GitLab labels to task traits',
-      [Permission.BROADCAST]: 'send a broadcast to all employees',
       [Permission.SETTINGS]: 'report pause, AI, system status',
       [Permission.TEMPLATES]: 'create, edit and delete shared report templates',
     },

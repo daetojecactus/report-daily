@@ -10,10 +10,12 @@ import { UserModule } from 'src/modules/application/user/user.module';
 import { GitLabModule } from 'src/modules/vendors/gitlab/gitlab.module';
 import { TelegramModule } from 'src/modules/vendors/telegram/telegram.module';
 import { TelegramService } from 'src/modules/vendors/telegram/telegram.service';
+import { DeliveryTelegramQueueModule } from 'src/modules/queue/delivery-telegram/delivery-telegram-queue.module';
 import { ReportQueueModule } from 'src/modules/queue/report/report-queue.module';
 import { AccessService } from './access/access.service';
 import { AdminHandler } from './admin/admin.handler';
 import { AdminSettingsHandler } from './admin-settings/admin-settings.handler';
+import { BroadcastHandler } from './broadcast/broadcast.handler';
 import { BotService } from './bot.service';
 import { BOT_CHANNELS } from './constants/bot.constants';
 import { DialogService } from './dialog/dialog.service';
@@ -54,6 +56,7 @@ import { SettingsHandler } from './settings/settings.handler';
     ReportQueueModule,
     SettingsModule,
     AiModule,
+    DeliveryTelegramQueueModule,
   ],
   providers: [
     BotService,
@@ -66,6 +69,7 @@ import { SettingsHandler } from './settings/settings.handler';
     CancelHandler,
     AdminHandler,
     AdminSettingsHandler,
+    BroadcastHandler,
     EmployeesHandler,
     EmployeesCard,
     EmployeeAddHandler,

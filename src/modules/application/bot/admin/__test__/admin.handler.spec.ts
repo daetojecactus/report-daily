@@ -54,6 +54,7 @@ describe('AdminHandler', () => {
           [{ text: 'Traits', data: 'trt:list:0' }],
           [{ text: 'Templates', data: 'tpls:list' }],
           [{ text: 'Settings', data: 'aset:menu' }],
+          [{ text: 'Broadcast', data: 'bcast:start' }],
         ],
       },
       dialog: null,
@@ -84,8 +85,16 @@ describe('AdminHandler', () => {
     ]);
   });
 
-  it('says there is nothing yet for other permissions', () => {
-    const user = createEmployee({ permissions: [Permission.BROADCAST] }).user;
+  it('keeps the broadcast for the owner only', () => {
+    const user = createEmployee({ permissions: Object.values(Permission) }).user;
+
+    expect(open(actor({ user }), COMMAND).screen.buttons?.flat()).not.toContainEqual(
+      expect.objectContaining({ data: 'bcast:start' }),
+    );
+  });
+
+  it('says there is nothing for an employee without permissions', () => {
+    const user = createEmployee({ permissions: [] }).user;
 
     expect(open(actor({ user }), COMMAND).screen).toEqual({
       text: [locale.admin.title, locale.admin.noSections].join('\n'),

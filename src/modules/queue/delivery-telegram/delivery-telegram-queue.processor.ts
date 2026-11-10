@@ -23,13 +23,17 @@ import {
 } from 'src/modules/vendors/telegram/telegram.error';
 import { TelegramService } from 'src/modules/vendors/telegram/telegram.service';
 import {
+  DELIVERY_TELEGRAM_BROADCAST_JOB,
   DELIVERY_TELEGRAM_LIMITER,
   DELIVERY_TELEGRAM_QUEUE,
   DELIVERY_TELEGRAM_SECOND_MS,
   DELIVERY_TELEGRAM_SEND_JOB,
 } from './constants/delivery-telegram-queue.constants';
 import { DeliveryTelegramQueueMessages } from './constants/delivery-telegram-queue.messages';
-import type { DeliveryTelegramJobData } from './delivery-telegram-queue.interface';
+import type {
+  DeliveryTelegramBroadcastData,
+  DeliveryTelegramJobData,
+} from './delivery-telegram-queue.interface';
 
 @Processor(DELIVERY_TELEGRAM_QUEUE, { limiter: DELIVERY_TELEGRAM_LIMITER })
 export class DeliveryTelegramQueueProcessor extends WorkerHost implements OnModuleDestroy {
@@ -55,9 +59,39 @@ export class DeliveryTelegramQueueProcessor extends WorkerHost implements OnModu
   }
 
   async process(job: Job) {
-    if (job.name !== DELIVERY_TELEGRAM_SEND_JOB) {
-      throw new Error(`${DeliveryTelegramQueueMessages.UNKNOWN_JOB}: ${job.name}`);
+    switch (job.name) {
+      case DELIVERY_TELEGRAM_SEND_JOB:
+        return this.sendDelivery(job);
+      case DELIVERY_TELEGRAM_BROADCAST_JOB:
+        return this.sendBroadcast(job);
+      default:
+        throw new Error(`${DeliveryTelegramQueueMessages.UNKNOWN_JOB}: ${job.name}`);
     }
+  }
+
+  private async sendBroadcast(job: Job) {
+    const { chatId, text } = job.data as DeliveryTelegramBroadcastData;
+    try {
+      await this.telegramService.sendScreen(chatId, { text });
+    } catch (error) {
+      await this.pauseIfLimited(error, job.id);
+      if (error instanceof ChatUnreachableError) {
+        await this.channelService.updateReachable(Channel.TELEGRAM, chatId, false);
+        this.warn({ jobId: job.id, chatId }, error, DeliveryTelegramQueueMessages.CHAT_UNREACHABLE);
+        return;
+      }
+      if (error instanceof TelegramRejectedError) {
+        this.warn({ jobId: job.id, chatId }, error, DeliveryTelegramQueueMessages.REJECTED);
+        return;
+      }
+      if (job.attemptsMade + 1 >= (job.opts.attempts ?? 1)) {
+        this.warn({ jobId: job.id, chatId }, error, DeliveryTelegramQueueMessages.ATTEMPT_FAILED);
+      }
+      throw error;
+    }
+  }
+
+  private async sendDelivery(job: Job) {
     const { deliveryId } = job.data as DeliveryTelegramJobData;
     const delivery = await this.deliveryService.findById(deliveryId);
     if (delivery?.status !== DeliveryStatus.QUEUED) {
@@ -92,14 +126,7 @@ export class DeliveryTelegramQueueProcessor extends WorkerHost implements OnModu
       await this.deliveryService.markSent(deliveryId, messageIds[0]);
       await this.reportService.markDelivered(report.id);
     } catch (error) {
-      if (error instanceof TelegramRetryableError && error.retryAfterSeconds) {
-        this.logger.warn(
-          { deliveryId, retryAfterSeconds: error.retryAfterSeconds },
-          DeliveryTelegramQueueMessages.RATE_LIMITED,
-        );
-        await this.worker.rateLimit(error.retryAfterSeconds * DELIVERY_TELEGRAM_SECOND_MS);
-        throw Worker.RateLimitError();
-      }
+      await this.pauseIfLimited(error, job.id);
       if (error instanceof ChatUnreachableError) {
         if (!delivery.redirected) {
           await this.channelService.updateReachable(Channel.TELEGRAM, chatIds[0], false);
@@ -128,8 +155,23 @@ export class DeliveryTelegramQueueProcessor extends WorkerHost implements OnModu
     return chat ? [chat.externalId] : [];
   }
 
+  private async pauseIfLimited(error: unknown, jobId: string | undefined) {
+    if (error instanceof TelegramRetryableError && error.retryAfterSeconds) {
+      this.logger.warn(
+        { jobId, retryAfterSeconds: error.retryAfterSeconds },
+        DeliveryTelegramQueueMessages.RATE_LIMITED,
+      );
+      await this.worker.rateLimit(error.retryAfterSeconds * DELIVERY_TELEGRAM_SECOND_MS);
+      throw Worker.RateLimitError();
+    }
+  }
+
   private async fail(deliveryId: string, error: unknown, message: DeliveryTelegramQueueMessages) {
     await this.deliveryService.markFailed(deliveryId, getErrorMessage(error));
-    this.logger.warn({ deliveryId, error: getErrorMessage(error) }, message);
+    this.warn({ deliveryId }, error, message);
+  }
+
+  private warn(context: object, error: unknown, message: DeliveryTelegramQueueMessages) {
+    this.logger.warn({ ...context, error: getErrorMessage(error) }, message);
   }
 }
