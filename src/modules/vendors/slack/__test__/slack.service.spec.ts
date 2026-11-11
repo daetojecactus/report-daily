@@ -23,6 +23,7 @@ describe('SlackService', () => {
   const repository = {
     postMessage: vi.fn<SlackRepository['postMessage']>(),
     updateMessage: vi.fn<SlackRepository['updateMessage']>(),
+    findLocale: vi.fn<SlackRepository['findLocale']>(),
   };
   const formatter = new SlackFormatter();
   const renderer = new SlackRenderer(formatter);
@@ -85,6 +86,14 @@ describe('SlackService', () => {
     const network = new Error('socket hang up');
     repository.postMessage.mockRejectedValueOnce(network);
     await expect(service.sendScreen('U0123ABCD', SCREEN)).rejects.toBe(network);
+  });
+
+  it('reads the language of a member from the profile and survives a Slack failure', async () => {
+    repository.findLocale.mockResolvedValueOnce('ru-RU');
+    await expect(service.findLanguageCode('U0EMPLOY1')).resolves.toBe('ru-RU');
+
+    repository.findLocale.mockRejectedValueOnce(new Error('ratelimited'));
+    await expect(service.findLanguageCode('U0EMPLOY1')).resolves.toBeNull();
   });
 
   it('needs no button answers and no command menus', async () => {

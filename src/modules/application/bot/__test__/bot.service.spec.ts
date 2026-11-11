@@ -120,6 +120,7 @@ describe('BotService', () => {
     answerButton: vi.fn<ChatChannel['answerButton']>(),
     setDefaultCommands: vi.fn<ChatChannel['setDefaultCommands']>(),
     setChatCommands: vi.fn<ChatChannel['setChatCommands']>(),
+    findLanguageCode: vi.fn<ChatChannel['findLanguageCode']>(),
   };
 
   function createModule(handlers: Provider[]) {
@@ -455,6 +456,25 @@ describe('BotService', () => {
 
     expect(channel.sendScreen).toHaveBeenCalledWith(STRANGER_ID, {
       text: ru.bot.error,
+    });
+  });
+
+  it('replies with a failure message in the language of the employee', async () => {
+    asEmployee({ language: Language.RU });
+
+    await botService.replyFailure(event(EMPLOYEE_ID, text('hi'), 'en'));
+
+    expect(channel.sendScreen).toHaveBeenCalledWith(EMPLOYEE_ID, { text: ru.bot.error });
+  });
+
+  it('answers a stranger in the language the channel knows from the profile', async () => {
+    channel.findLanguageCode.mockResolvedValue('ru-RU');
+
+    await botService.handle(event(STRANGER_ID, text('hi'), null));
+
+    expect(channel.findLanguageCode).toHaveBeenCalledWith(STRANGER_ID);
+    expect(channel.sendScreen).toHaveBeenCalledWith(STRANGER_ID, {
+      text: ru.bot.noAccess(ru.channels.telegram, STRANGER_ID),
     });
   });
 

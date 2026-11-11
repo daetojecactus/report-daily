@@ -169,6 +169,30 @@ describe('AccessService', () => {
     expect(userService.recordContact).toHaveBeenCalledWith(found, Language.RU);
   });
 
+  it('asks the channel for the language only when neither the employee nor the update has it', async () => {
+    const found = createEmployee({ language: null });
+    const { service, userService } = createService(found);
+    const findLanguageCode = vi.fn().mockResolvedValue('ru-RU');
+    const event = {
+      channel: Channel.SLACK,
+      userId: found.channel.externalId,
+      chatId: found.channel.externalId,
+      languageCode: null,
+      input: { type: ChatInputType.TEXT, text: 'hi' },
+    } as const;
+
+    const resolved = await service.resolveActor(event, findLanguageCode);
+
+    expect(resolved.language).toBe(Language.RU);
+    expect(userService.recordContact).toHaveBeenCalledWith(found, Language.RU);
+
+    findLanguageCode.mockClear();
+    const known = createService(createEmployee({ language: Language.EN })).service;
+    expect((await known.resolveActor(event, findLanguageCode)).language).toBe(Language.EN);
+    await service.resolveActor({ ...event, languageCode: 'en' }, findLanguageCode);
+    expect(findLanguageCode).not.toHaveBeenCalled();
+  });
+
   it('hides a blocked employee', async () => {
     const found = createEmployee({ status: UserStatus.BLOCKED });
     const { service, userService } = createService(found);

@@ -44,6 +44,7 @@ export interface ChatEvent {
 export interface ChatChannel {
   readonly channel: Channel;
   isUserId(value: string): boolean;
+  findLanguageCode(userId: string): Promise<string | null>;
   sendScreen(chatId: string, screen: Screen): Promise<string>;
   editScreen(chatId: string, messageId: string, screen: Screen): Promise<void>;
   answerButton(callbackId: string): Promise<void>;

@@ -50,6 +50,10 @@ export class TelegramService implements ChatChannel {
     return TELEGRAM_USER_ID_PATTERN.test(value);
   }
 
+  findLanguageCode() {
+    return Promise.resolve(null);
+  }
+
   getUpdates(offset: number, signal: AbortSignal) {
     return this.telegramRepository.getUpdates(offset, signal);
   }

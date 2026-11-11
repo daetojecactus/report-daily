@@ -1,4 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
+import { getErrorMessage } from 'src/common/utils/error.util';
 import { type Channel } from 'src/common/channel/types/channel.enums';
 import { ChatUnreachableError } from 'src/common/channel/chat-unreachable.error';
 import type { Locale } from 'src/modules/application/i18n/types/i18n.interface';
@@ -41,7 +42,7 @@ export class BotService {
   }
 
   async handle(event: ChatEvent) {
-    const actor = await this.accessService.resolveActor(event);
+    const actor = await this.resolveActor(event);
     const { screen, newMessage } = await this.dispatch(
       actor,
       event.input,
@@ -52,7 +53,7 @@ export class BotService {
 
   async replyFailure(event: ChatEvent) {
     const channel = this.getChannel(event.channel);
-    const locale = this.i18nService.getLocale(this.i18nService.resolveLanguage(event.languageCode));
+    const locale = this.i18nService.getLocale(await this.findFailureLanguage(event));
     if (event.input.type === ChatInputType.BUTTON) {
       await channel.answerButton(event.input.callbackId);
     }
@@ -72,6 +73,21 @@ export class BotService {
       }
       await this.channelService.updateReachable(channel, externalId, false);
       this.logger.warn({ channel }, BotMessages.CHANNEL_UNREACHABLE);
+    }
+  }
+
+  private resolveActor(event: ChatEvent) {
+    return this.accessService.resolveActor(event, () =>
+      this.getChannel(event.channel).findLanguageCode(event.userId),
+    );
+  }
+
+  private async findFailureLanguage(event: ChatEvent) {
+    try {
+      return (await this.resolveActor(event)).language;
+    } catch (error) {
+      this.logger.warn({ error: getErrorMessage(error) }, BotMessages.LANGUAGE_FAILED);
+      return this.i18nService.resolveLanguage(event.languageCode);
     }
   }
 

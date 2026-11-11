@@ -27,9 +27,14 @@ export class AccessService {
     };
   }
 
-  async resolveActor(event: ChatEvent): Promise<BotActor> {
+  async resolveActor(
+    event: ChatEvent,
+    findLanguageCode: () => Promise<string | null> = () => Promise.resolve(null),
+  ): Promise<BotActor> {
     const found = await this.userService.findOneByChannel(event.channel, event.userId);
-    const language = found?.user.language ?? this.i18nService.resolveLanguage(event.languageCode);
+    const language =
+      found?.user.language ??
+      this.i18nService.resolveLanguage(event.languageCode ?? (await findLanguageCode()));
     const isActive = found !== null && found.user.status !== UserStatus.BLOCKED;
     if (isActive) {
       await this.userService.recordContact(found, language);
