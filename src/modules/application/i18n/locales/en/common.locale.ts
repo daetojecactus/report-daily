@@ -59,7 +59,7 @@ export const enCommon: CommonLocale = {
     [Gender.FEMALE]: 'female',
   },
   statuses: {
-    [UserStatus.PENDING]: 'waiting for connection',
+    [UserStatus.PENDING]: 'waiting for a channel',
     [UserStatus.ACTIVE]: 'active',
     [UserStatus.BLOCKED]: 'blocked',
   },
@@ -82,7 +82,7 @@ export const enCommon: CommonLocale = {
     owner:
       'Hello! You are an owner of Report Daily and have all permissions. Manage the bot with /admin.',
     employee: (name) =>
-      `Hello, ${name}! Every working day I will send you a report on your work in GitLab.`,
+      `Hello, ${name}! On days with your actions in GitLab I will send you a report on your work at your time. Time, language and template: /settings.`,
   },
   help: {
     title: '**Commands**',
@@ -90,7 +90,7 @@ export const enCommon: CommonLocale = {
     sections: {
       [BotCommand.REPORT]: 'Report',
       [BotCommand.SETTINGS]: 'Settings',
-      [BotCommand.ADMIN]: 'Admin',
+      [BotCommand.ADMIN]: 'Management',
     },
   },
   cancel: {
@@ -121,7 +121,7 @@ export const enCommon: CommonLocale = {
     schedule: {
       name: 'Scheduled report',
       description:
-        'send the report on its own at your time on days with actions; `/report` always works',
+        'send the report automatically at your time on days with actions; `/report` always works',
     },
     ai: {
       name: 'AI',
@@ -133,7 +133,7 @@ export const enCommon: CommonLocale = {
     },
     channels: {
       name: 'Channels',
-      description: 'where scheduled reports and broadcasts come; at least one stays on',
+      description: 'where scheduled reports and broadcasts go; at least one stays on',
     },
     lastChannel: 'At least one channel has to get the reports. Turn another one on first.',
     on: 'yes',
@@ -147,7 +147,7 @@ export const enCommon: CommonLocale = {
     shared: (name) => `${name} (shared)`,
     mine: 'My templates',
     toSettings: 'Settings',
-    chosen: (name) => `Done: your report will come in the template "${name}".`,
+    chosen: (name) => `Done: your report will use the template "${name}".`,
     notFound: 'Template not found: it may have been deleted.',
     mineTitle: (count) => `**My templates** · ${count}`,
     mineEmpty:
@@ -175,9 +175,9 @@ export const enCommon: CommonLocale = {
     preview: (date) => `Preview on your report for ${date}:`,
     emptyOutput: '(the template printed nothing)',
     noPreview:
-      'The template has no errors. There is no preview: you have no built report yet, `/report` gives one.',
+      'The template has no errors. There is no preview: you have no built report yet; run `/report` to get one.',
     previewHint:
-      'To fix it, send the corrected text or press "Edit text". The template is saved only by "Save".',
+      'To fix it, send the corrected text or press "Edit text". The template is saved only when you press "Save".',
     save: 'Save',
     saved: (name) => `The template **${name}** is saved.`,
     cancelled: 'Creating the template is cancelled.',
@@ -186,7 +186,7 @@ export const enCommon: CommonLocale = {
     askNewName: (name, max) => `A new name for **${name}**? Up to ${max} characters.`,
     renamed: (name) => `Done: the template is now called **${name}**.`,
     bodyReplaced: (name) =>
-      `The text of **${name}** is replaced. The next report comes with the new text.`,
+      `The text of **${name}** is updated. The next report uses the new text.`,
     editCancelled: 'The change is cancelled.',
     backToTemplate: 'To the template',
   },

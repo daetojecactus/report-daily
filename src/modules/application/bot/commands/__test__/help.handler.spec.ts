@@ -45,7 +45,7 @@ describe('HelpHandler', () => {
       [
         { text: 'Report', data: 'rpt:menu' },
         { text: 'Settings', data: 'set:menu' },
-        { text: 'Admin', data: 'adm:menu' },
+        { text: 'Management', data: 'adm:menu' },
       ],
     ]);
   });

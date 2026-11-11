@@ -96,7 +96,7 @@ describe('SettingsHandler', () => {
           'Time zone: `Asia/Almaty`, default',
           'Gender: male',
           '',
-          '**Scheduled report** — send the report on its own at your time on days with actions; `/report` always works',
+          '**Scheduled report** — send the report automatically at your time on days with actions; `/report` always works',
           '**AI** — improve the wording of report lines with AI',
           '**Data in AI** — send the titles of my commits and excerpts of my comments to AI',
         ].join('\n'),

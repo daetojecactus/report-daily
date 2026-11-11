@@ -28,7 +28,7 @@ export const enEmployees: EmployeesLocale = {
       permissions: 'Permissions',
       noChannels: 'not connected',
       reachable: 'connected',
-      unreachable: 'unreachable, the bot is blocked',
+      unreachable: 'unreachable, the bot cannot write there',
       lastActivity: 'Last activity in GitLab',
       activityHidden: 'not visible: the profile is closed or there are no events yet',
       activityUnknown: 'could not check',
@@ -57,7 +57,7 @@ export const enEmployees: EmployeesLocale = {
     alreadyAdded: (name) => `**${name}** is already an employee.`,
     added: (name) => `Employee added: **${name}**.`,
     activityHidden:
-      'GitLab shows no events of this employee: the profile is private or there was no activity yet. If the profile is private, ask to make it public.',
+      'GitLab shows no events of this employee: the profile is private or there was no activity yet. If the profile is private, ask them to make it public.',
     activityUnknown: "Could not check the employee's activity in GitLab.",
     pending: 'No channel is bound yet, so reports are not sent.',
     openCard: 'Open the card',
@@ -128,7 +128,7 @@ export const enEmployees: EmployeesLocale = {
       [Channel.TELEGRAM]:
         'If the employee has not written to the bot yet, ask them to open it and press Start.',
       [Channel.SLACK]:
-        'The bot writes to the employee in Slack direct messages itself, they do not need to do anything.',
+        'The bot writes to the employee in Slack direct messages itself; they do not need to do anything.',
     },
     cancel: 'Cancel',
     cancelled: 'Binding cancelled.',

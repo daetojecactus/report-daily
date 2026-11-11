@@ -201,7 +201,7 @@ describe('EmployeesHandler', () => {
         'Role: Developer',
         'Gender: male',
         'Status: active',
-        'Telegram: unreachable, the bot is blocked',
+        'Telegram: unreachable, the bot cannot write there',
         'Permissions: Employees, Traits',
         'Last activity in GitLab: 9 November at 17:42',
         'Last report: 8 November — delivered',
