@@ -17,6 +17,8 @@ import { JobRole } from 'src/modules/application/user/types/user.enums';
 import type { BotDialog } from '../../../core/types/bot.interface';
 import { TraitAddHandler } from '../trait-add.handler';
 import { TraitsView } from '../../traits.view';
+import { DialogService } from '../../../core/dialog.service';
+import type { RedisService } from 'src/modules/infrastructure/redis/redis.service';
 
 const locale = new I18nService().getLocale(Language.EN);
 const LABEL = 'status::easy';
@@ -71,6 +73,7 @@ describe('TraitAddHandler', () => {
     traitService as unknown as TraitService,
     traitNameService as unknown as TraitNameService,
     new TraitsView(),
+    new DialogService({} as RedisService),
   );
 
   function open(input: ChatInput, current: BotDialog | null = null) {

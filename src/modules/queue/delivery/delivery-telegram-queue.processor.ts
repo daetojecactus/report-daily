@@ -1,5 +1,5 @@
 import { Processor } from '@nestjs/bullmq';
-import { type Job, Worker } from 'bullmq';
+import { Worker } from 'bullmq';
 import { ReportDelivery } from 'src/modules/application/bot/report/report.delivery';
 import { ChannelService } from 'src/modules/application/user/channel/channel.service';
 import { TelegramRetryableError } from 'src/modules/vendors/telegram/telegram.error';
@@ -22,12 +22,12 @@ export class DeliveryTelegramQueueProcessor extends DeliveryQueueProcessor {
     super(reportDelivery, channelService);
   }
 
-  protected async waitIfLimited(error: unknown, job: Job) {
+  protected async waitIfLimited(error: unknown) {
     if (!(error instanceof TelegramRetryableError) || !error.retryAfterSeconds) {
       return;
     }
     this.logger.warn(
-      { jobId: job.id, retryAfterSeconds: error.retryAfterSeconds },
+      { channel: this.chatChannel.channel, retryAfterSeconds: error.retryAfterSeconds },
       DeliveryQueueMessages.RATE_LIMITED,
     );
     await this.worker.rateLimit(error.retryAfterSeconds * DELIVERY_SECOND_MS);

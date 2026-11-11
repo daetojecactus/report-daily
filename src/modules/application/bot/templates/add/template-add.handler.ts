@@ -9,6 +9,7 @@ import {
 import { TemplateService } from 'src/modules/application/report/template/template.service';
 import { Permission } from 'src/modules/application/user/types/user.enums';
 import { BotSection } from '../../core/bot.decorator';
+import { DialogService } from '../../core/dialog.service';
 import { BotAccess, BotNamespace } from '../../core/types/bot.enums';
 import { AccessService } from '../../core/access.service';
 import type {
@@ -39,6 +40,7 @@ export class TemplateAddHandler implements BotHandler {
     private readonly templateService: TemplateService,
     private readonly templatesDraft: TemplatesDraft,
     private readonly accessService: AccessService,
+    private readonly dialogService: DialogService,
   ) {}
 
   async handle({ actor, input, dialog, locale }: BotContext): Promise<BotReply> {
@@ -201,11 +203,12 @@ export class TemplateAddHandler implements BotHandler {
   }
 
   private readDraft(dialog: BotDialog | null, ...steps: string[]) {
-    if (dialog?.namespace !== BotNamespace.TEMPLATE_ADD || !steps.includes(dialog.step)) {
-      return null;
-    }
-    const draft = TEMPLATE_ADD_DRAFT_SCHEMA.safeParse(dialog.data);
-    return draft.success ? draft.data : null;
+    return this.dialogService.readDraft(
+      dialog,
+      BotNamespace.TEMPLATE_ADD,
+      TEMPLATE_ADD_DRAFT_SCHEMA,
+      ...steps,
+    );
   }
 
   private toDialog(step: TemplateAddStep, data: Record<string, unknown>) {

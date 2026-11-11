@@ -13,6 +13,7 @@ import { TraitService } from 'src/modules/application/trait/trait.service';
 import { TraitNameService } from 'src/modules/application/trait/trait-name/trait-name.service';
 import { JobRole, Permission } from 'src/modules/application/user/types/user.enums';
 import { BotSection } from '../../core/bot.decorator';
+import { DialogService } from '../../core/dialog.service';
 import { BotAccess, BotNamespace } from '../../core/types/bot.enums';
 import type {
   BotActor,
@@ -41,6 +42,7 @@ export class TraitAddHandler implements BotHandler {
     private readonly traitService: TraitService,
     private readonly traitNameService: TraitNameService,
     private readonly traitsView: TraitsView,
+    private readonly dialogService: DialogService,
   ) {}
 
   async handle({ actor, input, dialog, locale }: BotContext): Promise<BotReply> {
@@ -308,11 +310,12 @@ export class TraitAddHandler implements BotHandler {
   }
 
   private readDraft(dialog: BotDialog | null, step: string) {
-    if (dialog?.namespace !== BotNamespace.TRAIT_ADD || dialog.step !== step) {
-      return null;
-    }
-    const draft = TRAIT_ADD_DRAFT_SCHEMA.safeParse(dialog.data);
-    return draft.success ? draft.data : null;
+    return this.dialogService.readDraft(
+      dialog,
+      BotNamespace.TRAIT_ADD,
+      TRAIT_ADD_DRAFT_SCHEMA,
+      step,
+    );
   }
 
   private toDialog(step: TraitAddStep, data: Record<string, unknown>) {

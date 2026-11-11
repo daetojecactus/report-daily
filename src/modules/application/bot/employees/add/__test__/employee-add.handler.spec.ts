@@ -21,6 +21,8 @@ import type { BotDialog } from '../../../core/types/bot.interface';
 import { createEmployee } from '../../../__test__/bot.fixture';
 import type { EmployeesCard } from '../../employees.card';
 import { EmployeeAddHandler } from '../employee-add.handler';
+import { DialogService } from '../../../core/dialog.service';
+import type { RedisService } from 'src/modules/infrastructure/redis/redis.service';
 
 const locale = new I18nService().getLocale(Language.EN);
 const CANDIDATE = { id: 501, username: 'anna_s', name: 'Anna *Smirnova*' };
@@ -64,6 +66,7 @@ describe('EmployeeAddHandler', () => {
     userService as unknown as UserService,
     gitlabService as unknown as GitLabService,
     employeesCard as unknown as EmployeesCard,
+    new DialogService({} as RedisService),
   );
 
   function open(input: ChatInput, current: BotDialog | null = null) {

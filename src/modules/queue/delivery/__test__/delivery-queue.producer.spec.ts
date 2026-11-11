@@ -47,7 +47,7 @@ describe('DeliveryQueueProducer', () => {
     expect(slack.addBulk).toHaveBeenCalledExactlyOnceWith(
       ['U0EMPLOY1', 'U0EMPLOY2'].map((chatId) => ({
         name: DELIVERY_BROADCAST_JOB,
-        data: { chatId, text: 'Standup' },
+        data: { chatId, text: 'Standup', broadcastId: 'b-1' },
         opts: expect.objectContaining({ attempts: 5, jobId: `broadcast-b-1-${chatId}` }) as object,
       })),
     );

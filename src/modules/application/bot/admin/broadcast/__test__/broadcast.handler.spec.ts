@@ -14,6 +14,8 @@ import type { DeliveryQueueProducer } from 'src/modules/queue/delivery/delivery-
 import type { AccessService } from '../../../core/access.service';
 import type { BotDialog } from '../../../core/types/bot.interface';
 import { BroadcastHandler } from '../broadcast.handler';
+import { DialogService } from '../../../core/dialog.service';
+import type { RedisService } from 'src/modules/infrastructure/redis/redis.service';
 
 const locale = new I18nService().getLocale(Language.EN);
 const texts = locale.broadcast;
@@ -53,6 +55,7 @@ describe('BroadcastHandler', () => {
       producer as unknown as DeliveryQueueProducer,
       [{ channel: Channel.TELEGRAM }, { channel: Channel.SLACK }] as ChatChannel[],
       { get: () => mode } as unknown as ConfigService<AppEnvs, true>,
+      new DialogService({} as RedisService),
     );
   const open = (input: ChatInput, current: BotDialog | null = null, mode = DeliveryMode.LIVE) =>
     createHandler(mode).handle({

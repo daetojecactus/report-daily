@@ -47,6 +47,7 @@ import { TemplatesDraft } from './templates/templates.draft';
 import { TemplatesHandler } from './templates/templates.handler';
 import { RouterService } from './core/router.service';
 import { SettingsHandler } from './settings/settings.handler';
+import { SettingsView } from './settings/settings.view';
 
 @Module({
   imports: [
@@ -83,6 +84,7 @@ import { SettingsHandler } from './settings/settings.handler';
     EmployeeManageHandler,
     EmployeePermissionsHandler,
     SettingsHandler,
+    SettingsView,
     ReportHandler,
     ReportView,
     ReportDelivery,

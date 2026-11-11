@@ -19,6 +19,8 @@ import type { BotActor, BotDialog } from '../../../core/types/bot.interface';
 import { createEmployee } from '../../../__test__/bot.fixture';
 import { TemplatesDraft } from '../../templates.draft';
 import { TemplateEditHandler } from '../template-edit.handler';
+import { DialogService } from '../../../core/dialog.service';
+import type { RedisService } from 'src/modules/infrastructure/redis/redis.service';
 
 const locale = new I18nService().getLocale(Language.EN);
 const USER = createEmployee().user;
@@ -67,6 +69,7 @@ describe('TemplateEditHandler', () => {
       {} as UserService,
       new I18nService(),
     ),
+    new DialogService({} as RedisService),
   );
   const open = (
     input: ChatInput,

@@ -12,7 +12,11 @@ import {
   DELIVERY_SLACK_QUEUE,
   DELIVERY_TELEGRAM_QUEUE,
 } from './constants/delivery-queue.constants';
-import type { DeliveryBroadcastMessage, DeliveryJobData } from './types/delivery-queue.interface';
+import type {
+  DeliveryBroadcastData,
+  DeliveryBroadcastMessage,
+  DeliveryJobData,
+} from './types/delivery-queue.interface';
 
 @Injectable()
 export class DeliveryQueueProducer {
@@ -35,14 +39,17 @@ export class DeliveryQueueProducer {
 
   async addBroadcast(channel: Channel, broadcastId: string, messages: DeliveryBroadcastMessage[]) {
     await this.queues[channel].addBulk(
-      messages.map((data) => ({
-        name: DELIVERY_BROADCAST_JOB,
-        data,
-        opts: {
-          ...DELIVERY_JOB_OPTIONS,
-          jobId: `${DELIVERY_BROADCAST_ID_PREFIX}${[broadcastId, data.chatId].join(DELIVERY_JOB_ID_SEPARATOR)}`,
-        },
-      })),
+      messages.map((message) => {
+        const data: DeliveryBroadcastData = { ...message, broadcastId };
+        return {
+          name: DELIVERY_BROADCAST_JOB,
+          data,
+          opts: {
+            ...DELIVERY_JOB_OPTIONS,
+            jobId: `${DELIVERY_BROADCAST_ID_PREFIX}${[broadcastId, message.chatId].join(DELIVERY_JOB_ID_SEPARATOR)}`,
+          },
+        };
+      }),
     );
   }
 }

@@ -13,6 +13,7 @@ import { DeliveryQueueProducer } from 'src/modules/queue/delivery/delivery-queue
 import { AccessService } from '../../core/access.service';
 import { ADMIN_MENU_DATA } from '../constants/admin.constants';
 import { BotSection } from '../../core/bot.decorator';
+import { DialogService } from '../../core/dialog.service';
 import { BotAccess, BotNamespace } from '../../core/types/bot.enums';
 import type {
   BotActor,
@@ -43,6 +44,7 @@ export class BroadcastHandler implements BotHandler {
     private readonly deliveryQueueProducer: DeliveryQueueProducer,
     @Inject(BOT_CHANNELS) private readonly channels: ChatChannel[],
     configService: ConfigService<AppEnvs, true>,
+    private readonly dialogService: DialogService,
   ) {
     this.redirect = configService.get('DELIVERY_MODE', { infer: true }) === DeliveryMode.REDIRECT;
   }
@@ -135,7 +137,7 @@ export class BroadcastHandler implements BotHandler {
       }
     }
     this.logger.log(
-      { recipients: people, redirected: this.redirect, actorId: actor.externalId },
+      { recipients: people, redirected: this.redirect, actorId: actor.user?.id ?? BotAccess.OWNER },
       BroadcastSectionMessages.SENT,
     );
     return this.toMenuReply(
@@ -153,14 +155,12 @@ export class BroadcastHandler implements BotHandler {
   }
 
   private readDraft(dialog: BotDialog | null) {
-    if (
-      dialog?.namespace !== BotNamespace.BROADCAST ||
-      dialog.step !== String(BroadcastStep.PREVIEW)
-    ) {
-      return null;
-    }
-    const draft = BROADCAST_DRAFT_SCHEMA.safeParse(dialog.data);
-    return draft.success ? draft.data : null;
+    return this.dialogService.readDraft(
+      dialog,
+      BotNamespace.BROADCAST,
+      BROADCAST_DRAFT_SCHEMA,
+      String(BroadcastStep.PREVIEW),
+    );
   }
 
   private toMenuReply(locale: Locale, text: string): BotReply {

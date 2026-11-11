@@ -16,6 +16,7 @@ import type { BotDialog } from '../../core/types/bot.interface';
 import type { MenuService } from '../../core/menu.service';
 import { createEmployee } from '../../__test__/bot.fixture';
 import { SettingsHandler } from '../settings.handler';
+import { SettingsView } from '../settings.view';
 
 const i18nService = new I18nService();
 const en = i18nService.getLocale(Language.EN);
@@ -55,11 +56,11 @@ describe('SettingsHandler', () => {
   };
   const menuService = { syncEmployee: vi.fn() };
   const handler = new SettingsHandler(
-    { get: () => 'Asia/Almaty' } as unknown as ConfigService<AppEnvs, true>,
     userService as unknown as UserService,
     channelService as unknown as ChannelService,
     menuService as unknown as MenuService,
     i18nService,
+    new SettingsView({ get: () => 'Asia/Almaty' } as unknown as ConfigService<AppEnvs, true>),
     [{ channel: Channel.TELEGRAM }, { channel: Channel.SLACK }] as ChatChannel[],
   );
 

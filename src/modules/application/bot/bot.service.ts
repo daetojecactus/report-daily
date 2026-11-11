@@ -71,7 +71,7 @@ export class BotService {
         throw error;
       }
       await this.channelService.updateReachable(channel, externalId, false);
-      this.logger.warn(`${BotMessages.CHANNEL_UNREACHABLE}: ${channel} ${externalId}`);
+      this.logger.warn({ channel }, BotMessages.CHANNEL_UNREACHABLE);
     }
   }
 
@@ -156,7 +156,10 @@ export class BotService {
       }
       if (actor.user) {
         await this.channelService.updateReachable(event.channel, event.userId, false);
-        this.logger.warn(`${BotMessages.CHANNEL_UNREACHABLE}: ${actor.user.id}`);
+        this.logger.warn(
+          { userId: actor.user.id, channel: event.channel },
+          BotMessages.CHANNEL_UNREACHABLE,
+        );
       }
     }
   }

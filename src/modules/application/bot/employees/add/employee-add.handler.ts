@@ -14,6 +14,7 @@ import {
 import type { GitLabUser } from 'src/modules/vendors/gitlab/types/gitlab.interface';
 import { GitLabService } from 'src/modules/vendors/gitlab/gitlab.service';
 import { BotSection } from '../../core/bot.decorator';
+import { DialogService } from '../../core/dialog.service';
 import { BotAccess, BotNamespace } from '../../core/types/bot.enums';
 import type {
   BotActor,
@@ -46,6 +47,7 @@ export class EmployeeAddHandler implements BotHandler {
     private readonly userService: UserService,
     private readonly gitlabService: GitLabService,
     private readonly employeesCard: EmployeesCard,
+    private readonly dialogService: DialogService,
   ) {}
 
   async handle({ actor, input, dialog, locale }: BotContext): Promise<BotReply> {
@@ -274,11 +276,12 @@ export class EmployeeAddHandler implements BotHandler {
   }
 
   private readDraft(dialog: BotDialog | null, step: string) {
-    if (dialog?.namespace !== BotNamespace.EMPLOYEE_ADD || dialog.step !== step) {
-      return null;
-    }
-    const draft = EMPLOYEE_ADD_DRAFT_SCHEMA.safeParse(dialog.data);
-    return draft.success ? draft.data : null;
+    return this.dialogService.readDraft(
+      dialog,
+      BotNamespace.EMPLOYEE_ADD,
+      EMPLOYEE_ADD_DRAFT_SCHEMA,
+      step,
+    );
   }
 
   private toDialog(step: EmployeeAddStep, data: Record<string, unknown>) {

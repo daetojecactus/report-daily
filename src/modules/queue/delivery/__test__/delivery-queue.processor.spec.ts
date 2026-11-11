@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import { type Job, RateLimitError } from 'bullmq';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ChatUnreachableError } from 'src/common/channel/chat-unreachable.error';
@@ -37,7 +38,7 @@ function broadcastJob(attemptsMade = 0) {
   return {
     id: 'broadcast-b-1-2001',
     name: DELIVERY_BROADCAST_JOB,
-    data: { chatId: '2001', text: 'Standup at 11' },
+    data: { chatId: '2001', text: 'Standup at 11', broadcastId: 'b-1' },
     attemptsMade,
     opts: { attempts: 5 },
   } as unknown as Job;
@@ -168,6 +169,19 @@ describe('DeliveryQueueProcessor', () => {
 
     await expect(processor.process(broadcastJob())).resolves.toBeUndefined();
     expect(channelService.updateReachable).toHaveBeenCalledWith(Channel.TELEGRAM, '2001', false);
+  });
+
+  it('logs a broadcast failure by the broadcast and the channel, never by the chat', async () => {
+    const warn = vi.spyOn(Logger.prototype, 'warn');
+    telegramService.sendScreen.mockRejectedValue(new ChatUnreachableError('blocked'));
+
+    await processor.process(broadcastJob());
+
+    expect(warn).toHaveBeenCalledWith(
+      { broadcastId: 'b-1', channel: Channel.TELEGRAM, error: 'blocked' },
+      expect.any(String),
+    );
+    expect(JSON.stringify(warn.mock.calls)).not.toContain('2001');
   });
 
   it('drops a refused broadcast message and retries one with a network error', async () => {

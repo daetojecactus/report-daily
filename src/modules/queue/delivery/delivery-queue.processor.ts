@@ -9,7 +9,7 @@ import type { ReportDeliveryPlan } from 'src/modules/application/bot/report/type
 import type { ChannelService } from 'src/modules/application/user/channel/channel.service';
 import { DELIVERY_BROADCAST_JOB, DELIVERY_SEND_JOB } from './constants/delivery-queue.constants';
 import { DeliveryQueueMessages } from './constants/delivery-queue.messages';
-import type { DeliveryBroadcastMessage, DeliveryJobData } from './types/delivery-queue.interface';
+import type { DeliveryBroadcastData, DeliveryJobData } from './types/delivery-queue.interface';
 
 export abstract class DeliveryQueueProcessor extends WorkerHost implements OnModuleDestroy {
   protected readonly logger = new Logger(this.constructor.name);
@@ -76,12 +76,12 @@ export abstract class DeliveryQueueProcessor extends WorkerHost implements OnMod
   }
 
   private async sendBroadcast(job: Job) {
-    const { chatId, text } = job.data as DeliveryBroadcastMessage;
+    const { chatId, text, broadcastId } = job.data as DeliveryBroadcastData;
     try {
       await this.chatChannel.sendScreen(chatId, { text });
     } catch (error) {
       await this.waitIfLimited(error, job);
-      const context = { jobId: job.id, channel: this.chatChannel.channel, chatId };
+      const context = { broadcastId, channel: this.chatChannel.channel };
       if (error instanceof ChatUnreachableError) {
         await this.channelService.updateReachable(this.chatChannel.channel, chatId, false);
         this.warn(context, error, DeliveryQueueMessages.CHAT_UNREACHABLE);
