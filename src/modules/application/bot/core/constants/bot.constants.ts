@@ -9,6 +9,8 @@ export const BOT_DIALOG_KEY_PREFIX = 'dialog';
 
 export const BOT_DIALOG_TTL_MS = 30 * 60 * 1000;
 
+export const BOT_MENU_SIGNATURE_KEY = 'menu:signature';
+
 export const BOT_DIALOG_SCHEMA = z.object({
   namespace: z.string(),
   step: z.string(),

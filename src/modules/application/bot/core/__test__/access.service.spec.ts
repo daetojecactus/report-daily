@@ -148,8 +148,8 @@ describe('AccessService', () => {
       input: { type: ChatInputType.TEXT, text: 'hi' },
     });
 
-    expect(resolved.user).toBe(found.user);
-    expect(resolved.language).toBe(Language.RU);
+    expect(resolved?.user).toBe(found.user);
+    expect(resolved?.language).toBe(Language.RU);
     expect(userService.recordContact).toHaveBeenCalledWith(found, Language.RU);
   });
 
@@ -167,12 +167,12 @@ describe('AccessService', () => {
 
     const resolved = await service.resolveActor(event, findLanguageCode);
 
-    expect(resolved.language).toBe(Language.RU);
+    expect(resolved?.language).toBe(Language.RU);
     expect(userService.recordContact).toHaveBeenCalledWith(found, Language.RU);
 
     findLanguageCode.mockClear();
     const known = createService(createEmployee({ language: Language.EN })).service;
-    expect((await known.resolveActor(event, findLanguageCode)).language).toBe(Language.EN);
+    expect((await known.resolveActor(event, findLanguageCode))?.language).toBe(Language.EN);
     await service.resolveActor({ ...event, languageCode: 'en' }, findLanguageCode);
     expect(findLanguageCode).not.toHaveBeenCalled();
   });
@@ -189,8 +189,8 @@ describe('AccessService', () => {
       input: { type: ChatInputType.TEXT, text: 'hi' },
     });
 
-    expect(resolved.user).toBeNull();
-    expect(service.isKnown(resolved)).toBe(false);
+    expect(resolved).toMatchObject({ user: null, isOwner: false });
+    expect(service.isKnown(resolved!)).toBe(false);
     expect(userService.recordContact).not.toHaveBeenCalled();
   });
 
@@ -212,7 +212,7 @@ describe('AccessService', () => {
         languageCode: 'en',
         input: { type: ChatInputType.COMMAND, command: 'start' },
       });
-      return resolved.isOwner;
+      return resolved?.isOwner ?? false;
     };
 
     it('knows the owners of each channel by their own ids', async () => {
@@ -228,6 +228,27 @@ describe('AccessService', () => {
       const service = create({ OWNER_TELEGRAM_IDS: ['100'] });
 
       expect(await isOwner(service, Channel.SLACK, 'U0OWNER01')).toBe(false);
+      expect(service.listOwners().map(({ channel, chatId }) => [channel, chatId])).toEqual([
+        [Channel.TELEGRAM, '100'],
+      ]);
+    });
+
+    it('resolves nobody for a person who is neither an owner nor in the database', async () => {
+      const findLanguageCode = vi.fn().mockResolvedValue('ru-RU');
+
+      expect(
+        await create({ OWNER_TELEGRAM_IDS: ['100'] }).resolveActor(
+          {
+            channel: Channel.SLACK,
+            userId: 'U0STRANGE1',
+            chatId: 'U0STRANGE1',
+            languageCode: null,
+            input: { type: ChatInputType.TEXT, text: 'hi' },
+          },
+          findLanguageCode,
+        ),
+      ).toBeNull();
+      expect(findLanguageCode).not.toHaveBeenCalled();
     });
   });
 });

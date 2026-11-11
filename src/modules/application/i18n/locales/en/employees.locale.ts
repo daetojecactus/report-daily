@@ -98,9 +98,9 @@ export const enEmployees: EmployeesLocale = {
     promptId: (channel, name) => `**${name}**\nEnter the employee's ${channel} ID.`,
     idHint: {
       [Channel.TELEGRAM]:
-        'A Telegram ID is a number. The bot shows it to a person who writes to it without access.',
+        'A Telegram ID is a number. It is easier to pick the employee with "Choose in Telegram".',
       [Channel.SLACK]:
-        'The Slack ID is in the member profile: the three-dot menu, item "Copy member ID". The bot also shows it to a person who writes to it without access.',
+        'The Slack ID is in the member profile: the three-dot menu, item "Copy member ID".',
     },
     pick: (channel) => `Choose in ${channel}`,
     pickPrompt: {

@@ -5,6 +5,7 @@ export enum TelegramMethod {
   EDIT_MESSAGE_TEXT = 'editMessageText',
   ANSWER_CALLBACK_QUERY = 'answerCallbackQuery',
   SET_MY_COMMANDS = 'setMyCommands',
+  DELETE_MY_COMMANDS = 'deleteMyCommands',
 }
 
 export enum TelegramUpdateType {

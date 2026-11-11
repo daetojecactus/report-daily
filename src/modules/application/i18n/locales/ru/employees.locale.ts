@@ -98,9 +98,9 @@ export const ruEmployees: EmployeesLocale = {
     promptId: (channel, name) => `**${name}**\nВведите ${channel} ID сотрудника.`,
     idHint: {
       [Channel.TELEGRAM]:
-        'Telegram ID — число. Бот показывает его человеку, который пишет боту без доступа.',
+        'Telegram ID — число. Проще выбрать сотрудника кнопкой «Выбрать в Telegram».',
       [Channel.SLACK]:
-        'Slack ID есть в профиле участника: меню из трёх точек, пункт «Copy member ID». Ещё его показывает бот человеку, который пишет боту без доступа.',
+        'Slack ID есть в профиле участника: меню из трёх точек, пункт «Copy member ID».',
     },
     pick: (channel) => `Выбрать в ${channel}`,
     pickPrompt: {

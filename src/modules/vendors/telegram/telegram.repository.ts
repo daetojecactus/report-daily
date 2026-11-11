@@ -78,6 +78,13 @@ export class TelegramRepository {
     });
   }
 
+  async deleteMyCommands(scope: TelegramCommandScope, languageCode: string | null) {
+    await this.call(TelegramMethod.DELETE_MY_COMMANDS, {
+      scope,
+      ...(languageCode ? { language_code: languageCode } : {}),
+    });
+  }
+
   private async call<T>(
     method: TelegramMethod,
     params: object,
