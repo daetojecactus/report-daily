@@ -20,6 +20,12 @@ function createProducer() {
   return { queue, producer };
 }
 
+const KEEP = {
+  attempts: 1,
+  removeOnComplete: { age: 3600 },
+  removeOnFail: { age: 86_400 },
+};
+
 describe('InboundQueueProducer', () => {
   it('adds a Telegram event without retries under its update id', async () => {
     const { queue, producer } = createProducer();
@@ -29,7 +35,7 @@ describe('InboundQueueProducer', () => {
     expect(queue.add).toHaveBeenCalledWith(
       INBOUND_EVENT_JOB,
       { event },
-      { attempts: 1, jobId: 'tg-42' },
+      { ...KEEP, jobId: 'tg-42' },
     );
   });
 
@@ -42,7 +48,7 @@ describe('InboundQueueProducer', () => {
     expect(queue.add).toHaveBeenCalledWith(
       INBOUND_EVENT_JOB,
       { event: slackEvent },
-      { attempts: 1, jobId: 'slack-Ev01' },
+      { ...KEEP, jobId: 'slack-Ev01' },
     );
   });
 
