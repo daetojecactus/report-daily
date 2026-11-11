@@ -63,16 +63,16 @@ export const ruPhrases: PhrasesLocale = {
         female: 'Влила мердж-реквест',
       },
       [ReportPhrase.APPROVED_AND_MERGED]: {
-        male: 'Одобрил и смерджил',
-        female: 'Одобрила и смерджила',
+        male: 'Одобрил и влил',
+        female: 'Одобрила и влила',
       },
       [ReportPhrase.DEPENDENCIES_MERGED]: {
         male: 'Влил обновление зависимостей',
         female: 'Влила обновление зависимостей',
       },
       [ReportPhrase.OTHERS_MERGED]: {
-        male: 'Смерджил задачу коллеги',
-        female: 'Смерджила задачу коллеги',
+        male: 'Влил работу коллеги',
+        female: 'Влила работу коллеги',
       },
       [ReportPhrase.MERGE_REQUEST_CLOSED]: {
         male: 'Закрыл мердж-реквест без вливания',
@@ -91,18 +91,18 @@ export const ruPhrases: PhrasesLocale = {
         female: 'Проверила и закрыла задачу',
       },
       [ReportPhrase.WORK_ACCEPTED]: {
-        male: 'Принял выполненную работу',
-        female: 'Приняла выполненную работу',
+        male: 'Принял работу',
+        female: 'Приняла работу',
       },
       [ReportPhrase.CLOSED_WITHOUT_MERGE]: {
-        male: 'Закрыл задачу без мерджа',
-        female: 'Закрыла задачу без мерджа',
+        male: 'Закрыл задачу без вливания',
+        female: 'Закрыла задачу без вливания',
       },
       [ReportPhrase.TASK_CLOSED]: { male: 'Закрыл задачу', female: 'Закрыла задачу' },
       [ReportPhrase.MILESTONE_CLOSED]: { male: 'Закрыл веху', female: 'Закрыла веху' },
       [ReportPhrase.COMPLETED_BY_MERGE]: {
-        male: 'Завершил задачу мерджем',
-        female: 'Завершила задачу мерджем',
+        male: 'Влил изменения и завершил задачу',
+        female: 'Влила изменения и завершила задачу',
       },
       [ReportPhrase.TASK_COMPLETED]: { male: 'Завершил задачу', female: 'Завершила задачу' },
       [ReportPhrase.MILESTONE_REOPENED]: { male: 'Переоткрыл веху', female: 'Переоткрыла веху' },
@@ -114,12 +114,12 @@ export const ruPhrases: PhrasesLocale = {
         female: 'Одобрила обновление зависимостей',
       },
       [ReportPhrase.APPROVED_AFTER_REWORK]: {
-        male: 'Подтвердил корректность после доработки',
-        female: 'Подтвердила корректность после доработки',
+        male: 'Одобрил после доработки',
+        female: 'Одобрила после доработки',
       },
       [ReportPhrase.TESTED_AND_APPROVED]: {
-        male: 'Протестировал и подтвердил корректность',
-        female: 'Протестировала и подтвердила корректность',
+        male: 'Протестировал и одобрил',
+        female: 'Протестировала и одобрила',
       },
       [ReportPhrase.FIXES_ACCEPTED]: {
         male: 'Принял исправления',
@@ -134,16 +134,16 @@ export const ruPhrases: PhrasesLocale = {
         female: 'Отозвала одобрение',
       },
       [ReportPhrase.TESTED_AND_RETURNED_WITH_REMARKS]: {
-        male: 'Провёл тестирование, вернул с замечаниями',
-        female: 'Провела тестирование, вернула с замечаниями',
+        male: 'Протестировал и вернул с замечаниями',
+        female: 'Протестировала и вернула с замечаниями',
       },
       [ReportPhrase.RETURNED_WITH_REMARKS]: {
         male: 'Вернул на доработку с замечаниями',
         female: 'Вернула на доработку с замечаниями',
       },
       [ReportPhrase.TESTED_AND_RETURNED]: {
-        male: 'Провёл тестирование, вернул на доработку',
-        female: 'Провела тестирование, вернула на доработку',
+        male: 'Протестировал и вернул на доработку',
+        female: 'Протестировала и вернула на доработку',
       },
       [ReportPhrase.RETURNED_TO_DEVELOPMENT]: {
         male: 'Вернул задачу в разработку',
@@ -159,12 +159,12 @@ export const ruPhrases: PhrasesLocale = {
         female: 'Заблокировала релиз из-за бага',
       },
       [ReportPhrase.TESTED_WITH_REMARKS]: {
-        male: 'Провёл тестирование, оставил замечания',
-        female: 'Провела тестирование, оставила замечания',
+        male: 'Протестировал и оставил замечания',
+        female: 'Протестировала и оставила замечания',
       },
       [ReportPhrase.CHANGES_REQUESTED]: {
-        male: 'Запросил доработки по коду',
-        female: 'Запросила доработки по коду',
+        male: 'Запросил правки в коде',
+        female: 'Запросила правки в коде',
       },
       [ReportPhrase.FIXES_CHECKED]: {
         male: 'Проверил исправления',
@@ -181,20 +181,20 @@ export const ruPhrases: PhrasesLocale = {
       [ReportPhrase.BUG_FOUND]: { male: 'Обнаружил баг', female: 'Обнаружила баг' },
       [ReportPhrase.BUG_REPORTED]: { male: 'Завёл баг-репорт', female: 'Завела баг-репорт' },
       [ReportPhrase.BUG_FOUND_DURING_WORK]: {
-        male: 'Обнаружил ошибку в ходе работы',
-        female: 'Обнаружила ошибку в ходе работы',
+        male: 'Обнаружил баг в ходе работы',
+        female: 'Обнаружила баг в ходе работы',
       },
       [ReportPhrase.RESUBMITTED_TO_TESTING]: {
         male: 'Исправил замечания и вернул задачу на тестирование',
         female: 'Исправила замечания и вернула задачу на тестирование',
       },
       [ReportPhrase.FINISHED_AND_SENT_TO_REVIEW]: {
-        male: 'Доработал и отправил на ревью',
-        female: 'Доработала и отправила на ревью',
+        male: 'Завершил работу и отправил на ревью',
+        female: 'Завершила работу и отправила на ревью',
       },
       [ReportPhrase.FINISHED_AND_SENT_TO_TESTING]: {
-        male: 'Доработал и передал задачу на тестирование',
-        female: 'Доработала и передала задачу на тестирование',
+        male: 'Завершил работу и передал задачу на тестирование',
+        female: 'Завершила работу и передала задачу на тестирование',
       },
       [ReportPhrase.MOVED_TO_BACKLOG]: {
         male: 'Вернул задачу в бэклог',
@@ -269,8 +269,8 @@ export const ruPhrases: PhrasesLocale = {
         female: 'Разрабатывала E2E-покрытие',
       },
       [ReportPhrase.AUTOTESTS_MAINTAINED]: {
-        male: 'Актуализировал автотесты',
-        female: 'Актуализировала автотесты',
+        male: 'Обновил автотесты',
+        female: 'Обновила автотесты',
       },
       [ReportPhrase.AUTOTESTS_IN_PROGRESS]: {
         male: 'Разрабатывал автотесты',
@@ -379,7 +379,7 @@ export const ruPhrases: PhrasesLocale = {
         female: 'Запланировала задачу',
       },
       [ReportPhrase.TAGS_PUSHED]: { male: 'Отправил теги', female: 'Отправила теги' },
-      [ReportPhrase.TAG_CREATED]: { male: 'Поставил тег', female: 'Поставила тег' },
+      [ReportPhrase.TAG_CREATED]: { male: 'Создал тег', female: 'Создала тег' },
       [ReportPhrase.TECH_DEBT_RECORDED]: {
         male: 'Зафиксировал технический долг',
         female: 'Зафиксировала технический долг',
@@ -420,8 +420,8 @@ export const ruPhrases: PhrasesLocale = {
         female: 'Сняла исполнителя',
       },
       [ReportPhrase.TASK_ASSIGNED]: {
-        male: 'Назначил задачу в работу',
-        female: 'Назначила задачу в работу',
+        male: 'Назначил исполнителя задачи',
+        female: 'Назначила исполнителя задачи',
       },
       [ReportPhrase.ESTIMATE_CHANGED]: {
         male: 'Изменил оценку задачи',
@@ -514,7 +514,7 @@ export const ruPhrases: PhrasesLocale = {
       [WorkflowState.DONE]: 'выполнена',
       [WorkflowState.CANCELLED]: 'отменена',
       [WorkflowState.BLOCKED]: 'отложена',
-      [WorkflowState.NEEDS_INFO]: 'ждёт информации',
+      [WorkflowState.NEEDS_INFO]: 'ждёт уточнений',
       [WorkflowState.HANDOFF]: 'передана дальше',
     },
     closed: 'закрыта',
