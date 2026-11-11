@@ -1,8 +1,13 @@
 import { Injectable, Logger, type OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Redis } from 'ioredis';
+import { finishesWithin } from 'src/common/utils/timeout.util';
 import type { AppEnvs } from '../config/config.env';
-import { REDIS_RETRY_DELAY_MS, REDIS_RETRY_MAX_DELAY_MS } from './constants/redis.constants';
+import {
+  REDIS_QUIT_TIMEOUT_MS,
+  REDIS_RETRY_DELAY_MS,
+  REDIS_RETRY_MAX_DELAY_MS,
+} from './constants/redis.constants';
 import { RedisMessages } from './constants/redis.messages';
 
 @Injectable()
@@ -24,6 +29,9 @@ export class RedisClient implements OnModuleDestroy {
   }
 
   async onModuleDestroy() {
-    await this.client.quit();
+    if (!(await finishesWithin(this.client.quit(), REDIS_QUIT_TIMEOUT_MS))) {
+      this.logger.warn(RedisMessages.REDIS_QUIT_TIMED_OUT);
+      this.client.disconnect();
+    }
   }
 }

@@ -231,7 +231,7 @@ WantedBy=multi-user.target
 
 To update, run `git pull`, `pnpm install --frozen-lockfile` and `pnpm db:migrate`, then restart the service. Without Compose, `preview` is `pnpm preview` with the same arguments, and backups are `pg_dump --format=custom --file=report-daily.dump "$DATABASE_URL"`.
 
-On `SIGTERM` the bot stops taking new work and lets the running jobs finish within 45 seconds.
+On `SIGTERM` the bot stops taking new work and gives the running jobs up to 10 seconds per queue to finish; jobs that do not finish run again after the restart.
 
 ## Security
 

@@ -1,0 +1,1 @@
+export const SYSTEM_HEALTH_TIMEOUT_MS = 2000;
