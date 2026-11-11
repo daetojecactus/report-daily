@@ -105,6 +105,7 @@ export interface CommonLocale {
     use: string;
     delete: string;
     backToMine: string;
+    selected: (name: string) => string;
     confirmDelete: (name: string) => string;
     confirm: string;
     cancel: string;

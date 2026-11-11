@@ -8,8 +8,8 @@ export const ruEmployees: EmployeesLocale = {
     title: (count) => `**Сотрудники** · ${count}`,
     page: (page, pages) => `Страница ${page} из ${pages}`,
     empty: 'Сотрудников пока нет.',
-    previous: '‹ Назад',
-    next: 'Дальше ›',
+    previous: 'Назад',
+    next: 'Дальше',
     search: 'Найти',
     add: 'Добавить',
     bind: (channel) => `Привязать ${channel}`,
@@ -109,7 +109,7 @@ export const ruEmployees: EmployeesLocale = {
       [Channel.TELEGRAM]:
         'Telegram ID — число. Бот показывает его человеку, который пишет боту без доступа.',
       [Channel.SLACK]:
-        'Slack ID есть в профиле участника: «⋮» → «Copy member ID». Ещё его показывает бот человеку, который пишет боту без доступа.',
+        'Slack ID есть в профиле участника: меню из трёх точек, пункт «Copy member ID». Ещё его показывает бот человеку, который пишет боту без доступа.',
     },
     pick: (channel) => `Выбрать в ${channel}`,
     pickPrompt: {

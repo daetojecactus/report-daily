@@ -100,7 +100,7 @@ describe('SharedTemplatesHandler', () => {
             { text: 'Rename', data: `tpledit:name:${SHARED.id}` },
           ],
           [{ text: 'Delete', data: `tpls:del:${SHARED.id}` }],
-          [{ text: '‹ Shared templates', data: 'tpls:list' }],
+          [{ text: 'Shared templates', data: 'tpls:list' }],
         ],
       },
       dialog: null,

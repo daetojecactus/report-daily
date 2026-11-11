@@ -247,7 +247,7 @@ describe('TraitAddHandler', () => {
             { text: 'Medium', data: 'trtadd:val:medium' },
             { text: 'Low', data: 'trtadd:val:low' },
           ],
-          [{ text: '‹ Back', data: 'trtadd:dims' }, CANCEL],
+          [{ text: 'Back', data: 'trtadd:dims' }, CANCEL],
         ],
       },
       dialog: dialog('val', {

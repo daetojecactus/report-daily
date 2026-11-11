@@ -11,10 +11,7 @@ import { BotAccess, BotNamespace } from '../../core/types/bot.enums';
 import type { BotActor, BotContext, BotHandler, BotReply } from '../../core/types/bot.interface';
 import { BOT_BUTTON_DATA_SEPARATOR } from '../../core/constants/bot.constants';
 import { TraitsView } from '../traits.view';
-import {
-  TRAIT_MANAGE_BUTTON_SCHEMA,
-  TRAIT_MANAGE_CURRENT_MARK,
-} from './constants/trait-manage.constants';
+import { TRAIT_MANAGE_BUTTON_SCHEMA } from './constants/trait-manage.constants';
 import { TraitManageMessages } from './constants/trait-manage.messages';
 import { TraitManageAction } from './types/trait-manage.enums';
 
@@ -77,7 +74,7 @@ export class TraitManageHandler implements BotHandler {
       [
         ...this.traitsView.toRows(
           values.map((value, index) => ({
-            text: `${value === mapping.value ? TRAIT_MANAGE_CURRENT_MARK : ''}${this.traitsView.toValueName(locale, mapping.dimension, value)}`,
+            text: this.toValueText(locale, mapping, value),
             data: this.toData(TraitManageAction.SET, mapping.id, String(index)),
           })),
         ),
@@ -90,6 +87,11 @@ export class TraitManageHandler implements BotHandler {
         [{ text: traitManage.back, data: this.traitsView.toCardData(mapping.id) }],
       ],
     );
+  }
+
+  private toValueText(locale: Locale, mapping: TraitMapping, value: TraitValue): string {
+    const name = this.traitsView.toValueName(locale, mapping.dimension, value);
+    return value === mapping.value ? locale.traitManage.selected(name) : name;
   }
 
   private async changeValue(

@@ -15,7 +15,7 @@ describe('SlackRenderer', () => {
             { text: 'Language', data: 'set:lang' },
             { text: 'Report time', data: 'set:time' },
           ],
-          [{ text: '‹ Menu', data: 'adm:menu' }],
+          [{ text: 'Menu', data: 'adm:menu' }],
         ],
       }),
     ).toEqual({
@@ -44,7 +44,7 @@ describe('SlackRenderer', () => {
           elements: [
             {
               type: 'button',
-              text: { type: 'plain_text', text: '‹ Menu', emoji: true },
+              text: { type: 'plain_text', text: 'Menu', emoji: true },
               action_id: 'button-1-0',
               value: 'adm:menu',
             },

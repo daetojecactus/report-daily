@@ -116,7 +116,7 @@ describe('TemplateEditHandler', () => {
     expect(await open(text(' Daily '), dialog('name', { templateId: OWN.id }))).toEqual({
       screen: {
         text: locale.templates.renamed('Daily'),
-        buttons: [[{ text: '‹ To the template', data: `tpl:card:${OWN.id}` }]],
+        buttons: [[{ text: 'To the template', data: `tpl:card:${OWN.id}` }]],
       },
       dialog: null,
     });
@@ -158,7 +158,7 @@ describe('TemplateEditHandler', () => {
     ).toEqual({
       screen: {
         text: locale.templates.bodyReplaced('Mine'),
-        buttons: [[{ text: '‹ To the template', data: `tpl:card:${OWN.id}` }]],
+        buttons: [[{ text: 'To the template', data: `tpl:card:${OWN.id}` }]],
       },
       dialog: null,
     });
@@ -170,7 +170,7 @@ describe('TemplateEditHandler', () => {
     const admin = { user: { ...USER, permissions: [Permission.TEMPLATES] } };
 
     expect(await open(text('QA'), dialog('name', { templateId: SHARED.id }), admin)).toMatchObject({
-      screen: { buttons: [[{ text: '‹ To the template', data: `tpls:card:${SHARED.id}` }]] },
+      screen: { buttons: [[{ text: 'To the template', data: `tpls:card:${SHARED.id}` }]] },
     });
     expect(
       (await open(button(`tpledit:text:${SHARED.id}`), null, { isOwner: true, user: null })).dialog,

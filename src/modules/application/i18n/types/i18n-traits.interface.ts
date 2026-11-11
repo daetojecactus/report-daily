@@ -49,6 +49,7 @@ export interface TraitsLocale {
     restored: (label: string) => string;
   };
   traitManage: {
+    selected: (value: string) => string;
     askValue: (label: string, whom: string, dimension: string, value: string) => string;
     deleteValue: string;
     back: string;

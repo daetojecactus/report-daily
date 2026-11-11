@@ -36,7 +36,7 @@ export const ruCommon: CommonLocale = {
     yesterday: 'Вчера',
     otherDay: 'Другой день',
     chooseDay: (days) => `Выберите день — не раньше чем ${days} дней назад.`,
-    back: '‹ Назад',
+    back: 'Назад',
     todayText: 'сегодня',
     yesterdayText: 'вчера',
     building: (day) => `Собираю отчёт за ${day}. Пришлю, как только будет готов.`,
@@ -147,16 +147,17 @@ export const ruCommon: CommonLocale = {
     standard: 'Стандартный',
     shared: (name) => `${name} (общий)`,
     mine: 'Мои шаблоны',
-    toSettings: '‹ Настройки',
+    toSettings: 'Настройки',
     chosen: (name) => `Готово: отчёт будет приходить в шаблоне «${name}».`,
     notFound: 'Шаблон не найден: возможно, его уже удалили.',
     mineTitle: (count) => `**Мои шаблоны** · ${count}`,
     mineEmpty: 'Своих шаблонов пока нет. Нажмите «Создать»: бот спросит название и текст шаблона.',
     create: 'Создать',
-    back: '‹ Назад',
+    back: 'Назад',
     use: 'Выбрать',
     delete: 'Удалить',
-    backToMine: '‹ Мои шаблоны',
+    backToMine: 'Мои шаблоны',
+    selected: (name) => `${name} (выбран)`,
     confirmDelete: (name) =>
       `Удалить шаблон **${name}**? Если он выбран, отчёт вернётся к «Стандартному».`,
     confirm: 'Да, удалить',
@@ -186,21 +187,21 @@ export const ruCommon: CommonLocale = {
     bodyReplaced: (name) =>
       `Текст шаблона **${name}** обновлён. Следующий отчёт придёт по новому тексту.`,
     editCancelled: 'Изменение отменено.',
-    backToTemplate: '‹ К шаблону',
+    backToTemplate: 'К шаблону',
   },
   sharedTemplates: {
     title: (count) => `**Общие шаблоны** · ${count}`,
-    hint: 'Общий шаблон любой сотрудник может выбрать себе в /settings → «Шаблон отчёта».',
+    hint: 'Общий шаблон любой сотрудник может выбрать себе в /settings, раздел «Шаблон отчёта».',
     empty:
       'Общих шаблонов пока нет. Нажмите «Создать»: бот спросит название и текст шаблона, а сотрудники выберут его в /settings.',
     create: 'Создать',
     menu: 'Меню',
     usedBy: (count) => `Выбрали сотрудников: ${count}`,
-    backToList: '‹ Общие шаблоны',
+    backToList: 'Общие шаблоны',
     confirmDelete: (name, count) =>
       `Удалить общий шаблон **${name}**? Выбрали сотрудников: ${count}, у них отчёт вернётся к «Стандартному».`,
     saved: (name) =>
-      `Общий шаблон **${name}** сохранён. Сотрудники выберут его в /settings → «Шаблон отчёта».`,
+      `Общий шаблон **${name}** сохранён. Сотрудники выберут его в /settings, раздел «Шаблон отчёта».`,
   },
   broadcast: {
     title: '**Рассылка**',
@@ -218,13 +219,13 @@ export const ruCommon: CommonLocale = {
     sentRedirected: (count) =>
       `Режим проверки: рассылка ушла владельцам, сотрудникам — нет. Получателей было бы: ${count}.`,
     redirected: (count) =>
-      `↪ Рассылка — режим проверки \`DELIVERY_MODE=redirect\`, сотрудникам она не отправлена. Получателей было бы: ${count}.`,
+      `Рассылка — режим проверки \`DELIVERY_MODE=redirect\`, сотрудникам она не отправлена. Получателей было бы: ${count}.`,
     cancelled: 'Рассылка отменена.',
-    menu: '‹ Меню',
+    menu: 'Меню',
   },
   delivery: {
     redirected: (name) =>
-      `↪ Отчёт для **${name}** — режим проверки \`DELIVERY_MODE=redirect\`, сотруднику он не отправлен.`,
+      `Отчёт для **${name}** — режим проверки \`DELIVERY_MODE=redirect\`, сотруднику он не отправлен.`,
   },
   adminSettings: {
     title: '**Настройки**',
@@ -239,8 +240,8 @@ export const ruCommon: CommonLocale = {
     resume: 'Снять паузу',
     chooseDay: (days) =>
       `По какой день включительно поставить паузу? Можно выбрать не дальше чем на ${days} дней вперёд, дольше — «Пауза без срока».`,
-    back: '‹ Назад',
-    menu: '‹ Меню',
+    back: 'Назад',
+    menu: 'Меню',
     aiAlways:
       'В AI всегда уходят фраза действия, название и тип задачи. Чужие комментарии, описания задач, email и токены — никогда.',
     aiNotConfigured: 'AI не настроен: нужны переменные `LLM_BASE_URL`, `LLM_TOKEN` и `LLM_MODEL`.',

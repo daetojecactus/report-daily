@@ -20,7 +20,7 @@ import type { RedisService } from 'src/modules/infrastructure/redis/redis.servic
 const locale = new I18nService().getLocale(Language.EN);
 const texts = locale.broadcast;
 const CANCEL = { text: 'Cancel', data: 'bcast:cancel' };
-const MENU = [[{ text: '‹ Menu', data: 'adm:menu' }]];
+const MENU = [[{ text: 'Menu', data: 'adm:menu' }]];
 const RECIPIENTS = [
   { userId: 'user-1', channel: Channel.TELEGRAM, externalId: '2001' },
   { userId: 'user-1', channel: Channel.SLACK, externalId: 'U0ANNA01' },

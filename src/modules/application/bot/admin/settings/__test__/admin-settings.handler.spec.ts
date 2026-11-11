@@ -21,7 +21,7 @@ const PAUSES = [
   [{ text: 'Pause with no end', data: 'aset:forever' }],
 ];
 const RESUME = [{ text: 'Resume', data: 'aset:resume' }];
-const MENU = [{ text: '‹ Menu', data: 'adm:menu' }];
+const MENU = [{ text: 'Menu', data: 'adm:menu' }];
 const AI_TEXT = [
   texts.aiAlways,
   `**${texts.ai.name}** — ${texts.ai.description}`,
@@ -139,7 +139,7 @@ describe('AdminSettingsHandler', () => {
     expect(screen.buttons?.map((row) => row.length)).toEqual([3, 3, 3, 3, 2, 1]);
     expect(screen.buttons?.[0][0]).toEqual({ text: 'Wed 11 Nov', data: 'aset:until:2026-11-11' });
     expect(screen.buttons?.[4][1]).toEqual({ text: 'Tue 24 Nov', data: 'aset:until:2026-11-24' });
-    expect(screen.buttons?.[5]).toEqual([{ text: '‹ Back', data: 'aset:menu' }]);
+    expect(screen.buttons?.[5]).toEqual([{ text: 'Back', data: 'aset:menu' }]);
   });
 
   it('refuses a day that is not ahead or is too far', async () => {

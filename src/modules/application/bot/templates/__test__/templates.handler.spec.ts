@@ -73,17 +73,17 @@ describe('TemplatesHandler', () => {
         buttons: [
           [{ text: 'Standard', data: 'tpl:use:std' }],
           [{ text: 'QA (shared)', data: `tpl:use:${SHARED.id}` }],
-          [{ text: '✓ Mine *short*', data: `tpl:use:${OWN.id}` }],
+          [{ text: 'Mine *short* (selected)', data: `tpl:use:${OWN.id}` }],
           [
             { text: 'My templates', data: 'tpl:mine' },
-            { text: '‹ Settings', data: 'set:menu' },
+            { text: 'Settings', data: 'set:menu' },
           ],
         ],
       },
       dialog: null,
     });
     expect((await open('tpl:menu')).screen.buttons?.[0]).toEqual([
-      { text: '✓ Standard', data: 'tpl:use:std' },
+      { text: 'Standard (selected)', data: 'tpl:use:std' },
     ]);
   });
 
@@ -117,7 +117,7 @@ describe('TemplatesHandler', () => {
           [{ text: 'Mine *short*', data: `tpl:card:${OWN.id}` }],
           [
             { text: 'Create', data: 'tpladd:start' },
-            { text: '‹ Back', data: 'tpl:menu' },
+            { text: 'Back', data: 'tpl:menu' },
           ],
         ],
       },
@@ -146,7 +146,7 @@ describe('TemplatesHandler', () => {
             { text: 'Edit text', data: `tpledit:text:${OWN.id}` },
             { text: 'Rename', data: `tpledit:name:${OWN.id}` },
           ],
-          [{ text: '‹ My templates', data: 'tpl:mine' }],
+          [{ text: 'My templates', data: 'tpl:mine' }],
         ],
       },
       dialog: null,

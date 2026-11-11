@@ -2,8 +2,6 @@ import { z } from 'zod';
 import { BotNamespace } from '../../../core/types/bot.enums';
 import { TraitManageAction } from '../types/trait-manage.enums';
 
-export const TRAIT_MANAGE_CURRENT_MARK = '✓ ';
-
 const NAMESPACE_SCHEMA = z.literal(BotNamespace.TRAIT_MANAGE);
 
 const INDEX_SCHEMA = z

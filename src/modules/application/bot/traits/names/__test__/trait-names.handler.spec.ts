@@ -86,7 +86,7 @@ describe('TraitNamesHandler', () => {
         buttons: [
           [{ text: 'team::1', data: `trtnm:card:${name(1).id}:0` }],
           [{ text: 'team::2', data: `trtnm:card:${name(2).id}:0` }],
-          [{ text: 'Next ›', data: 'trtnm:list:new:1' }],
+          [{ text: 'Next', data: 'trtnm:list:new:1' }],
           [{ text: 'Ignored · 2', data: 'trtnm:list:ign:0' }, TRAITS],
         ],
       },
@@ -124,7 +124,7 @@ describe('TraitNamesHandler', () => {
     );
     expect(screen.buttons).toEqual([
       [{ text: 'team::9', data: `trtnm:card:${name(9).id}:1` }],
-      [{ text: '‹ Back', data: 'trtnm:list:ign:0' }],
+      [{ text: 'Back', data: 'trtnm:list:ign:0' }],
       [{ text: 'No traits', data: 'trtnm:list:new:0' }, TRAITS],
     ]);
   });
@@ -140,7 +140,7 @@ describe('TraitNamesHandler', () => {
             { text: 'Map', data: `trtadd:name:${name(1).id}` },
             { text: 'Ignore', data: `trtnm:ign:${name(1).id}:2` },
           ],
-          [{ text: '‹ Back', data: 'trtnm:list:new:2' }],
+          [{ text: 'Back', data: 'trtnm:list:new:2' }],
         ],
       },
       dialog: null,
@@ -158,7 +158,7 @@ describe('TraitNamesHandler', () => {
         { text: 'Map', data: `trtadd:name:${name(1).id}` },
         { text: 'Count again', data: `trtnm:rst:${name(1).id}:0` },
       ],
-      [{ text: '‹ Back', data: 'trtnm:list:ign:0' }],
+      [{ text: 'Back', data: 'trtnm:list:ign:0' }],
     ]);
   });
 

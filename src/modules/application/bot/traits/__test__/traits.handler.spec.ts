@@ -113,7 +113,7 @@ describe('TraitsHandler', () => {
     expect(screen.buttons).toEqual([
       [{ text: 'level::1 · Low', data: `trt:card:${mapping(1).id}:0` }],
       [{ text: 'level::2 · Blocked', data: `trt:card:${mapping(2).id}:0` }],
-      [{ text: 'Next ›', data: 'trt:list:1' }],
+      [{ text: 'Next', data: 'trt:list:1' }],
       [{ text: 'No traits · 3', data: 'trtnm:list:new:0' }],
       [
         { text: 'Add', data: 'trtadd:start' },
@@ -129,7 +129,7 @@ describe('TraitsHandler', () => {
     const { screen } = await open(button('trt:list:5'));
 
     expect(traitService.findSourceNamePage).toHaveBeenCalledWith(8, 8);
-    expect(screen.buttons?.[1]).toEqual([{ text: '‹ Back', data: 'trt:list:0' }]);
+    expect(screen.buttons?.[1]).toEqual([{ text: 'Back', data: 'trt:list:0' }]);
   });
 
   it('shows what a label means for everyone and for each role', async () => {
