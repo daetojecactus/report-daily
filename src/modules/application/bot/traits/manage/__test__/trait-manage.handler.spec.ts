@@ -93,10 +93,10 @@ describe('TraitManageHandler', () => {
           ],
           [
             { text: 'Medium', data: `trtmng:set:${MAPPING.id}:2` },
-            { text: '✓ Low', data: `trtmng:set:${MAPPING.id}:3` },
+            { text: 'Low (selected)', data: `trtmng:set:${MAPPING.id}:3` },
           ],
           [{ text: 'Delete the trait', data: `trtmng:del:${MAPPING.id}` }],
-          [{ text: '‹ Back', data: `trt:card:${MAPPING.id}:0` }],
+          [{ text: 'Back', data: `trt:card:${MAPPING.id}:0` }],
         ],
       },
       dialog: null,

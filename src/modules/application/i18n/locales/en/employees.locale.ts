@@ -8,8 +8,8 @@ export const enEmployees: EmployeesLocale = {
     title: (count) => `**Employees** · ${count}`,
     page: (page, pages) => `Page ${page} of ${pages}`,
     empty: 'No employees yet.',
-    previous: '‹ Back',
-    next: 'Next ›',
+    previous: 'Back',
+    next: 'Next',
     search: 'Search',
     add: 'Add',
     bind: (channel) => `Bind ${channel}`,
@@ -109,7 +109,7 @@ export const enEmployees: EmployeesLocale = {
       [Channel.TELEGRAM]:
         'A Telegram ID is a number. The bot shows it to a person who writes to it without access.',
       [Channel.SLACK]:
-        'The Slack ID is in the member profile: "⋮" → "Copy member ID". The bot also shows it to a person who writes to it without access.',
+        'The Slack ID is in the member profile: the three-dot menu, item "Copy member ID". The bot also shows it to a person who writes to it without access.',
     },
     pick: (channel) => `Choose in ${channel}`,
     pickPrompt: {

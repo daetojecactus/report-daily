@@ -83,7 +83,7 @@ describe('ReportHandler', () => {
       { text: 'сб, 7 нояб.', data: 'rpt:day:3' },
       { text: 'пт, 6 нояб.', data: 'rpt:day:4' },
     ]);
-    expect(screen.buttons?.at(-1)).toEqual([{ text: '‹ Назад', data: 'rpt:menu' }]);
+    expect(screen.buttons?.at(-1)).toEqual([{ text: 'Назад', data: 'rpt:menu' }]);
   });
 
   it('builds today in the time zone of the employee, reusing a report of the last 5 minutes', async () => {

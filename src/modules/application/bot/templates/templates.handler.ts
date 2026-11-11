@@ -11,11 +11,7 @@ import { BotAccess, BotNamespace } from '../core/types/bot.enums';
 import type { BotContext, BotHandler, BotReply } from '../core/types/bot.interface';
 import { BOT_BUTTON_DATA_SEPARATOR } from '../core/constants/bot.constants';
 import { SettingsAction } from '../settings/types/settings.enums';
-import {
-  TEMPLATES_BUTTON_SCHEMA,
-  TEMPLATES_CURRENT_MARK,
-  TEMPLATES_STANDARD,
-} from './constants/templates.constants';
+import { TEMPLATES_BUTTON_SCHEMA, TEMPLATES_STANDARD } from './constants/templates.constants';
 import { TemplatesMessages } from './constants/templates.messages';
 import { TemplateAddAction } from './add/types/template-add.enums';
 import { TemplateEditAction } from './edit/types/template-edit.enums';
@@ -75,7 +71,7 @@ export class TemplatesHandler implements BotHandler {
       [
         ...choices.map(({ id, name }) => [
           {
-            text: `${id === (current?.id ?? TEMPLATES_STANDARD) ? TEMPLATES_CURRENT_MARK : ''}${name}`,
+            text: id === (current?.id ?? TEMPLATES_STANDARD) ? texts.selected(name) : name,
             data: this.toData(TemplatesAction.USE, id),
           },
         ]),

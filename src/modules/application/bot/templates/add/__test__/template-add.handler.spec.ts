@@ -190,7 +190,7 @@ describe('TemplateAddHandler', () => {
         buttons: [
           [
             { text: 'Use', data: 'tpl:use:019a4d2e-7c1b-7f3a-9c2d-000000000007' },
-            { text: '‹ My templates', data: 'tpl:mine' },
+            { text: 'My templates', data: 'tpl:mine' },
           ],
         ],
       },
@@ -210,7 +210,7 @@ describe('TemplateAddHandler', () => {
     expect(await open(button('tpladd:cancel'))).toEqual({
       screen: {
         text: locale.templates.cancelled,
-        buttons: [[{ text: '‹ My templates', data: 'tpl:mine' }]],
+        buttons: [[{ text: 'My templates', data: 'tpl:mine' }]],
       },
       dialog: null,
     });
@@ -239,7 +239,7 @@ describe('TemplateAddHandler', () => {
     ).toEqual({
       screen: {
         text: locale.sharedTemplates.saved('QA'),
-        buttons: [[{ text: '‹ Shared templates', data: 'tpls:list' }]],
+        buttons: [[{ text: 'Shared templates', data: 'tpls:list' }]],
       },
       dialog: null,
     });

@@ -123,7 +123,7 @@ describe('EmployeesHandler', () => {
           data: `emp:card:${employee(2).id}:0`,
         },
       ],
-      [{ text: 'Next ›', data: 'emp:list:1' }],
+      [{ text: 'Next', data: 'emp:list:1' }],
       [
         { text: 'Search', data: 'emp:search' },
         { text: 'Add', data: 'add:start' },
@@ -141,7 +141,7 @@ describe('EmployeesHandler', () => {
 
     expect(userService.findPage).toHaveBeenCalledWith(8, 8);
     expect(screen.text).toBe('**Employees** · 10\nPage 2 of 2');
-    expect(screen.buttons?.[2]).toEqual([{ text: '‹ Back', data: 'emp:list:0' }]);
+    expect(screen.buttons?.[2]).toEqual([{ text: 'Back', data: 'emp:list:0' }]);
   });
 
   it('shows an empty list', async () => {

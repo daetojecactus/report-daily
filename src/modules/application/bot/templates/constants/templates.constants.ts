@@ -4,8 +4,6 @@ import { TemplatesAction } from '../types/templates.enums';
 
 export const TEMPLATES_STANDARD = 'std';
 
-export const TEMPLATES_CURRENT_MARK = '✓ ';
-
 const NAMESPACE_SCHEMA = z.literal(BotNamespace.TEMPLATES);
 
 export const TEMPLATES_BUTTON_SCHEMA = z.union([
