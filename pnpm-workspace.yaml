@@ -5,3 +5,8 @@ allowBuilds:
   msgpackr-extract: false
   protobufjs: false
   ssh2: false
+
+overrides:
+  esbuild@<0.25.0: 0.25.12
+  glob@>=9.0.0 <14.0.2: 14.0.2
+  minimatch@>=7.0.0 <11.0.1: 11.0.1
