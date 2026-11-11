@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { SourceActionKind, SourceRefType } from 'src/modules/application/source/types/source.enums';
+import type { GroupedMergeRequest } from 'src/modules/application/source/types/source-day.interface';
 import { TaskFlag, TaskKind, WorkflowState } from 'src/modules/application/trait/types/trait.enums';
 import { ACTIVITY_BRANCH_PUSH_ACTION } from '../constants/activity-events.constants';
 import {
@@ -84,14 +85,55 @@ export class ActivityCodeDetector {
   }
 
   private toCodeDetails(signals: ActivityLineSignals, facts: ActivityFact[]) {
-    const { pushes, others, removedFlags, line, kind } = signals;
-    const has = (sourceKind: SourceActionKind) => facts.some((fact) => fact.kind === sourceKind);
-    const firstPush = Math.min(
+    const { pushes, removedFlags, line, kind } = signals;
+    const firstPush = this.findFirstPush(signals, facts);
+    const worked = this.findWorkedMergeRequests(signals, facts);
+    const rules: [ActivityDetail, boolean][] = [
+      [ActivityDetail.AFTER_REVIEW, this.isAfterReview(signals, facts, worked, firstPush)],
+      [
+        ActivityDetail.RESOLVED,
+        this.hasFact(facts, SourceActionKind.THREADS_RESOLVED) ||
+          worked.some(
+            ({ reviewThreads }) => reviewThreads.total > 0 && reviewThreads.unresolved === 0,
+          ),
+      ],
+      [ActivityDetail.AFTER_QA, signals.returnedAt !== null && signals.returnedAt < firstPush],
+      [ActivityDetail.REBASE, removedFlags.includes(TaskFlag.NEEDS_REBASE)],
+      [
+        ActivityDetail.TESTS,
+        pushes.some((push) =>
+          push.commitTitles.some((title) => ACTIVITY_TEST_COMMIT_PATTERN.test(title)),
+        ),
+      ],
+      [ActivityDetail.STARTED, this.isStarted(line, facts)],
+      [
+        ActivityDetail.RESUMED,
+        signals.lastCommitAt !== null &&
+          Number.isFinite(firstPush) &&
+          firstPush - signals.lastCommitAt > ACTIVITY_RESUMED_WORK_DAYS * ACTIVITY_DAY_MS,
+      ],
+      [ActivityDetail.REFACTORING, kind === TaskKind.MAINTENANCE],
+      [ActivityDetail.DRAFT, this.isDraft(signals, facts)],
+      [ActivityDetail.DEPENDENCIES, signals.dependencies],
+      [ActivityDetail.DIRECT, line.pushes.some((push) => push.mainBranch)],
+      [ActivityDetail.MENTIONED, this.hasForeignMention(line, facts)],
+      [
+        ActivityDetail.MANY,
+        line.pushes.some((push) => push.ref === null && push.refType === SourceRefType.BRANCH),
+      ],
+    ];
+    return rules.filter(([, matches]) => matches).map(([detail]) => detail);
+  }
+
+  private findFirstPush({ pushes }: ActivityLineSignals, facts: ActivityFact[]) {
+    return Math.min(
       ...pushes.map((push) => push.time),
       ...facts.filter((fact) => ACTIVITY_COMMIT_FACTS.has(fact.kind)).map((fact) => fact.time),
     );
-    const details: ActivityDetail[] = [];
-    const worked = line.mergeRequests.filter(
+  }
+
+  private findWorkedMergeRequests({ line, pushes }: ActivityLineSignals, facts: ActivityFact[]) {
+    return line.mergeRequests.filter(
       (mergeRequest) =>
         pushes.some((push) => push.mergeRequestIid === mergeRequest.iid) ||
         facts.some(
@@ -99,7 +141,15 @@ export class ActivityCodeDetector {
             fact.mergeRequestIid === mergeRequest.iid && ACTIVITY_CODE_CHANGE_FACTS.has(fact.kind),
         ),
     );
-    const underReview =
+  }
+
+  private isAfterReview(
+    signals: ActivityLineSignals,
+    facts: ActivityFact[],
+    worked: GroupedMergeRequest[],
+    firstPush: number,
+  ) {
+    const isUnderReview =
       [...signals.startStates, ...signals.endStates].some(
         (state) => state === WorkflowState.REVIEW || state === WorkflowState.CHANGES_REQUESTED,
       ) ||
@@ -107,80 +157,42 @@ export class ActivityCodeDetector {
         (mergeRequest) =>
           mergeRequest.reviewers.length > 0 || mergeRequest.startOfDay.reviewers.length > 0,
       );
-    if (
-      has(SourceActionKind.DIFF_LINE_CHANGED) ||
+    const hasCommentBeforePush = signals.others.some(
+      (fact) =>
+        fact.kind === SourceActionKind.COMMENTED &&
+        fact.mergeRequestIid !== null &&
+        fact.time < firstPush,
+    );
+    return (
+      this.hasFact(facts, SourceActionKind.DIFF_LINE_CHANGED) ||
       worked.some((mergeRequest) => mergeRequest.reviewThreads.total > 0) ||
-      (underReview &&
-        others.some(
-          (fact) =>
-            fact.kind === SourceActionKind.COMMENTED &&
-            fact.mergeRequestIid !== null &&
-            fact.time < firstPush,
-        ))
-    ) {
-      details.push(ActivityDetail.AFTER_REVIEW);
-    }
-    if (
-      has(SourceActionKind.THREADS_RESOLVED) ||
-      worked.some(({ reviewThreads }) => reviewThreads.total > 0 && reviewThreads.unresolved === 0)
-    ) {
-      details.push(ActivityDetail.RESOLVED);
-    }
-    if (signals.returnedAt !== null && signals.returnedAt < firstPush) {
-      details.push(ActivityDetail.AFTER_QA);
-    }
-    if (removedFlags.includes(TaskFlag.NEEDS_REBASE)) {
-      details.push(ActivityDetail.REBASE);
-    }
-    if (
-      pushes.some((push) =>
-        push.commitTitles.some((title) => ACTIVITY_TEST_COMMIT_PATTERN.test(title)),
-      )
-    ) {
-      details.push(ActivityDetail.TESTS);
-    }
-    if (
-      has(SourceActionKind.BRANCH_CREATED) ||
-      has(SourceActionKind.OPENED) ||
+      (isUnderReview && hasCommentBeforePush)
+    );
+  }
+
+  private isStarted(line: ActivityLine, facts: ActivityFact[]) {
+    return (
+      this.hasFact(facts, SourceActionKind.BRANCH_CREATED) ||
+      this.hasFact(facts, SourceActionKind.OPENED) ||
       [...line.mergeRequests, ...line.pushes.filter((push) => push.ref !== null)].some(
         ({ events }) => events.some((event) => event.actionName === ACTIVITY_BRANCH_PUSH_ACTION),
       )
-    ) {
-      details.push(ActivityDetail.STARTED);
-    }
-    if (
-      signals.lastCommitAt !== null &&
-      Number.isFinite(firstPush) &&
-      firstPush - signals.lastCommitAt > ACTIVITY_RESUMED_WORK_DAYS * ACTIVITY_DAY_MS
-    ) {
-      details.push(ActivityDetail.RESUMED);
-    }
-    if (kind === TaskKind.MAINTENANCE) {
-      details.push(ActivityDetail.REFACTORING);
-    }
-    if (
-      has(SourceActionKind.MARKED_DRAFT) ||
-      signals.endFlags.includes(TaskFlag.DRAFT) ||
+    );
+  }
+
+  private isDraft({ line, pushes, endFlags }: ActivityLineSignals, facts: ActivityFact[]) {
+    return (
+      this.hasFact(facts, SourceActionKind.MARKED_DRAFT) ||
+      endFlags.includes(TaskFlag.DRAFT) ||
       line.mergeRequests.some(
         (mergeRequest) =>
           mergeRequest.draft && pushes.some((push) => push.mergeRequestIid === mergeRequest.iid),
       )
-    ) {
-      details.push(ActivityDetail.DRAFT);
-    }
-    if (signals.dependencies) {
-      details.push(ActivityDetail.DEPENDENCIES);
-    }
-    if (line.pushes.some((push) => push.mainBranch)) {
-      details.push(ActivityDetail.DIRECT);
-    }
-    if (this.hasForeignMention(line, facts)) {
-      details.push(ActivityDetail.MENTIONED);
-    }
-    if (line.pushes.some((push) => push.ref === null && push.refType === SourceRefType.BRANCH)) {
-      details.push(ActivityDetail.MANY);
-    }
-    return details;
+    );
+  }
+
+  private hasFact(facts: ActivityFact[], kind: SourceActionKind) {
+    return facts.some((fact) => fact.kind === kind);
   }
 
   private hasForeignMention(line: ActivityLine, facts: ActivityFact[]) {

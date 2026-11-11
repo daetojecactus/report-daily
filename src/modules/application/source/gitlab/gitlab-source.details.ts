@@ -37,64 +37,16 @@ export class GitLabSourceDetails {
     closingIssues: Map<string, GitLabIssue[]>,
     links: SourceLinks,
   ): Promise<DayActivity> {
-    const branchMergeRequests = new Map<string, string>();
-    for (const [key, mergeRequest] of mergeRequests) {
-      const branchKey = this.gitlabSourceKeys.toBranchKey(mergeRequest);
-      if (!branchMergeRequests.has(branchKey)) {
-        branchMergeRequests.set(branchKey, key);
-      }
-    }
-
-    const [issueEntries, mergeRequestActivities, pushCommits] = await Promise.all([
-      Promise.all(
-        [...links.issues].map(
-          async ([key, issue]) =>
-            [
-              key,
-              await this.loadIssueActivity(
-                issue,
-                groups.issues.get(key)?.events ?? [],
-                [...links.pushIssues]
-                  .filter(([, issueKey]) => issueKey === key)
-                  .flatMap(([branchKey]) => groups.pushes.get(branchKey) ?? []),
-              ),
-            ] as const,
-        ),
-      ),
-      Promise.all(
-        [...mergeRequests].map(async ([key, mergeRequest]) => {
-          const branchKey = this.gitlabSourceKeys.toBranchKey(mergeRequest);
-          const pushes =
-            branchMergeRequests.get(branchKey) === key
-              ? (groups.pushes.get(branchKey)?.events ?? [])
-              : [];
-          const activity = await this.loadMergeRequestActivity(
-            mergeRequest,
-            closingIssues.get(key) ?? [],
-            [...(groups.mergeRequests.get(key)?.events ?? []), ...pushes],
-          );
-          return [key, activity] as const;
-        }),
-      ),
+    const branchMergeRequests = this.indexBranchMergeRequests(mergeRequests);
+    const [issues, mergeRequestActivities, pushCommits] = await Promise.all([
+      this.loadIssues(groups, links),
+      this.loadMergeRequests(groups, mergeRequests, closingIssues, branchMergeRequests),
       this.loadPushCommits(groups),
     ]);
-    const issueActivities = new Map(issueEntries);
-
-    const standaloneMergeRequests: MergeRequestActivity[] = [];
-    for (const [key, activity] of mergeRequestActivities) {
-      const mainIssue = links.mainIssues.get(key);
-      const issue = mainIssue && issueActivities.get(mainIssue);
-      if (issue) {
-        issue.mergeRequests.push(activity);
-      } else {
-        standaloneMergeRequests.push(activity);
-      }
-    }
-
     return {
       projects: [...projects.values()],
-      issues: [...issueActivities.values()],
-      mergeRequests: standaloneMergeRequests,
+      issues: [...issues.values()],
+      mergeRequests: this.attachToIssues(mergeRequestActivities, issues, links),
       pushes: [...groups.pushes]
         .filter(
           ([key, { target }]) =>
@@ -114,6 +66,71 @@ export class GitLabSourceDetails {
       targets: [...groups.targets.values()],
       pushCommits,
     };
+  }
+
+  private indexBranchMergeRequests(mergeRequests: Map<string, GitLabMergeRequest>) {
+    const branchMergeRequests = new Map<string, string>();
+    for (const [key, mergeRequest] of mergeRequests) {
+      const branchKey = this.gitlabSourceKeys.toBranchKey(mergeRequest);
+      if (!branchMergeRequests.has(branchKey)) {
+        branchMergeRequests.set(branchKey, key);
+      }
+    }
+    return branchMergeRequests;
+  }
+
+  private async loadIssues(groups: SourceEventGroups, links: SourceLinks) {
+    const entries = await Promise.all(
+      [...links.issues].map(async ([key, issue]) => {
+        const pushes = [...links.pushIssues]
+          .filter(([, issueKey]) => issueKey === key)
+          .flatMap(([branchKey]) => groups.pushes.get(branchKey) ?? []);
+        const events = groups.issues.get(key)?.events ?? [];
+        return [key, await this.loadIssueActivity(issue, events, pushes)] as const;
+      }),
+    );
+    return new Map(entries);
+  }
+
+  private loadMergeRequests(
+    groups: SourceEventGroups,
+    mergeRequests: Map<string, GitLabMergeRequest>,
+    closingIssues: Map<string, GitLabIssue[]>,
+    branchMergeRequests: Map<string, string>,
+  ) {
+    return Promise.all(
+      [...mergeRequests].map(async ([key, mergeRequest]) => {
+        const branchKey = this.gitlabSourceKeys.toBranchKey(mergeRequest);
+        const pushes =
+          branchMergeRequests.get(branchKey) === key
+            ? (groups.pushes.get(branchKey)?.events ?? [])
+            : [];
+        const activity = await this.loadMergeRequestActivity(
+          mergeRequest,
+          closingIssues.get(key) ?? [],
+          [...(groups.mergeRequests.get(key)?.events ?? []), ...pushes],
+        );
+        return [key, activity] as const;
+      }),
+    );
+  }
+
+  private attachToIssues(
+    mergeRequestActivities: (readonly [string, MergeRequestActivity])[],
+    issues: Map<string, IssueActivity>,
+    links: SourceLinks,
+  ) {
+    const standaloneMergeRequests: MergeRequestActivity[] = [];
+    for (const [key, activity] of mergeRequestActivities) {
+      const mainIssue = links.mainIssues.get(key);
+      const issue = mainIssue && issues.get(mainIssue);
+      if (issue) {
+        issue.mergeRequests.push(activity);
+      } else {
+        standaloneMergeRequests.push(activity);
+      }
+    }
+    return standaloneMergeRequests;
   }
 
   private isMergePush(
