@@ -20,8 +20,7 @@ import { DeliveryTelegramQueueProcessor } from '../delivery-telegram-queue.proce
 const PLAN: ReportDeliveryPlan = {
   deliveryId: 'delivery-1',
   reportId: 'report-1',
-  chatIds: ['1001'],
-  redirected: false,
+  chatId: '1001',
   screen: { text: 'project:\n• Fixed a bug' },
 };
 
@@ -78,20 +77,6 @@ describe('DeliveryQueueProcessor', () => {
     expect(reportDelivery.markSent).toHaveBeenCalledWith(PLAN, '300000007');
   });
 
-  it('sends a redirected report to every owner and keeps the first message', async () => {
-    reportDelivery.prepare.mockResolvedValue({
-      ...PLAN,
-      chatIds: ['100', '101'],
-      redirected: true,
-    });
-    telegramService.sendScreen.mockResolvedValueOnce('500').mockResolvedValueOnce('501');
-
-    await processor.process(job());
-
-    expect(telegramService.sendScreen.mock.calls.map(([chatId]) => chatId)).toEqual(['100', '101']);
-    expect(reportDelivery.markSent).toHaveBeenCalledWith(expect.anything(), '500');
-  });
-
   it('sends nothing when the delivery has nothing to send', async () => {
     reportDelivery.prepare.mockResolvedValue(null);
 
@@ -108,16 +93,6 @@ describe('DeliveryQueueProcessor', () => {
 
     expect(channelService.updateReachable).toHaveBeenCalledWith(Channel.TELEGRAM, '1001', false);
     expect(reportDelivery.markFailed).toHaveBeenCalledWith(PLAN, 'blocked');
-  });
-
-  it('keeps the chat of the employee reachable when an owner blocked the bot', async () => {
-    reportDelivery.prepare.mockResolvedValue({ ...PLAN, chatIds: ['100'], redirected: true });
-    telegramService.sendScreen.mockRejectedValue(new ChatUnreachableError('blocked'));
-
-    await processor.process(job());
-
-    expect(channelService.updateReachable).not.toHaveBeenCalled();
-    expect(reportDelivery.markFailed).toHaveBeenCalledWith(expect.anything(), 'blocked');
   });
 
   it('fails a refused message without retries', async () => {
@@ -210,7 +185,7 @@ describe('DeliveryQueueProcessor', () => {
     );
 
     it('prepares the delivery for Slack and sends it through Slack', async () => {
-      reportDelivery.prepare.mockResolvedValue({ ...PLAN, chatIds: ['U0EMPLOY1'] });
+      reportDelivery.prepare.mockResolvedValue({ ...PLAN, chatId: 'U0EMPLOY1' });
       slackService.sendScreen.mockResolvedValue('1731240000.000100');
 
       await slackProcessor.process(job());
@@ -221,7 +196,7 @@ describe('DeliveryQueueProcessor', () => {
     });
 
     it('fails a message Slack refused and marks a Slack chat it cannot reach', async () => {
-      reportDelivery.prepare.mockResolvedValue({ ...PLAN, chatIds: ['U0EMPLOY1'] });
+      reportDelivery.prepare.mockResolvedValue({ ...PLAN, chatId: 'U0EMPLOY1' });
       slackService.sendScreen.mockRejectedValueOnce(
         new SlackRejectedError('Slack rejected the request: invalid_blocks', 'invalid_blocks'),
       );

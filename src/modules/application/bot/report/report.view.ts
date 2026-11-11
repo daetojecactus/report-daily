@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { Screen, ScreenButton } from 'src/common/channel/types/chat-channel.interface';
 import { addDays } from 'src/common/utils/date.util';
-import { escapeMarkdown } from 'src/common/utils/markdown.util';
 import type { Locale } from 'src/modules/application/i18n/types/i18n.interface';
 import type { Report } from 'src/modules/application/report/types/report.interface';
 import { BotNamespace } from '../core/types/bot.enums';
@@ -18,15 +17,6 @@ import { ReportAction } from './types/report.enums';
 
 @Injectable()
 export class ReportView {
-  toDeliveryScreen(report: Report, locale: Locale, name: string, redirected: boolean): Screen {
-    if (!redirected) {
-      return this.toReportScreen(report, locale);
-    }
-    return {
-      text: [locale.delivery.redirected(escapeMarkdown(name)), '', report.content ?? ''].join('\n'),
-    };
-  }
-
   toReportScreen(report: Report, locale: Locale): Screen {
     return {
       text: report.content ?? '',

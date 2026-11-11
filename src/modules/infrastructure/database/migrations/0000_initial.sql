@@ -17,7 +17,6 @@ CREATE TABLE "deliveries" (
 	"report_id" uuid,
 	"status" "delivery_status" DEFAULT 'queued' NOT NULL,
 	"attempts" integer DEFAULT 0 NOT NULL,
-	"redirected" boolean DEFAULT false NOT NULL,
 	"external_message_id" text,
 	"error" text,
 	"sent_at" timestamp with time zone,

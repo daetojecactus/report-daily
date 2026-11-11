@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import type { Channel } from 'src/common/channel/types/channel.enums';
 import { DeliveryStatus } from 'src/modules/application/delivery/types/delivery.enums';
 import type { Delivery } from 'src/modules/application/delivery/types/delivery.interface';
@@ -10,19 +9,14 @@ import type { Report } from 'src/modules/application/report/types/report.interfa
 import { ReportService } from 'src/modules/application/report/report.service';
 import { ChannelService } from 'src/modules/application/user/channel/channel.service';
 import { UserService } from 'src/modules/application/user/user.service';
-import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
-import { DeliveryMode } from 'src/modules/infrastructure/config/types/config.enums';
 import { DeliveryQueueProducer } from 'src/modules/queue/delivery/delivery-queue.producer';
 import { BotService } from '../bot.service';
-import { AccessService } from '../core/access.service';
 import { ReportDeliveryMessages } from './constants/report-delivery.messages';
 import type { ReportDeliveryPlan } from './types/report-delivery.interface';
 import { ReportView } from './report.view';
 
 @Injectable()
 export class ReportDelivery {
-  private readonly isRedirectMode: boolean;
-
   constructor(
     private readonly deliveryService: DeliveryService,
     private readonly deliveryQueueProducer: DeliveryQueueProducer,
@@ -30,14 +24,9 @@ export class ReportDelivery {
     private readonly userService: UserService,
     private readonly channelService: ChannelService,
     private readonly botService: BotService,
-    private readonly accessService: AccessService,
     private readonly i18nService: I18nService,
     private readonly reportView: ReportView,
-    configService: ConfigService<AppEnvs, true>,
-  ) {
-    this.isRedirectMode =
-      configService.get('DELIVERY_MODE', { infer: true }) === DeliveryMode.REDIRECT;
-  }
+  ) {}
 
   async findChannels(userId: string, channel: Channel | null) {
     if (channel) {
@@ -50,15 +39,11 @@ export class ReportDelivery {
     return channels.map((item) => item.channel);
   }
 
-  async queue(report: Report, channels: Channel[], isOwn: boolean, jobCreatedAt: Date) {
+  async queue(report: Report, channels: Channel[], jobCreatedAt: Date) {
     for (const channel of channels) {
       const delivery =
         (await this.deliveryService.findForReport(report.id, channel, jobCreatedAt)) ??
-        (await this.deliveryService.createForReport(
-          report,
-          channel,
-          this.isRedirectMode && !isOwn,
-        ));
+        (await this.deliveryService.createForReport(report, channel));
       await this.deliveryQueueProducer.addDelivery(channel, delivery.id);
     }
   }
@@ -70,8 +55,8 @@ export class ReportDelivery {
     }
     const report = delivery.reportId ? await this.reportService.findById(delivery.reportId) : null;
     const user = await this.userService.findById(delivery.userId);
-    const chatIds = await this.findChatIds(delivery, channel);
-    if (!report?.content || !user || chatIds.length === 0) {
+    const chatId = await this.findChatId(delivery, channel);
+    if (!report?.content || !user || !chatId) {
       await this.deliveryService.markFailed(deliveryId, ReportDeliveryMessages.NOTHING_TO_SEND);
       return null;
     }
@@ -80,14 +65,8 @@ export class ReportDelivery {
     return {
       deliveryId,
       reportId: report.id,
-      chatIds,
-      redirected: delivery.redirected,
-      screen: this.reportView.toDeliveryScreen(
-        report,
-        locale,
-        user.displayName,
-        delivery.redirected,
-      ),
+      chatId,
+      screen: this.reportView.toReportScreen(report, locale),
     };
   }
 
@@ -100,13 +79,10 @@ export class ReportDelivery {
     await this.deliveryService.markFailed(plan.deliveryId, reason);
   }
 
-  private async findChatIds(delivery: Delivery, channel: Channel) {
-    if (delivery.redirected) {
-      return this.accessService.findOwnerIds(channel);
-    }
+  private async findChatId(delivery: Delivery, channel: Channel) {
     const chat = (await this.channelService.findByUser(delivery.userId)).find(
       (item) => item.channel === channel,
     );
-    return chat ? [chat.externalId] : [];
+    return chat?.externalId ?? null;
   }
 }

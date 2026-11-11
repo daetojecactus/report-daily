@@ -28,7 +28,7 @@ export class ReportQueueProcessor extends QueueHost {
     if (job.name !== REPORT_BUILD_JOB) {
       throw new Error(`${ReportQueueMessages.UNKNOWN_JOB}: ${job.name}`);
     }
-    const { userId, date, maxAgeMs, own, channel, notice } = job.data as ReportJobData;
+    const { userId, date, maxAgeMs, channel, notice } = job.data as ReportJobData;
     try {
       const channels = await this.reportDelivery.findChannels(userId, channel ?? null);
       if (channels.length === 0) {
@@ -43,7 +43,7 @@ export class ReportQueueProcessor extends QueueHost {
           await this.botService.sendTo(notice.target, { text: notice.empty });
         }
       } else {
-        await this.reportDelivery.queue(report, channels, own, new Date(job.timestamp));
+        await this.reportDelivery.queue(report, channels, new Date(job.timestamp));
       }
     } catch (error) {
       this.logger.warn(

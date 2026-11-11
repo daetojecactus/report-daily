@@ -40,21 +40,12 @@ export abstract class DeliveryQueueProcessor extends QueueHost {
       return;
     }
     try {
-      const messageIds: string[] = [];
-      for (const chatId of plan.chatIds) {
-        messageIds.push(await this.chatChannel.sendScreen(chatId, plan.screen));
-      }
-      await this.reportDelivery.markSent(plan, messageIds[0]);
+      const messageId = await this.chatChannel.sendScreen(plan.chatId, plan.screen);
+      await this.reportDelivery.markSent(plan, messageId);
     } catch (error) {
       await this.waitIfLimited(error, job);
       if (error instanceof ChatUnreachableError) {
-        if (!plan.redirected) {
-          await this.channelService.updateReachable(
-            this.chatChannel.channel,
-            plan.chatIds[0],
-            false,
-          );
-        }
+        await this.channelService.updateReachable(this.chatChannel.channel, plan.chatId, false);
         await this.fail(plan, error, DeliveryQueueMessages.CHAT_UNREACHABLE);
         return;
       }

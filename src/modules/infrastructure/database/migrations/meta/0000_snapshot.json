@@ -1,5 +1,5 @@
 {
-  "id": "b3814214-21b6-4789-a57a-15ed7fc05969",
+  "id": "ecd08c56-76f4-4f9f-9899-47ad44e13c99",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -52,13 +52,6 @@
           "primaryKey": false,
           "notNull": true,
           "default": 0
-        },
-        "redirected": {
-          "name": "redirected",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
         },
         "external_message_id": {
           "name": "external_message_id",

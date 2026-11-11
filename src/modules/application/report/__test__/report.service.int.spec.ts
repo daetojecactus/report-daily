@@ -17,7 +17,9 @@ import { Gender, JobRole } from 'src/modules/application/user/types/user.enums';
 import { users } from 'src/modules/application/user/user.schema';
 import { userSources } from 'src/modules/application/user/user-source/user-source.schema';
 import { DATABASE_INSTANCE } from 'src/modules/infrastructure/database/constants/database.constants';
+import { Logger } from '@nestjs/common';
 import { createTestApp } from 'test/setup/test-app';
+import { ReportMessages } from '../constants/report.messages';
 import { ReportComposer } from '../report.composer';
 import { ReportStatus } from '../types/report.enums';
 import type { ReportDraft } from '../types/report.interface';
@@ -98,6 +100,22 @@ describe('ReportService', () => {
     expect(compose).toHaveBeenCalledWith(
       expect.objectContaining({ date: DATE, language: Language.RU }),
     );
+  });
+
+  it('writes the text of a report only to the trace log', async () => {
+    const verbose = vi.spyOn(Logger.prototype, 'verbose');
+    const log = vi.spyOn(Logger.prototype, 'log');
+    compose.mockResolvedValueOnce(draft(1, 'project:\n• Fixed a bug'));
+
+    await reportService.build(userId, DATE);
+
+    expect(verbose).toHaveBeenCalledWith(
+      { userId, reportDate: DATE, content: 'project:\n• Fixed a bug' },
+      ReportMessages.TEXT,
+    );
+    expect(JSON.stringify(log.mock.calls)).not.toContain('Fixed a bug');
+    verbose.mockRestore();
+    log.mockRestore();
   });
 
   it('stores whether AI reworded the lines and with which model', async () => {

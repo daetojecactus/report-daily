@@ -53,9 +53,7 @@ describe('Telegram delivery queue', () => {
       .insert(reports)
       .values({ userId: user.id, reportDate: '2026-11-09', status: ReportStatus.READY, content })
       .returning();
-    const delivery = await app
-      .get(DeliveryService)
-      .createForReport(report, Channel.TELEGRAM, false);
+    const delivery = await app.get(DeliveryService).createForReport(report, Channel.TELEGRAM);
     await app.get(DeliveryQueueProducer).addDelivery(Channel.TELEGRAM, delivery.id);
     return { telegramId, report, delivery };
   }

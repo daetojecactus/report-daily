@@ -154,13 +154,8 @@ export interface CommonLocale {
     editText: string;
     cancel: string;
     sent: (count: number) => string;
-    sentRedirected: (count: number) => string;
-    redirected: (count: number) => string;
     cancelled: string;
     menu: string;
-  };
-  delivery: {
-    redirected: (name: string) => string;
   };
   adminSettings: {
     title: string;

@@ -63,7 +63,6 @@ describe('ScheduleService', () => {
       userId: 'anna',
       date: '2026-11-10',
       maxAgeMs: 300_000,
-      own: false,
       channel: null,
       notice: null,
     });
