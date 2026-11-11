@@ -1,8 +1,5 @@
 node_modules/
 dist/
-coverage/
-.swc/
-*.tsbuildinfo
 *.log
 
 .env
@@ -10,14 +7,10 @@ coverage/
 !.env.example
 compose.override.yaml
 
-*.md
-!/README.md
-
 .idea/
 .vscode/
 .claude/
 .DS_Store
-.ghost-comments.json
 
 /docs/
 /CLAUDE.md
