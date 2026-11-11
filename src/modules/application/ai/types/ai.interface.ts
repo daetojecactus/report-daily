@@ -23,6 +23,7 @@ export interface AiPolicy {
 }
 
 export interface AiProfile {
+  userId: string;
   role: JobRole;
   gender: Gender;
   locale: Locale;

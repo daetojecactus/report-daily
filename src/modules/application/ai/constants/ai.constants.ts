@@ -6,6 +6,10 @@ export const AI_LIMIT_ATTEMPTS = 5;
 
 export const AI_LIMIT_KEY_PREFIX = 'limit:llm:';
 
+export const AI_DAILY_LIMIT_KEY_PREFIX = 'limit:llm:employee:';
+
+export const AI_DAY_MS = 24 * 60 * 60 * 1000;
+
 export const AI_LINE_MAX_LENGTH = 200;
 
 export const AI_ERROR_MAX_LENGTH = 300;

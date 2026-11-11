@@ -17,7 +17,8 @@ import { AiMessages } from '../constants/ai.messages';
 import { AiService } from '../ai.service';
 
 const locale = new I18nService().getLocale(Language.EN);
-const PROFILE = { role: JobRole.QA, gender: Gender.FEMALE, locale };
+const PROFILE = { userId: 'user-1', role: JobRole.QA, gender: Gender.FEMALE, locale };
+const DAILY_KEY = /^limit:llm:employee:user-1:\d+$/;
 const LINES: AiLine[] = [
   {
     id: '1',
@@ -227,7 +228,10 @@ describe('AiService', () => {
   it('waits for a free minute when the limit is reached and gives up after five minutes', async () => {
     vi.useFakeTimers({ now: Date.parse('2026-11-10T13:00:30Z') });
     answer([{ id: '1', text: 'Fixed a bug in the login form' }]);
-    redisService.increment.mockResolvedValueOnce(11).mockResolvedValueOnce(3);
+    redisService.increment
+      .mockResolvedValueOnce(1)
+      .mockResolvedValueOnce(11)
+      .mockResolvedValueOnce(3);
 
     const waited = service.reword(LINES, PROFILE);
     await vi.advanceTimersByTimeAsync(30_000);
@@ -235,17 +239,34 @@ describe('AiService', () => {
     expect((await waited).model).toBe('served-model');
     const minute = Math.floor(Date.parse('2026-11-10T13:00:30Z') / 60_000);
     expect(redisService.increment.mock.calls).toEqual([
+      [expect.stringMatching(DAILY_KEY), 86_400_000],
       [`limit:llm:${minute}`, 60_000],
       [`limit:llm:${minute + 1}`, 60_000],
     ]);
 
     llmService.completeJson.mockClear();
-    redisService.increment.mockResolvedValue(11);
+    redisService.increment.mockImplementation((key) =>
+      Promise.resolve(DAILY_KEY.test(key) ? 1 : 11),
+    );
     const refused = service.reword(LINES, PROFILE);
     await vi.advanceTimersByTimeAsync(5 * 60_000);
 
     expect(await refused).toEqual({ texts: new Map(), model: null });
     expect(llmService.completeJson).not.toHaveBeenCalled();
+  });
+
+  it('keeps our lines for the rest of the day once the employee reached the daily limit', async () => {
+    answer([{ id: '1', text: 'Fixed a bug in the login form' }]);
+    redisService.increment.mockImplementation((key) =>
+      Promise.resolve(DAILY_KEY.test(key) ? 11 : 1),
+    );
+
+    expect(await service.reword(LINES, PROFILE)).toEqual({ texts: new Map(), model: null });
+    expect(llmService.completeJson).not.toHaveBeenCalled();
+    expect(redisService.increment).toHaveBeenCalledExactlyOnceWith(
+      expect.stringMatching(DAILY_KEY),
+      86_400_000,
+    );
   });
 
   it('sends the names the bot did not understand and lets such a line drop our phrase', async () => {

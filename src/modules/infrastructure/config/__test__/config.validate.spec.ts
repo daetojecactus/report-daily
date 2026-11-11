@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   APP_DEFAULT_PORT,
+  LLM_DEFAULT_REQUESTS_PER_EMPLOYEE_PER_DAY,
   LLM_DEFAULT_REQUESTS_PER_MINUTE,
   TELEGRAM_DEFAULT_API_URL,
 } from '../constants/config.constants';
@@ -41,6 +42,19 @@ describe('validateEnv', () => {
     expect(validateEnv({ ...ENV, LLM_REQUESTS_PER_MINUTE: '60' }).LLM_REQUESTS_PER_MINUTE).toBe(60);
     expect(() => validateEnv({ ...ENV, LLM_REQUESTS_PER_MINUTE: '0' })).toThrow(
       'LLM_REQUESTS_PER_MINUTE',
+    );
+  });
+
+  it('limits the AI requests of one employee a day', () => {
+    expect(validateEnv(ENV).LLM_REQUESTS_PER_EMPLOYEE_PER_DAY).toBe(
+      LLM_DEFAULT_REQUESTS_PER_EMPLOYEE_PER_DAY,
+    );
+    expect(
+      validateEnv({ ...ENV, LLM_REQUESTS_PER_EMPLOYEE_PER_DAY: '50' })
+        .LLM_REQUESTS_PER_EMPLOYEE_PER_DAY,
+    ).toBe(50);
+    expect(() => validateEnv({ ...ENV, LLM_REQUESTS_PER_EMPLOYEE_PER_DAY: '0' })).toThrow(
+      'LLM_REQUESTS_PER_EMPLOYEE_PER_DAY',
     );
   });
 

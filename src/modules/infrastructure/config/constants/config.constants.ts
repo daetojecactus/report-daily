@@ -16,6 +16,8 @@ export const SLACK_DEFAULT_API_URL = 'https://slack.com/api/';
 
 export const LLM_DEFAULT_REQUESTS_PER_MINUTE = 10;
 
+export const LLM_DEFAULT_REQUESTS_PER_EMPLOYEE_PER_DAY = 20;
+
 export const LLM_ENV_KEYS = ['LLM_BASE_URL', 'LLM_TOKEN', 'LLM_MODEL'] as const;
 
 export const TELEGRAM_ENV_KEYS = ['TELEGRAM_BOT_TOKEN', 'OWNER_TELEGRAM_IDS'] as const;
