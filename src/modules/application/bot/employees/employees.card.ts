@@ -24,7 +24,6 @@ import type { BotActor, BotReply } from '../core/types/bot.interface';
 import { BOT_BUTTON_DATA_SEPARATOR, BOT_CHANNELS } from '../core/constants/bot.constants';
 import { EmployeeBindAction } from './bind/types/employee-bind.enums';
 import { EmployeeManageAction } from './manage/types/employee-manage.enums';
-import { EmployeePermissionsAction } from './permissions/types/employee-permissions.enums';
 import {
   EMPLOYEES_ACTIVITY_FORMAT,
   EMPLOYEES_REPORT_DATE_FORMAT,
@@ -88,12 +87,8 @@ export class EmployeesCard {
         `${locale.channels[channel.channel]}: ${channel.reachable ? card.reachable : card.unreachable}`,
       );
     }
-    if (user.permissions.length > 0) {
-      lines.push(
-        `${card.permissions}: ${user.permissions
-          .map((permission) => locale.permissions[permission])
-          .join(', ')}`,
-      );
+    if (user.isAdmin) {
+      lines.push(`${card.access}: ${card.admin}`);
     }
     const [account] = accounts;
     if (account) {
@@ -127,9 +122,7 @@ export class EmployeesCard {
         },
       ]);
     }
-    const bindButtons = this.accessService.canManage(actor, user)
-      ? this.toBindButtons(locale, user.id, channels)
-      : [];
+    const bindButtons = this.toBindButtons(locale, user.id, channels);
     if (bindButtons.length > 0) {
       actions.push(bindButtons);
     }
@@ -139,20 +132,18 @@ export class EmployeesCard {
         data: this.toSectionData(BotNamespace.EMPLOYEE_MANAGE, EmployeeManageAction.ROLE, user.id),
       },
     ]);
-    if (actor.isOwner) {
+    if (this.accessService.canManage(actor, user)) {
+      const isBlocked = user.status === UserStatus.BLOCKED;
       actions.push([
         {
-          text: locale.employeePermissions.open,
+          text: user.isAdmin ? locale.employeeManage.removeAdmin : locale.employeeManage.makeAdmin,
           data: this.toSectionData(
-            BotNamespace.EMPLOYEE_PERMISSIONS,
-            EmployeePermissionsAction.OPEN,
+            BotNamespace.EMPLOYEE_MANAGE,
+            user.isAdmin ? EmployeeManageAction.REVOKE_ADMIN : EmployeeManageAction.GRANT_ADMIN,
             user.id,
           ),
         },
       ]);
-    }
-    if (this.accessService.canManage(actor, user)) {
-      const isBlocked = user.status === UserStatus.BLOCKED;
       actions.push([
         {
           text: isBlocked ? locale.employeeManage.unblock : locale.employeeManage.block,

@@ -5,4 +5,6 @@ export enum TemplatesAction {
   CARD = 'card',
   DELETE = 'del',
   CONFIRM_DELETE = 'delok',
+  SHARE = 'share',
+  CONFIRM_SHARE = 'shareok',
 }

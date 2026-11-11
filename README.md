@@ -11,7 +11,7 @@ Version 2 is in development. Version 1 is kept in the [`v1`](https://github.com/
 - **On schedule or on demand.** Reports come at each employee's own time and time zone on days with activity; any of the last 14 days can be built on request.
 - **Optional AI.** An OpenAI-compatible model can make the lines read naturally. It gets only the minimum of data, and a report never depends on it.
 - **Templates.** The report layout is a [Liquid](https://liquidjs.com/tutorials/intro-to-liquid.html) template, personal or shared across the team.
-- **Access control.** Owners grant admins separate permissions; everything else is closed.
+- **Three access levels.** Owners run the bot, admins publish shared templates, employees see only their own reports.
 - **Russian and English.**
 - **Self-hosted, no inbound connections.** PostgreSQL and Redis run next to the bot; it reaches GitLab, Telegram, Slack and the AI service itself.
 
@@ -111,19 +111,18 @@ Without AI the bot writes every line itself. With AI the model rewords the lines
 | `/start` | everyone | Greeting; a person without access gets their ID |
 | `/report` | employees | The report of today or one of the last 14 days, with "Rebuild" |
 | `/settings` | employees | Language, report time and time zone, gender, scheduled report, AI, report template, channels |
-| `/admin` | owners and admins | The sections their permissions open |
+| `/admin` | owners and admins | Management: everything for owners, shared templates for admins |
 | `/help`, `/cancel` | everyone | The commands; leaving a dialog |
 
 ### Access
 
-Owners are the IDs in `OWNER_TELEGRAM_IDS` and `OWNER_SLACK_IDS`. They can do everything, send broadcasts and make admins by granting permissions in an employee's card:
+| Level | Who | Can |
+| --- | --- | --- |
+| Owner | The IDs in `OWNER_TELEGRAM_IDS` and `OWNER_SLACK_IDS` | Everything about running the bot: add, change, block and delete employees, bind their channels, "Report now", map labels in "Traits", pause scheduled reports, AI settings, broadcasts, make an employee an admin |
+| Admin | An employee an owner marked as admin in the card | What an employee can, plus shared templates: create, edit, delete and make an own template shared |
+| Employee | Anyone an owner added | Their own reports, settings and personal templates; which bound channels get reports and broadcasts |
 
-| Permission | Allows |
-| --- | --- |
-| `users` | Add, bind, change, block and delete employees; "Report now" |
-| `traits` | Map GitLab labels and statuses to task traits |
-| `settings` | Pause scheduled reports for everyone; AI settings |
-| `templates` | Shared report templates |
+Nobody sees another employee's report: owners see only whether the last one was delivered.
 
 ### Onboarding the team
 
@@ -148,7 +147,7 @@ The built-in "Standard" template lists projects with their lines:
 {%- endfor -%}
 ```
 
-Any employee can write a personal template in `/settings`, "Report template"; the owner and admins with `templates` make shared ones in `/admin`. The bot checks the syntax and shows a preview on the employee's latest report. A change of a shared template reaches everyone who picked it.
+Any employee can write a personal template in `/settings`, "Report template"; owners and admins make shared ones in `/admin`, or make an own template shared from its card. The bot checks the syntax and shows a preview on the employee's latest report. A change of a shared template reaches everyone who picked it.
 
 Templates produce Markdown: `**bold**`, `_italic_`, `` `code` `` and `[text](url)`. Data is escaped, so a title with `*` or `_` does not break the message; a link goes in as `[{{ item.title }}]({{ item.url | raw }})`. Templates run in a sandbox without file access and stop after one second of rendering.
 
@@ -186,7 +185,7 @@ docker compose up -d --build
 
 ### Backups
 
-PostgreSQL holds everything that matters: employees, permissions, settings, label mappings, templates and the reports of the last 30 days. Redis holds only short-lived state and needs no backup.
+PostgreSQL holds everything that matters: employees and their access, settings, label mappings, templates and the reports of the last 30 days. Redis holds only short-lived state and needs no backup.
 
 ```bash
 docker compose exec -T postgres pg_dump --username=report_daily --format=custom report_daily > report-daily.dump
@@ -240,7 +239,7 @@ On `SIGTERM` the bot stops taking new work and gives the running jobs up to 10 s
 - **TLS** is always checked.
 - **Owners** control the bot through their Telegram or Slack accounts and should protect them with two-step verification.
 - **Access** is checked on every action; the bot answers only in private chats.
-- **Privacy.** Only the employee sees their report: owners and admins see only whether the last one was delivered. The database keeps report texts for 30 days to answer `/report` again and to preview templates, so whoever can read the database or runs `preview` on the server can read them; the log has them only at `LOG_LEVEL=trace`.
+- **Privacy.** Only the employee sees their report: owners see only whether the last one was delivered. The database keeps report texts for 30 days to answer `/report` again and to preview templates, so whoever can read the database or runs `preview` on the server can read them; the log has them only at `LOG_LEVEL=trace`.
 - **AI** gets only the data listed in [AI](#ai).
 - **Templates** run in a sandbox with size and time limits.
 

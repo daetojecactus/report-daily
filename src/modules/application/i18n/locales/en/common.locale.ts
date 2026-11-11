@@ -1,12 +1,8 @@
 import { Channel } from 'src/common/channel/types/channel.enums';
 import { BotCommand } from 'src/modules/application/bot/core/types/bot.enums';
 import { Source } from 'src/modules/application/source/types/source.enums';
-import {
-  Gender,
-  JobRole,
-  Permission,
-  UserStatus,
-} from 'src/modules/application/user/types/user.enums';
+import { Gender, JobRole, UserStatus } from 'src/modules/application/user/types/user.enums';
+import { AdminSection } from 'src/modules/application/bot/admin/types/admin.enums';
 import type { CommonLocale } from '../../types/i18n-common.interface';
 import { Language } from '../../types/i18n.enums';
 
@@ -63,12 +59,6 @@ export const enCommon: CommonLocale = {
     [UserStatus.ACTIVE]: 'active',
     [UserStatus.BLOCKED]: 'blocked',
   },
-  permissions: {
-    [Permission.USERS]: 'Employees',
-    [Permission.TRAITS]: 'Traits',
-    [Permission.SETTINGS]: 'Settings',
-    [Permission.TEMPLATES]: 'Templates',
-  },
   bot: {
     noAccess: (channel, id) =>
       `No access. Your ${channel} ID is \`${id}\`. Send it to your administrator.`,
@@ -99,8 +89,14 @@ export const enCommon: CommonLocale = {
   },
   admin: {
     title: '**Management**',
-    noSections: 'Nothing here for your permissions yet.',
-    broadcast: 'Broadcast',
+    noSections: 'Nothing here for your access level yet.',
+    sections: {
+      [AdminSection.EMPLOYEES]: 'Employees',
+      [AdminSection.TRAITS]: 'Traits',
+      [AdminSection.SHARED_TEMPLATES]: 'Shared templates',
+      [AdminSection.SETTINGS]: 'Settings',
+      [AdminSection.BROADCAST]: 'Broadcast',
+    },
   },
   settings: {
     title: '**My settings**',
@@ -160,6 +156,11 @@ export const enCommon: CommonLocale = {
     selected: (name) => `${name} (selected)`,
     confirmDelete: (name) =>
       `Delete the template **${name}**? If it is in use, the report goes back to Standard.`,
+    makeShared: 'Make shared',
+    confirmShare: (name) =>
+      `Make the template **${name}** shared? Any employee can pick it and admins edit it. It leaves "My templates".`,
+    confirmMakeShared: 'Yes, make shared',
+    madeShared: (name) => `The template **${name}** is shared now and is in "Shared templates".`,
     confirm: 'Yes, delete',
     cancel: 'Cancel',
     deleted: (name) => `The template **${name}** is deleted.`,

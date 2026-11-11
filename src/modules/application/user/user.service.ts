@@ -1,12 +1,12 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
-import { and, arrayContains, eq, isNull, not, sql, type SQL } from 'drizzle-orm';
+import { and, eq, isNull, type SQL } from 'drizzle-orm';
 import type { Channel } from 'src/common/channel/types/channel.enums';
 import type { Language } from 'src/modules/application/i18n/types/i18n.enums';
 import type { Source } from 'src/modules/application/source/types/source.enums';
 import { ChannelService } from './channel/channel.service';
 import { USER_LIKE_SPECIAL_CHARACTERS } from './constants/user.constants';
-import { type JobRole, type Permission, UserStatus } from './types/user.enums';
+import { type JobRole, UserStatus } from './types/user.enums';
 import type {
   UserInsert,
   UserSettingsUpdate,
@@ -110,17 +110,8 @@ export class UserService {
     });
   }
 
-  grantPermission(id: string, permission: Permission) {
-    return this.updateOne(
-      and(eq(users.id, id), not(arrayContains(users.permissions, [permission])))!,
-      { permissions: sql`array_append(${users.permissions}, ${permission})` },
-    );
-  }
-
-  revokePermission(id: string, permission: Permission) {
-    return this.updateOne(and(eq(users.id, id), arrayContains(users.permissions, [permission]))!, {
-      permissions: sql`array_remove(${users.permissions}, ${permission})`,
-    });
+  setAdmin(id: string, isAdmin: boolean) {
+    return this.updateOne(and(eq(users.id, id), eq(users.isAdmin, !isAdmin))!, { isAdmin });
   }
 
   deleteById(id: string) {

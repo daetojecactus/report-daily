@@ -2,7 +2,7 @@ import type { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { eq } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { Gender, JobRole, Permission } from 'src/modules/application/user/types/user.enums';
+import { Gender, JobRole } from 'src/modules/application/user/types/user.enums';
 import { UserService } from 'src/modules/application/user/user.service';
 import { users } from 'src/modules/application/user/user.schema';
 import { DATABASE_INSTANCE } from 'src/modules/infrastructure/database/constants/database.constants';
@@ -77,7 +77,7 @@ describe('TemplateService', () => {
         displayName: 'Olga',
         role: JobRole.QA,
         gender: Gender.FEMALE,
-        permissions: [Permission.TEMPLATES],
+        isAdmin: true,
       })
       .returning();
     const shared = await templateService.create({ name: 'QA', body: '1', ownerId: null });

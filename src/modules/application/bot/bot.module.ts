@@ -25,7 +25,6 @@ import { DialogService } from './core/dialog.service';
 import { EmployeeAddHandler } from './employees/add/employee-add.handler';
 import { EmployeeBindHandler } from './employees/bind/employee-bind.handler';
 import { EmployeeManageHandler } from './employees/manage/employee-manage.handler';
-import { EmployeePermissionsHandler } from './employees/permissions/employee-permissions.handler';
 import { EmployeesCard } from './employees/employees.card';
 import { EmployeesHandler } from './employees/employees.handler';
 import { CancelHandler } from './commands/cancel.handler';
@@ -82,7 +81,6 @@ import { SettingsView } from './settings/settings.view';
     EmployeeAddHandler,
     EmployeeBindHandler,
     EmployeeManageHandler,
-    EmployeePermissionsHandler,
     SettingsHandler,
     SettingsView,
     ReportHandler,

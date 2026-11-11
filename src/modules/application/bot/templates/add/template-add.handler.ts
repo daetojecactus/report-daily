@@ -7,7 +7,6 @@ import {
   TEMPLATE_NAME_MAX_LENGTH,
 } from 'src/modules/application/report/template/constants/template.constants';
 import { TemplateService } from 'src/modules/application/report/template/template.service';
-import { Permission } from 'src/modules/application/user/types/user.enums';
 import { BotSection } from '../../core/bot.decorator';
 import { DialogService } from '../../core/dialog.service';
 import { BotAccess, BotNamespace } from '../../core/types/bot.enums';
@@ -86,7 +85,7 @@ export class TemplateAddHandler implements BotHandler {
   }
 
   private isPermitted(actor: BotActor, shared: boolean) {
-    return shared ? this.accessService.isAllowed(actor, Permission.TEMPLATES) : actor.user !== null;
+    return shared ? this.accessService.isAllowed(actor, BotAccess.ADMIN) : actor.user !== null;
   }
 
   private readShared(dialog: BotDialog | null) {

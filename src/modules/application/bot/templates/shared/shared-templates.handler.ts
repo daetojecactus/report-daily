@@ -4,7 +4,6 @@ import type { ScreenButton } from 'src/common/channel/types/chat-channel.interfa
 import { escapeMarkdown } from 'src/common/utils/markdown.util';
 import type { Locale } from 'src/modules/application/i18n/types/i18n.interface';
 import { TemplateService } from 'src/modules/application/report/template/template.service';
-import { Permission } from 'src/modules/application/user/types/user.enums';
 import { UserService } from 'src/modules/application/user/user.service';
 import { ADMIN_MENU_DATA } from '../../admin/constants/admin.constants';
 import { BotSection } from '../../core/bot.decorator';
@@ -18,7 +17,7 @@ import { SharedTemplatesMessages } from './constants/shared-templates.messages';
 import { SharedTemplatesAction } from './types/shared-templates.enums';
 
 @Injectable()
-@BotSection({ access: Permission.TEMPLATES, namespace: BotNamespace.SHARED_TEMPLATES })
+@BotSection({ access: BotAccess.ADMIN, namespace: BotNamespace.SHARED_TEMPLATES })
 export class SharedTemplatesHandler implements BotHandler {
   private readonly logger = new Logger(SharedTemplatesHandler.name);
 

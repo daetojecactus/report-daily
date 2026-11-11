@@ -1,6 +1,5 @@
 import { Channel } from 'src/common/channel/types/channel.enums';
 import { ReportStatus } from 'src/modules/application/report/types/report.enums';
-import { Permission } from 'src/modules/application/user/types/user.enums';
 import type { EmployeesLocale } from '../../types/i18n-employees.interface';
 
 export const enEmployees: EmployeesLocale = {
@@ -25,7 +24,8 @@ export const enEmployees: EmployeesLocale = {
       gender: 'Gender',
       status: 'Status',
       channels: 'Channels',
-      permissions: 'Permissions',
+      access: 'Access',
+      admin: 'admin, publishes shared templates',
       noChannels: 'not connected',
       reachable: 'connected',
       unreachable: 'unreachable, the bot cannot write there',
@@ -80,7 +80,10 @@ export const enEmployees: EmployeesLocale = {
       `Delete the employee **${name}**? Their channels and reports are deleted with them.`,
     deleted: (name) => `Employee deleted: **${name}**.`,
     self: 'You cannot block or delete yourself.',
-    ownerOnly: 'Only an owner can block or delete an employee with permissions.',
+    makeAdmin: 'Make admin',
+    removeAdmin: 'Remove admin',
+    madeAdmin: (name) => `**${name}** is an admin now: they create and edit shared templates.`,
+    removedAdmin: (name) => `**${name}** is no longer an admin.`,
     reportNow: 'Report now',
     reportQueued: (name) =>
       `Building today's report for **${name}**. It goes to the employee; if there are no actions or the build fails, I'll write here.`,
@@ -88,18 +91,6 @@ export const enEmployees: EmployeesLocale = {
     reportFailed: (name) => `Could not build the report for **${name}**: GitLab did not answer.`,
     reportUnavailable: (name) =>
       `**${name}** cannot get a report: the employee is not active or has no bound channel.`,
-  },
-  employeePermissions: {
-    open: 'Permissions',
-    title: (name) => `**${name}**\nPermissions in the bot. Tap one to grant or revoke it.`,
-    descriptions: {
-      [Permission.USERS]: 'add, change, block and delete employees',
-      [Permission.TRAITS]: 'map GitLab labels to task traits',
-      [Permission.SETTINGS]: 'report pause and AI settings',
-      [Permission.TEMPLATES]: 'create, edit and delete shared report templates',
-    },
-    granted: 'yes',
-    revoked: 'no',
   },
   employeeBind: {
     prompt: (channel, name) =>
@@ -121,8 +112,6 @@ export const enEmployees: EmployeesLocale = {
     invalid: (channel) => `This does not look like a ${channel} ID.`,
     taken: (name) => `This account is already bound to **${name}**. Enter another ID.`,
     alreadyBound: (channel) => `The employee already has ${channel} bound.`,
-    self: 'You cannot bind your own channel — the owner does it.',
-    ownerOnly: 'Only the owner can bind a channel of an employee with permissions.',
     bound: (channel, name) => `${channel} bound: **${name}**.`,
     hint: {
       [Channel.TELEGRAM]:

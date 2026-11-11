@@ -7,7 +7,6 @@ CREATE TYPE "public"."source" AS ENUM('gitlab');--> statement-breakpoint
 CREATE TYPE "public"."gender" AS ENUM('male', 'female');--> statement-breakpoint
 CREATE TYPE "public"."job_role" AS ENUM('developer', 'qa', 'project_manager', 'system_analyst', 'devops');--> statement-breakpoint
 CREATE TYPE "public"."language" AS ENUM('ru', 'en');--> statement-breakpoint
-CREATE TYPE "public"."permission" AS ENUM('users', 'traits', 'settings', 'templates');--> statement-breakpoint
 CREATE TYPE "public"."user_status" AS ENUM('pending', 'active', 'blocked');--> statement-breakpoint
 CREATE TABLE "deliveries" (
 	"id" uuid PRIMARY KEY DEFAULT uuidv7() NOT NULL,
@@ -131,7 +130,7 @@ CREATE TABLE "users" (
 	"schedule_enabled" boolean DEFAULT true NOT NULL,
 	"ai_enabled" boolean DEFAULT true NOT NULL,
 	"ai_data_opt_out" boolean DEFAULT false NOT NULL,
-	"permissions" "permission"[] DEFAULT '{}' NOT NULL,
+	"is_admin" boolean DEFAULT false NOT NULL,
 	"template_id" uuid,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,

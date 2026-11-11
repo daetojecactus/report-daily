@@ -1,5 +1,5 @@
 {
-  "id": "ecd08c56-76f4-4f9f-9899-47ad44e13c99",
+  "id": "21d9c895-2e1f-42ac-a647-2b12ddac71bd",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -904,12 +904,12 @@
           "notNull": true,
           "default": false
         },
-        "permissions": {
-          "name": "permissions",
-          "type": "permission[]",
+        "is_admin": {
+          "name": "is_admin",
+          "type": "boolean",
           "primaryKey": false,
           "notNull": true,
-          "default": "'{}'"
+          "default": false
         },
         "template_id": {
           "name": "template_id",
@@ -1062,16 +1062,6 @@
       "values": [
         "ru",
         "en"
-      ]
-    },
-    "public.permission": {
-      "name": "permission",
-      "schema": "public",
-      "values": [
-        "users",
-        "traits",
-        "settings",
-        "templates"
       ]
     },
     "public.user_status": {

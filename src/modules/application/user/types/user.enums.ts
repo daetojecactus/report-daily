@@ -16,10 +16,3 @@ export enum UserStatus {
   ACTIVE = 'active',
   BLOCKED = 'blocked',
 }
-
-export enum Permission {
-  USERS = 'users',
-  TRAITS = 'traits',
-  SETTINGS = 'settings',
-  TEMPLATES = 'templates',
-}

@@ -6,7 +6,7 @@ import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
 import type { ChatInput } from 'src/common/channel/types/chat-channel.interface';
 import { Language } from 'src/modules/application/i18n/types/i18n.enums';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
-import { JobRole, Permission, UserStatus } from 'src/modules/application/user/types/user.enums';
+import { JobRole, UserStatus } from 'src/modules/application/user/types/user.enums';
 import type { UserChannel } from 'src/modules/application/user/channel/types/channel.interface';
 import type { ChannelService } from 'src/modules/application/user/channel/channel.service';
 import type { User } from 'src/modules/application/user/types/user.interface';
@@ -37,6 +37,7 @@ describe('EmployeeManageHandler', () => {
     block: vi.fn(),
     unblock: vi.fn(),
     deleteById: vi.fn(),
+    setAdmin: vi.fn<UserService['setAdmin']>(),
   };
   const channelService = {
     findByUser: vi.fn<(userId: string) => Promise<UserChannel[]>>(),
@@ -154,46 +155,41 @@ describe('EmployeeManageHandler', () => {
     });
   });
 
-  it.each(['block', 'unblock', 'delete', 'confirm'])('refuses to %s yourself', async (action) => {
-    const reply = await open(`mng:${action}:${USER.id}`, {
-      isOwner: false,
-      user: { ...USER, permissions: [Permission.USERS] },
-    });
+  it.each(['block', 'unblock', 'delete', 'confirm', 'admin', 'noadmin'])(
+    'refuses to %s yourself',
+    async (action) => {
+      const reply = await open(`mng:${action}:${USER.id}`, { user: USER });
 
-    expect(reply.screen).toEqual({
-      text: locale.employeeManage.self,
-      buttons: [[CARD]],
-    });
-    expect(userService.block).not.toHaveBeenCalled();
-    expect(userService.deleteById).not.toHaveBeenCalled();
+      expect(reply.screen).toEqual({
+        text: locale.employeeManage.self,
+        buttons: [[CARD]],
+      });
+      expect(userService.block).not.toHaveBeenCalled();
+      expect(userService.deleteById).not.toHaveBeenCalled();
+      expect(userService.setAdmin).not.toHaveBeenCalled();
+    },
+  );
+
+  it('makes an employee an admin and back and refreshes the menu', async () => {
+    userService.setAdmin.mockResolvedValueOnce({ ...USER, isAdmin: true });
+    expect((await open(`mng:admin:${USER.id}`)).screen?.text).toBe(
+      locale.employeeManage.madeAdmin('Anna \\*S\\*'),
+    );
+
+    userService.setAdmin.mockResolvedValueOnce(USER);
+    expect((await open(`mng:noadmin:${USER.id}`)).screen?.text).toBe(
+      locale.employeeManage.removedAdmin('Anna \\*S\\*'),
+    );
+
+    expect(userService.setAdmin.mock.calls).toEqual([
+      [USER.id, true],
+      [USER.id, false],
+    ]);
+    expect(menuService.syncEmployee).toHaveBeenCalledWith({ ...USER, isAdmin: true }, [CHANNEL]);
   });
 
-  it('lets only an owner block an employee with permissions', async () => {
-    userService.findById.mockResolvedValue({
-      ...USER,
-      permissions: [Permission.TRAITS],
-    });
-    const admin = createEmployee({
-      id: '019a4d2e-7c1b-7f3a-9c2d-000000000099',
-      permissions: [Permission.USERS],
-    }).user;
-
-    const refused = await open(`mng:block:${USER.id}`, {
-      isOwner: false,
-      user: admin,
-    });
-    const allowed = await open(`mng:block:${USER.id}`);
-
-    expect(refused.screen.text).toBe(locale.employeeManage.ownerOnly);
-    expect(allowed.screen.text).toContain('Employee blocked');
-    expect(userService.block).toHaveBeenCalledOnce();
-  });
-
-  it('lets an admin change the role of anyone', async () => {
-    await open(`mng:set:${USER.id}:devops`, {
-      isOwner: false,
-      user: { ...USER, permissions: [Permission.USERS] },
-    });
+  it('lets the owner change the role of an employee', async () => {
+    await open(`mng:set:${USER.id}:devops`);
 
     expect(userService.changeRole).toHaveBeenCalledWith(USER.id, JobRole.DEVOPS);
   });

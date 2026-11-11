@@ -1,6 +1,5 @@
 import type { Channel } from 'src/common/channel/types/channel.enums';
 import type { ReportStatus } from 'src/modules/application/report/types/report.enums';
-import type { Permission } from 'src/modules/application/user/types/user.enums';
 
 export interface EmployeesLocale {
   employees: {
@@ -24,7 +23,8 @@ export interface EmployeesLocale {
       gender: string;
       status: string;
       channels: string;
-      permissions: string;
+      access: string;
+      admin: string;
       noChannels: string;
       reachable: string;
       unreachable: string;
@@ -67,19 +67,15 @@ export interface EmployeesLocale {
     confirmDelete: (name: string) => string;
     deleted: (name: string) => string;
     self: string;
-    ownerOnly: string;
+    makeAdmin: string;
+    removeAdmin: string;
+    madeAdmin: (name: string) => string;
+    removedAdmin: (name: string) => string;
     reportNow: string;
     reportQueued: (name: string) => string;
     reportEmpty: (name: string) => string;
     reportFailed: (name: string) => string;
     reportUnavailable: (name: string) => string;
-  };
-  employeePermissions: {
-    open: string;
-    title: (name: string) => string;
-    descriptions: Record<Permission, string>;
-    granted: string;
-    revoked: string;
   };
   employeeBind: {
     prompt: (channel: string, name: string) => string;
@@ -91,8 +87,6 @@ export interface EmployeesLocale {
     invalid: (channel: string) => string;
     taken: (name: string) => string;
     alreadyBound: (channel: string) => string;
-    self: string;
-    ownerOnly: string;
     bound: (channel: string, name: string) => string;
     hint: Record<Channel, string>;
     cancel: string;

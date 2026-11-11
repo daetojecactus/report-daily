@@ -3,12 +3,12 @@ import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
 import type { ScreenButton } from 'src/common/channel/types/chat-channel.interface';
 import { escapeMarkdown } from 'src/common/utils/markdown.util';
 import type { Locale } from 'src/modules/application/i18n/types/i18n.interface';
-import { Permission, UserStatus } from 'src/modules/application/user/types/user.enums';
+import { UserStatus } from 'src/modules/application/user/types/user.enums';
 import type { User } from 'src/modules/application/user/types/user.interface';
 import { UserService } from 'src/modules/application/user/user.service';
 import { ADMIN_MENU_DATA } from '../admin/constants/admin.constants';
 import { BotSection } from '../core/bot.decorator';
-import { BotNamespace } from '../core/types/bot.enums';
+import { BotAccess, BotNamespace } from '../core/types/bot.enums';
 import type { BotContext, BotHandler, BotReply } from '../core/types/bot.interface';
 import { BOT_BUTTON_DATA_SEPARATOR } from '../core/constants/bot.constants';
 import {
@@ -24,7 +24,7 @@ import { EmployeesCard } from './employees.card';
 import { EmployeesAction, EmployeesStep } from './types/employees.enums';
 
 @Injectable()
-@BotSection({ access: Permission.USERS, namespace: BotNamespace.EMPLOYEES })
+@BotSection({ access: BotAccess.OWNER, namespace: BotNamespace.EMPLOYEES })
 export class EmployeesHandler implements BotHandler {
   constructor(
     private readonly userService: UserService,

@@ -11,7 +11,7 @@ import type { TraitMapping, TraitValue } from 'src/modules/application/trait/typ
 import { Source } from 'src/modules/application/source/types/source.enums';
 import { TraitService } from 'src/modules/application/trait/trait.service';
 import { TraitNameService } from 'src/modules/application/trait/trait-name/trait-name.service';
-import { JobRole, Permission } from 'src/modules/application/user/types/user.enums';
+import { JobRole } from 'src/modules/application/user/types/user.enums';
 import { BotSection } from '../../core/bot.decorator';
 import { DialogService } from '../../core/dialog.service';
 import { BotAccess, BotNamespace } from '../../core/types/bot.enums';
@@ -34,7 +34,7 @@ import { TraitAddMessages } from './constants/trait-add.messages';
 import { TraitAddAction, TraitAddStep } from './types/trait-add.enums';
 
 @Injectable()
-@BotSection({ access: Permission.TRAITS, namespace: BotNamespace.TRAIT_ADD })
+@BotSection({ access: BotAccess.OWNER, namespace: BotNamespace.TRAIT_ADD })
 export class TraitAddHandler implements BotHandler {
   private readonly logger = new Logger(TraitAddHandler.name);
 

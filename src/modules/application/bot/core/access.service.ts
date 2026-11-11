@@ -10,7 +10,7 @@ import type { User } from 'src/modules/application/user/types/user.interface';
 import { UserService } from 'src/modules/application/user/user.service';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { BotAccess } from './types/bot.enums';
-import type { BotActor, BotSectionAccess } from './types/bot.interface';
+import type { BotActor } from './types/bot.interface';
 
 @Injectable()
 export class AccessService {
@@ -66,24 +66,19 @@ export class AccessService {
   }
 
   canManage(actor: BotActor, target: User) {
-    if (actor.user?.id === target.id) {
-      return false;
-    }
-    return actor.isOwner || target.permissions.length === 0;
+    return actor.isOwner && actor.user?.id !== target.id;
   }
 
-  isAllowed(actor: BotActor, access: BotSectionAccess) {
+  isAllowed(actor: BotActor, access: BotAccess) {
     switch (access) {
       case BotAccess.ANYONE:
         return true;
       case BotAccess.EMPLOYEE:
         return actor.user !== null;
       case BotAccess.ADMIN:
-        return actor.isOwner || (actor.user?.permissions.length ?? 0) > 0;
+        return actor.isOwner || (actor.user?.isAdmin ?? false);
       case BotAccess.OWNER:
         return actor.isOwner;
-      default:
-        return actor.isOwner || (actor.user?.permissions.includes(access) ?? false);
     }
   }
 }

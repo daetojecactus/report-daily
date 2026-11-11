@@ -3,9 +3,9 @@ import { ConfigService } from '@nestjs/config';
 import { DiscoveryModule } from '@nestjs/core';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { BotCommand } from 'src/modules/application/bot/core/types/bot.enums';
+import { BotAccess, BotCommand } from 'src/modules/application/bot/core/types/bot.enums';
 import { Channel } from 'src/common/channel/types/channel.enums';
-import { Permission, UserStatus } from 'src/modules/application/user/types/user.enums';
+import { UserStatus } from 'src/modules/application/user/types/user.enums';
 import { ChatUnreachableError } from 'src/common/channel/chat-unreachable.error';
 import { Language } from 'src/modules/application/i18n/types/i18n.enums';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
@@ -36,7 +36,7 @@ import { createEmployee, EMPLOYEE_ID, OWNER_ID, STRANGER_ID } from './bot.fixtur
 import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
 
 @Injectable()
-@BotSection({ access: Permission.USERS, namespace: 'test' })
+@BotSection({ access: BotAccess.ADMIN, namespace: 'test' })
 class TestHandler implements BotHandler {
   readonly contexts: BotContext[] = [];
 
@@ -59,7 +59,7 @@ class TestHandler implements BotHandler {
 }
 
 @Injectable()
-@BotSection({ access: Permission.USERS, commands: [BotCommand.HELP] })
+@BotSection({ access: BotAccess.ADMIN, commands: [BotCommand.HELP] })
 class DuplicateHelpHandler implements BotHandler {
   handle(): BotReply {
     return { screen: { text: 'duplicate' } };
@@ -274,7 +274,7 @@ describe('BotService', () => {
     expect(userService.recordContact).not.toHaveBeenCalled();
   });
 
-  it('denies a section without its permission', async () => {
+  it('denies a section above the access level', async () => {
     asEmployee();
 
     await botService.handle(event(EMPLOYEE_ID, button('test:open')));
@@ -287,7 +287,7 @@ describe('BotService', () => {
   });
 
   it('answers a button with a new message when the section asks for it', async () => {
-    asEmployee({ permissions: [Permission.USERS] });
+    asEmployee({ isAdmin: true });
 
     await botService.handle(event(EMPLOYEE_ID, button('test:new')));
 
@@ -297,7 +297,7 @@ describe('BotService', () => {
   });
 
   it('passes a picked user to the section of the dialog', async () => {
-    asEmployee({ permissions: [Permission.USERS] });
+    asEmployee({ isAdmin: true });
     store.set(DIALOG_KEY, JSON.stringify({ namespace: 'test', step: 'name', data: {} }));
 
     await botService.handle(
@@ -311,8 +311,8 @@ describe('BotService', () => {
     });
   });
 
-  it('runs a dialog of a permitted section', async () => {
-    asEmployee({ permissions: [Permission.USERS] });
+  it('runs a dialog of a section the access level opens', async () => {
+    asEmployee({ isAdmin: true });
 
     await botService.handle(event(EMPLOYEE_ID, button('test:open')));
     await botService.handle(event(EMPLOYEE_ID, text('Anna')));
@@ -342,7 +342,7 @@ describe('BotService', () => {
   });
 
   it('drops a dialog when another command arrives', async () => {
-    asEmployee({ permissions: [Permission.USERS] });
+    asEmployee({ isAdmin: true });
     store.set(DIALOG_KEY, JSON.stringify({ namespace: 'test', step: 'name', data: {} }));
 
     await botService.handle(event(EMPLOYEE_ID, command('help')));
@@ -366,7 +366,7 @@ describe('BotService', () => {
     });
   });
 
-  it('drops a dialog when the permission was revoked', async () => {
+  it('drops a dialog when the admin access was removed', async () => {
     asEmployee();
     store.set(DIALOG_KEY, JSON.stringify({ namespace: 'test', step: 'name', data: {} }));
 
@@ -379,7 +379,7 @@ describe('BotService', () => {
   });
 
   it('ignores a dialog with an unknown shape', async () => {
-    asEmployee({ permissions: [Permission.USERS] });
+    asEmployee({ isAdmin: true });
     store.set(DIALOG_KEY, JSON.stringify({ namespace: 'test' }));
 
     await botService.handle(event(EMPLOYEE_ID, text('Anna')));
@@ -411,7 +411,7 @@ describe('BotService', () => {
   it.each(['gone:open', 'BAD DATA', `test:${'x'.repeat(64)}`])(
     'answers the outdated button %s',
     async (data) => {
-      asEmployee({ permissions: [Permission.USERS] });
+      asEmployee({ isAdmin: true });
 
       await botService.handle(event(EMPLOYEE_ID, button(data)));
 

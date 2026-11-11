@@ -16,6 +16,8 @@ export const EMPLOYEE_MANAGE_BUTTON_SCHEMA = z.union([
         EmployeeManageAction.DELETE,
         EmployeeManageAction.CONFIRM_DELETE,
         EmployeeManageAction.REPORT,
+        EmployeeManageAction.GRANT_ADMIN,
+        EmployeeManageAction.REVOKE_ADMIN,
       ]),
       z.uuid(),
     ])

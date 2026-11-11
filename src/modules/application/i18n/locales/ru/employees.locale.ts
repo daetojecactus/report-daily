@@ -1,6 +1,5 @@
 import { Channel } from 'src/common/channel/types/channel.enums';
 import { ReportStatus } from 'src/modules/application/report/types/report.enums';
-import { Permission } from 'src/modules/application/user/types/user.enums';
 import type { EmployeesLocale } from '../../types/i18n-employees.interface';
 
 export const ruEmployees: EmployeesLocale = {
@@ -25,7 +24,8 @@ export const ruEmployees: EmployeesLocale = {
       gender: 'Пол',
       status: 'Статус',
       channels: 'Каналы',
-      permissions: 'Права',
+      access: 'Доступ',
+      admin: 'админ — публикует общие шаблоны',
       noChannels: 'не подключены',
       reachable: 'подключён',
       unreachable: 'недоступен, бот не может написать',
@@ -80,7 +80,10 @@ export const ruEmployees: EmployeesLocale = {
       `Удалить сотрудника **${name}**? Его каналы и отчёты удалятся вместе с ним.`,
     deleted: (name) => `Сотрудник удалён: **${name}**.`,
     self: 'Нельзя заблокировать или удалить себя.',
-    ownerOnly: 'Сотрудника с правами может заблокировать или удалить только владелец.',
+    makeAdmin: 'Сделать админом',
+    removeAdmin: 'Снять админа',
+    madeAdmin: (name) => `**${name}** теперь админ: создаёт и правит общие шаблоны.`,
+    removedAdmin: (name) => `**${name}** больше не админ.`,
     reportNow: 'Отчёт сейчас',
     reportQueued: (name) =>
       `Собираю отчёт за сегодня для **${name}**. Он придёт сотруднику; если действий нет или сборка не удастся, напишу сюда.`,
@@ -88,18 +91,6 @@ export const ruEmployees: EmployeesLocale = {
     reportFailed: (name) => `Не получилось собрать отчёт для **${name}**: GitLab не ответил.`,
     reportUnavailable: (name) =>
       `**${name}** не получит отчёт: сотрудник не активен или у него нет привязанного канала.`,
-  },
-  employeePermissions: {
-    open: 'Права',
-    title: (name) => `**${name}**\nПрава в боте. Нажмите на право, чтобы выдать или снять его.`,
-    descriptions: {
-      [Permission.USERS]: 'добавлять, менять, блокировать и удалять сотрудников',
-      [Permission.TRAITS]: 'сопоставлять лейблы GitLab с признаками задачи',
-      [Permission.SETTINGS]: 'пауза отчётов и настройки AI',
-      [Permission.TEMPLATES]: 'создавать, править и удалять общие шаблоны отчёта',
-    },
-    granted: 'есть',
-    revoked: 'нет',
   },
   employeeBind: {
     prompt: (channel, name) =>
@@ -121,8 +112,6 @@ export const ruEmployees: EmployeesLocale = {
     invalid: (channel) => `Это не похоже на ${channel} ID.`,
     taken: (name) => `Этот аккаунт уже привязан к сотруднику **${name}**. Введите другой ID.`,
     alreadyBound: (channel) => `У сотрудника уже привязан ${channel}.`,
-    self: 'Свой канал привязать нельзя — это делает владелец.',
-    ownerOnly: 'Канал сотрудника с правами может привязать только владелец.',
     bound: (channel, name) => `${channel} привязан: **${name}**.`,
     hint: {
       [Channel.TELEGRAM]:

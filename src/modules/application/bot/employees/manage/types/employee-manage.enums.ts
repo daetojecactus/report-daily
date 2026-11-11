@@ -6,4 +6,6 @@ export enum EmployeeManageAction {
   DELETE = 'delete',
   CONFIRM_DELETE = 'confirm',
   REPORT = 'report',
+  GRANT_ADMIN = 'admin',
+  REVOKE_ADMIN = 'noadmin',
 }

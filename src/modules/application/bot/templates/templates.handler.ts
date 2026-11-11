@@ -6,9 +6,10 @@ import type { Locale } from 'src/modules/application/i18n/types/i18n.interface';
 import { TemplateService } from 'src/modules/application/report/template/template.service';
 import type { User } from 'src/modules/application/user/types/user.interface';
 import { UserService } from 'src/modules/application/user/user.service';
+import { AccessService } from '../core/access.service';
 import { BotSection } from '../core/bot.decorator';
 import { BotAccess, BotNamespace } from '../core/types/bot.enums';
-import type { BotContext, BotHandler, BotReply } from '../core/types/bot.interface';
+import type { BotActor, BotContext, BotHandler, BotReply } from '../core/types/bot.interface';
 import { BOT_BUTTON_DATA_SEPARATOR } from '../core/constants/bot.constants';
 import { SettingsAction } from '../settings/types/settings.enums';
 import { TEMPLATES_BUTTON_SCHEMA, TEMPLATES_STANDARD } from './constants/templates.constants';
@@ -25,6 +26,7 @@ export class TemplatesHandler implements BotHandler {
   constructor(
     private readonly templateService: TemplateService,
     private readonly userService: UserService,
+    private readonly accessService: AccessService,
   ) {}
 
   async handle({ actor, input, locale }: BotContext): Promise<BotReply> {
@@ -47,11 +49,19 @@ export class TemplatesHandler implements BotHandler {
       case TemplatesAction.MINE:
         return this.showMine(locale, user);
       case TemplatesAction.CARD:
-        return this.showCard(locale, user, button.data.id);
+        return this.showCard(locale, user, button.data.id, this.canShare(actor));
       case TemplatesAction.DELETE:
         return this.confirmDelete(locale, user, button.data.id);
       case TemplatesAction.CONFIRM_DELETE:
         return this.delete(locale, user, button.data.id);
+      case TemplatesAction.SHARE:
+        return this.canShare(actor)
+          ? this.confirmShare(locale, user, button.data.id)
+          : { screen: { text: locale.bot.forbidden } };
+      case TemplatesAction.CONFIRM_SHARE:
+        return this.canShare(actor)
+          ? this.share(locale, user, button.data.id)
+          : { screen: { text: locale.bot.forbidden } };
     }
   }
 
@@ -130,7 +140,12 @@ export class TemplatesHandler implements BotHandler {
     );
   }
 
-  private async showCard(locale: Locale, user: User, id: string): Promise<BotReply> {
+  private async showCard(
+    locale: Locale,
+    user: User,
+    id: string,
+    canShare: boolean,
+  ): Promise<BotReply> {
     const template = await this.templateService.findById(id);
     if (template?.ownerId !== user.id) {
       return this.showMine(locale, user, locale.templates.notFound);
@@ -147,6 +162,9 @@ export class TemplatesHandler implements BotHandler {
           { text: texts.editText, data: this.toEditData(TemplateEditAction.TEXT, template.id) },
           { text: texts.rename, data: this.toEditData(TemplateEditAction.NAME, template.id) },
         ],
+        ...(canShare
+          ? [[{ text: texts.makeShared, data: this.toData(TemplatesAction.SHARE, template.id) }]]
+          : []),
         [{ text: texts.backToMine, data: this.toData(TemplatesAction.MINE) }],
       ],
     );
@@ -175,6 +193,38 @@ export class TemplatesHandler implements BotHandler {
     }
     this.logger.log({ userId: user.id, templateId: id }, TemplatesMessages.DELETED);
     return this.showMine(locale, user, locale.templates.deleted(escapeMarkdown(template.name)));
+  }
+
+  private async confirmShare(locale: Locale, user: User, id: string): Promise<BotReply> {
+    const template = await this.templateService.findById(id);
+    if (template?.ownerId !== user.id) {
+      return this.showMine(locale, user, locale.templates.notFound);
+    }
+    return this.reply(
+      [locale.templates.confirmShare(escapeMarkdown(template.name))],
+      [
+        [
+          {
+            text: locale.templates.confirmMakeShared,
+            data: this.toData(TemplatesAction.CONFIRM_SHARE, id),
+          },
+          { text: locale.templates.cancel, data: this.toData(TemplatesAction.CARD, id) },
+        ],
+      ],
+    );
+  }
+
+  private async share(locale: Locale, user: User, id: string): Promise<BotReply> {
+    const template = await this.templateService.share(id, user.id);
+    if (!template) {
+      return this.showMine(locale, user, locale.templates.notFound);
+    }
+    this.logger.log({ userId: user.id, templateId: id }, TemplatesMessages.SHARED);
+    return this.showMine(locale, user, locale.templates.madeShared(escapeMarkdown(template.name)));
+  }
+
+  private canShare(actor: BotActor) {
+    return this.accessService.isAllowed(actor, BotAccess.ADMIN);
   }
 
   private toName(locale: Locale, template: { name: string; ownerId: string | null } | null) {

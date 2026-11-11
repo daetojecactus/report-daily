@@ -19,7 +19,6 @@ import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { AccessService } from '../../../core/access.service';
 import type { BotActor, BotDialog } from '../../../core/types/bot.interface';
 import { createEmployee } from '../../../__test__/bot.fixture';
-import { Permission } from 'src/modules/application/user/types/user.enums';
 import { TemplatesDraft } from '../../templates.draft';
 import { TemplateAddHandler } from '../template-add.handler';
 import { DialogService } from '../../../core/dialog.service';
@@ -246,7 +245,7 @@ describe('TemplateAddHandler', () => {
     expect(repository.create).toHaveBeenCalledWith({ name: 'QA', body: BODY, ownerId: null });
   });
 
-  it('lets only the owner and the templates permission make shared templates', async () => {
+  it('lets only an owner and an admin make shared templates', async () => {
     expect(await open(button('tpladd:shared'))).toEqual({
       screen: { text: locale.bot.forbidden },
       dialog: null,
@@ -260,7 +259,7 @@ describe('TemplateAddHandler', () => {
     expect(
       (
         await open(button('tpladd:shared'), null, {
-          user: { ...USER, permissions: [Permission.TEMPLATES] },
+          user: { ...USER, isAdmin: true },
         })
       ).dialog,
     ).toEqual(dialog('name', { shared: true }));
