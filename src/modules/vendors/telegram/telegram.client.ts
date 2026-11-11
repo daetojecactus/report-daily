@@ -13,14 +13,18 @@ import type { TelegramCallOptions, TelegramHttpResponse } from './telegram.inter
 
 @Injectable()
 export class TelegramClient {
-  private readonly baseUrl: string;
+  private readonly baseUrl: string | null;
 
   constructor(configService: ConfigService<AppEnvs, true>) {
     const apiUrl = configService
       .get('TELEGRAM_API_URL', { infer: true })
       .replace(TELEGRAM_URL_TRAILING_SLASHES, '');
     const token = configService.get('TELEGRAM_BOT_TOKEN', { infer: true });
-    this.baseUrl = `${apiUrl}/bot${token}`;
+    this.baseUrl = token ? `${apiUrl}/bot${token}` : null;
+  }
+
+  isEnabled() {
+    return this.baseUrl !== null;
   }
 
   async post(
@@ -28,6 +32,9 @@ export class TelegramClient {
     params: object,
     { timeoutMs = TELEGRAM_REQUEST_TIMEOUT_MS, signal }: TelegramCallOptions = {},
   ): Promise<TelegramHttpResponse> {
+    if (!this.baseUrl) {
+      throw new Error(TelegramMessages.DISABLED);
+    }
     const timeout = AbortSignal.timeout(timeoutMs);
     try {
       const response = await fetch(`${this.baseUrl}/${method}`, {

@@ -40,7 +40,9 @@ export class TelegramPoller implements OnApplicationBootstrap, OnModuleDestroy {
   ) {}
 
   onApplicationBootstrap() {
-    this.running = this.run();
+    if (this.telegramService.isEnabled()) {
+      this.running = this.run();
+    }
   }
 
   async onModuleDestroy() {

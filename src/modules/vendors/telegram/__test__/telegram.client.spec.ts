@@ -5,6 +5,7 @@ import { afterAll, assert, beforeAll, beforeEach, describe, expect, it } from 'v
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { TelegramClient } from '../telegram.client';
 import { TelegramMethod } from '../telegram.enums';
+import { TelegramMessages } from '../constants/telegram.messages';
 import { TelegramRetryableError } from '../telegram.error';
 
 const TOKEN = '300000000:client-test-secret-token';
@@ -97,6 +98,18 @@ describe('TelegramClient', () => {
   beforeEach(() => {
     received = [];
     reply = replyJson(200, { ok: true, result: true });
+  });
+
+  it('is off without a token and refuses to call Telegram', async () => {
+    const client = new TelegramClient({
+      get: (key: string) => (key === 'TELEGRAM_API_URL' ? serverUrl : undefined),
+    } as unknown as ConfigService<AppEnvs, true>);
+
+    expect(client.isEnabled()).toBe(false);
+    expect(createClient().isEnabled()).toBe(true);
+    await expect(client.post(TelegramMethod.GET_UPDATES, {})).rejects.toThrow(
+      TelegramMessages.DISABLED,
+    );
   });
 
   it('posts JSON to the bot method url and returns the status and body', async () => {

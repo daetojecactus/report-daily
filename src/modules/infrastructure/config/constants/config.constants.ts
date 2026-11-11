@@ -8,6 +8,8 @@ export const TELEGRAM_DEFAULT_API_URL = 'https://api.telegram.org';
 
 export const LLM_ENV_KEYS = ['LLM_BASE_URL', 'LLM_TOKEN', 'LLM_MODEL'] as const;
 
+export const TELEGRAM_ENV_KEYS = ['TELEGRAM_BOT_TOKEN', 'OWNER_TELEGRAM_IDS'] as const;
+
 export const SLACK_ENV_KEYS = ['SLACK_BOT_TOKEN', 'SLACK_APP_TOKEN', 'OWNER_SLACK_IDS'] as const;
 
 export const SLACK_BOT_TOKEN_PATTERN = /^xoxb-/;

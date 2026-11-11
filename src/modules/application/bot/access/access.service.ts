@@ -22,9 +22,7 @@ export class AccessService {
     private readonly i18nService: I18nService,
   ) {
     this.owners = {
-      [Channel.TELEGRAM]: configService.get('OWNER_TELEGRAM_IDS', {
-        infer: true,
-      }),
+      [Channel.TELEGRAM]: configService.get('OWNER_TELEGRAM_IDS', { infer: true }) ?? [],
       [Channel.SLACK]: configService.get('OWNER_SLACK_IDS', { infer: true }) ?? [],
     };
   }

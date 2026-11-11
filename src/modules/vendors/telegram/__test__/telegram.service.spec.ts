@@ -8,6 +8,7 @@ import type {
   ChatInput,
   Screen,
 } from 'src/common/interfaces/chat-channel.interface';
+import type { TelegramClient } from '../telegram.client';
 import { TelegramRejectedError, TelegramRetryableError } from '../telegram.error';
 import { TelegramFormatter } from '../telegram.formatter';
 import type {
@@ -164,7 +165,12 @@ describe('TelegramService', () => {
     service = new TelegramService(
       repository as unknown as TelegramRepository,
       new TelegramRenderer(new TelegramFormatter()),
+      { isEnabled: () => true } as TelegramClient,
     );
+  });
+
+  it('is enabled when its client has a token', () => {
+    expect(service.isEnabled()).toBe(true);
   });
 
   it.each([

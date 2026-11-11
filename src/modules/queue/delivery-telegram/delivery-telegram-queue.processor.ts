@@ -49,7 +49,7 @@ export class DeliveryTelegramQueueProcessor extends WorkerHost implements OnModu
     configService: ConfigService<AppEnvs, true>,
   ) {
     super();
-    this.ownerIds = configService.get('OWNER_TELEGRAM_IDS', { infer: true });
+    this.ownerIds = configService.get('OWNER_TELEGRAM_IDS', { infer: true }) ?? [];
   }
 
   async onModuleDestroy() {

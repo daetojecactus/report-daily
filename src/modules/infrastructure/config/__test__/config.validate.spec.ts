@@ -91,6 +91,39 @@ describe('validateEnv', () => {
     ).toEqual(['U0OWNER01', 'W0OWNER02']);
   });
 
+  it('runs with Slack alone when the Telegram variables are missing or empty', () => {
+    const slack = {
+      ...ENV,
+      SLACK_BOT_TOKEN: 'xoxb-secret',
+      SLACK_APP_TOKEN: 'xapp-secret',
+      OWNER_SLACK_IDS: 'U0OWNER01',
+    };
+    const withoutTelegram = {
+      ...slack,
+      OWNER_TELEGRAM_IDS: undefined,
+      TELEGRAM_BOT_TOKEN: undefined,
+    };
+
+    expect(validateEnv(withoutTelegram).TELEGRAM_BOT_TOKEN).toBeUndefined();
+    expect(
+      validateEnv({ ...slack, OWNER_TELEGRAM_IDS: '', TELEGRAM_BOT_TOKEN: '' }).OWNER_TELEGRAM_IDS,
+    ).toEqual([]);
+    expect(getValidationMessage({ ...withoutTelegram, OWNER_TELEGRAM_IDS: '111' })).toContain(
+      'TELEGRAM_BOT_TOKEN',
+    );
+  });
+
+  it('asks for Telegram when no channel is set', () => {
+    const message = getValidationMessage({
+      ...ENV,
+      OWNER_TELEGRAM_IDS: undefined,
+      TELEGRAM_BOT_TOKEN: undefined,
+    });
+
+    expect(message).toContain('OWNER_TELEGRAM_IDS');
+    expect(message).toContain('TELEGRAM_BOT_TOKEN');
+  });
+
   it('asks for the whole Slack group and checks it without printing values', () => {
     const message = getValidationMessage({
       ...ENV,
