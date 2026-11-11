@@ -1,5 +1,3 @@
-import { WorkerHost } from '@nestjs/bullmq';
-import { Logger, type OnModuleDestroy } from '@nestjs/common';
 import { type Job, UnrecoverableError } from 'bullmq';
 import { ChatUnreachableError } from 'src/common/channel/chat-unreachable.error';
 import type { ChatChannel } from 'src/common/channel/types/chat-channel.interface';
@@ -10,9 +8,9 @@ import type { ChannelService } from 'src/modules/application/user/channel/channe
 import { DELIVERY_BROADCAST_JOB, DELIVERY_SEND_JOB } from './constants/delivery-queue.constants';
 import { DeliveryQueueMessages } from './constants/delivery-queue.messages';
 import type { DeliveryBroadcastData, DeliveryJobData } from './types/delivery-queue.interface';
+import { QueueHost } from '../queue.host';
 
-export abstract class DeliveryQueueProcessor extends WorkerHost implements OnModuleDestroy {
-  protected readonly logger = new Logger(this.constructor.name);
+export abstract class DeliveryQueueProcessor extends QueueHost {
   protected abstract readonly chatChannel: ChatChannel;
 
   constructor(
@@ -20,10 +18,6 @@ export abstract class DeliveryQueueProcessor extends WorkerHost implements OnMod
     private readonly channelService: ChannelService,
   ) {
     super();
-  }
-
-  async onModuleDestroy() {
-    await this.worker.close();
   }
 
   async process(job: Job) {

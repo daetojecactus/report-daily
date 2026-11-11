@@ -1,5 +1,4 @@
-import { Processor, WorkerHost } from '@nestjs/bullmq';
-import { Logger, type OnModuleDestroy } from '@nestjs/common';
+import { Processor } from '@nestjs/bullmq';
 import type { Job } from 'bullmq';
 import { getErrorMessage } from 'src/common/utils/error.util';
 import { BotService } from 'src/modules/application/bot/bot.service';
@@ -13,21 +12,16 @@ import {
 } from './constants/report-queue.constants';
 import { ReportQueueMessages } from './constants/report-queue.messages';
 import type { ReportJobData } from './types/report-queue.interface';
+import { QueueHost } from '../queue.host';
 
 @Processor(REPORT_QUEUE, { concurrency: REPORT_CONCURRENCY })
-export class ReportQueueProcessor extends WorkerHost implements OnModuleDestroy {
-  private readonly logger = new Logger(ReportQueueProcessor.name);
-
+export class ReportQueueProcessor extends QueueHost {
   constructor(
     private readonly reportService: ReportService,
     private readonly reportDelivery: ReportDelivery,
     private readonly botService: BotService,
   ) {
     super();
-  }
-
-  async onModuleDestroy() {
-    await this.worker.close();
   }
 
   async process(job: Job) {

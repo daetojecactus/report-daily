@@ -6,6 +6,7 @@ import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import pg from 'pg';
 import type { AppEnvs } from '../config/config.env';
 import {
+  DATABASE_CONNECTION_TIMEOUT_MS,
   DATABASE_MIGRATIONS_FOLDER,
   DATABASE_MIGRATIONS_POOL_SIZE,
 } from './constants/database.constants';
@@ -18,6 +19,7 @@ export class DatabaseClient implements OnModuleDestroy {
   constructor(private readonly configService: ConfigService<AppEnvs, true>) {
     this.pool = new pg.Pool({
       connectionString: this.configService.get('DATABASE_URL', { infer: true }),
+      connectionTimeoutMillis: DATABASE_CONNECTION_TIMEOUT_MS,
     });
     this.client = drizzle({ client: this.pool, casing: 'snake_case' });
   }
