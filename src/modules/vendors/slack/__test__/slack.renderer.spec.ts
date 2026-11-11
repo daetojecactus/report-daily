@@ -94,6 +94,16 @@ describe('SlackRenderer', () => {
     );
   });
 
+  it('splits a part again when escaping makes it longer than Slack allows', () => {
+    const { blocks } = renderer.render({ text: '&'.repeat(2700) });
+
+    const texts = blocks.map((block) =>
+      block.type === SlackBlockType.SECTION ? block.text.text : '',
+    );
+    expect(texts.every((text) => text.length <= 3000)).toBe(true);
+    expect(texts.join('')).toBe('&amp;'.repeat(2700));
+  });
+
   it('puts a long text into several sections and skips an empty one', () => {
     const text = Array.from({ length: 4 }, (_, index) => `${index}${'a'.repeat(1500)}`).join(
       '\n\n',

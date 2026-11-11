@@ -10,6 +10,8 @@ import {
   SLACK_ACTIONS_LIMIT,
   SLACK_BUTTON_TEXT_LIMIT,
   SLACK_CUT_MARK,
+  SLACK_SECTION_TEXT_LIMIT,
+  SLACK_SPLIT_LIMIT,
   SLACK_USER_PICKER_ACTION,
 } from './constants/slack.constants';
 import { SlackBlockType, SlackElementType, SlackTextType } from './slack.enums';
@@ -29,14 +31,21 @@ export class SlackRenderer {
   }
 
   private toSections(markdown: string): SlackSectionBlock[] {
-    return this.slackFormatter
-      .split(markdown)
-      .map((part) => this.slackFormatter.format(part))
+    return this.toTexts(markdown, SLACK_SPLIT_LIMIT)
       .filter((text) => text.trim().length > 0)
       .map((text) => ({
         type: SlackBlockType.SECTION,
         text: { type: SlackTextType.MRKDWN, text },
       }));
+  }
+
+  private toTexts(markdown: string, limit: number): string[] {
+    return this.slackFormatter.split(markdown, limit).flatMap((part) => {
+      const text = this.slackFormatter.format(part);
+      return text.length > SLACK_SECTION_TEXT_LIMIT
+        ? this.toTexts(part, Math.floor(limit / 2))
+        : [text];
+    });
   }
 
   private toActions(row: ScreenButton[], rowIndex: number): SlackActionsBlock[] {

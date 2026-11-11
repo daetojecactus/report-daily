@@ -2,11 +2,18 @@ import { Injectable } from '@nestjs/common';
 import { MARKDOWN_LINK_PROTOCOLS } from 'src/common/constants/markdown.constants';
 import { splitMarkdown } from 'src/common/utils/markdown.util';
 import {
+  SLACK_CHANNEL_MARK,
   SLACK_COMMAND_MENTION,
+  SLACK_ESCAPED_CHARACTERS,
   SLACK_ESCAPES,
+  SLACK_MARKUP,
   SLACK_SLASH_COMMAND,
   SLACK_SPECIAL_CHARACTERS,
+  SLACK_SPECIAL_MARK,
   SLACK_SPLIT_LIMIT,
+  SLACK_UNESCAPES,
+  SLACK_URL_SCHEME,
+  SLACK_USER_MARK,
 } from './constants/slack.constants';
 
 interface FormattedToken {
@@ -36,6 +43,30 @@ export class SlackFormatter {
 
   split(markdown: string, limit = SLACK_SPLIT_LIMIT): string[] {
     return splitMarkdown(markdown, limit);
+  }
+
+  toPlainText(text: string) {
+    return text
+      .replace(SLACK_MARKUP, (_, target: string, label: string | undefined) =>
+        this.readMarkup(target, label),
+      )
+      .replace(SLACK_ESCAPED_CHARACTERS, (entity) => SLACK_UNESCAPES[entity]);
+  }
+
+  private readMarkup(target: string, label: string | undefined) {
+    const name = target.slice(1);
+    switch (target[0]) {
+      case SLACK_USER_MARK:
+        return name;
+      case SLACK_CHANNEL_MARK:
+        return `${SLACK_CHANNEL_MARK}${label || name}`;
+      case SLACK_SPECIAL_MARK:
+        return label || `${SLACK_USER_MARK}${name}`;
+      default:
+        return !label || label === target || label === target.replace(SLACK_URL_SCHEME, '')
+          ? label || target
+          : `${label} (${target})`;
+    }
   }
 
   private readToken(markdown: string, index: number): FormattedToken {
