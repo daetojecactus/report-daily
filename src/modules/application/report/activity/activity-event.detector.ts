@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import type { CleanEvent } from 'src/modules/application/source/source.interface';
+import type { CleanEvent } from 'src/modules/application/source/types/source.interface';
 import { ACTIVITY_TARGET_ACTIONS } from './constants/activity.constants';
-import type { ActivityAction, ActivityDetail } from './activity.enums';
-import type { ActivityCandidate, ActivityLineSignals } from './activity.interface';
+import type { ActivityAction, ActivityDetail } from './types/activity.enums';
+import type { ActivityCandidate, ActivityLineSignals } from './types/activity.interface';
 
 @Injectable()
 export class ActivityEventDetector {

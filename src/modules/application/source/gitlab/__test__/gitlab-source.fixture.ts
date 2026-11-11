@@ -1,4 +1,4 @@
-import { GitLabLabelAction, GitLabState } from 'src/modules/vendors/gitlab/gitlab.enums';
+import { GitLabLabelAction, GitLabState } from 'src/modules/vendors/gitlab/types/gitlab.enums';
 import type {
   GitLabAuthor,
   GitLabCommit,
@@ -12,7 +12,7 @@ import type {
   GitLabProject,
   GitLabStateEvent,
   GitLabWeightEvent,
-} from 'src/modules/vendors/gitlab/gitlab.interface';
+} from 'src/modules/vendors/gitlab/types/gitlab.interface';
 import { GitLabSourceBuilder } from '../gitlab-source.builder';
 import { GitLabSourceFacts } from '../gitlab-source.facts';
 import { GitLabSourceHistory } from '../gitlab-source.history';

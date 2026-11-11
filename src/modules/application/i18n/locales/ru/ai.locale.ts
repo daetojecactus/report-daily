@@ -1,5 +1,5 @@
-import { Gender, JobRole } from 'src/modules/application/user/user.enums';
-import type { AiLocale } from '../../i18n.interface';
+import { Gender, JobRole } from 'src/modules/application/user/types/user.enums';
+import type { AiLocale } from '../../types/i18n.interface';
 
 export const ruAi: AiLocale = {
   ai: {

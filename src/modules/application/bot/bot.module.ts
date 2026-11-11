@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { DiscoveryModule } from '@nestjs/core';
-import type { ChatChannel } from 'src/common/interfaces/chat-channel.interface';
+import type { ChatChannel } from 'src/common/channel/types/chat-channel.interface';
 import { AiModule } from 'src/modules/application/ai/ai.module';
 import { I18nModule } from 'src/modules/application/i18n/i18n.module';
 import { ReportModule } from 'src/modules/application/report/report.module';

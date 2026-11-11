@@ -1,20 +1,20 @@
 import type { ConfigService } from '@nestjs/config';
 import type { Job } from 'bullmq';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { Channel } from 'src/common/enums/channel.enums';
+import { Channel } from 'src/common/channel/types/channel.enums';
 import type { BotService } from 'src/modules/application/bot/bot.service';
-import type { Delivery } from 'src/modules/application/delivery/delivery.interface';
+import type { Delivery } from 'src/modules/application/delivery/types/delivery.interface';
 import type { DeliveryService } from 'src/modules/application/delivery/delivery.service';
-import { ReportStatus } from 'src/modules/application/report/report.enums';
-import type { Report } from 'src/modules/application/report/report.interface';
+import { ReportStatus } from 'src/modules/application/report/types/report.enums';
+import type { Report } from 'src/modules/application/report/types/report.interface';
 import type { ReportService } from 'src/modules/application/report/report.service';
-import { DeliveryMode } from 'src/modules/infrastructure/config/config.enums';
+import { DeliveryMode } from 'src/modules/infrastructure/config/types/config.enums';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
-import type { UserChannel } from 'src/modules/application/user/channel/channel.interface';
+import type { UserChannel } from 'src/modules/application/user/channel/types/channel.interface';
 import type { ChannelService } from 'src/modules/application/user/channel/channel.service';
 import type { DeliveryQueueProducer } from '../../delivery/delivery-queue.producer';
 import { REPORT_BUILD_JOB } from '../constants/report-queue.constants';
-import type { ReportJobData } from '../report-queue.interface';
+import type { ReportJobData } from '../types/report-queue.interface';
 import { ReportQueueProcessor } from '../report-queue.processor';
 
 const DATA: ReportJobData = {

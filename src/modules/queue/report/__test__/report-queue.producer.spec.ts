@@ -1,6 +1,6 @@
 import type { Queue } from 'bullmq';
 import { describe, expect, it, vi } from 'vitest';
-import { Channel } from 'src/common/enums/channel.enums';
+import { Channel } from 'src/common/channel/types/channel.enums';
 import { REPORT_BUILD_JOB } from '../constants/report-queue.constants';
 import { ReportQueueProducer } from '../report-queue.producer';
 

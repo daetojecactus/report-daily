@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DEFAULT_LANGUAGE, LANGUAGE_TAG_SEPARATOR, LOCALES } from './constants/i18n.constants';
-import { Language } from './i18n.enums';
+import { Language } from './types/i18n.enums';
 
 @Injectable()
 export class I18nService {

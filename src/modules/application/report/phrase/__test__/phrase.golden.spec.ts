@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { Language } from 'src/modules/application/i18n/i18n.enums';
+import { Language } from 'src/modules/application/i18n/types/i18n.enums';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
-import { Gender } from 'src/modules/application/user/user.enums';
+import { Gender } from 'src/modules/application/user/types/user.enums';
 import {
   classifyGoldenDays,
   GOLDEN_DIVERGENCES,

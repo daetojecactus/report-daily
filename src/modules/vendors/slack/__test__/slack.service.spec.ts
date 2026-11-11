@@ -1,7 +1,7 @@
 import type { ConfigService } from '@nestjs/config';
 import { WebAPIPlatformError } from '@slack/web-api';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { ChatUnreachableError } from 'src/common/errors/chat-unreachable.error';
+import { ChatUnreachableError } from 'src/common/channel/chat-unreachable.error';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { SlackClient } from '../slack.client';
 import { SlackFormatter } from '../slack.formatter';

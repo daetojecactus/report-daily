@@ -1,11 +1,11 @@
 import { toSourceKey } from 'src/common/utils/source-name.util';
-import type { SourceActionKind } from 'src/modules/application/source/source.enums';
+import type { SourceActionKind } from 'src/modules/application/source/types/source.enums';
 import {
   ItemState,
   SourceEventAction,
   SourceRefType,
   WorkItemType,
-} from 'src/modules/application/source/source.enums';
+} from 'src/modules/application/source/types/source.enums';
 import type {
   CleanEvent,
   CleanPushData,
@@ -13,23 +13,23 @@ import type {
   GroupedMergeRequest,
   SourceFact,
   StandalonePush,
-} from 'src/modules/application/source/source.interface';
+} from 'src/modules/application/source/types/source.interface';
 import {
   Priority,
   TaskFlag,
   TaskKind,
   TraitDimension,
   WorkflowState,
-} from 'src/modules/application/trait/trait.enums';
+} from 'src/modules/application/trait/types/trait.enums';
 import type {
   TraitIndex,
   TraitPair,
   TraitValue,
-} from 'src/modules/application/trait/trait.interface';
+} from 'src/modules/application/trait/types/trait.interface';
 import type { TraitRepository } from 'src/modules/application/trait/trait.repository';
 import { TraitService } from 'src/modules/application/trait/trait.service';
 import type { TraitNameService } from 'src/modules/application/trait/trait-name/trait-name.service';
-import { JobRole } from 'src/modules/application/user/user.enums';
+import { JobRole } from 'src/modules/application/user/types/user.enums';
 import { ActivityCodeDetector } from '../activity-code.detector';
 import { ActivityEventDetector } from '../activity-event.detector';
 import { ActivityLifecycleDetector } from '../activity-lifecycle.detector';
@@ -39,8 +39,12 @@ import { ActivityRefDetector } from '../activity-ref.detector';
 import { ActivityChains } from '../activity.chains';
 import { ActivityDetectors } from '../activity.detectors';
 import { ActivityEngagement } from '../activity.engagement';
-import { ActivityAction } from '../activity.enums';
-import type { ActivityCandidate, ActivityEmployee, ActivityLine } from '../activity.interface';
+import { ActivityAction } from '../types/activity.enums';
+import type {
+  ActivityCandidate,
+  ActivityEmployee,
+  ActivityLine,
+} from '../types/activity.interface';
 import { ActivityRules } from '../activity.rules';
 import { ActivitySelector } from '../activity.selector';
 import { ActivityService } from '../activity.service';

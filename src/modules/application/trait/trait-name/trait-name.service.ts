@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { and, eq, gte, type SQL } from 'drizzle-orm';
 import { isValidSourceKey, toSourceKey } from 'src/common/utils/source-name.util';
-import type { Source } from 'src/modules/application/source/source.enums';
+import type { Source } from 'src/modules/application/source/types/source.enums';
 import {
   TRAIT_DAY_MS,
   TRAIT_NAME_SEEN_DAYS,
   TRAIT_SOURCE_NAME_MAX_LENGTH,
 } from '../constants/trait.constants';
-import type { TraitNameInsert, TraitNameUpdate } from './trait-name.interface';
+import type { TraitNameInsert, TraitNameUpdate } from './types/trait-name.interface';
 import { TraitNameRepository } from './trait-name.repository';
 import { traitNames } from './trait-name.schema';
 

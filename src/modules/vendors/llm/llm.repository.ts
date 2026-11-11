@@ -3,9 +3,9 @@ import type { ChatCompletionCreateParamsNonStreaming } from 'openai/resources/ch
 import { LlmMessages } from './constants/llm.messages';
 import { LLM_TEMPERATURE } from './constants/llm.constants';
 import { LlmClient } from './llm.client';
-import { LlmFormat } from './llm.enums';
+import { LlmFormat } from './types/llm.enums';
 import { LlmError } from './llm.error';
-import type { LlmCompletion, LlmJsonSchema, LlmPrompt } from './llm.interface';
+import type { LlmCompletion, LlmJsonSchema, LlmPrompt } from './types/llm.interface';
 
 @Injectable()
 export class LlmRepository {

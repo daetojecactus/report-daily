@@ -13,7 +13,7 @@ import {
 import type {
   DeliverySlackBroadcastData,
   DeliverySlackJobData,
-} from './delivery-slack-queue.interface';
+} from './types/delivery-slack-queue.interface';
 
 @Injectable()
 export class DeliverySlackQueueProducer {

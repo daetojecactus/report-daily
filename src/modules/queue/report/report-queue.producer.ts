@@ -8,7 +8,7 @@ import {
   REPORT_JOB_OPTIONS,
   REPORT_QUEUE,
 } from './constants/report-queue.constants';
-import type { ReportJobData } from './report-queue.interface';
+import type { ReportJobData } from './types/report-queue.interface';
 
 @Injectable()
 export class ReportQueueProducer {

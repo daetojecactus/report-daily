@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { Language } from 'src/modules/application/i18n/i18n.enums';
-import { SourceActionKind } from 'src/modules/application/source/source.enums';
-import { JobRole } from 'src/modules/application/user/user.enums';
-import { ActivityAction, ActivityTier } from '../../activity/activity.enums';
+import { Language } from 'src/modules/application/i18n/types/i18n.enums';
+import { SourceActionKind } from 'src/modules/application/source/types/source.enums';
+import { JobRole } from 'src/modules/application/user/types/user.enums';
+import { ActivityAction, ActivityTier } from '../../activity/types/activity.enums';
 import {
   at,
   createIssue,
@@ -10,7 +10,7 @@ import {
   fact,
   ME,
 } from '../../activity/__test__/activity.fixture';
-import { TemplateItemType } from '../template.enums';
+import { TemplateItemType } from '../types/template.enums';
 import { buildContext, createDay, GITLAB_URL } from './template.fixture';
 
 const SPRINT = '2026-11-05 – 2026-11-18';

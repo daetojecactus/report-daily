@@ -1,30 +1,30 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ChatInputType } from 'src/common/enums/channel.enums';
-import type { ScreenButton } from 'src/common/interfaces/chat-channel.interface';
+import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
+import type { ScreenButton } from 'src/common/channel/types/chat-channel.interface';
 import { escapeMarkdown } from 'src/common/utils/markdown.util';
-import type { Locale } from 'src/modules/application/i18n/i18n.interface';
+import type { Locale } from 'src/modules/application/i18n/types/i18n.interface';
 import {
   TEMPLATE_BODY_MAX_LENGTH,
   TEMPLATE_NAME_MAX_LENGTH,
 } from 'src/modules/application/report/template/constants/template.constants';
-import type { ReportTemplate } from 'src/modules/application/report/template/template.interface';
+import type { ReportTemplate } from 'src/modules/application/report/template/types/template.interface';
 import { TemplateService } from 'src/modules/application/report/template/template.service';
-import { Permission } from 'src/modules/application/user/user.enums';
+import { Permission } from 'src/modules/application/user/types/user.enums';
 import { AccessService } from '../access/access.service';
 import { BotSection } from '../bot.decorator';
-import { BotAccess, BotNamespace } from '../bot.enums';
-import type { BotActor, BotContext, BotDialog, BotHandler, BotReply } from '../bot.interface';
+import { BotAccess, BotNamespace } from '../types/bot.enums';
+import type { BotActor, BotContext, BotDialog, BotHandler, BotReply } from '../types/bot.interface';
 import { BOT_BUTTON_DATA_SEPARATOR } from '../constants/bot.constants';
-import { SharedTemplatesAction } from '../shared-templates/shared-templates.enums';
+import { SharedTemplatesAction } from '../shared-templates/types/shared-templates.enums';
 import { TemplatesDraft } from '../templates/templates.draft';
-import { TemplatesAction } from '../templates/templates.enums';
+import { TemplatesAction } from '../templates/types/templates.enums';
 import {
   TEMPLATE_EDIT_BUTTON_SCHEMA,
   TEMPLATE_EDIT_DRAFT_SCHEMA,
   TEMPLATE_EDIT_TEXT_STEPS,
 } from './constants/template-edit.constants';
 import { TemplateEditMessages } from './constants/template-edit.messages';
-import { TemplateEditAction, TemplateEditStep } from './template-edit.enums';
+import { TemplateEditAction, TemplateEditStep } from './types/template-edit.enums';
 
 @Injectable()
 @BotSection({ access: BotAccess.ANYONE, namespace: BotNamespace.TEMPLATE_EDIT })

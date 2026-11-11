@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { BotNamespace } from '../../bot.enums';
-import { AdminSettingsAction } from '../admin-settings.enums';
+import { BotNamespace } from '../../types/bot.enums';
+import { AdminSettingsAction } from '../types/admin-settings.enums';
 
 export const ADMIN_SETTINGS_DAYS_AHEAD = 14;
 

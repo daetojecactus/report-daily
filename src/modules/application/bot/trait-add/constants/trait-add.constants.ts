@@ -7,11 +7,11 @@ import {
   TaskFlag,
   TaskKind,
   WorkflowState,
-} from 'src/modules/application/trait/trait.enums';
-import type { TraitValue } from 'src/modules/application/trait/trait.interface';
-import { JobRole } from 'src/modules/application/user/user.enums';
-import { BotNamespace } from '../../bot.enums';
-import { TraitAddAction } from '../trait-add.enums';
+} from 'src/modules/application/trait/types/trait.enums';
+import type { TraitValue } from 'src/modules/application/trait/types/trait.interface';
+import { JobRole } from 'src/modules/application/user/types/user.enums';
+import { BotNamespace } from '../../types/bot.enums';
+import { TraitAddAction } from '../types/trait-add.enums';
 
 export const TRAIT_ADD_EVERYONE = 'all';
 

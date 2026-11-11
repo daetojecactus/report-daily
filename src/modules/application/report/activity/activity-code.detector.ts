@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { SourceActionKind, SourceRefType } from 'src/modules/application/source/source.enums';
-import { TaskFlag, TaskKind, WorkflowState } from 'src/modules/application/trait/trait.enums';
+import { SourceActionKind, SourceRefType } from 'src/modules/application/source/types/source.enums';
+import { TaskFlag, TaskKind, WorkflowState } from 'src/modules/application/trait/types/trait.enums';
 import {
   ACTIVITY_BRANCH_PUSH_ACTION,
   ACTIVITY_CODE_CHANGE_FACTS,
@@ -12,14 +12,14 @@ import {
   ACTIVITY_TEST_COMMIT_PATTERN,
   ACTIVITY_WEIGHTS,
 } from './constants/activity.constants';
-import { ActivityAction, ActivityDetail, EngagementLevel } from './activity.enums';
+import { ActivityAction, ActivityDetail, EngagementLevel } from './types/activity.enums';
 import type {
   ActivityCandidate,
   ActivityFact,
   ActivityLine,
   ActivityLineSignals,
   ActivityPush,
-} from './activity.interface';
+} from './types/activity.interface';
 
 @Injectable()
 export class ActivityCodeDetector {

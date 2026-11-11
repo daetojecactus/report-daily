@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import type { GroupedDailyData } from 'src/modules/application/source/source.interface';
-import { TaskFlag } from 'src/modules/application/trait/trait.enums';
-import type { TraitIndex } from 'src/modules/application/trait/trait.interface';
+import type { GroupedDailyData } from 'src/modules/application/source/types/source.interface';
+import { TaskFlag } from 'src/modules/application/trait/types/trait.enums';
+import type { TraitIndex } from 'src/modules/application/trait/types/trait.interface';
 import { ActivityChains } from './activity.chains';
 import { ActivityDetectors } from './activity.detectors';
 import { ACTIVITY_EXCLUDING_RULES } from './constants/activity.constants';
-import { ActivityAction } from './activity.enums';
-import type { ActivityEmployee, ActivityLine, ActivityResult } from './activity.interface';
+import { ActivityAction } from './types/activity.enums';
+import type { ActivityEmployee, ActivityLine, ActivityResult } from './types/activity.interface';
 import { ActivitySelector } from './activity.selector';
 import { ActivitySignals } from './activity.signals';
 import { ActivitySummaries } from './activity.summaries';

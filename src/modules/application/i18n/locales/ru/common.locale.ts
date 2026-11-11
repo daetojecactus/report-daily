@@ -1,9 +1,14 @@
-import { Channel } from 'src/common/enums/channel.enums';
-import { BotCommand } from 'src/modules/application/bot/bot.enums';
-import { Source } from 'src/modules/application/source/source.enums';
-import { Gender, JobRole, Permission, UserStatus } from 'src/modules/application/user/user.enums';
-import type { CommonLocale } from '../../i18n.interface';
-import { Language } from '../../i18n.enums';
+import { Channel } from 'src/common/channel/types/channel.enums';
+import { BotCommand } from 'src/modules/application/bot/types/bot.enums';
+import { Source } from 'src/modules/application/source/types/source.enums';
+import {
+  Gender,
+  JobRole,
+  Permission,
+  UserStatus,
+} from 'src/modules/application/user/types/user.enums';
+import type { CommonLocale } from '../../types/i18n.interface';
+import { Language } from '../../types/i18n.enums';
 
 export const ruCommon: CommonLocale = {
   channels: {

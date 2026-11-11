@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { asc, sql, type SQL } from 'drizzle-orm';
 import { DatabaseService } from 'src/modules/infrastructure/database/database.service';
-import type { ReportTemplateInsert, ReportTemplateUpdate } from './template.interface';
+import type { ReportTemplateInsert, ReportTemplateUpdate } from './types/template.interface';
 import { reportTemplates } from './template.schema';
 
 @Injectable()

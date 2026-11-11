@@ -1,14 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { ErrorCode, type WebAPIPlatformError } from '@slack/web-api';
 import { SLACK_USER_ID_PATTERN } from 'src/common/constants/slack.constants';
-import { Channel, ChatInputType } from 'src/common/enums/channel.enums';
-import { ChatUnreachableError } from 'src/common/errors/chat-unreachable.error';
+import { Channel } from 'src/common/channel/types/channel.enums';
+import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
+import { ChatUnreachableError } from 'src/common/channel/chat-unreachable.error';
 import type {
   ChatChannel,
   ChatEvent,
   ChatInput,
   Screen,
-} from 'src/common/interfaces/chat-channel.interface';
+} from 'src/common/channel/types/chat-channel.interface';
 import {
   SLACK_BLOCK_ACTIONS_SCHEMA,
   SLACK_COMMAND_PREFIX,
@@ -22,7 +23,7 @@ import {
   SLACK_WORD_SEPARATOR,
 } from './constants/slack.constants';
 import { SlackMessages } from './constants/slack.messages';
-import { SlackElementType, SlackEnvelopeType } from './slack.enums';
+import { SlackElementType, SlackEnvelopeType } from './types/slack.enums';
 import { SlackRejectedError } from './slack.error';
 import { SlackClient } from './slack.client';
 import { SlackFormatter } from './slack.formatter';

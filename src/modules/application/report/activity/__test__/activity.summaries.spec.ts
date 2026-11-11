@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { SourceActionKind } from 'src/modules/application/source/source.enums';
-import type { GroupedIssue, SourceFact } from 'src/modules/application/source/source.interface';
-import { JobRole } from 'src/modules/application/user/user.enums';
-import { ActivityAction, ActivityDetail } from '../activity.enums';
+import { SourceActionKind } from 'src/modules/application/source/types/source.enums';
+import type {
+  GroupedIssue,
+  SourceFact,
+} from 'src/modules/application/source/types/source.interface';
+import { JobRole } from 'src/modules/application/user/types/user.enums';
+import { ActivityAction, ActivityDetail } from '../types/activity.enums';
 import { at, createIndex, createIssue, createService, fact, ME } from './activity.fixture';
 
 const SPRINT = '2026-08-03 – 2026-08-16';

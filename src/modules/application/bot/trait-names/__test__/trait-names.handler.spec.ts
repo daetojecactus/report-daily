@@ -1,10 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { Channel, ChatInputType } from 'src/common/enums/channel.enums';
-import type { ChatInput } from 'src/common/interfaces/chat-channel.interface';
-import { Language } from 'src/modules/application/i18n/i18n.enums';
+import { Channel } from 'src/common/channel/types/channel.enums';
+import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
+import type { ChatInput } from 'src/common/channel/types/chat-channel.interface';
+import { Language } from 'src/modules/application/i18n/types/i18n.enums';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
-import { Source } from 'src/modules/application/source/source.enums';
-import type { TraitName } from 'src/modules/application/trait/trait-name/trait-name.interface';
+import { Source } from 'src/modules/application/source/types/source.enums';
+import type { TraitName } from 'src/modules/application/trait/trait-name/types/trait-name.interface';
 import type { TraitNameService } from 'src/modules/application/trait/trait-name/trait-name.service';
 import { TraitsView } from '../../traits/traits.view';
 import { TraitNamesHandler } from '../trait-names.handler';

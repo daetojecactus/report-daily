@@ -9,9 +9,9 @@ import {
 } from './constants/llm.constants';
 import { LlmMessages } from './constants/llm.messages';
 import { LlmClient } from './llm.client';
-import { LlmFormat } from './llm.enums';
+import { LlmFormat } from './types/llm.enums';
 import { LlmError } from './llm.error';
-import type { LlmJsonAnswer, LlmJsonRequest } from './llm.interface';
+import type { LlmJsonAnswer, LlmJsonRequest } from './types/llm.interface';
 import { LlmRepository } from './llm.repository';
 
 @Injectable()

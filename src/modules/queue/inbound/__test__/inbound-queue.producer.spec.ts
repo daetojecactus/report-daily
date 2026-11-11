@@ -1,7 +1,8 @@
 import type { Queue } from 'bullmq';
 import { describe, expect, it, vi } from 'vitest';
-import { Channel, ChatInputType } from 'src/common/enums/channel.enums';
-import type { ChatEvent } from 'src/common/interfaces/chat-channel.interface';
+import { Channel } from 'src/common/channel/types/channel.enums';
+import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
+import type { ChatEvent } from 'src/common/channel/types/chat-channel.interface';
 import { INBOUND_EVENT_JOB } from '../constants/inbound-queue.constants';
 import { InboundQueueProducer } from '../inbound-queue.producer';
 

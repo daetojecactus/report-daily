@@ -1,14 +1,15 @@
 import type { ConfigService } from '@nestjs/config';
 import { describe, expect, it } from 'vitest';
-import { Channel, ChatInputType } from 'src/common/enums/channel.enums';
-import type { ChatInput } from 'src/common/interfaces/chat-channel.interface';
-import { Language } from 'src/modules/application/i18n/i18n.enums';
+import { Channel } from 'src/common/channel/types/channel.enums';
+import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
+import type { ChatInput } from 'src/common/channel/types/chat-channel.interface';
+import { Language } from 'src/modules/application/i18n/types/i18n.enums';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
-import { Permission } from 'src/modules/application/user/user.enums';
+import { Permission } from 'src/modules/application/user/types/user.enums';
 import type { UserService } from 'src/modules/application/user/user.service';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { AccessService } from '../../access/access.service';
-import type { BotActor } from '../../bot.interface';
+import type { BotActor } from '../../types/bot.interface';
 import { createEmployee } from '../../__test__/bot.fixture';
 import { AdminHandler } from '../admin.handler';
 

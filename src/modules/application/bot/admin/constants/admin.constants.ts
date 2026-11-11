@@ -1,13 +1,13 @@
 import { z } from 'zod';
-import { Permission } from 'src/modules/application/user/user.enums';
+import { Permission } from 'src/modules/application/user/types/user.enums';
 import { BOT_BUTTON_DATA_SEPARATOR } from '../../constants/bot.constants';
-import { AdminSettingsAction } from '../../admin-settings/admin-settings.enums';
-import { BotNamespace } from '../../bot.enums';
-import { BroadcastAction } from '../../broadcast/broadcast.enums';
-import { EmployeesAction } from '../../employees/employees.enums';
-import { SharedTemplatesAction } from '../../shared-templates/shared-templates.enums';
-import { TraitsAction } from '../../traits/traits.enums';
-import { AdminAction } from '../admin.enums';
+import { AdminSettingsAction } from '../../admin-settings/types/admin-settings.enums';
+import { BotNamespace } from '../../types/bot.enums';
+import { BroadcastAction } from '../../broadcast/types/broadcast.enums';
+import { EmployeesAction } from '../../employees/types/employees.enums';
+import { SharedTemplatesAction } from '../../shared-templates/types/shared-templates.enums';
+import { TraitsAction } from '../../traits/types/traits.enums';
+import { AdminAction } from '../types/admin.enums';
 
 export const ADMIN_MENU_DATA = [BotNamespace.ADMIN, AdminAction.MENU].join(
   BOT_BUTTON_DATA_SEPARATOR,

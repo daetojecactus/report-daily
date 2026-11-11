@@ -6,8 +6,8 @@ import {
   TaskFlag,
   TaskKind,
   WorkflowState,
-} from '../trait.enums';
-import type { TraitDimensionValueMap } from '../trait.interface';
+} from '../types/trait.enums';
+import type { TraitDimensionValueMap } from '../types/trait.interface';
 
 export const TRAIT_SOURCE_NAME_MAX_LENGTH = 255;
 

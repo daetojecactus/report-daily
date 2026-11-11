@@ -1,14 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ChatInputType } from 'src/common/enums/channel.enums';
-import type { ScreenButton } from 'src/common/interfaces/chat-channel.interface';
-import type { Locale } from 'src/modules/application/i18n/i18n.interface';
+import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
+import type { ScreenButton } from 'src/common/channel/types/chat-channel.interface';
+import type { Locale } from 'src/modules/application/i18n/types/i18n.interface';
 import { TRAIT_DICTIONARY } from 'src/modules/application/trait/constants/trait.constants';
-import type { TraitMapping, TraitValue } from 'src/modules/application/trait/trait.interface';
+import type { TraitMapping, TraitValue } from 'src/modules/application/trait/types/trait.interface';
 import { TraitService } from 'src/modules/application/trait/trait.service';
-import { Permission } from 'src/modules/application/user/user.enums';
+import { Permission } from 'src/modules/application/user/types/user.enums';
 import { BotSection } from '../bot.decorator';
-import { BotAccess, BotNamespace } from '../bot.enums';
-import type { BotActor, BotContext, BotHandler, BotReply } from '../bot.interface';
+import { BotAccess, BotNamespace } from '../types/bot.enums';
+import type { BotActor, BotContext, BotHandler, BotReply } from '../types/bot.interface';
 import { BOT_BUTTON_DATA_SEPARATOR } from '../constants/bot.constants';
 import { TraitsView } from '../traits/traits.view';
 import {
@@ -16,7 +16,7 @@ import {
   TRAIT_MANAGE_CURRENT_MARK,
 } from './constants/trait-manage.constants';
 import { TraitManageMessages } from './constants/trait-manage.messages';
-import { TraitManageAction } from './trait-manage.enums';
+import { TraitManageAction } from './types/trait-manage.enums';
 
 @Injectable()
 @BotSection({

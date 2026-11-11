@@ -6,7 +6,7 @@ import {
   BOT_DIALOG_TTL_MS,
   BOT_KEY_SEPARATOR,
 } from '../constants/bot.constants';
-import type { BotActor, BotDialog } from '../bot.interface';
+import type { BotActor, BotDialog } from '../types/bot.interface';
 
 @Injectable()
 export class DialogService {

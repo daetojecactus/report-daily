@@ -1,8 +1,8 @@
 import { ADMIN_MENU_DATA } from '../../admin/constants/admin.constants';
-import { BotCommand, BotNamespace } from '../../bot.enums';
+import { BotCommand, BotNamespace } from '../../types/bot.enums';
 import { BOT_BUTTON_DATA_SEPARATOR } from '../../constants/bot.constants';
-import { ReportAction } from '../../report/report.enums';
-import { SettingsAction } from '../../settings/settings.enums';
+import { ReportAction } from '../../report/types/report.enums';
+import { SettingsAction } from '../../settings/types/settings.enums';
 
 export const HELP_SECTIONS = [
   {

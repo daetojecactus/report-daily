@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { SlackMessages } from './constants/slack.messages';
 import { SlackClient } from './slack.client';
-import type { SlackMessageContent, SlackPostedMessage } from './slack.interface';
+import type { SlackMessageContent, SlackPostedMessage } from './types/slack.interface';
 
 @Injectable()
 export class SlackRepository {

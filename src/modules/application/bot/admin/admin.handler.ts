@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { ChatInputType } from 'src/common/enums/channel.enums';
+import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
 import { AccessService } from '../access/access.service';
 import { BotSection } from '../bot.decorator';
-import { BotAccess, BotCommand, BotNamespace } from '../bot.enums';
-import type { BotContext, BotHandler, BotReply } from '../bot.interface';
+import { BotAccess, BotCommand, BotNamespace } from '../types/bot.enums';
+import type { BotContext, BotHandler, BotReply } from '../types/bot.interface';
 import { BOT_BUTTON_DATA_SEPARATOR } from '../constants/bot.constants';
 import {
   ADMIN_BROADCAST_DATA,

@@ -1,19 +1,20 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { type Channel, ChatInputType } from 'src/common/enums/channel.enums';
-import type { ChatChannel, ScreenButton } from 'src/common/interfaces/chat-channel.interface';
+import { type Channel } from 'src/common/channel/types/channel.enums';
+import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
+import type { ChatChannel, ScreenButton } from 'src/common/channel/types/chat-channel.interface';
 import { toTimeZone } from 'src/common/utils/time-zone.util';
-import { Language } from 'src/modules/application/i18n/i18n.enums';
-import type { Locale } from 'src/modules/application/i18n/i18n.interface';
+import { Language } from 'src/modules/application/i18n/types/i18n.enums';
+import type { Locale } from 'src/modules/application/i18n/types/i18n.interface';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
 import { ChannelService } from 'src/modules/application/user/channel/channel.service';
-import { Gender } from 'src/modules/application/user/user.enums';
-import type { User, UserSettingsUpdate } from 'src/modules/application/user/user.interface';
+import { Gender } from 'src/modules/application/user/types/user.enums';
+import type { User, UserSettingsUpdate } from 'src/modules/application/user/types/user.interface';
 import { UserService } from 'src/modules/application/user/user.service';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { BotSection } from '../bot.decorator';
-import { BotAccess, BotCommand, BotNamespace } from '../bot.enums';
-import type { BotContext, BotHandler, BotReply } from '../bot.interface';
+import { BotAccess, BotCommand, BotNamespace } from '../types/bot.enums';
+import type { BotContext, BotHandler, BotReply } from '../types/bot.interface';
 import { BOT_BUTTON_DATA_SEPARATOR, BOT_CHANNELS } from '../constants/bot.constants';
 import { MenuService } from '../menu/menu.service';
 import {
@@ -28,7 +29,7 @@ import {
   SETTINGS_TIME_LENGTH,
   SETTINGS_TIME_SEPARATOR,
 } from './constants/settings.constants';
-import { SettingsAction, SettingsStep } from './settings.enums';
+import { SettingsAction, SettingsStep } from './types/settings.enums';
 
 @Injectable()
 @BotSection({

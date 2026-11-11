@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { eq, lt, sql, type SQL } from 'drizzle-orm';
-import type { Channel } from 'src/common/enums/channel.enums';
-import type { Report } from 'src/modules/application/report/report.interface';
+import type { Channel } from 'src/common/channel/types/channel.enums';
+import type { Report } from 'src/modules/application/report/types/report.interface';
 import { DELIVERY_RETENTION_MS } from './constants/delivery.constants';
-import { DeliveryKind, DeliveryStatus } from './delivery.enums';
-import type { DeliveryInsert, DeliveryUpdate } from './delivery.interface';
+import { DeliveryKind, DeliveryStatus } from './types/delivery.enums';
+import type { DeliveryInsert, DeliveryUpdate } from './types/delivery.interface';
 import { DeliveryRepository } from './delivery.repository';
 import { deliveries } from './delivery.schema';
 

@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { getErrorMessage } from 'src/common/utils/error.util';
 import { ReportService } from 'src/modules/application/report/report.service';
 import { SettingsService } from 'src/modules/application/settings/settings.service';
-import type { User } from 'src/modules/application/user/user.interface';
+import type { User } from 'src/modules/application/user/types/user.interface';
 import { UserService } from 'src/modules/application/user/user.service';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { ReportQueueProducer } from 'src/modules/queue/report/report-queue.producer';

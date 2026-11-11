@@ -1,9 +1,9 @@
-import { TaskFlag, TaskKind, WorkflowState } from 'src/modules/application/trait/trait.enums';
-import { SourceActionKind } from 'src/modules/application/source/source.enums';
-import { JobRole } from 'src/modules/application/user/user.enums';
-import { ActivityAction, ActivityDetail } from '../../activity/activity.enums';
-import { PhraseContext, PhraseCount, PhraseName, ReportPhrase } from '../phrase.enums';
-import type { PhraseRule } from '../phrase.interface';
+import { TaskFlag, TaskKind, WorkflowState } from 'src/modules/application/trait/types/trait.enums';
+import { SourceActionKind } from 'src/modules/application/source/types/source.enums';
+import { JobRole } from 'src/modules/application/user/types/user.enums';
+import { ActivityAction, ActivityDetail } from '../../activity/types/activity.enums';
+import { PhraseContext, PhraseCount, PhraseName, ReportPhrase } from '../types/phrase.enums';
+import type { PhraseRule } from '../types/phrase.interface';
 
 const MANAGERS = [JobRole.PROJECT_MANAGER, JobRole.SYSTEM_ANALYST];
 

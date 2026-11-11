@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { SourceActionKind } from 'src/modules/application/source/source.enums';
-import type { GroupedIssue, SourceFact } from 'src/modules/application/source/source.interface';
-import { WorkflowState } from 'src/modules/application/trait/trait.enums';
-import { JobRole } from 'src/modules/application/user/user.enums';
-import { ActivityAction, ActivityDetail, ActivityRule } from '../activity.enums';
+import { SourceActionKind } from 'src/modules/application/source/types/source.enums';
+import type {
+  GroupedIssue,
+  SourceFact,
+} from 'src/modules/application/source/types/source.interface';
+import { WorkflowState } from 'src/modules/application/trait/types/trait.enums';
+import { JobRole } from 'src/modules/application/user/types/user.enums';
+import { ActivityAction, ActivityDetail, ActivityRule } from '../types/activity.enums';
 import {
   at,
   choose,

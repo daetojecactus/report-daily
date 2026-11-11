@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { GitLabIssuable } from 'src/modules/vendors/gitlab/gitlab.enums';
+import { GitLabIssuable } from 'src/modules/vendors/gitlab/types/gitlab.enums';
 import type {
   GitLabEvent,
   GitLabIssue,
@@ -8,7 +8,7 @@ import type {
   GitLabMilestone,
   GitLabMilestoneEvent,
   GitLabProject,
-} from 'src/modules/vendors/gitlab/gitlab.interface';
+} from 'src/modules/vendors/gitlab/types/gitlab.interface';
 import { GitLabService } from 'src/modules/vendors/gitlab/gitlab.service';
 import { GITLAB_SOURCE_ITERATION_DATES_SEPARATOR } from './constants/gitlab-source.constants';
 import type {
@@ -20,7 +20,7 @@ import type {
   SourceEvents,
   SourceLinks,
   SourcePlanHistory,
-} from './gitlab-source.interface';
+} from './types/gitlab-source.interface';
 import { GitLabSourceKeys } from './gitlab-source.keys';
 
 @Injectable()

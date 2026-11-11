@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { BotNamespace } from '../../bot.enums';
-import { TemplatesAction } from '../templates.enums';
+import { BotNamespace } from '../../types/bot.enums';
+import { TemplatesAction } from '../types/templates.enums';
 
 export const TEMPLATES_STANDARD = 'std';
 

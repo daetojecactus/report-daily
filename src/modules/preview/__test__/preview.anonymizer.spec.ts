@@ -6,12 +6,12 @@ import {
   SourceRefType,
   SourceTargetType,
   WorkItemType,
-} from 'src/modules/application/source/source.enums';
+} from 'src/modules/application/source/types/source.enums';
 import type {
   CleanNote,
   GroupedDailyData,
   GroupedMergeRequest,
-} from 'src/modules/application/source/source.interface';
+} from 'src/modules/application/source/types/source.interface';
 import { PreviewAnonymizer } from '../preview.anonymizer';
 
 const SECRETS = [

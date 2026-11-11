@@ -1,21 +1,21 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ChatInputType } from 'src/common/enums/channel.enums';
-import type { ScreenButton } from 'src/common/interfaces/chat-channel.interface';
+import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
+import type { ScreenButton } from 'src/common/channel/types/chat-channel.interface';
 import { escapeMarkdown } from 'src/common/utils/markdown.util';
-import type { Locale } from 'src/modules/application/i18n/i18n.interface';
+import type { Locale } from 'src/modules/application/i18n/types/i18n.interface';
 import { TemplateService } from 'src/modules/application/report/template/template.service';
-import { Permission } from 'src/modules/application/user/user.enums';
+import { Permission } from 'src/modules/application/user/types/user.enums';
 import { UserService } from 'src/modules/application/user/user.service';
 import { ADMIN_MENU_DATA } from '../admin/constants/admin.constants';
 import { BotSection } from '../bot.decorator';
-import { BotAccess, BotNamespace } from '../bot.enums';
-import type { BotActor, BotContext, BotHandler, BotReply } from '../bot.interface';
+import { BotAccess, BotNamespace } from '../types/bot.enums';
+import type { BotActor, BotContext, BotHandler, BotReply } from '../types/bot.interface';
 import { BOT_BUTTON_DATA_SEPARATOR } from '../constants/bot.constants';
-import { TemplateAddAction } from '../template-add/template-add.enums';
-import { TemplateEditAction } from '../template-edit/template-edit.enums';
+import { TemplateAddAction } from '../template-add/types/template-add.enums';
+import { TemplateEditAction } from '../template-edit/types/template-edit.enums';
 import { SHARED_TEMPLATES_BUTTON_SCHEMA } from './constants/shared-templates.constants';
 import { SharedTemplatesMessages } from './constants/shared-templates.messages';
-import { SharedTemplatesAction } from './shared-templates.enums';
+import { SharedTemplatesAction } from './types/shared-templates.enums';
 
 @Injectable()
 @BotSection({ access: Permission.TEMPLATES, namespace: BotNamespace.SHARED_TEMPLATES })

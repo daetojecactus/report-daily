@@ -1,17 +1,17 @@
 import { Injectable } from '@nestjs/common';
-import type { ScreenButton } from 'src/common/interfaces/chat-channel.interface';
+import type { ScreenButton } from 'src/common/channel/types/chat-channel.interface';
 import { escapeMarkdown } from 'src/common/utils/markdown.util';
-import type { Locale, TraitValueText } from 'src/modules/application/i18n/i18n.interface';
+import type { Locale, TraitValueText } from 'src/modules/application/i18n/types/i18n.interface';
 import { TRAIT_DICTIONARY } from 'src/modules/application/trait/constants/trait.constants';
-import type { TraitDimension } from 'src/modules/application/trait/trait.enums';
-import type { TraitValue } from 'src/modules/application/trait/trait.interface';
-import type { JobRole } from 'src/modules/application/user/user.enums';
-import { BotNamespace } from '../bot.enums';
+import type { TraitDimension } from 'src/modules/application/trait/types/trait.enums';
+import type { TraitValue } from 'src/modules/application/trait/types/trait.interface';
+import type { JobRole } from 'src/modules/application/user/types/user.enums';
+import { BotNamespace } from '../types/bot.enums';
 import { BOT_BUTTON_DATA_SEPARATOR } from '../constants/bot.constants';
-import type { TraitNameList } from '../trait-names/trait-names.enums';
-import { TraitNamesAction } from '../trait-names/trait-names.enums';
+import type { TraitNameList } from '../trait-names/types/trait-names.enums';
+import { TraitNamesAction } from '../trait-names/types/trait-names.enums';
 import { TRAITS_BUTTONS_PER_ROW } from './constants/traits.constants';
-import { TraitsAction } from './traits.enums';
+import { TraitsAction } from './types/traits.enums';
 
 @Injectable()
 export class TraitsView {

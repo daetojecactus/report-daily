@@ -8,9 +8,9 @@ import { TraitNameService } from 'src/modules/application/trait/trait-name/trait
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { ActivityService } from './activity/activity.service';
 import { ReportMessages } from './constants/report.messages';
-import type { ReportDraft, ReportRequest } from './report.interface';
+import type { ReportDraft, ReportRequest } from './types/report.interface';
 import { ReportRewriter } from './report.rewriter';
-import type { ReportContext } from './template/template.interface';
+import type { ReportContext } from './template/types/template.interface';
 import { TemplateContext } from './template/template.context';
 import { TemplateService } from './template/template.service';
 

@@ -3,7 +3,7 @@ import type {
   GitLabIssue,
   GitLabMergeRequest,
   GitLabProject,
-} from 'src/modules/vendors/gitlab/gitlab.interface';
+} from 'src/modules/vendors/gitlab/types/gitlab.interface';
 import {
   GITLAB_SOURCE_BRANCH_ISSUE_PATTERN,
   GITLAB_SOURCE_ISSUE_REFERENCE_PATTERN,
@@ -11,7 +11,12 @@ import {
   GITLAB_SOURCE_MAIN_BRANCHES,
   GITLAB_SOURCE_PATH_SEPARATOR,
 } from './constants/gitlab-source.constants';
-import type { SourceBranch, SourceItem, SourceRef, SourceTarget } from './gitlab-source.interface';
+import type {
+  SourceBranch,
+  SourceItem,
+  SourceRef,
+  SourceTarget,
+} from './types/gitlab-source.interface';
 
 @Injectable()
 export class GitLabSourceKeys {

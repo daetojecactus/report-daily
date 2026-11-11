@@ -3,8 +3,8 @@ import type {
   ActivityCandidate,
   ActivityResult,
   ActivitySummary,
-} from 'src/modules/application/report/activity/activity.interface';
-import { SourceRefType, WorkItemType } from 'src/modules/application/source/source.enums';
+} from 'src/modules/application/report/activity/types/activity.interface';
+import { SourceRefType, WorkItemType } from 'src/modules/application/source/types/source.enums';
 import type {
   CleanEvent,
   GroupedDailyData,
@@ -12,7 +12,7 @@ import type {
   GroupedMergeRequest,
   SourceFact,
   StandalonePush,
-} from 'src/modules/application/source/source.interface';
+} from 'src/modules/application/source/types/source.interface';
 import {
   PREVIEW_HOUR_SECONDS,
   PREVIEW_INDENT,
@@ -20,7 +20,7 @@ import {
   PREVIEW_REASONS,
   PREVIEW_TARGET_NAMES,
 } from './constants/preview.constants';
-import type { PreviewTexts } from './preview.interface';
+import type { PreviewTexts } from './types/preview.interface';
 
 @Injectable()
 export class PreviewRenderer {

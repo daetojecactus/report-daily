@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { ChatInputType } from 'src/common/enums/channel.enums';
+import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
 import { addDays, getToday } from 'src/common/utils/date.util';
-import type { Locale } from 'src/modules/application/i18n/i18n.interface';
+import type { Locale } from 'src/modules/application/i18n/types/i18n.interface';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { RedisService } from 'src/modules/infrastructure/redis/redis.service';
 import { ReportQueueProducer } from 'src/modules/queue/report/report-queue.producer';
 import { BotSection } from '../bot.decorator';
-import { BotAccess, BotCommand, BotNamespace } from '../bot.enums';
-import type { BotActor, BotContext, BotHandler, BotReply } from '../bot.interface';
+import { BotAccess, BotCommand, BotNamespace } from '../types/bot.enums';
+import type { BotActor, BotContext, BotHandler, BotReply } from '../types/bot.interface';
 import { BOT_BUTTON_DATA_SEPARATOR } from '../constants/bot.constants';
 import {
   REPORT_BUTTON_SCHEMA,
@@ -18,7 +18,7 @@ import {
   REPORT_SECOND_MS,
   REPORT_TODAY_MAX_AGE_MS,
 } from './constants/report.constants';
-import { ReportAction } from './report.enums';
+import { ReportAction } from './types/report.enums';
 import { ReportView } from './report.view';
 
 @Injectable()

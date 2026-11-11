@@ -1,10 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import type { Locale } from 'src/modules/application/i18n/i18n.interface';
+import type { Locale } from 'src/modules/application/i18n/types/i18n.interface';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
-import type { Gender } from 'src/modules/application/user/user.enums';
-import { ActivityTier } from '../activity/activity.enums';
-import type { ActivityLine, ActivityResult, ActivitySummary } from '../activity/activity.interface';
+import type { Gender } from 'src/modules/application/user/types/user.enums';
+import { ActivityTier } from '../activity/types/activity.enums';
+import type {
+  ActivityLine,
+  ActivityResult,
+  ActivitySummary,
+} from '../activity/types/activity.interface';
 import { ActivityService } from '../activity/activity.service';
 import { PhraseService } from '../phrase/phrase.service';
 import {
@@ -13,14 +17,14 @@ import {
   TEMPLATE_DATE_TIME_SUFFIX,
   TEMPLATE_WEEKDAY_FORMAT,
 } from './constants/template.constants';
-import { TemplateItemType } from './template.enums';
+import { TemplateItemType } from './types/template.enums';
 import type {
   ReportContext,
   TemplateBuild,
   TemplateDay,
   TemplateItem,
   TemplateProject,
-} from './template.interface';
+} from './types/template.interface';
 
 interface TemplateEntry {
   projectId: number | null;

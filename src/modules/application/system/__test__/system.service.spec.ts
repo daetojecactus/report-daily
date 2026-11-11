@@ -2,7 +2,7 @@ import { Logger } from '@nestjs/common';
 import { beforeAll, describe, expect, it } from 'vitest';
 import type { DatabaseService } from 'src/modules/infrastructure/database/database.service';
 import type { RedisService } from 'src/modules/infrastructure/redis/redis.service';
-import { DependencyStatus, HealthStatus } from '../system.enums';
+import { DependencyStatus, HealthStatus } from '../types/system.enums';
 import { SystemService } from '../system.service';
 
 function ping(isAvailable: boolean) {

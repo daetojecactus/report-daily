@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { Channel } from 'src/common/enums/channel.enums';
+import { Channel } from 'src/common/channel/types/channel.enums';
 import { DeliverySlackQueueProducer } from '../delivery-slack/delivery-slack-queue.producer';
 import { DeliveryTelegramQueueProducer } from '../delivery-telegram/delivery-telegram-queue.producer';
-import type { DeliveryBroadcastMessage } from './delivery-queue.interface';
+import type { DeliveryBroadcastMessage } from './types/delivery-queue.interface';
 
 @Injectable()
 export class DeliveryQueueProducer {

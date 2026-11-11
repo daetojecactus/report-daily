@@ -1,4 +1,4 @@
-import type { Locale } from '../i18n.interface';
+import type { Locale } from '../types/i18n.interface';
 import { enAi } from './en/ai.locale';
 import { enCommon } from './en/common.locale';
 import { enEmployees } from './en/employees.locale';

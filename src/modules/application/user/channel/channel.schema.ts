@@ -1,6 +1,6 @@
 import { sql } from 'drizzle-orm';
 import { boolean, check, pgEnum, pgTable, text, unique, uuid } from 'drizzle-orm/pg-core';
-import { Channel } from '../../../../common/enums/channel.enums';
+import { Channel } from '../../../../common/channel/types/channel.enums';
 import { createdAt, primaryId, updatedAt } from '../../../infrastructure/database/database.columns';
 import { users } from '../user.schema';
 

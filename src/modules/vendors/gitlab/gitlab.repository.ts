@@ -24,7 +24,7 @@ import {
 } from './constants/gitlab.constants';
 import { GitLabMessages } from './constants/gitlab.messages';
 import { GitLabClient } from './gitlab.client';
-import { GitLabIssuable } from './gitlab.enums';
+import { GitLabIssuable } from './types/gitlab.enums';
 import { GitLabRejectedError, GitLabRetryableError } from './gitlab.error';
 import type {
   GitLabCommit,
@@ -43,7 +43,7 @@ import type {
   GitLabStateEvent,
   GitLabUser,
   GitLabWeightEvent,
-} from './gitlab.interface';
+} from './types/gitlab.interface';
 
 @Injectable()
 export class GitLabRepository {

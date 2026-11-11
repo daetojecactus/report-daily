@@ -1,16 +1,21 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import { and, arrayContains, eq, isNull, not, sql, type SQL } from 'drizzle-orm';
-import type { Channel } from 'src/common/enums/channel.enums';
-import type { Language } from 'src/modules/application/i18n/i18n.enums';
-import type { Source } from 'src/modules/application/source/source.enums';
+import type { Channel } from 'src/common/channel/types/channel.enums';
+import type { Language } from 'src/modules/application/i18n/types/i18n.enums';
+import type { Source } from 'src/modules/application/source/types/source.enums';
 import { ChannelService } from './channel/channel.service';
 import { USER_LIKE_SPECIAL_CHARACTERS } from './constants/user.constants';
-import { type JobRole, type Permission, UserStatus } from './user.enums';
-import type { UserInsert, UserSettingsUpdate, UserUpdate, UserWithChannel } from './user.interface';
+import { type JobRole, type Permission, UserStatus } from './types/user.enums';
+import type {
+  UserInsert,
+  UserSettingsUpdate,
+  UserUpdate,
+  UserWithChannel,
+} from './types/user.interface';
 import { UserRepository } from './user.repository';
 import { users } from './user.schema';
-import type { UserSourceInsert } from './user-source/user-source.interface';
+import type { UserSourceInsert } from './user-source/types/user-source.interface';
 import { UserSourceService } from './user-source/user-source.service';
 
 @Injectable()

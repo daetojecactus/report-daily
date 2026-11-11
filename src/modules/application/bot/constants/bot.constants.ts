@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { BotCommand } from '../bot.enums';
+import { BotCommand } from '../types/bot.enums';
 
 export const BOT_CHANNELS = Symbol('BOT_CHANNELS');
 

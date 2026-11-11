@@ -1,24 +1,25 @@
 import { Logger } from '@nestjs/common';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { Channel, ChatInputType } from 'src/common/enums/channel.enums';
-import type { ChatInput } from 'src/common/interfaces/chat-channel.interface';
-import { Language } from 'src/modules/application/i18n/i18n.enums';
+import { Channel } from 'src/common/channel/types/channel.enums';
+import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
+import type { ChatInput } from 'src/common/channel/types/chat-channel.interface';
+import { Language } from 'src/modules/application/i18n/types/i18n.enums';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
-import type { Report } from 'src/modules/application/report/report.interface';
+import type { Report } from 'src/modules/application/report/types/report.interface';
 import type { ReportService } from 'src/modules/application/report/report.service';
 import type {
   ReportContext,
   ReportTemplate,
-} from 'src/modules/application/report/template/template.interface';
+} from 'src/modules/application/report/template/types/template.interface';
 import type { TemplateRepository } from 'src/modules/application/report/template/template.repository';
 import { TemplateService } from 'src/modules/application/report/template/template.service';
 import type { ConfigService } from '@nestjs/config';
 import type { UserService } from 'src/modules/application/user/user.service';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { AccessService } from '../../access/access.service';
-import type { BotActor, BotDialog } from '../../bot.interface';
+import type { BotActor, BotDialog } from '../../types/bot.interface';
 import { createEmployee } from '../../__test__/bot.fixture';
-import { Permission } from 'src/modules/application/user/user.enums';
+import { Permission } from 'src/modules/application/user/types/user.enums';
 import { TemplatesDraft } from '../../templates/templates.draft';
 import { TemplateAddHandler } from '../template-add.handler';
 

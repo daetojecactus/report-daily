@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { APP_DEFAULT_PORT, TELEGRAM_DEFAULT_API_URL } from '../constants/config.constants';
 import { ConfigMessages } from '../constants/config.messages';
-import { DeliveryMode, LogLevel } from '../config.enums';
+import { DeliveryMode, LogLevel } from '../types/config.enums';
 import { validateEnv } from '../config.validate';
 
 const ENV = {

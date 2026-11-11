@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
 import { DatabaseService } from 'src/modules/infrastructure/database/database.service';
 import { SETTINGS_ROW_ID } from './constants/settings.constants';
-import type { SettingsUpdate } from './settings.interface';
+import type { SettingsUpdate } from './types/settings.interface';
 import { settings } from './settings.schema';
 
 @Injectable()

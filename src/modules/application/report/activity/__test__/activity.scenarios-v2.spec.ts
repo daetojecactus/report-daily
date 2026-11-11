@@ -5,15 +5,19 @@ import {
   SourceEventAction,
   SourceRefType,
   WorkItemType,
-} from 'src/modules/application/source/source.enums';
+} from 'src/modules/application/source/types/source.enums';
 import type {
   GroupedIssue,
   GroupedMergeRequest,
-} from 'src/modules/application/source/source.interface';
-import { TaskKind, WorkflowState } from 'src/modules/application/trait/trait.enums';
-import { JobRole } from 'src/modules/application/user/user.enums';
-import { ActivityAction, ActivityDetail, ActivityRule } from '../activity.enums';
-import type { ActivityCandidate, ActivityLine, ActivityLineSignals } from '../activity.interface';
+} from 'src/modules/application/source/types/source.interface';
+import { TaskKind, WorkflowState } from 'src/modules/application/trait/types/trait.enums';
+import { JobRole } from 'src/modules/application/user/types/user.enums';
+import { ActivityAction, ActivityDetail, ActivityRule } from '../types/activity.enums';
+import type {
+  ActivityCandidate,
+  ActivityLine,
+  ActivityLineSignals,
+} from '../types/activity.interface';
 import {
   at,
   choose,

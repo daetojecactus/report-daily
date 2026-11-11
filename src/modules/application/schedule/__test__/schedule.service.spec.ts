@@ -1,12 +1,12 @@
 import { Logger } from '@nestjs/common';
 import type { ConfigService } from '@nestjs/config';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Report } from 'src/modules/application/report/report.interface';
+import type { Report } from 'src/modules/application/report/types/report.interface';
 import type { ReportService } from 'src/modules/application/report/report.service';
-import type { Settings } from 'src/modules/application/settings/settings.interface';
+import type { Settings } from 'src/modules/application/settings/types/settings.interface';
 import type { SettingsRepository } from 'src/modules/application/settings/settings.repository';
 import { SettingsService } from 'src/modules/application/settings/settings.service';
-import type { User } from 'src/modules/application/user/user.interface';
+import type { User } from 'src/modules/application/user/types/user.interface';
 import type { UserService } from 'src/modules/application/user/user.service';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import type { ReportQueueProducer } from 'src/modules/queue/report/report-queue.producer';

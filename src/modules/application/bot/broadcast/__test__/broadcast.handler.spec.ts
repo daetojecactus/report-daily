@@ -1,17 +1,18 @@
 import { Logger } from '@nestjs/common';
 import type { ConfigService } from '@nestjs/config';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { Channel, ChatInputType } from 'src/common/enums/channel.enums';
-import type { ChatChannel, ChatInput } from 'src/common/interfaces/chat-channel.interface';
-import { Language } from 'src/modules/application/i18n/i18n.enums';
+import { Channel } from 'src/common/channel/types/channel.enums';
+import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
+import type { ChatChannel, ChatInput } from 'src/common/channel/types/chat-channel.interface';
+import { Language } from 'src/modules/application/i18n/types/i18n.enums';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
-import type { UserChannel } from 'src/modules/application/user/channel/channel.interface';
+import type { UserChannel } from 'src/modules/application/user/channel/types/channel.interface';
 import type { UserService } from 'src/modules/application/user/user.service';
-import { DeliveryMode } from 'src/modules/infrastructure/config/config.enums';
+import { DeliveryMode } from 'src/modules/infrastructure/config/types/config.enums';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import type { DeliveryQueueProducer } from 'src/modules/queue/delivery/delivery-queue.producer';
 import type { AccessService } from '../../access/access.service';
-import type { BotDialog } from '../../bot.interface';
+import type { BotDialog } from '../../types/bot.interface';
 import { BroadcastHandler } from '../broadcast.handler';
 
 const locale = new I18nService().getLocale(Language.EN);

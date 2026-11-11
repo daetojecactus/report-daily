@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { LogLevel, SocketModeClient } from '@slack/socket-mode';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { SLACK_SOCKET_EVENT } from './constants/slack.constants';
-import type { SlackEnvelope } from './slack.interface';
+import type { SlackEnvelope } from './types/slack.interface';
 
 @Injectable()
 export class SlackSocket {

@@ -1,17 +1,17 @@
 import { Injectable } from '@nestjs/common';
-import type { UserSource } from 'src/modules/application/user/user-source/user-source.interface';
+import type { UserSource } from 'src/modules/application/user/user-source/types/user-source.interface';
 import { getDayRange, isWithinDay } from 'src/common/utils/date.util';
 import type {
   GitLabIssue,
   GitLabMergeRequest,
   GitLabProject,
-} from 'src/modules/vendors/gitlab/gitlab.interface';
+} from 'src/modules/vendors/gitlab/types/gitlab.interface';
 import { GitLabService } from 'src/modules/vendors/gitlab/gitlab.service';
-import { Source } from '../source.enums';
-import type { ActivitySource } from '../source.interface';
+import { Source } from '../types/source.enums';
+import type { ActivitySource } from '../types/source.interface';
 import { GitLabSourceBuilder } from './gitlab-source.builder';
 import { GitLabSourceDetails } from './gitlab-source.details';
-import type { SourceEventGroups, SourceItem, SourceLinks } from './gitlab-source.interface';
+import type { SourceEventGroups, SourceItem, SourceLinks } from './types/gitlab-source.interface';
 import { GitLabSourceEvents } from './gitlab-source.events';
 import { GitLabSourceKeys } from './gitlab-source.keys';
 import { GitLabSourceLinks } from './gitlab-source.links';

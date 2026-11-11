@@ -13,7 +13,7 @@ import {
 import type {
   DeliveryTelegramBroadcastData,
   DeliveryTelegramJobData,
-} from './delivery-telegram-queue.interface';
+} from './types/delivery-telegram-queue.interface';
 
 @Injectable()
 export class DeliveryTelegramQueueProducer {

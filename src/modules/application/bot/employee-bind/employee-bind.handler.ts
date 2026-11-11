@@ -1,24 +1,25 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { Channel, ChatInputType } from 'src/common/enums/channel.enums';
-import type { ChatChannel } from 'src/common/interfaces/chat-channel.interface';
+import { Channel } from 'src/common/channel/types/channel.enums';
+import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
+import type { ChatChannel } from 'src/common/channel/types/chat-channel.interface';
 import { escapeMarkdown } from 'src/common/utils/markdown.util';
-import type { Locale } from 'src/modules/application/i18n/i18n.interface';
+import type { Locale } from 'src/modules/application/i18n/types/i18n.interface';
 import { ChannelService } from 'src/modules/application/user/channel/channel.service';
-import { Permission } from 'src/modules/application/user/user.enums';
-import type { User } from 'src/modules/application/user/user.interface';
+import { Permission } from 'src/modules/application/user/types/user.enums';
+import type { User } from 'src/modules/application/user/types/user.interface';
 import { UserService } from 'src/modules/application/user/user.service';
 import { BotSection } from '../bot.decorator';
-import { BotAccess, BotNamespace } from '../bot.enums';
-import type { BotActor, BotContext, BotHandler, BotReply } from '../bot.interface';
+import { BotAccess, BotNamespace } from '../types/bot.enums';
+import type { BotActor, BotContext, BotHandler, BotReply } from '../types/bot.interface';
 import { BOT_BUTTON_DATA_SEPARATOR, BOT_CHANNELS } from '../constants/bot.constants';
-import { EmployeesAction } from '../employees/employees.enums';
+import { EmployeesAction } from '../employees/types/employees.enums';
 import { MenuService } from '../menu/menu.service';
 import {
   EMPLOYEE_BIND_BUTTON_SCHEMA,
   EMPLOYEE_BIND_DRAFT_SCHEMA,
 } from './constants/employee-bind.constants';
 import { EmployeeBindMessages } from './constants/employee-bind.messages';
-import { EmployeeBindAction, EmployeeBindStep } from './employee-bind.enums';
+import { EmployeeBindAction, EmployeeBindStep } from './types/employee-bind.enums';
 
 @Injectable()
 @BotSection({ access: Permission.USERS, namespace: BotNamespace.EMPLOYEE_BIND })

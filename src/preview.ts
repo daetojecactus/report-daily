@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { toDate } from './common/utils/date.util';
-import { Language } from './modules/application/i18n/i18n.enums';
+import { Language } from './modules/application/i18n/types/i18n.enums';
 import {
   PREVIEW_AI_FLAG,
   PREVIEW_LANGUAGE_FLAG,

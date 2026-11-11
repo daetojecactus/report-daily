@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { SourceActionKind } from 'src/modules/application/source/source.enums';
+import { SourceActionKind } from 'src/modules/application/source/types/source.enums';
 import { ACTIVITY_PLAN_FACTS, ACTIVITY_WEIGHTS } from './constants/activity.constants';
-import { ActivityAction, ActivityDetail } from './activity.enums';
+import { ActivityAction, ActivityDetail } from './types/activity.enums';
 import type {
   ActivityCandidate,
   ActivityFact,
   ActivityLine,
   ActivityLineSignals,
-} from './activity.interface';
+} from './types/activity.interface';
 
 @Injectable()
 export class ActivityPlanDetector {

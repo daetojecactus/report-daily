@@ -1,4 +1,4 @@
-import { LlmFormat } from '../llm.enums';
+import { LlmFormat } from '../types/llm.enums';
 
 export const LLM_TIMEOUT_MS = 30_000;
 

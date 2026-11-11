@@ -1,8 +1,8 @@
 import type { INestApplicationContext } from '@nestjs/common';
 import { DiscoveryService } from '@nestjs/core';
-import { Permission } from 'src/modules/application/user/user.enums';
+import { Permission } from 'src/modules/application/user/types/user.enums';
 import { BotSection } from 'src/modules/application/bot/bot.decorator';
-import { BotAccess } from 'src/modules/application/bot/bot.enums';
+import { BotAccess } from 'src/modules/application/bot/types/bot.enums';
 
 const HANDLER_SUFFIX = 'Handler';
 

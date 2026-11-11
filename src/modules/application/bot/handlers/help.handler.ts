@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { BotCommand } from '../bot.enums';
+import { BotCommand } from '../types/bot.enums';
 import { BotSection } from '../bot.decorator';
-import { BotAccess } from '../bot.enums';
-import type { BotContext, BotHandler, BotReply } from '../bot.interface';
+import { BotAccess } from '../types/bot.enums';
+import type { BotContext, BotHandler, BotReply } from '../types/bot.interface';
 import { HELP_SECTIONS } from './constants/help.constants';
 import { MenuService } from '../menu/menu.service';
 

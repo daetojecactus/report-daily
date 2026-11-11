@@ -1,12 +1,13 @@
 import { Logger } from '@nestjs/common';
 import type { ConfigService } from '@nestjs/config';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { Channel, ChatInputType } from 'src/common/enums/channel.enums';
-import type { ChatInput } from 'src/common/interfaces/chat-channel.interface';
-import { Language } from 'src/modules/application/i18n/i18n.enums';
+import { Channel } from 'src/common/channel/types/channel.enums';
+import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
+import type { ChatInput } from 'src/common/channel/types/chat-channel.interface';
+import { Language } from 'src/modules/application/i18n/types/i18n.enums';
 import type { AiService } from 'src/modules/application/ai/ai.service';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
-import type { Settings } from 'src/modules/application/settings/settings.interface';
+import type { Settings } from 'src/modules/application/settings/types/settings.interface';
 import type { SettingsRepository } from 'src/modules/application/settings/settings.repository';
 import { SettingsService } from 'src/modules/application/settings/settings.service';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';

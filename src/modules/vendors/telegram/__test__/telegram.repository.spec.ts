@@ -1,11 +1,11 @@
 import { UnrecoverableError } from 'bullmq';
 import { assert, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { TelegramClient } from '../telegram.client';
-import { TelegramScopeType } from '../telegram.enums';
+import { TelegramScopeType } from '../types/telegram.enums';
 import { TelegramRejectedError, TelegramRetryableError } from '../telegram.error';
-import type { TelegramMessageContent } from '../telegram.interface';
+import type { TelegramMessageContent } from '../types/telegram.interface';
 import { TelegramRepository } from '../telegram.repository';
-import { TelegramParseMode } from '../telegram.enums';
+import { TelegramParseMode } from '../types/telegram.enums';
 
 const CHAT_ID = '300000001';
 

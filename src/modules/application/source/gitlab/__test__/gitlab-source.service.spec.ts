@@ -4,7 +4,7 @@ import {
   GitLabIssuable,
   GitLabRefType,
   GitLabState,
-} from 'src/modules/vendors/gitlab/gitlab.enums';
+} from 'src/modules/vendors/gitlab/types/gitlab.enums';
 import type {
   GitLabEvent,
   GitLabIssue,
@@ -14,12 +14,17 @@ import type {
   GitLabProject,
   GitLabPushData,
   GitLabStateEvent,
-} from 'src/modules/vendors/gitlab/gitlab.interface';
+} from 'src/modules/vendors/gitlab/types/gitlab.interface';
 import type { GitLabService } from 'src/modules/vendors/gitlab/gitlab.service';
-import { Source, SourceActionKind, SourceRefType, SourceTargetType } from '../../source.enums';
+import {
+  Source,
+  SourceActionKind,
+  SourceRefType,
+  SourceTargetType,
+} from '../../types/source.enums';
 import { GitLabSourceMessages } from '../constants/gitlab-source.messages';
 import { GitLabSourceDetails } from '../gitlab-source.details';
-import type { SourceHiddenItems } from '../gitlab-source.interface';
+import type { SourceHiddenItems } from '../types/gitlab-source.interface';
 import { GitLabSourceEvents } from '../gitlab-source.events';
 import { GitLabSourceKeys } from '../gitlab-source.keys';
 import { GitLabSourceLinks } from '../gitlab-source.links';

@@ -1,17 +1,17 @@
 import { Inject, Injectable, Logger, type OnApplicationBootstrap } from '@nestjs/common';
-import { Language } from 'src/modules/application/i18n/i18n.enums';
-import type { Locale } from 'src/modules/application/i18n/i18n.interface';
-import type { ChatChannel, ChatCommand } from 'src/common/interfaces/chat-channel.interface';
+import { Language } from 'src/modules/application/i18n/types/i18n.enums';
+import type { Locale } from 'src/modules/application/i18n/types/i18n.interface';
+import type { ChatChannel, ChatCommand } from 'src/common/channel/types/chat-channel.interface';
 import { getErrorMessage } from 'src/common/utils/error.util';
 import { DEFAULT_LANGUAGE } from 'src/modules/application/i18n/constants/i18n.constants';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
-import type { UserChannel } from 'src/modules/application/user/channel/channel.interface';
-import type { User } from 'src/modules/application/user/user.interface';
+import type { UserChannel } from 'src/modules/application/user/channel/types/channel.interface';
+import type { User } from 'src/modules/application/user/types/user.interface';
 import { AccessService } from '../access/access.service';
 import { BOT_CHANNELS } from '../constants/bot.constants';
 import { BotMessages } from '../constants/bot.messages';
-import { BotAccess } from '../bot.enums';
-import type { BotActor, BotMenuItem } from '../bot.interface';
+import { BotAccess } from '../types/bot.enums';
+import type { BotActor, BotMenuItem } from '../types/bot.interface';
 import { RouterService } from '../router/router.service';
 
 @Injectable()

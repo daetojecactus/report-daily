@@ -1,22 +1,22 @@
 import { randomUUID } from 'node:crypto';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { ChatInputType } from 'src/common/enums/channel.enums';
-import type { ChatChannel } from 'src/common/interfaces/chat-channel.interface';
+import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
+import type { ChatChannel } from 'src/common/channel/types/chat-channel.interface';
 import { escapeMarkdown } from 'src/common/utils/markdown.util';
-import type { Locale } from 'src/modules/application/i18n/i18n.interface';
-import type { UserChannel } from 'src/modules/application/user/channel/channel.interface';
+import type { Locale } from 'src/modules/application/i18n/types/i18n.interface';
+import type { UserChannel } from 'src/modules/application/user/channel/types/channel.interface';
 import { UserService } from 'src/modules/application/user/user.service';
-import { DeliveryMode } from 'src/modules/infrastructure/config/config.enums';
+import { DeliveryMode } from 'src/modules/infrastructure/config/types/config.enums';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { DeliveryQueueProducer } from 'src/modules/queue/delivery/delivery-queue.producer';
 import { AccessService } from '../access/access.service';
 import { ADMIN_MENU_DATA } from '../admin/constants/admin.constants';
 import { BotSection } from '../bot.decorator';
-import { BotAccess, BotNamespace } from '../bot.enums';
-import type { BotActor, BotContext, BotDialog, BotHandler, BotReply } from '../bot.interface';
+import { BotAccess, BotNamespace } from '../types/bot.enums';
+import type { BotActor, BotContext, BotDialog, BotHandler, BotReply } from '../types/bot.interface';
 import { BOT_BUTTON_DATA_SEPARATOR, BOT_CHANNELS } from '../constants/bot.constants';
-import { BroadcastAction, BroadcastStep } from './broadcast.enums';
+import { BroadcastAction, BroadcastStep } from './types/broadcast.enums';
 import {
   BROADCAST_BUTTON_SCHEMA,
   BROADCAST_DRAFT_SCHEMA,

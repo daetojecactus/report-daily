@@ -1,7 +1,7 @@
 import { z } from 'zod';
-import { Gender, JobRole } from 'src/modules/application/user/user.enums';
-import { BotNamespace } from '../../bot.enums';
-import { EmployeeAddAction } from '../employee-add.enums';
+import { Gender, JobRole } from 'src/modules/application/user/types/user.enums';
+import { BotNamespace } from '../../types/bot.enums';
+import { EmployeeAddAction } from '../types/employee-add.enums';
 
 const NAMESPACE_SCHEMA = z.literal(BotNamespace.EMPLOYEE_ADD);
 

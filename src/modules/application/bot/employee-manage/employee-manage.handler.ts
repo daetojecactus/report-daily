@@ -4,24 +4,24 @@ import { getToday } from 'src/common/utils/date.util';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { ReportQueueProducer } from 'src/modules/queue/report/report-queue.producer';
 import { REPORT_TODAY_MAX_AGE_MS } from '../report/constants/report.constants';
-import { ChatInputType } from 'src/common/enums/channel.enums';
-import type { ScreenButton } from 'src/common/interfaces/chat-channel.interface';
+import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
+import type { ScreenButton } from 'src/common/channel/types/chat-channel.interface';
 import { escapeMarkdown } from 'src/common/utils/markdown.util';
-import type { Locale } from 'src/modules/application/i18n/i18n.interface';
-import { JobRole, Permission, UserStatus } from 'src/modules/application/user/user.enums';
-import type { User } from 'src/modules/application/user/user.interface';
+import type { Locale } from 'src/modules/application/i18n/types/i18n.interface';
+import { JobRole, Permission, UserStatus } from 'src/modules/application/user/types/user.enums';
+import type { User } from 'src/modules/application/user/types/user.interface';
 import { ChannelService } from 'src/modules/application/user/channel/channel.service';
 import { UserService } from 'src/modules/application/user/user.service';
 import { AccessService } from '../access/access.service';
 import { BotSection } from '../bot.decorator';
-import { BotAccess, BotNamespace } from '../bot.enums';
-import type { BotActor, BotContext, BotHandler, BotReply } from '../bot.interface';
+import { BotAccess, BotNamespace } from '../types/bot.enums';
+import type { BotActor, BotContext, BotHandler, BotReply } from '../types/bot.interface';
 import { BOT_BUTTON_DATA_SEPARATOR } from '../constants/bot.constants';
-import { EmployeesAction } from '../employees/employees.enums';
+import { EmployeesAction } from '../employees/types/employees.enums';
 import { MenuService } from '../menu/menu.service';
 import { EMPLOYEE_MANAGE_BUTTON_SCHEMA } from './constants/employee-manage.constants';
 import { EmployeeManageMessages } from './constants/employee-manage.messages';
-import { EmployeeManageAction } from './employee-manage.enums';
+import { EmployeeManageAction } from './types/employee-manage.enums';
 
 @Injectable()
 @BotSection({

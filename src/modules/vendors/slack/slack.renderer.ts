@@ -3,7 +3,7 @@ import type {
   Screen,
   ScreenButton,
   ScreenUserPicker,
-} from 'src/common/interfaces/chat-channel.interface';
+} from 'src/common/channel/types/chat-channel.interface';
 import {
   SLACK_ACTION_ID_PREFIX,
   SLACK_ACTION_ID_SEPARATOR,
@@ -14,9 +14,13 @@ import {
   SLACK_SPLIT_LIMIT,
   SLACK_USER_PICKER_ACTION,
 } from './constants/slack.constants';
-import { SlackBlockType, SlackElementType, SlackTextType } from './slack.enums';
+import { SlackBlockType, SlackElementType, SlackTextType } from './types/slack.enums';
 import { SlackFormatter } from './slack.formatter';
-import type { SlackActionsBlock, SlackMessageContent, SlackSectionBlock } from './slack.interface';
+import type {
+  SlackActionsBlock,
+  SlackMessageContent,
+  SlackSectionBlock,
+} from './types/slack.interface';
 
 @Injectable()
 export class SlackRenderer {

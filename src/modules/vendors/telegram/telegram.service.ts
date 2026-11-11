@@ -1,14 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { TELEGRAM_USER_ID_PATTERN } from 'src/common/constants/telegram.constants';
-import { Channel, ChatInputType } from 'src/common/enums/channel.enums';
-import { ChatUnreachableError } from 'src/common/errors/chat-unreachable.error';
+import { Channel } from 'src/common/channel/types/channel.enums';
+import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
+import { ChatUnreachableError } from 'src/common/channel/chat-unreachable.error';
 import type {
   ChatChannel,
   ChatCommand,
   ChatEvent,
   ChatInput,
   Screen,
-} from 'src/common/interfaces/chat-channel.interface';
+} from 'src/common/channel/types/chat-channel.interface';
 import {
   TELEGRAM_BAD_REQUEST,
   TELEGRAM_BOT_MENTION_SEPARATOR,
@@ -18,7 +19,7 @@ import {
   TELEGRAM_NOT_MODIFIED_DESCRIPTION,
   TELEGRAM_PRIVATE_CHAT,
 } from './constants/telegram.constants';
-import { TelegramScopeType } from './telegram.enums';
+import { TelegramScopeType } from './types/telegram.enums';
 import { TelegramRejectedError } from './telegram.error';
 import type {
   TelegramCallbackQuery,
@@ -26,7 +27,7 @@ import type {
   TelegramMessage,
   TelegramUpdate,
   TelegramUser,
-} from './telegram.interface';
+} from './types/telegram.interface';
 import { TelegramClient } from './telegram.client';
 import { TelegramRenderer } from './telegram.renderer';
 import { TelegramRepository } from './telegram.repository';

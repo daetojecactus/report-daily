@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { Channel } from 'src/common/enums/channel.enums';
+import { Channel } from 'src/common/channel/types/channel.enums';
 import type { DeliverySlackQueueProducer } from '../../delivery-slack/delivery-slack-queue.producer';
 import type { DeliveryTelegramQueueProducer } from '../../delivery-telegram/delivery-telegram-queue.producer';
 import { DeliveryQueueProducer } from '../delivery-queue.producer';

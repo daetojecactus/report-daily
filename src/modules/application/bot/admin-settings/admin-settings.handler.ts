@@ -1,20 +1,23 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { ChatInputType } from 'src/common/enums/channel.enums';
-import type { ScreenButton } from 'src/common/interfaces/chat-channel.interface';
+import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
+import type { ScreenButton } from 'src/common/channel/types/chat-channel.interface';
 import { addDays, getToday } from 'src/common/utils/date.util';
 import { AiService } from 'src/modules/application/ai/ai.service';
-import type { Locale } from 'src/modules/application/i18n/i18n.interface';
-import type { ReportsPause, SettingsAi } from 'src/modules/application/settings/settings.interface';
+import type { Locale } from 'src/modules/application/i18n/types/i18n.interface';
+import type {
+  ReportsPause,
+  SettingsAi,
+} from 'src/modules/application/settings/types/settings.interface';
 import { SettingsService } from 'src/modules/application/settings/settings.service';
-import { Permission } from 'src/modules/application/user/user.enums';
+import { Permission } from 'src/modules/application/user/types/user.enums';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { ADMIN_MENU_DATA } from '../admin/constants/admin.constants';
 import { BotSection } from '../bot.decorator';
-import { BotAccess, BotNamespace } from '../bot.enums';
-import type { BotActor, BotContext, BotHandler, BotReply } from '../bot.interface';
+import { BotAccess, BotNamespace } from '../types/bot.enums';
+import type { BotActor, BotContext, BotHandler, BotReply } from '../types/bot.interface';
 import { BOT_BUTTON_DATA_SEPARATOR } from '../constants/bot.constants';
-import { AdminSettingsAction } from './admin-settings.enums';
+import { AdminSettingsAction } from './types/admin-settings.enums';
 import {
   ADMIN_SETTINGS_AI_SWITCHES,
   ADMIN_SETTINGS_BUTTON_SCHEMA,

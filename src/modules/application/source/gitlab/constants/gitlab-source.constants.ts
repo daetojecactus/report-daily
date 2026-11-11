@@ -3,7 +3,7 @@ import {
   GitLabRefType,
   GitLabState,
   GitLabTargetType,
-} from 'src/modules/vendors/gitlab/gitlab.enums';
+} from 'src/modules/vendors/gitlab/types/gitlab.enums';
 import { z } from 'zod';
 import {
   ItemState,
@@ -12,8 +12,8 @@ import {
   SourceRefType,
   SourceTargetType,
   WorkItemType,
-} from '../../source.enums';
-import type { SourceNoteAction, SourceUserChange } from '../gitlab-source.interface';
+} from '../../types/source.enums';
+import type { SourceNoteAction, SourceUserChange } from '../types/gitlab-source.interface';
 
 export const GITLAB_SOURCE_ISSUE_TARGET_TYPES = new Set<string>([
   GitLabTargetType.ISSUE,

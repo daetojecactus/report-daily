@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { SOURCE_NAME_FACTS } from 'src/modules/application/source/constants/source.constants';
-import { SourceActionKind } from 'src/modules/application/source/source.enums';
+import { SourceActionKind } from 'src/modules/application/source/types/source.enums';
 import {
   ACTIVITY_AUTO_STATUS_MS,
   ACTIVITY_EDIT_FACTS,
@@ -14,8 +14,8 @@ import {
   ACTIVITY_SWAP_MS,
   ACTIVITY_UNDO_MS,
 } from './constants/activity.constants';
-import { ActivityRule } from './activity.enums';
-import type { ActivityDropped, ActivityEmployee, ActivityFact } from './activity.interface';
+import { ActivityRule } from './types/activity.enums';
+import type { ActivityDropped, ActivityEmployee, ActivityFact } from './types/activity.interface';
 
 @Injectable()
 export class ActivityRules {

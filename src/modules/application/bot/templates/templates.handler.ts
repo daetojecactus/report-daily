@@ -1,25 +1,25 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ChatInputType } from 'src/common/enums/channel.enums';
-import type { ScreenButton } from 'src/common/interfaces/chat-channel.interface';
+import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
+import type { ScreenButton } from 'src/common/channel/types/chat-channel.interface';
 import { escapeMarkdown } from 'src/common/utils/markdown.util';
-import type { Locale } from 'src/modules/application/i18n/i18n.interface';
+import type { Locale } from 'src/modules/application/i18n/types/i18n.interface';
 import { TemplateService } from 'src/modules/application/report/template/template.service';
-import type { User } from 'src/modules/application/user/user.interface';
+import type { User } from 'src/modules/application/user/types/user.interface';
 import { UserService } from 'src/modules/application/user/user.service';
 import { BotSection } from '../bot.decorator';
-import { BotAccess, BotNamespace } from '../bot.enums';
-import type { BotContext, BotHandler, BotReply } from '../bot.interface';
+import { BotAccess, BotNamespace } from '../types/bot.enums';
+import type { BotContext, BotHandler, BotReply } from '../types/bot.interface';
 import { BOT_BUTTON_DATA_SEPARATOR } from '../constants/bot.constants';
-import { SettingsAction } from '../settings/settings.enums';
+import { SettingsAction } from '../settings/types/settings.enums';
 import {
   TEMPLATES_BUTTON_SCHEMA,
   TEMPLATES_CURRENT_MARK,
   TEMPLATES_STANDARD,
 } from './constants/templates.constants';
 import { TemplatesMessages } from './constants/templates.messages';
-import { TemplateAddAction } from '../template-add/template-add.enums';
-import { TemplateEditAction } from '../template-edit/template-edit.enums';
-import { TemplatesAction } from './templates.enums';
+import { TemplateAddAction } from '../template-add/types/template-add.enums';
+import { TemplateEditAction } from '../template-edit/types/template-edit.enums';
+import { TemplatesAction } from './types/templates.enums';
 
 @Injectable()
 @BotSection({ access: BotAccess.EMPLOYEE, namespace: BotNamespace.TEMPLATES })

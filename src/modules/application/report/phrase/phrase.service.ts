@@ -1,16 +1,16 @@
 import { Injectable } from '@nestjs/common';
-import type { GenderedText, Locale } from 'src/modules/application/i18n/i18n.interface';
-import { ItemState, SourceActionKind } from 'src/modules/application/source/source.enums';
-import type { WorkflowState } from 'src/modules/application/trait/trait.enums';
-import type { Gender } from 'src/modules/application/user/user.enums';
-import { ActivityAction } from '../activity/activity.enums';
+import type { GenderedText, Locale } from 'src/modules/application/i18n/types/i18n.interface';
+import { ItemState, SourceActionKind } from 'src/modules/application/source/types/source.enums';
+import type { WorkflowState } from 'src/modules/application/trait/types/trait.enums';
+import type { Gender } from 'src/modules/application/user/types/user.enums';
+import { ActivityAction } from '../activity/types/activity.enums';
 import type {
   ActivityCandidate,
   ActivityLine,
   ActivityLineSignals,
   ActivityResult,
   ActivitySummary,
-} from '../activity/activity.interface';
+} from '../activity/types/activity.interface';
 import {
   PHRASE_CONTEXT_ACTIONS,
   PHRASE_CONTEXTS,
@@ -30,8 +30,8 @@ import {
   PHRASE_SUMMARIES,
   PHRASE_SUMMARY_NAMES,
 } from './constants/phrase.constants';
-import { PhraseCount, PhraseName, ReportPhrase } from './phrase.enums';
-import type { PhraseParts, PhraseRule, SummaryPhrase } from './phrase.interface';
+import { PhraseCount, PhraseName, ReportPhrase } from './types/phrase.enums';
+import type { PhraseParts, PhraseRule, SummaryPhrase } from './types/phrase.interface';
 
 @Injectable()
 export class PhraseService {

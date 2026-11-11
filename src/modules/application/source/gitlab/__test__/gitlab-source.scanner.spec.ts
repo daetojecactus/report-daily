@@ -2,14 +2,14 @@ import { Logger } from '@nestjs/common';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getDayRange } from 'src/common/utils/date.util';
 import type { RedisService } from 'src/modules/infrastructure/redis/redis.service';
-import { GitLabIssuable } from 'src/modules/vendors/gitlab/gitlab.enums';
+import { GitLabIssuable } from 'src/modules/vendors/gitlab/types/gitlab.enums';
 import type {
   GitLabIterationEvent,
   GitLabLabelEvent,
   GitLabMilestoneEvent,
   GitLabNote,
   GitLabWeightEvent,
-} from 'src/modules/vendors/gitlab/gitlab.interface';
+} from 'src/modules/vendors/gitlab/types/gitlab.interface';
 import type { GitLabService } from 'src/modules/vendors/gitlab/gitlab.service';
 import { GitLabSourceScanner } from '../gitlab-source.scanner';
 import {

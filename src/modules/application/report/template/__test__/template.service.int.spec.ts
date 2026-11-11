@@ -2,7 +2,7 @@ import type { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { eq } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { Gender, JobRole, Permission } from 'src/modules/application/user/user.enums';
+import { Gender, JobRole, Permission } from 'src/modules/application/user/types/user.enums';
 import { UserService } from 'src/modules/application/user/user.service';
 import { users } from 'src/modules/application/user/user.schema';
 import { DATABASE_INSTANCE } from 'src/modules/infrastructure/database/constants/database.constants';

@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { SourceActionKind } from 'src/modules/application/source/source.enums';
+import { SourceActionKind } from 'src/modules/application/source/types/source.enums';
 import { TRAIT_STATE_WEIGHTS } from 'src/modules/application/trait/constants/trait.constants';
 import {
   Priority,
   TaskFlag,
   TaskKind,
   WorkflowState,
-} from 'src/modules/application/trait/trait.enums';
+} from 'src/modules/application/trait/types/trait.enums';
 import {
   ACTIVITY_COMMENT_FACTS,
   ACTIVITY_EDIT_DETAILS,
@@ -15,14 +15,18 @@ import {
   ACTIVITY_REVIEW_FACTS,
   ACTIVITY_WEIGHTS,
 } from './constants/activity.constants';
-import { ActivityAction, ActivityDetail } from './activity.enums';
+import { ActivityAction, ActivityDetail } from './types/activity.enums';
 import { ActivityCodeDetector } from './activity-code.detector';
 import { ActivityEventDetector } from './activity-event.detector';
 import { ActivityLifecycleDetector } from './activity-lifecycle.detector';
 import { ActivityLinkDetector } from './activity-link.detector';
 import { ActivityPlanDetector } from './activity-plan.detector';
 import { ActivityRefDetector } from './activity-ref.detector';
-import type { ActivityCandidate, ActivityFact, ActivityLineSignals } from './activity.interface';
+import type {
+  ActivityCandidate,
+  ActivityFact,
+  ActivityLineSignals,
+} from './types/activity.interface';
 
 @Injectable()
 export class ActivityDetectors {

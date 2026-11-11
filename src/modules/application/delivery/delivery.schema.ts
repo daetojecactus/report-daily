@@ -3,7 +3,7 @@ import { createdAt, primaryId, updatedAt } from '../../infrastructure/database/d
 import { reports } from '../report/report.schema';
 import { channel } from '../user/channel/channel.schema';
 import { users } from '../user/user.schema';
-import { DeliveryKind, DeliveryStatus } from './delivery.enums';
+import { DeliveryKind, DeliveryStatus } from './types/delivery.enums';
 
 export const deliveryKind = pgEnum('delivery_kind', DeliveryKind);
 

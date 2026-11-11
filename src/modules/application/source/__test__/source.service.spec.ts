@@ -6,7 +6,7 @@ import {
   fact,
 } from 'src/modules/application/report/activity/__test__/activity.fixture';
 import type { GitLabSourceService } from '../gitlab/gitlab-source.service';
-import { SourceActionKind } from '../source.enums';
+import { SourceActionKind } from '../types/source.enums';
 import { SourceService } from '../source.service';
 
 describe('SourceService', () => {

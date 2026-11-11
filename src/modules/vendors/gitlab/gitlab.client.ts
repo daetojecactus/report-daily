@@ -12,7 +12,7 @@ import {
 } from './constants/gitlab.constants';
 import { GitLabMessages } from './constants/gitlab.messages';
 import { GitLabCertificateError, GitLabRetryableError } from './gitlab.error';
-import type { GitLabHttpResponse, GitLabQuery } from './gitlab.interface';
+import type { GitLabHttpResponse, GitLabQuery } from './types/gitlab.interface';
 
 @Injectable()
 export class GitLabClient {

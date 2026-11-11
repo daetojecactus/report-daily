@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Source } from 'src/modules/application/source/source.enums';
-import type { GroupedDailyData } from 'src/modules/application/source/source.interface';
+import { Source } from 'src/modules/application/source/types/source.enums';
+import type { GroupedDailyData } from 'src/modules/application/source/types/source.interface';
 import { SourceService } from 'src/modules/application/source/source.service';
 import { UserService } from 'src/modules/application/user/user.service';
 import { UserSourceService } from 'src/modules/application/user/user-source/user-source.service';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { PREVIEW_FIXTURE_EXTENSION } from './constants/preview.constants';
 import { PreviewAnonymizer } from './preview.anonymizer';
-import type { PreviewFixtureFile } from './preview.interface';
+import type { PreviewFixtureFile } from './types/preview.interface';
 
 @Injectable()
 export class PreviewRecorder {

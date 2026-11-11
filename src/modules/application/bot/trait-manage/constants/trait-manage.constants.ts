@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { BotNamespace } from '../../bot.enums';
-import { TraitManageAction } from '../trait-manage.enums';
+import { BotNamespace } from '../../types/bot.enums';
+import { TraitManageAction } from '../types/trait-manage.enums';
 
 export const TRAIT_MANAGE_CURRENT_MARK = '✓ ';
 

@@ -5,16 +5,19 @@ import {
   GitLabLabelAction,
   GitLabRefType,
   GitLabState,
-} from 'src/modules/vendors/gitlab/gitlab.enums';
-import type { GitLabMergeRequest, GitLabNote } from 'src/modules/vendors/gitlab/gitlab.interface';
-import { ItemState, SourceActionKind, SourceRefType, WorkItemType } from '../../source.enums';
+} from 'src/modules/vendors/gitlab/types/gitlab.enums';
+import type {
+  GitLabMergeRequest,
+  GitLabNote,
+} from 'src/modules/vendors/gitlab/types/gitlab.interface';
+import { ItemState, SourceActionKind, SourceRefType, WorkItemType } from '../../types/source.enums';
 import { GitLabSourceMessages } from '../constants/gitlab-source.messages';
 import type {
   IssueActivity,
   MergeRequestActivity,
   SourcePlanHistory,
-} from '../gitlab-source.interface';
-import type { SourceFact } from '../../source.interface';
+} from '../types/gitlab-source.interface';
+import type { SourceFact } from '../../types/source.interface';
 import {
   createAuthor,
   createBuilder,

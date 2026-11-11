@@ -1,15 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { isWithinDay } from 'src/common/utils/date.util';
-import { GitLabLabelAction } from 'src/modules/vendors/gitlab/gitlab.enums';
+import { GitLabLabelAction } from 'src/modules/vendors/gitlab/types/gitlab.enums';
 import type {
   GitLabAuthor,
   GitLabIssue,
   GitLabMergeRequest,
   GitLabNote,
   GitLabWeightEvent,
-} from 'src/modules/vendors/gitlab/gitlab.interface';
-import { SourceActionKind } from '../source.enums';
-import type { SourceFact } from '../source.interface';
+} from 'src/modules/vendors/gitlab/types/gitlab.interface';
+import { SourceActionKind } from '../types/source.enums';
+import type { SourceFact } from '../types/source.interface';
 import {
   GITLAB_SOURCE_ASSIGNEE_CHANGE,
   GITLAB_SOURCE_ITERATION_ACTIONS,
@@ -22,7 +22,7 @@ import type {
   IssueActivity,
   MergeRequestActivity,
   SourceBuildContext,
-} from './gitlab-source.interface';
+} from './types/gitlab-source.interface';
 import { GitLabSourceNotes } from './gitlab-source.notes';
 
 @Injectable()

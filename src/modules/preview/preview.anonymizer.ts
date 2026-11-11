@@ -16,7 +16,7 @@ import {
   SourceActionKind,
   SourceRefType,
   SourceTargetType,
-} from 'src/modules/application/source/source.enums';
+} from 'src/modules/application/source/types/source.enums';
 import type {
   CleanEvent,
   CleanNote,
@@ -29,7 +29,7 @@ import type {
   SourceFact,
   SourceProject,
   StandalonePush,
-} from 'src/modules/application/source/source.interface';
+} from 'src/modules/application/source/types/source.interface';
 import {
   PREVIEW_ACTION_VALUE,
   PREVIEW_BOT_BRANCH_PATTERN,
@@ -67,7 +67,7 @@ import {
   PREVIEW_USER_ALIAS,
   PREVIEW_USER_NOTE_PREFIXES,
 } from './constants/preview.constants';
-import type { PreviewAliases } from './preview.interface';
+import type { PreviewAliases } from './types/preview.interface';
 
 @Injectable()
 export class PreviewAnonymizer {

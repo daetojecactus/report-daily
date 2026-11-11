@@ -2,16 +2,21 @@ import type { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { eq } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { Channel } from 'src/common/enums/channel.enums';
-import { Gender, JobRole, Permission, UserStatus } from 'src/modules/application/user/user.enums';
-import { Language } from 'src/modules/application/i18n/i18n.enums';
-import { Source } from 'src/modules/application/source/source.enums';
+import { Channel } from 'src/common/channel/types/channel.enums';
+import {
+  Gender,
+  JobRole,
+  Permission,
+  UserStatus,
+} from 'src/modules/application/user/types/user.enums';
+import { Language } from 'src/modules/application/i18n/types/i18n.enums';
+import { Source } from 'src/modules/application/source/types/source.enums';
 import { DATABASE_INSTANCE } from 'src/modules/infrastructure/database/constants/database.constants';
 import { createTestApp } from 'test/setup/test-app';
-import type { UserChannelInsert } from '../channel/channel.interface';
+import type { UserChannelInsert } from '../channel/types/channel.interface';
 import { userChannels } from '../channel/channel.schema';
 import { ChannelService } from '../channel/channel.service';
-import type { UserInsert } from '../user.interface';
+import type { UserInsert } from '../types/user.interface';
 import { users } from '../user.schema';
 import { UserService } from '../user.service';
 import { userSources } from '../user-source/user-source.schema';

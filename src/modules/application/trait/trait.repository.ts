@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { sql, type SQL } from 'drizzle-orm';
 import { DatabaseService } from 'src/modules/infrastructure/database/database.service';
-import type { TraitMappingInsert, TraitMappingUpdate } from './trait.interface';
+import type { TraitMappingInsert, TraitMappingUpdate } from './types/trait.interface';
 import { traitMappings } from './trait.schema';
 
 @Injectable()

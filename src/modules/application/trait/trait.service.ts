@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { and, eq, isNull, or, type SQL } from 'drizzle-orm';
 import { toSourceKey } from 'src/common/utils/source-name.util';
-import type { Source } from 'src/modules/application/source/source.enums';
-import type { JobRole } from 'src/modules/application/user/user.enums';
+import type { Source } from 'src/modules/application/source/types/source.enums';
+import type { JobRole } from 'src/modules/application/user/types/user.enums';
 import { TRAIT_DICTIONARY } from './constants/trait.constants';
-import { TraitDimension } from './trait.enums';
+import { TraitDimension } from './types/trait.enums';
 import type {
   TaskTraits,
   TraitDimensionValueMap,
@@ -14,7 +14,7 @@ import type {
   TraitMappingUpdate,
   TraitPair,
   TraitValue,
-} from './trait.interface';
+} from './types/trait.interface';
 import { TraitRepository } from './trait.repository';
 import { traitMappings } from './trait.schema';
 import { TraitNameService } from './trait-name/trait-name.service';

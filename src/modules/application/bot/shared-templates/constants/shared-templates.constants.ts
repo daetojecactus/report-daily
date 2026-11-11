@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { BotNamespace } from '../../bot.enums';
-import { SharedTemplatesAction } from '../shared-templates.enums';
+import { BotNamespace } from '../../types/bot.enums';
+import { SharedTemplatesAction } from '../types/shared-templates.enums';
 
 const NAMESPACE_SCHEMA = z.literal(BotNamespace.SHARED_TEMPLATES);
 

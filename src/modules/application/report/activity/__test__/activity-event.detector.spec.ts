@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { SourceEventAction, SourceTargetType } from 'src/modules/application/source/source.enums';
-import type { CleanEvent } from 'src/modules/application/source/source.interface';
-import { JobRole } from 'src/modules/application/user/user.enums';
-import { ActivityAction, ActivityDetail } from '../activity.enums';
-import type { ActivityLine } from '../activity.interface';
+import {
+  SourceEventAction,
+  SourceTargetType,
+} from 'src/modules/application/source/types/source.enums';
+import type { CleanEvent } from 'src/modules/application/source/types/source.interface';
+import { JobRole } from 'src/modules/application/user/types/user.enums';
+import { ActivityAction, ActivityDetail } from '../types/activity.enums';
+import type { ActivityLine } from '../types/activity.interface';
 import { at, choose, detect, summarize } from './activity.fixture';
 
 function event(actionName: SourceEventAction, time = at(10)): CleanEvent {

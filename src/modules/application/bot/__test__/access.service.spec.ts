@@ -1,16 +1,17 @@
 import type { ConfigService } from '@nestjs/config';
 import { describe, expect, it, vi } from 'vitest';
-import { Channel, ChatInputType } from 'src/common/enums/channel.enums';
-import { Permission, UserStatus } from 'src/modules/application/user/user.enums';
-import { Language } from 'src/modules/application/i18n/i18n.enums';
+import { Channel } from 'src/common/channel/types/channel.enums';
+import { Permission, UserStatus } from 'src/modules/application/user/types/user.enums';
+import { Language } from 'src/modules/application/i18n/types/i18n.enums';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
 import type { UserService } from 'src/modules/application/user/user.service';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { AccessService } from '../access/access.service';
-import { BotAccess } from '../bot.enums';
-import type { User } from 'src/modules/application/user/user.interface';
-import type { BotActor, BotSectionAccess } from '../bot.interface';
+import { BotAccess } from '../types/bot.enums';
+import type { User } from 'src/modules/application/user/types/user.interface';
+import type { BotActor, BotSectionAccess } from '../types/bot.interface';
 import { createEmployee, OWNER_ID } from './bot.fixture';
+import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
 
 const ADMIN_ID = '019a4d2e-7c1b-7f3a-9c2d-000000000077';
 

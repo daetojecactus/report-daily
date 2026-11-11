@@ -3,9 +3,9 @@ import {
   SourceActionKind,
   SourceEventAction,
   SourceRefType,
-} from 'src/modules/application/source/source.enums';
-import type { GroupedMergeRequest } from 'src/modules/application/source/source.interface';
-import { ActivityAction, ActivityDetail } from '../activity.enums';
+} from 'src/modules/application/source/types/source.enums';
+import type { GroupedMergeRequest } from 'src/modules/application/source/types/source.interface';
+import { ActivityAction, ActivityDetail } from '../types/activity.enums';
 import {
   at,
   createIssue,

@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { SourceActionKind } from 'src/modules/application/source/source.enums';
+import { SourceActionKind } from 'src/modules/application/source/types/source.enums';
 import { TRAIT_STATE_WEIGHTS } from 'src/modules/application/trait/constants/trait.constants';
-import { WorkflowState } from 'src/modules/application/trait/trait.enums';
-import { JobRole } from 'src/modules/application/user/user.enums';
+import { WorkflowState } from 'src/modules/application/trait/types/trait.enums';
+import { JobRole } from 'src/modules/application/user/types/user.enums';
 import { ACTIVITY_CODE_WEIGHTS, ACTIVITY_WEIGHTS } from '../constants/activity.constants';
-import { ActivityAction, ActivityReason, ActivityTier } from '../activity.enums';
-import type { ActivityCandidate } from '../activity.interface';
+import { ActivityAction, ActivityReason, ActivityTier } from '../types/activity.enums';
+import type { ActivityCandidate } from '../types/activity.interface';
 import { ActivitySelector } from '../activity.selector';
 import {
   at,

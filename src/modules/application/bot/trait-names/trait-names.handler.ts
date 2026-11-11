@@ -1,23 +1,23 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ChatInputType } from 'src/common/enums/channel.enums';
-import type { ScreenButton } from 'src/common/interfaces/chat-channel.interface';
-import type { Locale } from 'src/modules/application/i18n/i18n.interface';
-import { Source } from 'src/modules/application/source/source.enums';
+import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
+import type { ScreenButton } from 'src/common/channel/types/chat-channel.interface';
+import type { Locale } from 'src/modules/application/i18n/types/i18n.interface';
+import { Source } from 'src/modules/application/source/types/source.enums';
 import { TRAIT_NAME_SEEN_DAYS } from 'src/modules/application/trait/constants/trait.constants';
 import { TraitNameService } from 'src/modules/application/trait/trait-name/trait-name.service';
-import { Permission } from 'src/modules/application/user/user.enums';
+import { Permission } from 'src/modules/application/user/types/user.enums';
 import { BotSection } from '../bot.decorator';
-import { BotAccess, BotNamespace } from '../bot.enums';
-import type { BotActor, BotContext, BotHandler, BotReply } from '../bot.interface';
+import { BotAccess, BotNamespace } from '../types/bot.enums';
+import type { BotActor, BotContext, BotHandler, BotReply } from '../types/bot.interface';
 import { BOT_BUTTON_DATA_SEPARATOR } from '../constants/bot.constants';
-import { TraitAddAction } from '../trait-add/trait-add.enums';
+import { TraitAddAction } from '../trait-add/types/trait-add.enums';
 import { TraitsView } from '../traits/traits.view';
 import {
   TRAIT_NAMES_BUTTON_SCHEMA,
   TRAIT_NAMES_PAGE_SIZE,
 } from './constants/trait-names.constants';
 import { TraitNamesMessages } from './constants/trait-names.messages';
-import { TraitNameList, TraitNamesAction } from './trait-names.enums';
+import { TraitNameList, TraitNamesAction } from './types/trait-names.enums';
 
 @Injectable()
 @BotSection({ access: Permission.TRAITS, namespace: BotNamespace.TRAIT_NAMES })

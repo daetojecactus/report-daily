@@ -1,6 +1,6 @@
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import type { AddressInfo } from 'node:net';
-import type { GitLabUser } from 'src/modules/vendors/gitlab/gitlab.interface';
+import type { GitLabUser } from 'src/modules/vendors/gitlab/types/gitlab.interface';
 
 export interface FakeGitLabUser extends GitLabUser {
   hasActivity: boolean;

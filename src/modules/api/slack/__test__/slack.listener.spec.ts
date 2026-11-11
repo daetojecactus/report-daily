@@ -1,7 +1,8 @@
 import { Logger } from '@nestjs/common';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { Channel, ChatInputType } from 'src/common/enums/channel.enums';
-import type { ChatEvent } from 'src/common/interfaces/chat-channel.interface';
+import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
+import { Channel } from 'src/common/channel/types/channel.enums';
+import type { ChatEvent } from 'src/common/channel/types/chat-channel.interface';
 import type { InboundQueueProducer } from 'src/modules/queue/inbound/inbound-queue.producer';
 import type { SlackService } from 'src/modules/vendors/slack/slack.service';
 import type { SlackSocket } from 'src/modules/vendors/slack/slack.socket';

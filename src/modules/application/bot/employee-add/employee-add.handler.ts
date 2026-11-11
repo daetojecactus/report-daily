@@ -1,21 +1,21 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ChatInputType } from 'src/common/enums/channel.enums';
+import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
 import { getErrorMessage } from 'src/common/utils/error.util';
 import { escapeMarkdown } from 'src/common/utils/markdown.util';
-import type { Locale } from 'src/modules/application/i18n/i18n.interface';
-import { Gender, JobRole, Permission } from 'src/modules/application/user/user.enums';
-import { Source } from 'src/modules/application/source/source.enums';
+import type { Locale } from 'src/modules/application/i18n/types/i18n.interface';
+import { Gender, JobRole, Permission } from 'src/modules/application/user/types/user.enums';
+import { Source } from 'src/modules/application/source/types/source.enums';
 import { UserService } from 'src/modules/application/user/user.service';
 import {
   GitLabCertificateError,
   GitLabRejectedError,
   GitLabRetryableError,
 } from 'src/modules/vendors/gitlab/gitlab.error';
-import type { GitLabUser } from 'src/modules/vendors/gitlab/gitlab.interface';
+import type { GitLabUser } from 'src/modules/vendors/gitlab/types/gitlab.interface';
 import { GitLabService } from 'src/modules/vendors/gitlab/gitlab.service';
 import { BotSection } from '../bot.decorator';
-import { BotAccess, BotNamespace } from '../bot.enums';
-import type { BotActor, BotContext, BotDialog, BotHandler, BotReply } from '../bot.interface';
+import { BotAccess, BotNamespace } from '../types/bot.enums';
+import type { BotActor, BotContext, BotDialog, BotHandler, BotReply } from '../types/bot.interface';
 import { BOT_BUTTON_DATA_SEPARATOR } from '../constants/bot.constants';
 import {
   EMPLOYEES_ITEM_SEPARATOR,
@@ -23,13 +23,13 @@ import {
   EMPLOYEES_USERNAME_PREFIX,
 } from '../employees/constants/employees.constants';
 import { EmployeesCard } from '../employees/employees.card';
-import { EmployeesAction } from '../employees/employees.enums';
+import { EmployeesAction } from '../employees/types/employees.enums';
 import {
   EMPLOYEE_ADD_BUTTON_SCHEMA,
   EMPLOYEE_ADD_DRAFT_SCHEMA,
 } from './constants/employee-add.constants';
 import { EmployeeAddMessages } from './constants/employee-add.messages';
-import { EmployeeAddAction, EmployeeAddStep } from './employee-add.enums';
+import { EmployeeAddAction, EmployeeAddStep } from './types/employee-add.enums';
 
 @Injectable()
 @BotSection({ access: Permission.USERS, namespace: BotNamespace.EMPLOYEE_ADD })

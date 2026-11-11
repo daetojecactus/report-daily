@@ -7,9 +7,9 @@ import {
   TELEGRAM_URL_TRAILING_SLASHES,
 } from './constants/telegram.constants';
 import { TelegramMessages } from './constants/telegram.messages';
-import type { TelegramMethod } from './telegram.enums';
+import type { TelegramMethod } from './types/telegram.enums';
 import { TelegramRetryableError } from './telegram.error';
-import type { TelegramCallOptions, TelegramHttpResponse } from './telegram.interface';
+import type { TelegramCallOptions, TelegramHttpResponse } from './types/telegram.interface';
 
 @Injectable()
 export class TelegramClient {

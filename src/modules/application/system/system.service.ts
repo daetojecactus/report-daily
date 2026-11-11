@@ -3,8 +3,8 @@ import { getErrorMessage } from 'src/common/utils/error.util';
 import { DatabaseService } from 'src/modules/infrastructure/database/database.service';
 import { RedisService } from 'src/modules/infrastructure/redis/redis.service';
 import { SystemMessages } from './constants/system.messages';
-import { DependencyStatus, HealthStatus } from './system.enums';
-import type { SystemHealth } from './system.interface';
+import { DependencyStatus, HealthStatus } from './types/system.enums';
+import type { SystemHealth } from './types/system.interface';
 
 @Injectable()
 export class SystemService {

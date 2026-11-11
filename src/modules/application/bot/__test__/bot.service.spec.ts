@@ -3,11 +3,11 @@ import { ConfigService } from '@nestjs/config';
 import { DiscoveryModule } from '@nestjs/core';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { BotCommand } from 'src/modules/application/bot/bot.enums';
-import { Channel, ChatInputType } from 'src/common/enums/channel.enums';
-import { Permission, UserStatus } from 'src/modules/application/user/user.enums';
-import { ChatUnreachableError } from 'src/common/errors/chat-unreachable.error';
-import { Language } from 'src/modules/application/i18n/i18n.enums';
+import { BotCommand } from 'src/modules/application/bot/types/bot.enums';
+import { Channel } from 'src/common/channel/types/channel.enums';
+import { Permission, UserStatus } from 'src/modules/application/user/types/user.enums';
+import { ChatUnreachableError } from 'src/common/channel/chat-unreachable.error';
+import { Language } from 'src/modules/application/i18n/types/i18n.enums';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
 import { en } from 'src/modules/application/i18n/locales/en.locale';
 import { ru } from 'src/modules/application/i18n/locales/ru.locale';
@@ -15,14 +15,14 @@ import type {
   ChatChannel,
   ChatEvent,
   ChatInput,
-} from 'src/common/interfaces/chat-channel.interface';
+} from 'src/common/channel/types/chat-channel.interface';
 import { ChannelService } from 'src/modules/application/user/channel/channel.service';
-import type { UserWithChannel } from 'src/modules/application/user/user.interface';
+import type { UserWithChannel } from 'src/modules/application/user/types/user.interface';
 import { UserService } from 'src/modules/application/user/user.service';
 import { RedisService } from 'src/modules/infrastructure/redis/redis.service';
 import { AccessService } from '../access/access.service';
 import { BotSection } from '../bot.decorator';
-import type { BotContext, BotHandler, BotReply } from '../bot.interface';
+import type { BotContext, BotHandler, BotReply } from '../types/bot.interface';
 import { BotService } from '../bot.service';
 import { BOT_CHANNELS } from '../constants/bot.constants';
 import { BotMessages } from '../constants/bot.messages';
@@ -33,6 +33,7 @@ import { StartHandler } from '../handlers/start.handler';
 import { MenuService } from '../menu/menu.service';
 import { RouterService } from '../router/router.service';
 import { createEmployee, EMPLOYEE_ID, OWNER_ID, STRANGER_ID } from './bot.fixture';
+import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
 
 @Injectable()
 @BotSection({ access: Permission.USERS, namespace: 'test' })

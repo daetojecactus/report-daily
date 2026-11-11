@@ -1,16 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { getErrorMessage } from 'src/common/utils/error.util';
 import { escapeMarkdown } from 'src/common/utils/markdown.util';
-import type { Locale } from 'src/modules/application/i18n/i18n.interface';
+import type { Locale } from 'src/modules/application/i18n/types/i18n.interface';
 import { ReportService } from 'src/modules/application/report/report.service';
 import {
   TEMPLATE_BODY_MAX_LENGTH,
   TEMPLATE_NAME_MAX_LENGTH,
 } from 'src/modules/application/report/template/constants/template.constants';
 import { TemplateService } from 'src/modules/application/report/template/template.service';
-import type { BotActor } from '../bot.interface';
+import type { BotActor } from '../types/bot.interface';
 import { TEMPLATES_DATE_FORMAT, TEMPLATES_DATE_TIME_SUFFIX } from './constants/templates.constants';
-import type { TemplateDraftCheck } from './templates.interface';
+import type { TemplateDraftCheck } from './types/templates.interface';
 
 @Injectable()
 export class TemplatesDraft {

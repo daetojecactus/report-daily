@@ -1,4 +1,4 @@
-import type { TraitsLocale } from '../../i18n.interface';
+import type { TraitsLocale } from '../../types/i18n.interface';
 import { ruTraitValues } from './trait-values.locale';
 
 export const ruTraits: TraitsLocale = {

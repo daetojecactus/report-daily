@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { desc, isNull, type SQL } from 'drizzle-orm';
 import { DatabaseService } from 'src/modules/infrastructure/database/database.service';
-import { ReportStatus } from './report.enums';
-import type { ReportInsert, ReportUpdate } from './report.interface';
+import { ReportStatus } from './types/report.enums';
+import type { ReportInsert, ReportUpdate } from './types/report.interface';
 import { reports } from './report.schema';
 
 @Injectable()

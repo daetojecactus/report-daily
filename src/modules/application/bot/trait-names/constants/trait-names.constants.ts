@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { BotNamespace } from '../../bot.enums';
-import { TraitNameList, TraitNamesAction } from '../trait-names.enums';
+import { BotNamespace } from '../../types/bot.enums';
+import { TraitNameList, TraitNamesAction } from '../types/trait-names.enums';
 
 export const TRAIT_NAMES_PAGE_SIZE = 8;
 

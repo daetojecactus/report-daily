@@ -25,7 +25,7 @@ import {
 import { SLACK_USER_ID_PATTERN } from 'src/common/constants/slack.constants';
 import { TELEGRAM_USER_ID_PATTERN } from 'src/common/constants/telegram.constants';
 import { TIME_ZONE_NAME_PATTERN } from 'src/common/constants/time.constants';
-import { DeliveryMode, LogLevel } from './config.enums';
+import { DeliveryMode, LogLevel } from './types/config.enums';
 
 function hasLlmEnv(env: AppEnvs) {
   return LLM_ENV_KEYS.some((key) => Boolean(env[key]));

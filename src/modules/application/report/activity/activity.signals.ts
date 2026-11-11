@@ -1,17 +1,17 @@
 import { Injectable } from '@nestjs/common';
-import { SourceActionKind, SourceRefType } from 'src/modules/application/source/source.enums';
+import { SourceActionKind, SourceRefType } from 'src/modules/application/source/types/source.enums';
 import type {
   CleanEvent,
   GroupedIssue,
   GroupedMergeRequest,
-} from 'src/modules/application/source/source.interface';
+} from 'src/modules/application/source/types/source.interface';
 import {
   TaskFlag,
   TaskKind,
   TraitDimension,
   WorkflowState,
-} from 'src/modules/application/trait/trait.enums';
-import type { TaskTraits, TraitIndex } from 'src/modules/application/trait/trait.interface';
+} from 'src/modules/application/trait/types/trait.enums';
+import type { TaskTraits, TraitIndex } from 'src/modules/application/trait/types/trait.interface';
 import { TraitService } from 'src/modules/application/trait/trait.service';
 import {
   ACTIVITY_BEFORE_DAY,
@@ -23,7 +23,7 @@ import {
   ACTIVITY_WORK_ITEM_KINDS,
   ACTIVITY_RETURN_STATES,
 } from './constants/activity.constants';
-import { EngagementLevel } from './activity.enums';
+import { EngagementLevel } from './types/activity.enums';
 import { ActivityEngagement } from './activity.engagement';
 import type {
   ActivityChange,
@@ -32,7 +32,7 @@ import type {
   ActivityLine,
   ActivityLineSignals,
   ActivityPush,
-} from './activity.interface';
+} from './types/activity.interface';
 import { ActivityRules } from './activity.rules';
 
 @Injectable()

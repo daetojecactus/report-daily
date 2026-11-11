@@ -2,14 +2,17 @@ import type { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { inArray } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { Channel } from 'src/common/enums/channel.enums';
-import { DeliveryKind, DeliveryStatus } from 'src/modules/application/delivery/delivery.enums';
+import { Channel } from 'src/common/channel/types/channel.enums';
+import {
+  DeliveryKind,
+  DeliveryStatus,
+} from 'src/modules/application/delivery/types/delivery.enums';
 import { deliveries } from 'src/modules/application/delivery/delivery.schema';
-import { Language } from 'src/modules/application/i18n/i18n.enums';
-import { ReportStatus } from 'src/modules/application/report/report.enums';
+import { Language } from 'src/modules/application/i18n/types/i18n.enums';
+import { ReportStatus } from 'src/modules/application/report/types/report.enums';
 import { reports } from 'src/modules/application/report/report.schema';
 import { userChannels } from 'src/modules/application/user/channel/channel.schema';
-import { Gender, JobRole, UserStatus } from 'src/modules/application/user/user.enums';
+import { Gender, JobRole, UserStatus } from 'src/modules/application/user/types/user.enums';
 import { users } from 'src/modules/application/user/user.schema';
 import { DATABASE_INSTANCE } from 'src/modules/infrastructure/database/constants/database.constants';
 import { fakeBotApi } from 'test/setup/fake-bot-api';

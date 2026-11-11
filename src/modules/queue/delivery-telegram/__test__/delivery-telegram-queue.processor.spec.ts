@@ -1,19 +1,19 @@
 import type { ConfigService } from '@nestjs/config';
 import { type Job, RateLimitError } from 'bullmq';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { Channel } from 'src/common/enums/channel.enums';
+import { Channel } from 'src/common/channel/types/channel.enums';
 import { ReportView } from 'src/modules/application/bot/report/report.view';
-import { ChatUnreachableError } from 'src/common/errors/chat-unreachable.error';
-import { DeliveryStatus } from 'src/modules/application/delivery/delivery.enums';
-import type { Delivery } from 'src/modules/application/delivery/delivery.interface';
+import { ChatUnreachableError } from 'src/common/channel/chat-unreachable.error';
+import { DeliveryStatus } from 'src/modules/application/delivery/types/delivery.enums';
+import type { Delivery } from 'src/modules/application/delivery/types/delivery.interface';
 import type { DeliveryService } from 'src/modules/application/delivery/delivery.service';
-import { Language } from 'src/modules/application/i18n/i18n.enums';
+import { Language } from 'src/modules/application/i18n/types/i18n.enums';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
-import type { Report } from 'src/modules/application/report/report.interface';
+import type { Report } from 'src/modules/application/report/types/report.interface';
 import type { ReportService } from 'src/modules/application/report/report.service';
-import type { UserChannel } from 'src/modules/application/user/channel/channel.interface';
+import type { UserChannel } from 'src/modules/application/user/channel/types/channel.interface';
 import type { ChannelService } from 'src/modules/application/user/channel/channel.service';
-import type { User } from 'src/modules/application/user/user.interface';
+import type { User } from 'src/modules/application/user/types/user.interface';
 import type { UserService } from 'src/modules/application/user/user.service';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import {

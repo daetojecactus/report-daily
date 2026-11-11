@@ -1,15 +1,15 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import type { ChatChannel, ScreenButton } from 'src/common/interfaces/chat-channel.interface';
+import type { ChatChannel, ScreenButton } from 'src/common/channel/types/chat-channel.interface';
 import { getErrorMessage } from 'src/common/utils/error.util';
 import { escapeMarkdown } from 'src/common/utils/markdown.util';
-import type { Locale } from 'src/modules/application/i18n/i18n.interface';
+import type { Locale } from 'src/modules/application/i18n/types/i18n.interface';
 import { ReportService } from 'src/modules/application/report/report.service';
 import { ChannelService } from 'src/modules/application/user/channel/channel.service';
 import { UserSourceService } from 'src/modules/application/user/user-source/user-source.service';
-import { UserStatus } from 'src/modules/application/user/user.enums';
-import type { User } from 'src/modules/application/user/user.interface';
-import type { UserChannel } from 'src/modules/application/user/channel/channel.interface';
+import { UserStatus } from 'src/modules/application/user/types/user.enums';
+import type { User } from 'src/modules/application/user/types/user.interface';
+import type { UserChannel } from 'src/modules/application/user/channel/types/channel.interface';
 import { UserService } from 'src/modules/application/user/user.service';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import {
@@ -19,19 +19,19 @@ import {
 } from 'src/modules/vendors/gitlab/gitlab.error';
 import { GitLabService } from 'src/modules/vendors/gitlab/gitlab.service';
 import { AccessService } from '../access/access.service';
-import { BotNamespace } from '../bot.enums';
-import type { BotActor, BotReply } from '../bot.interface';
+import { BotNamespace } from '../types/bot.enums';
+import type { BotActor, BotReply } from '../types/bot.interface';
 import { BOT_BUTTON_DATA_SEPARATOR, BOT_CHANNELS } from '../constants/bot.constants';
-import { EmployeeBindAction } from '../employee-bind/employee-bind.enums';
-import { EmployeeManageAction } from '../employee-manage/employee-manage.enums';
-import { EmployeePermissionsAction } from '../employee-permissions/employee-permissions.enums';
+import { EmployeeBindAction } from '../employee-bind/types/employee-bind.enums';
+import { EmployeeManageAction } from '../employee-manage/types/employee-manage.enums';
+import { EmployeePermissionsAction } from '../employee-permissions/types/employee-permissions.enums';
 import {
   EMPLOYEES_ACTIVITY_FORMAT,
   EMPLOYEES_REPORT_DATE_FORMAT,
   EMPLOYEES_REPORT_DATE_SUFFIX,
 } from './constants/employees.constants';
 import { EmployeesMessages } from './constants/employees.messages';
-import { EmployeesAction } from './employees.enums';
+import { EmployeesAction } from './types/employees.enums';
 
 @Injectable()
 export class EmployeesCard {

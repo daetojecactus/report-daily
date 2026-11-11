@@ -3,14 +3,14 @@ import { Logger, type OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { Job } from 'bullmq';
 import { getErrorMessage } from 'src/common/utils/error.util';
-import { Channel } from 'src/common/enums/channel.enums';
+import { Channel } from 'src/common/channel/types/channel.enums';
 import { BotService } from 'src/modules/application/bot/bot.service';
 import { DeliveryService } from 'src/modules/application/delivery/delivery.service';
-import { ReportStatus } from 'src/modules/application/report/report.enums';
-import type { Report } from 'src/modules/application/report/report.interface';
+import { ReportStatus } from 'src/modules/application/report/types/report.enums';
+import type { Report } from 'src/modules/application/report/types/report.interface';
 import { ReportService } from 'src/modules/application/report/report.service';
 import { ChannelService } from 'src/modules/application/user/channel/channel.service';
-import { DeliveryMode } from 'src/modules/infrastructure/config/config.enums';
+import { DeliveryMode } from 'src/modules/infrastructure/config/types/config.enums';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { DeliveryQueueProducer } from '../delivery/delivery-queue.producer';
 import {
@@ -19,7 +19,7 @@ import {
   REPORT_QUEUE,
 } from './constants/report-queue.constants';
 import { ReportQueueMessages } from './constants/report-queue.messages';
-import type { ReportJobData } from './report-queue.interface';
+import type { ReportJobData } from './types/report-queue.interface';
 
 @Processor(REPORT_QUEUE, { concurrency: REPORT_CONCURRENCY })
 export class ReportQueueProcessor extends WorkerHost implements OnModuleDestroy {

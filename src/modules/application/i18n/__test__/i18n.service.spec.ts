@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { Gender } from 'src/modules/application/user/user.enums';
+import { Gender } from 'src/modules/application/user/types/user.enums';
 import { DEFAULT_LANGUAGE } from '../constants/i18n.constants';
-import { Language } from '../i18n.enums';
+import { Language } from '../types/i18n.enums';
 import { I18nService } from '../i18n.service';
 
 const i18nService = new I18nService();

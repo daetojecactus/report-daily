@@ -1,5 +1,5 @@
 import { DATE_PATTERN } from '../constants/time.constants';
-import type { DayRange } from '../interfaces/date.interface';
+import type { DayRange } from '../types/date.interface';
 
 export function toDate(value: string): string | null {
   const text = value.trim();

@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { ItemState, SourceActionKind } from 'src/modules/application/source/source.enums';
-import type { SourceFact } from 'src/modules/application/source/source.interface';
-import { JobRole } from 'src/modules/application/user/user.enums';
-import { ActivityAction, ActivityDetail, ActivityRule } from '../activity.enums';
+import { ItemState, SourceActionKind } from 'src/modules/application/source/types/source.enums';
+import type { SourceFact } from 'src/modules/application/source/types/source.interface';
+import { JobRole } from 'src/modules/application/user/types/user.enums';
+import { ActivityAction, ActivityDetail, ActivityRule } from '../types/activity.enums';
 import {
   at,
   choose,

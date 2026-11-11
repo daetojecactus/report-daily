@@ -1,6 +1,6 @@
 import { Injectable, type OnModuleInit } from '@nestjs/common';
 import { DiscoveryService } from '@nestjs/core';
-import { BotCommand } from '../bot.enums';
+import { BotCommand } from '../types/bot.enums';
 import {
   BOT_BUTTON_DATA_SCHEMA,
   BOT_BUTTON_DATA_SEPARATOR,
@@ -8,7 +8,7 @@ import {
 } from '../constants/bot.constants';
 import { BotMessages } from '../constants/bot.messages';
 import { BotSection } from '../bot.decorator';
-import type { BotHandler, BotMenuItem, BotRoute } from '../bot.interface';
+import type { BotHandler, BotMenuItem, BotRoute } from '../types/bot.interface';
 
 @Injectable()
 export class RouterService implements OnModuleInit {

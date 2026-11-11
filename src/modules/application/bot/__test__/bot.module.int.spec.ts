@@ -1,11 +1,11 @@
 import { Injectable, Module } from '@nestjs/common';
 import type { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { BotCommand } from 'src/modules/application/bot/bot.enums';
+import { BotCommand } from 'src/modules/application/bot/types/bot.enums';
 import { findBotHandlersWithoutAccess } from 'test/setup/access';
 import { createTestApp } from 'test/setup/test-app';
 import { BotSection } from '../bot.decorator';
-import { BotAccess } from '../bot.enums';
+import { BotAccess } from '../types/bot.enums';
 import { RouterService } from '../router/router.service';
 
 @Injectable()

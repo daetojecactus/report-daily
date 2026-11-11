@@ -4,14 +4,14 @@ import {
   ACTIVITY_ROLE_FOCUS,
   ACTIVITY_TIERS,
 } from './constants/activity.constants';
-import { ActivityAction, ActivityReason, ActivityTier } from './activity.enums';
+import { ActivityAction, ActivityReason, ActivityTier } from './types/activity.enums';
 import type {
   ActivityCandidate,
   ActivityChoice,
   ActivityLineSignals,
   ActivityRank,
   ActivityRoleFocus,
-} from './activity.interface';
+} from './types/activity.interface';
 
 @Injectable()
 export class ActivitySelector {

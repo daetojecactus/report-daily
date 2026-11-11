@@ -1,12 +1,12 @@
-import { ActivityTier } from 'src/modules/application/report/activity/activity.enums';
+import { ActivityTier } from 'src/modules/application/report/activity/types/activity.enums';
 import {
   PhraseContext,
   PhraseCount,
   PhraseName,
   ReportPhrase,
-} from 'src/modules/application/report/phrase/phrase.enums';
-import { WorkflowState } from 'src/modules/application/trait/trait.enums';
-import type { PhrasesLocale } from '../../i18n.interface';
+} from 'src/modules/application/report/phrase/types/phrase.enums';
+import { WorkflowState } from 'src/modules/application/trait/types/trait.enums';
+import type { PhrasesLocale } from '../../types/i18n.interface';
 
 function count(value: number, one: string, many: string) {
   return `${value} ${value === 1 ? one : many}`;

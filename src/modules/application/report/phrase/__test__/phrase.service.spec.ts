@@ -1,15 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { Language } from 'src/modules/application/i18n/i18n.enums';
+import { Language } from 'src/modules/application/i18n/types/i18n.enums';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
 import {
   ItemState,
   SourceActionKind,
   SourceEventAction,
   SourceRefType,
-} from 'src/modules/application/source/source.enums';
-import { Gender, JobRole } from 'src/modules/application/user/user.enums';
-import { ActivityAction } from '../../activity/activity.enums';
-import type { ActivityLine } from '../../activity/activity.interface';
+} from 'src/modules/application/source/types/source.enums';
+import { Gender, JobRole } from 'src/modules/application/user/types/user.enums';
+import { ActivityAction } from '../../activity/types/activity.enums';
+import type { ActivityLine } from '../../activity/types/activity.interface';
 import {
   at,
   choose,
@@ -26,7 +26,7 @@ import {
   toSignals,
 } from '../../activity/__test__/activity.fixture';
 import { PHRASE_RULES } from '../constants/phrase.constants';
-import { ReportPhrase } from '../phrase.enums';
+import { ReportPhrase } from '../types/phrase.enums';
 import { PhraseService } from '../phrase.service';
 
 function describeLine(

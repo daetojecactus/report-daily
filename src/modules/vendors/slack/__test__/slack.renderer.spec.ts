@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { SlackBlockType } from '../slack.enums';
+import { SlackBlockType } from '../types/slack.enums';
 import { SlackFormatter } from '../slack.formatter';
 import { SlackRenderer } from '../slack.renderer';
 

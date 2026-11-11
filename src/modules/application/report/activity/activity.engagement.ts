@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { SourceActionKind } from 'src/modules/application/source/source.enums';
-import { Priority } from 'src/modules/application/trait/trait.enums';
+import { SourceActionKind } from 'src/modules/application/source/types/source.enums';
+import { Priority } from 'src/modules/application/trait/types/trait.enums';
 import {
   ENGAGEMENT_COMMENT_CAP,
   ENGAGEMENT_COMMIT_CAP,
@@ -8,8 +8,8 @@ import {
   ENGAGEMENT_THRESHOLDS,
   ENGAGEMENT_WEIGHTS,
 } from './constants/activity.constants';
-import { EngagementLevel } from './activity.enums';
-import type { ActivityLineSignals } from './activity.interface';
+import { EngagementLevel } from './types/activity.enums';
+import type { ActivityLineSignals } from './types/activity.interface';
 
 @Injectable()
 export class ActivityEngagement {

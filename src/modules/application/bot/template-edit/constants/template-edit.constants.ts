@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { TEMPLATE_BODY_MAX_LENGTH } from 'src/modules/application/report/template/constants/template.constants';
-import { BotNamespace } from '../../bot.enums';
-import { TemplateEditAction, TemplateEditStep } from '../template-edit.enums';
+import { BotNamespace } from '../../types/bot.enums';
+import { TemplateEditAction, TemplateEditStep } from '../types/template-edit.enums';
 
 const NAMESPACE_SCHEMA = z.literal(BotNamespace.TEMPLATE_EDIT);
 

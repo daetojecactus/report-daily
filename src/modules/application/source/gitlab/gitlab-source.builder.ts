@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import type { DayRange } from 'src/common/interfaces/date.interface';
+import type { DayRange } from 'src/common/types/date.interface';
 import { isWithinDay } from 'src/common/utils/date.util';
-import { GitLabState } from 'src/modules/vendors/gitlab/gitlab.enums';
+import { GitLabState } from 'src/modules/vendors/gitlab/types/gitlab.enums';
 import type {
   GitLabEvent,
   GitLabLabelEvent,
   GitLabNote,
-} from 'src/modules/vendors/gitlab/gitlab.interface';
+} from 'src/modules/vendors/gitlab/types/gitlab.interface';
 import type {
   CleanEvent,
   CleanLabelEvent,
@@ -15,8 +15,8 @@ import type {
   GroupedIssue,
   GroupedMergeRequest,
   StandalonePush,
-} from '../source.interface';
-import { SourceRefType } from '../source.enums';
+} from '../types/source.interface';
+import { SourceRefType } from '../types/source.enums';
 import {
   GITLAB_SOURCE_ITEM_STATES,
   GITLAB_SOURCE_LABEL_ACTIONS,
@@ -34,7 +34,7 @@ import type {
   SourceBuildContext,
   SourceEmployee,
   SourceEvents,
-} from './gitlab-source.interface';
+} from './types/gitlab-source.interface';
 
 @Injectable()
 export class GitLabSourceBuilder {

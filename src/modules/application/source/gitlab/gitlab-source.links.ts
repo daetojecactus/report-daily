@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import type { DayRange } from 'src/common/interfaces/date.interface';
+import type { DayRange } from 'src/common/types/date.interface';
 import { isWithinDay } from 'src/common/utils/date.util';
-import type { GitLabNote, GitLabProject } from 'src/modules/vendors/gitlab/gitlab.interface';
+import type { GitLabNote, GitLabProject } from 'src/modules/vendors/gitlab/types/gitlab.interface';
 import { GitLabService } from 'src/modules/vendors/gitlab/gitlab.service';
 import {
   GITLAB_SOURCE_LINK_KINDS,
   GITLAB_SOURCE_LINK_WINDOW_MS,
 } from './constants/gitlab-source.constants';
 import { GitLabSourceDetails } from './gitlab-source.details';
-import type { DayActivity, SourceLinkReference } from './gitlab-source.interface';
+import type { DayActivity, SourceLinkReference } from './types/gitlab-source.interface';
 import { GitLabSourceKeys } from './gitlab-source.keys';
 import { GitLabSourceNotes } from './gitlab-source.notes';
 

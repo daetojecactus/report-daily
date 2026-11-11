@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { GitLabRefType, GitLabTargetType } from 'src/modules/vendors/gitlab/gitlab.enums';
-import type { GitLabEvent } from 'src/modules/vendors/gitlab/gitlab.interface';
+import { GitLabRefType, GitLabTargetType } from 'src/modules/vendors/gitlab/types/gitlab.enums';
+import type { GitLabEvent } from 'src/modules/vendors/gitlab/types/gitlab.interface';
 import {
   GITLAB_SOURCE_ISSUE_TARGET_TYPES,
   GITLAB_SOURCE_KNOWN_EVENTS,
@@ -15,7 +15,7 @@ import type {
   SourceItem,
   SourceRef,
   SourceTarget,
-} from './gitlab-source.interface';
+} from './types/gitlab-source.interface';
 import { GitLabSourceKeys } from './gitlab-source.keys';
 
 @Injectable()

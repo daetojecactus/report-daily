@@ -9,7 +9,7 @@ import {
   INBOUND_QUEUE,
 } from './constants/inbound-queue.constants';
 import { InboundQueueMessages } from './constants/inbound-queue.messages';
-import type { InboundEventJobData } from './inbound-queue.interface';
+import type { InboundEventJobData } from './types/inbound-queue.interface';
 
 @Processor(INBOUND_QUEUE, { concurrency: INBOUND_CONCURRENCY })
 export class InboundQueueProcessor extends WorkerHost implements OnModuleDestroy {

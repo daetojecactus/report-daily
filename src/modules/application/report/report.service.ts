@@ -13,8 +13,8 @@ import {
 } from './constants/report.constants';
 import { ReportMessages } from './constants/report.messages';
 import { ReportComposer } from './report.composer';
-import { ReportStatus } from './report.enums';
-import type { ReportInsert } from './report.interface';
+import { ReportStatus } from './types/report.enums';
+import type { ReportInsert } from './types/report.interface';
 import { ReportRepository } from './report.repository';
 import { reports } from './report.schema';
 

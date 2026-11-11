@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { SlackElementType, SlackEnvelopeType } from '../slack.enums';
+import { SlackElementType, SlackEnvelopeType } from '../types/slack.enums';
 
 export const SLACK_SPLIT_LIMIT = 2800;
 

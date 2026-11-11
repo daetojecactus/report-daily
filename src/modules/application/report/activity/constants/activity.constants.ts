@@ -3,12 +3,17 @@ import {
   SourceEventAction,
   SourceTargetType,
   WorkItemType,
-} from 'src/modules/application/source/source.enums';
+} from 'src/modules/application/source/types/source.enums';
 import { TRAIT_STATE_WEIGHTS } from 'src/modules/application/trait/constants/trait.constants';
-import { TaskKind, WorkflowState } from 'src/modules/application/trait/trait.enums';
-import { JobRole } from 'src/modules/application/user/user.enums';
-import { ActivityAction, ActivityDetail, ActivityRule, ActivityTier } from '../activity.enums';
-import type { ActivityRoleFocus } from '../activity.interface';
+import { TaskKind, WorkflowState } from 'src/modules/application/trait/types/trait.enums';
+import { JobRole } from 'src/modules/application/user/types/user.enums';
+import {
+  ActivityAction,
+  ActivityDetail,
+  ActivityRule,
+  ActivityTier,
+} from '../types/activity.enums';
+import type { ActivityRoleFocus } from '../types/activity.interface';
 
 export const ACTIVITY_WEIGHTS = {
   MERGED: 950,

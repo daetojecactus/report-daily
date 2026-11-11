@@ -1,5 +1,5 @@
-import { Language } from '../i18n.enums';
-import type { Locale } from '../i18n.interface';
+import { Language } from '../types/i18n.enums';
+import type { Locale } from '../types/i18n.interface';
 import { en } from '../locales/en.locale';
 import { ru } from '../locales/ru.locale';
 

@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { SourceActionKind, SourceRefType } from 'src/modules/application/source/source.enums';
-import type { CleanEvent } from 'src/modules/application/source/source.interface';
+import { SourceActionKind, SourceRefType } from 'src/modules/application/source/types/source.enums';
+import type { CleanEvent } from 'src/modules/application/source/types/source.interface';
 import {
   ACTIVITY_DELETE_ACTION,
   ACTIVITY_PUSH_ACTIONS,
   ACTIVITY_VERSION_TAG_PATTERN,
   ACTIVITY_WEIGHTS,
 } from './constants/activity.constants';
-import { ActivityAction, ActivityDetail } from './activity.enums';
-import type { ActivityCandidate, ActivityLineSignals } from './activity.interface';
+import { ActivityAction, ActivityDetail } from './types/activity.enums';
+import type { ActivityCandidate, ActivityLineSignals } from './types/activity.interface';
 
 @Injectable()
 export class ActivityRefDetector {

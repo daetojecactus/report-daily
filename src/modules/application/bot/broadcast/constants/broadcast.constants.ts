@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { BotNamespace } from '../../bot.enums';
-import { BroadcastAction, BroadcastStep } from '../broadcast.enums';
+import { BotNamespace } from '../../types/bot.enums';
+import { BroadcastAction, BroadcastStep } from '../types/broadcast.enums';
 
 export const BROADCAST_TEXT_MAX_LENGTH = 4000;
 

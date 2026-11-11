@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { Channel } from 'src/common/enums/channel.enums';
-import type { UserChannel } from '../channel.interface';
+import { Channel } from 'src/common/channel/types/channel.enums';
+import type { UserChannel } from '../types/channel.interface';
 import type { ChannelRepository } from '../channel.repository';
 import { ChannelService } from '../channel.service';
 

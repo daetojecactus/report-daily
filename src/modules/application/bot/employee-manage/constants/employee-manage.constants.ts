@@ -1,7 +1,7 @@
 import { z } from 'zod';
-import { JobRole } from 'src/modules/application/user/user.enums';
-import { BotNamespace } from '../../bot.enums';
-import { EmployeeManageAction } from '../employee-manage.enums';
+import { JobRole } from 'src/modules/application/user/types/user.enums';
+import { BotNamespace } from '../../types/bot.enums';
+import { EmployeeManageAction } from '../types/employee-manage.enums';
 
 const NAMESPACE_SCHEMA = z.literal(BotNamespace.EMPLOYEE_MANAGE);
 

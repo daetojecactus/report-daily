@@ -1,5 +1,5 @@
-import { ActivityReason } from 'src/modules/application/report/activity/activity.enums';
-import { SourceTargetType } from 'src/modules/application/source/source.enums';
+import { ActivityReason } from 'src/modules/application/report/activity/types/activity.enums';
+import { SourceTargetType } from 'src/modules/application/source/types/source.enums';
 
 export const PREVIEW_INDENT = '  ';
 

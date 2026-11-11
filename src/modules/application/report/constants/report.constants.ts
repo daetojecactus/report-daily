@@ -1,5 +1,5 @@
-import { ActivityDetail } from '../activity/activity.enums';
-import { ReportStatus } from '../report.enums';
+import { ActivityDetail } from '../activity/types/activity.enums';
+import { ReportStatus } from '../types/report.enums';
 
 export const REPORT_REUSABLE_STATUSES = [
   ReportStatus.READY,

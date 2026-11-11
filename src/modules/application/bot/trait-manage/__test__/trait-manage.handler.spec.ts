@@ -1,13 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { Channel, ChatInputType } from 'src/common/enums/channel.enums';
-import type { ChatInput } from 'src/common/interfaces/chat-channel.interface';
-import { Language } from 'src/modules/application/i18n/i18n.enums';
+import { Channel } from 'src/common/channel/types/channel.enums';
+import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
+import type { ChatInput } from 'src/common/channel/types/chat-channel.interface';
+import { Language } from 'src/modules/application/i18n/types/i18n.enums';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
-import { Source } from 'src/modules/application/source/source.enums';
-import { TraitDimension, Priority, TaskFlag } from 'src/modules/application/trait/trait.enums';
-import type { TraitMapping, TraitValue } from 'src/modules/application/trait/trait.interface';
+import { Source } from 'src/modules/application/source/types/source.enums';
+import {
+  TraitDimension,
+  Priority,
+  TaskFlag,
+} from 'src/modules/application/trait/types/trait.enums';
+import type { TraitMapping, TraitValue } from 'src/modules/application/trait/types/trait.interface';
 import type { TraitService } from 'src/modules/application/trait/trait.service';
-import { JobRole } from 'src/modules/application/user/user.enums';
+import { JobRole } from 'src/modules/application/user/types/user.enums';
 import { TraitManageHandler } from '../trait-manage.handler';
 import { TraitsView } from '../../traits/traits.view';
 

@@ -2,9 +2,9 @@ import { Logger } from '@nestjs/common';
 import { UnrecoverableError } from 'bullmq';
 import { assert, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { GitLabClient } from '../gitlab.client';
-import { GitLabIssuable } from '../gitlab.enums';
+import { GitLabIssuable } from '../types/gitlab.enums';
 import { GitLabRejectedError, GitLabRetryableError } from '../gitlab.error';
-import type { GitLabHttpResponse } from '../gitlab.interface';
+import type { GitLabHttpResponse } from '../types/gitlab.interface';
 import { GitLabRepository } from '../gitlab.repository';
 
 function respond(

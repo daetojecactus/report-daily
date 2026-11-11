@@ -1,20 +1,20 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ChatInputType } from 'src/common/enums/channel.enums';
+import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
 import { isValidSourceKey, toSourceKey } from 'src/common/utils/source-name.util';
-import type { Locale } from 'src/modules/application/i18n/i18n.interface';
+import type { Locale } from 'src/modules/application/i18n/types/i18n.interface';
 import {
   TRAIT_DICTIONARY,
   TRAIT_SOURCE_NAME_MAX_LENGTH,
 } from 'src/modules/application/trait/constants/trait.constants';
-import { TraitDimension } from 'src/modules/application/trait/trait.enums';
-import type { TraitMapping, TraitValue } from 'src/modules/application/trait/trait.interface';
-import { Source } from 'src/modules/application/source/source.enums';
+import { TraitDimension } from 'src/modules/application/trait/types/trait.enums';
+import type { TraitMapping, TraitValue } from 'src/modules/application/trait/types/trait.interface';
+import { Source } from 'src/modules/application/source/types/source.enums';
 import { TraitService } from 'src/modules/application/trait/trait.service';
 import { TraitNameService } from 'src/modules/application/trait/trait-name/trait-name.service';
-import { JobRole, Permission } from 'src/modules/application/user/user.enums';
+import { JobRole, Permission } from 'src/modules/application/user/types/user.enums';
 import { BotSection } from '../bot.decorator';
-import { BotAccess, BotNamespace } from '../bot.enums';
-import type { BotActor, BotContext, BotDialog, BotHandler, BotReply } from '../bot.interface';
+import { BotAccess, BotNamespace } from '../types/bot.enums';
+import type { BotActor, BotContext, BotDialog, BotHandler, BotReply } from '../types/bot.interface';
 import { BOT_BUTTON_DATA_SEPARATOR } from '../constants/bot.constants';
 import { TraitsView } from '../traits/traits.view';
 import {
@@ -24,7 +24,7 @@ import {
   TRAIT_ADD_VALUE_SCHEMAS,
 } from './constants/trait-add.constants';
 import { TraitAddMessages } from './constants/trait-add.messages';
-import { TraitAddAction, TraitAddStep } from './trait-add.enums';
+import { TraitAddAction, TraitAddStep } from './types/trait-add.enums';
 
 @Injectable()
 @BotSection({ access: Permission.TRAITS, namespace: BotNamespace.TRAIT_ADD })

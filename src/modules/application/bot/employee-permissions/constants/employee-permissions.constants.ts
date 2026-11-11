@@ -1,7 +1,7 @@
 import { z } from 'zod';
-import { Permission } from 'src/modules/application/user/user.enums';
-import { BotNamespace } from '../../bot.enums';
-import { EmployeePermissionsAction } from '../employee-permissions.enums';
+import { Permission } from 'src/modules/application/user/types/user.enums';
+import { BotNamespace } from '../../types/bot.enums';
+import { EmployeePermissionsAction } from '../types/employee-permissions.enums';
 
 const NAMESPACE_SCHEMA = z.literal(BotNamespace.EMPLOYEE_PERMISSIONS);
 

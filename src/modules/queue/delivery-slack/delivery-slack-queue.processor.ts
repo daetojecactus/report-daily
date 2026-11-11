@@ -2,12 +2,12 @@ import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Logger, type OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { Job } from 'bullmq';
-import { Channel } from 'src/common/enums/channel.enums';
-import { ChatUnreachableError } from 'src/common/errors/chat-unreachable.error';
+import { Channel } from 'src/common/channel/types/channel.enums';
+import { ChatUnreachableError } from 'src/common/channel/chat-unreachable.error';
 import { getErrorMessage } from 'src/common/utils/error.util';
 import { ReportView } from 'src/modules/application/bot/report/report.view';
-import { DeliveryStatus } from 'src/modules/application/delivery/delivery.enums';
-import type { Delivery } from 'src/modules/application/delivery/delivery.interface';
+import { DeliveryStatus } from 'src/modules/application/delivery/types/delivery.enums';
+import type { Delivery } from 'src/modules/application/delivery/types/delivery.interface';
 import { DeliveryService } from 'src/modules/application/delivery/delivery.service';
 import { DEFAULT_LANGUAGE } from 'src/modules/application/i18n/constants/i18n.constants';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
@@ -27,7 +27,7 @@ import { DeliverySlackQueueMessages } from './constants/delivery-slack-queue.mes
 import type {
   DeliverySlackBroadcastData,
   DeliverySlackJobData,
-} from './delivery-slack-queue.interface';
+} from './types/delivery-slack-queue.interface';
 
 @Processor(DELIVERY_SLACK_QUEUE, { limiter: DELIVERY_SLACK_LIMITER })
 export class DeliverySlackQueueProcessor extends WorkerHost implements OnModuleDestroy {

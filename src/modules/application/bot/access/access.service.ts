@@ -1,16 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Channel } from 'src/common/enums/channel.enums';
-import { UserStatus } from 'src/modules/application/user/user.enums';
-import type { ChatEvent } from 'src/common/interfaces/chat-channel.interface';
+import { Channel } from 'src/common/channel/types/channel.enums';
+import { UserStatus } from 'src/modules/application/user/types/user.enums';
+import type { ChatEvent } from 'src/common/channel/types/chat-channel.interface';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
 import { DEFAULT_LANGUAGE } from 'src/modules/application/i18n/constants/i18n.constants';
-import type { UserChannel } from 'src/modules/application/user/channel/channel.interface';
-import type { User } from 'src/modules/application/user/user.interface';
+import type { UserChannel } from 'src/modules/application/user/channel/types/channel.interface';
+import type { User } from 'src/modules/application/user/types/user.interface';
 import { UserService } from 'src/modules/application/user/user.service';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
-import { BotAccess } from '../bot.enums';
-import type { BotActor, BotSectionAccess } from '../bot.interface';
+import { BotAccess } from '../types/bot.enums';
+import type { BotActor, BotSectionAccess } from '../types/bot.interface';
 
 @Injectable()
 export class AccessService {
