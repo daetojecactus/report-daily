@@ -15,7 +15,7 @@ import { users } from 'src/modules/application/user/user.schema';
 import { DATABASE_INSTANCE } from 'src/modules/infrastructure/database/constants/database.constants';
 import { fakeBotApi } from 'test/setup/fake-bot-api';
 import { createTestApp } from 'test/setup/test-app';
-import { DeliveryTelegramQueueProducer } from '../delivery-telegram-queue.producer';
+import { DeliveryQueueProducer } from '../delivery-queue.producer';
 
 const WAIT_MS = 15_000;
 
@@ -56,7 +56,7 @@ describe('Telegram delivery queue', () => {
     const delivery = await app
       .get(DeliveryService)
       .createForReport(report, Channel.TELEGRAM, false);
-    await app.get(DeliveryTelegramQueueProducer).addDelivery(delivery.id);
+    await app.get(DeliveryQueueProducer).addDelivery(Channel.TELEGRAM, delivery.id);
     return { telegramId, report, delivery };
   }
 

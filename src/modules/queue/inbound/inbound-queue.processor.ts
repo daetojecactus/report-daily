@@ -25,20 +25,23 @@ export class InboundQueueProcessor extends WorkerHost implements OnModuleDestroy
 
   async process(job: Job) {
     switch (job.name) {
-      case INBOUND_EVENT_JOB: {
-        const { event } = job.data as InboundEventJobData;
-        try {
-          await this.botService.handle(event);
-        } catch (error) {
-          this.logger.error(
-            `${InboundQueueMessages.EVENT_FAILED}: ${job.id}: ${getErrorMessage(error)}`,
-          );
-          await this.botService.replyFailure(event);
-        }
-        return;
-      }
+      case INBOUND_EVENT_JOB:
+        return this.handleEvent(job);
       default:
         throw new Error(`${InboundQueueMessages.UNKNOWN_JOB}: ${job.name}`);
+    }
+  }
+
+  private async handleEvent(job: Job) {
+    const { event } = job.data as InboundEventJobData;
+    try {
+      await this.botService.handle(event);
+    } catch (error) {
+      this.logger.error(
+        { jobId: job.id, error: getErrorMessage(error) },
+        InboundQueueMessages.EVENT_FAILED,
+      );
+      await this.botService.replyFailure(event);
     }
   }
 }

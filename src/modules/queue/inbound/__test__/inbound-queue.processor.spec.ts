@@ -57,7 +57,8 @@ describe('InboundQueueProcessor', () => {
 
     expect(botService.replyFailure).toHaveBeenCalledWith(event);
     expect(logError).toHaveBeenCalledWith(
-      `${InboundQueueMessages.EVENT_FAILED}: tg-1: handler crashed`,
+      { jobId: 'tg-1', error: 'handler crashed' },
+      InboundQueueMessages.EVENT_FAILED,
     );
   });
 

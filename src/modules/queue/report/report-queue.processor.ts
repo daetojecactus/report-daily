@@ -1,18 +1,11 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Logger, type OnModuleDestroy } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import type { Job } from 'bullmq';
 import { getErrorMessage } from 'src/common/utils/error.util';
-import { Channel } from 'src/common/channel/types/channel.enums';
 import { BotService } from 'src/modules/application/bot/bot.service';
-import { DeliveryService } from 'src/modules/application/delivery/delivery.service';
+import { ReportDelivery } from 'src/modules/application/bot/report/report.delivery';
 import { ReportStatus } from 'src/modules/application/report/types/report.enums';
-import type { Report } from 'src/modules/application/report/types/report.interface';
 import { ReportService } from 'src/modules/application/report/report.service';
-import { ChannelService } from 'src/modules/application/user/channel/channel.service';
-import { DeliveryMode } from 'src/modules/infrastructure/config/types/config.enums';
-import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
-import { DeliveryQueueProducer } from '../delivery/delivery-queue.producer';
 import {
   REPORT_BUILD_JOB,
   REPORT_CONCURRENCY,
@@ -24,18 +17,13 @@ import type { ReportJobData } from './types/report-queue.interface';
 @Processor(REPORT_QUEUE, { concurrency: REPORT_CONCURRENCY })
 export class ReportQueueProcessor extends WorkerHost implements OnModuleDestroy {
   private readonly logger = new Logger(ReportQueueProcessor.name);
-  private readonly redirect: boolean;
 
   constructor(
     private readonly reportService: ReportService,
-    private readonly deliveryService: DeliveryService,
-    private readonly deliveryQueueProducer: DeliveryQueueProducer,
-    private readonly channelService: ChannelService,
+    private readonly reportDelivery: ReportDelivery,
     private readonly botService: BotService,
-    configService: ConfigService<AppEnvs, true>,
   ) {
     super();
-    this.redirect = configService.get('DELIVERY_MODE', { infer: true }) === DeliveryMode.REDIRECT;
   }
 
   async onModuleDestroy() {
@@ -56,36 +44,17 @@ export class ReportQueueProcessor extends WorkerHost implements OnModuleDestroy 
           await this.botService.sendTo(notice.target, { text: notice.empty });
         }
       } else {
-        await this.deliver(report, channel ?? null, own);
+        await this.reportDelivery.queue(report, channel ?? null, own);
       }
     } catch (error) {
       this.logger.warn(
-        `${ReportQueueMessages.ATTEMPT_FAILED}: ${job.id}: ${getErrorMessage(error)}`,
+        { jobId: job.id, error: getErrorMessage(error) },
+        ReportQueueMessages.ATTEMPT_FAILED,
       );
       if (notice && job.attemptsMade + 1 >= (job.opts.attempts ?? 1)) {
         await this.botService.sendTo(notice.target, { text: notice.failed });
       }
       throw error;
     }
-  }
-
-  private async deliver(report: Report, channel: Channel | null, own: boolean) {
-    const channels = channel ? [channel] : await this.findChannels(report.userId);
-    for (const target of channels) {
-      const delivery = await this.deliveryService.createForReport(
-        report,
-        target,
-        this.redirect && !own,
-      );
-      await this.deliveryQueueProducer.addDelivery(target, delivery.id);
-    }
-  }
-
-  private async findChannels(userId: string) {
-    const channels = await this.channelService.findReceiving(
-      userId,
-      this.botService.listChannels(),
-    );
-    return channels.map((item) => item.channel);
   }
 }

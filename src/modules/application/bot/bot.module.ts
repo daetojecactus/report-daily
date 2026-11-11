@@ -12,6 +12,7 @@ import { TelegramModule } from 'src/modules/vendors/telegram/telegram.module';
 import { SlackModule } from 'src/modules/vendors/slack/slack.module';
 import { SlackService } from 'src/modules/vendors/slack/slack.service';
 import { TelegramService } from 'src/modules/vendors/telegram/telegram.service';
+import { DeliveryModule } from 'src/modules/application/delivery/delivery.module';
 import { DeliveryQueueModule } from 'src/modules/queue/delivery/delivery-queue.module';
 import { ReportQueueModule } from 'src/modules/queue/report/report-queue.module';
 import { AccessService } from './core/access.service';
@@ -37,6 +38,7 @@ import { TraitsView } from './traits/traits.view';
 import { StartHandler } from './commands/start.handler';
 import { MenuService } from './core/menu.service';
 import { ReportHandler } from './report/report.handler';
+import { ReportDelivery } from './report/report.delivery';
 import { ReportView } from './report/report.view';
 import { SharedTemplatesHandler } from './templates/shared/shared-templates.handler';
 import { TemplateAddHandler } from './templates/add/template-add.handler';
@@ -59,6 +61,7 @@ import { SettingsHandler } from './settings/settings.handler';
     ReportQueueModule,
     SettingsModule,
     AiModule,
+    DeliveryModule,
     DeliveryQueueModule,
   ],
   providers: [
@@ -82,6 +85,7 @@ import { SettingsHandler } from './settings/settings.handler';
     SettingsHandler,
     ReportHandler,
     ReportView,
+    ReportDelivery,
     TemplatesHandler,
     TemplatesDraft,
     TemplateAddHandler,
@@ -99,6 +103,6 @@ import { SettingsHandler } from './settings/settings.handler';
       inject: [TelegramService, SlackService],
     },
   ],
-  exports: [BotService, ReportView],
+  exports: [BotService, ReportDelivery],
 })
 export class BotModule {}

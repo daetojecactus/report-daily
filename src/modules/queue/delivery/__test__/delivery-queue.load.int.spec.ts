@@ -17,7 +17,7 @@ import { users } from 'src/modules/application/user/user.schema';
 import { DATABASE_INSTANCE } from 'src/modules/infrastructure/database/constants/database.constants';
 import { fakeBotApi } from 'test/setup/fake-bot-api';
 import { createTestApp } from 'test/setup/test-app';
-import { DeliveryTelegramQueueProducer } from '../delivery-telegram-queue.producer';
+import { DeliveryQueueProducer } from '../delivery-queue.producer';
 
 const DELIVERIES = 200;
 const RATE_LIMITED = 3;
@@ -84,9 +84,9 @@ describe('Telegram delivery under load', () => {
         })),
       )
       .returning();
-    const producer = app.get(DeliveryTelegramQueueProducer);
+    const producer = app.get(DeliveryQueueProducer);
     for (const delivery of queued) {
-      await producer.addDelivery(delivery.id);
+      await producer.addDelivery(Channel.TELEGRAM, delivery.id);
     }
     return queued.map(({ id }) => id);
   }

@@ -1,10 +1,15 @@
+import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
-import { DeliverySlackQueueModule } from '../delivery-slack/delivery-slack-queue.module';
-import { DeliveryTelegramQueueModule } from '../delivery-telegram/delivery-telegram-queue.module';
+import {
+  DELIVERY_SLACK_QUEUE,
+  DELIVERY_TELEGRAM_QUEUE,
+} from './constants/delivery-queue.constants';
 import { DeliveryQueueProducer } from './delivery-queue.producer';
 
 @Module({
-  imports: [DeliveryTelegramQueueModule, DeliverySlackQueueModule],
+  imports: [
+    BullModule.registerQueue({ name: DELIVERY_TELEGRAM_QUEUE }, { name: DELIVERY_SLACK_QUEUE }),
+  ],
   providers: [DeliveryQueueProducer],
   exports: [DeliveryQueueProducer],
 })
