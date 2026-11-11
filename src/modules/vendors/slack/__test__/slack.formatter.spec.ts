@@ -34,6 +34,20 @@ describe('SlackFormatter', () => {
     expect(formatter.formatCommands(markdown)).toBe(text);
   });
 
+  it.each([
+    ['a &lt; b &amp;&amp; c &gt; d', 'a < b && c > d'],
+    ['{% if lines.size &gt; 0 %}', '{% if lines.size > 0 %}'],
+    ['ask <@U0ANNA01> or <@U0BORIS1|boris>', 'ask U0ANNA01 or U0BORIS1'],
+    ['see <#C0GENERAL|general> and <#C0RANDOM>', 'see #general and #C0RANDOM'],
+    ['<!here> <!channel|@channel> <!subteam^S0TEAM|@devs>', '@here @channel @devs'],
+    ['<https://example.com/a?x=1&amp;y=2>', 'https://example.com/a?x=1&y=2'],
+    ['<http://example.com|example.com> <mailto:a@b.co|a@b.co>', 'example.com a@b.co'],
+    ['<https://example.com/docs|the docs>', 'the docs (https://example.com/docs)'],
+    ['plain text', 'plain text'],
+  ])('reads the Slack text %j as typed', (text, plain) => {
+    expect(formatter.toPlainText(text)).toBe(plain);
+  });
+
   it('splits long text by blank lines first', () => {
     const project = (name: string) => `${name}:\n${'• line\n'.repeat(3)}`.trimEnd();
 

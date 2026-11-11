@@ -25,11 +25,13 @@ describe('SlackService', () => {
     postMessage: vi.fn<SlackRepository['postMessage']>(),
     updateMessage: vi.fn<SlackRepository['updateMessage']>(),
   };
-  const renderer = new SlackRenderer(new SlackFormatter());
+  const formatter = new SlackFormatter();
+  const renderer = new SlackRenderer(formatter);
   const service = new SlackService(
     client('xoxb-test'),
     repository as unknown as SlackRepository,
     renderer,
+    formatter,
   );
 
   beforeEach(() => {
@@ -40,7 +42,12 @@ describe('SlackService', () => {
   it('is on only with a bot token and knows Slack member ids', () => {
     expect(service.isEnabled()).toBe(true);
     expect(
-      new SlackService(client(), repository as unknown as SlackRepository, renderer).isEnabled(),
+      new SlackService(
+        client(),
+        repository as unknown as SlackRepository,
+        renderer,
+        formatter,
+      ).isEnabled(),
     ).toBe(false);
     expect(['U0123ABCD', 'W0123ABCD', '12345', 'u0123'].map((id) => service.isUserId(id))).toEqual([
       true,
@@ -133,6 +140,16 @@ describe('SlackService', () => {
       service.toChatEvent('events_api', message({ text: 'hi', channel_type: 'channel' })),
     ).toBeNull();
     expect(service.findEventId(message({ text: 'hi' }))).toBe('Ev01');
+    expect(
+      service.toChatEvent(
+        'events_api',
+        message({ text: '{% if size &gt; 0 %}A &amp; B{% endif %}' }),
+      )?.input,
+    ).toEqual({ type: 'text', text: '{% if size > 0 %}A & B{% endif %}' });
+    expect(service.toChatEvent('events_api', message({ text: '<@U0ANNA01>' }))?.input).toEqual({
+      type: 'text',
+      text: 'U0ANNA01',
+    });
   });
 
   it('turns a button press and a picked member into chat input', () => {

@@ -25,6 +25,7 @@ import { SlackMessages } from './constants/slack.messages';
 import { SlackElementType, SlackEnvelopeType } from './slack.enums';
 import { SlackRejectedError } from './slack.error';
 import { SlackClient } from './slack.client';
+import { SlackFormatter } from './slack.formatter';
 import { SlackRenderer } from './slack.renderer';
 import { SlackRepository } from './slack.repository';
 
@@ -36,6 +37,7 @@ export class SlackService implements ChatChannel {
     private readonly slackClient: SlackClient,
     private readonly slackRepository: SlackRepository,
     private readonly slackRenderer: SlackRenderer,
+    private readonly slackFormatter: SlackFormatter,
   ) {}
 
   isEnabled() {
@@ -116,7 +118,8 @@ export class SlackService implements ChatChannel {
     if (!message.success || message.data.event.bot_id || message.data.event.subtype) {
       return null;
     }
-    const { user, channel, text } = message.data.event;
+    const { user, channel } = message.data.event;
+    const text = this.slackFormatter.toPlainText(message.data.event.text);
     const word = text.trim().toLowerCase().replace(SLACK_COMMAND_PREFIX, '');
     return this.toEvent(
       user,
