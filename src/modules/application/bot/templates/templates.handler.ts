@@ -6,10 +6,10 @@ import type { Locale } from 'src/modules/application/i18n/types/i18n.interface';
 import { TemplateService } from 'src/modules/application/report/template/template.service';
 import type { User } from 'src/modules/application/user/types/user.interface';
 import { UserService } from 'src/modules/application/user/user.service';
-import { BotSection } from '../bot.decorator';
-import { BotAccess, BotNamespace } from '../types/bot.enums';
-import type { BotContext, BotHandler, BotReply } from '../types/bot.interface';
-import { BOT_BUTTON_DATA_SEPARATOR } from '../constants/bot.constants';
+import { BotSection } from '../core/bot.decorator';
+import { BotAccess, BotNamespace } from '../core/types/bot.enums';
+import type { BotContext, BotHandler, BotReply } from '../core/types/bot.interface';
+import { BOT_BUTTON_DATA_SEPARATOR } from '../core/constants/bot.constants';
 import { SettingsAction } from '../settings/types/settings.enums';
 import {
   TEMPLATES_BUTTON_SCHEMA,
@@ -17,8 +17,8 @@ import {
   TEMPLATES_STANDARD,
 } from './constants/templates.constants';
 import { TemplatesMessages } from './constants/templates.messages';
-import { TemplateAddAction } from '../template-add/types/template-add.enums';
-import { TemplateEditAction } from '../template-edit/types/template-edit.enums';
+import { TemplateAddAction } from './add/types/template-add.enums';
+import { TemplateEditAction } from './edit/types/template-edit.enums';
 import { TemplatesAction } from './types/templates.enums';
 
 @Injectable()

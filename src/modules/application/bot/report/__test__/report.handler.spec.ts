@@ -9,7 +9,7 @@ import type { User } from 'src/modules/application/user/types/user.interface';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import type { RedisService } from 'src/modules/infrastructure/redis/redis.service';
 import type { ReportQueueProducer } from 'src/modules/queue/report/report-queue.producer';
-import type { BotActor } from '../../types/bot.interface';
+import type { BotActor } from '../../core/types/bot.interface';
 import { ReportHandler } from '../report.handler';
 import { ReportView } from '../report.view';
 

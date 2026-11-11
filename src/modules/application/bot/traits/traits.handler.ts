@@ -8,13 +8,13 @@ import { TraitService } from 'src/modules/application/trait/trait.service';
 import { TraitNameService } from 'src/modules/application/trait/trait-name/trait-name.service';
 import { JobRole, Permission } from 'src/modules/application/user/types/user.enums';
 import { ADMIN_MENU_DATA } from '../admin/constants/admin.constants';
-import { BotSection } from '../bot.decorator';
-import { BotNamespace } from '../types/bot.enums';
-import type { BotContext, BotHandler, BotReply } from '../types/bot.interface';
-import { BOT_BUTTON_DATA_SEPARATOR } from '../constants/bot.constants';
-import { TraitAddAction } from '../trait-add/types/trait-add.enums';
-import { TraitManageAction } from '../trait-manage/types/trait-manage.enums';
-import { TraitNameList } from '../trait-names/types/trait-names.enums';
+import { BotSection } from '../core/bot.decorator';
+import { BotNamespace } from '../core/types/bot.enums';
+import type { BotContext, BotHandler, BotReply } from '../core/types/bot.interface';
+import { BOT_BUTTON_DATA_SEPARATOR } from '../core/constants/bot.constants';
+import { TraitAddAction } from './add/types/trait-add.enums';
+import { TraitManageAction } from './manage/types/trait-manage.enums';
+import { TraitNameList } from './names/types/trait-names.enums';
 import {
   TRAITS_BUTTON_SCHEMA,
   TRAITS_ITEM_SEPARATOR,

@@ -1,11 +1,11 @@
 import { z } from 'zod';
 import { Permission } from 'src/modules/application/user/types/user.enums';
-import { BOT_BUTTON_DATA_SEPARATOR } from '../../constants/bot.constants';
-import { AdminSettingsAction } from '../../admin-settings/types/admin-settings.enums';
-import { BotNamespace } from '../../types/bot.enums';
-import { BroadcastAction } from '../../broadcast/types/broadcast.enums';
+import { BOT_BUTTON_DATA_SEPARATOR } from '../../core/constants/bot.constants';
+import { AdminSettingsAction } from '../settings/types/admin-settings.enums';
+import { BotNamespace } from '../../core/types/bot.enums';
+import { BroadcastAction } from '../broadcast/types/broadcast.enums';
 import { EmployeesAction } from '../../employees/types/employees.enums';
-import { SharedTemplatesAction } from '../../shared-templates/types/shared-templates.enums';
+import { SharedTemplatesAction } from '../../templates/shared/types/shared-templates.enums';
 import { TraitsAction } from '../../traits/types/traits.enums';
 import { AdminAction } from '../types/admin.enums';
 

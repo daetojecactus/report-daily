@@ -4,8 +4,8 @@ import { addDays } from 'src/common/utils/date.util';
 import { escapeMarkdown } from 'src/common/utils/markdown.util';
 import type { Locale } from 'src/modules/application/i18n/types/i18n.interface';
 import type { Report } from 'src/modules/application/report/types/report.interface';
-import { BotNamespace } from '../types/bot.enums';
-import { BOT_BUTTON_DATA_SEPARATOR } from '../constants/bot.constants';
+import { BotNamespace } from '../core/types/bot.enums';
+import { BOT_BUTTON_DATA_SEPARATOR } from '../core/constants/bot.constants';
 import {
   REPORT_DATE_FORMAT,
   REPORT_DATE_TIME_SUFFIX,

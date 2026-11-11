@@ -1,5 +1,5 @@
 import type { Channel } from 'src/common/channel/types/channel.enums';
-import type { BotCommand } from 'src/modules/application/bot/types/bot.enums';
+import type { BotCommand } from 'src/modules/application/bot/core/types/bot.enums';
 import type { Source } from 'src/modules/application/source/types/source.enums';
 import type { Language } from './i18n.enums';
 import type {

@@ -1,5 +1,5 @@
 import type { Channel } from 'src/common/channel/types/channel.enums';
-import type { BotTarget } from 'src/modules/application/bot/types/bot.interface';
+import type { BotTarget } from 'src/modules/application/bot/core/types/bot.interface';
 
 interface ReportJobNotice {
   target: BotTarget;

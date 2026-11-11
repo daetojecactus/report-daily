@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { BotNamespace } from '../../types/bot.enums';
+import { BotNamespace } from '../../core/types/bot.enums';
 import { EmployeesAction } from '../types/employees.enums';
 
 export const EMPLOYEES_PAGE_SIZE = 8;

@@ -1,11 +1,11 @@
-import { BOT_BUTTON_DATA_SEPARATOR } from '../../constants/bot.constants';
+import { BOT_BUTTON_DATA_SEPARATOR } from '../../core/constants/bot.constants';
 import { TemplatesAction } from '../../templates/types/templates.enums';
 import { z } from 'zod';
 import { Channel } from 'src/common/channel/types/channel.enums';
 import { Language } from 'src/modules/application/i18n/types/i18n.enums';
 import { USER_REPORT_TIME_STEP_MINUTES } from 'src/modules/application/user/constants/user.constants';
 import { Gender } from 'src/modules/application/user/types/user.enums';
-import { BotNamespace } from '../../types/bot.enums';
+import { BotNamespace } from '../../core/types/bot.enums';
 import { SettingsAction } from '../types/settings.enums';
 
 export const SETTINGS_HOURS_PER_ROW = 6;

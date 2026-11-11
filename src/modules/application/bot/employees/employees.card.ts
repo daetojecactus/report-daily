@@ -18,13 +18,13 @@ import {
   GitLabRetryableError,
 } from 'src/modules/vendors/gitlab/gitlab.error';
 import { GitLabService } from 'src/modules/vendors/gitlab/gitlab.service';
-import { AccessService } from '../access/access.service';
-import { BotNamespace } from '../types/bot.enums';
-import type { BotActor, BotReply } from '../types/bot.interface';
-import { BOT_BUTTON_DATA_SEPARATOR, BOT_CHANNELS } from '../constants/bot.constants';
-import { EmployeeBindAction } from '../employee-bind/types/employee-bind.enums';
-import { EmployeeManageAction } from '../employee-manage/types/employee-manage.enums';
-import { EmployeePermissionsAction } from '../employee-permissions/types/employee-permissions.enums';
+import { AccessService } from '../core/access.service';
+import { BotNamespace } from '../core/types/bot.enums';
+import type { BotActor, BotReply } from '../core/types/bot.interface';
+import { BOT_BUTTON_DATA_SEPARATOR, BOT_CHANNELS } from '../core/constants/bot.constants';
+import { EmployeeBindAction } from './bind/types/employee-bind.enums';
+import { EmployeeManageAction } from './manage/types/employee-manage.enums';
+import { EmployeePermissionsAction } from './permissions/types/employee-permissions.enums';
 import {
   EMPLOYEES_ACTIVITY_FORMAT,
   EMPLOYEES_REPORT_DATE_FORMAT,

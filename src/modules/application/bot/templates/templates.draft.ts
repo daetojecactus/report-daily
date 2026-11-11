@@ -8,7 +8,7 @@ import {
   TEMPLATE_NAME_MAX_LENGTH,
 } from 'src/modules/application/report/template/constants/template.constants';
 import { TemplateService } from 'src/modules/application/report/template/template.service';
-import type { BotActor } from '../types/bot.interface';
+import type { BotActor } from '../core/types/bot.interface';
 import { TEMPLATES_DATE_FORMAT, TEMPLATES_DATE_TIME_SUFFIX } from './constants/templates.constants';
 import type { TemplateDraftCheck } from './types/templates.interface';
 

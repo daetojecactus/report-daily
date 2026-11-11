@@ -8,8 +8,8 @@ import { I18nService } from 'src/modules/application/i18n/i18n.service';
 import { Permission } from 'src/modules/application/user/types/user.enums';
 import type { UserService } from 'src/modules/application/user/user.service';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
-import { AccessService } from '../../access/access.service';
-import type { BotActor } from '../../types/bot.interface';
+import { AccessService } from '../../core/access.service';
+import type { BotActor } from '../../core/types/bot.interface';
 import { createEmployee } from '../../__test__/bot.fixture';
 import { AdminHandler } from '../admin.handler';
 

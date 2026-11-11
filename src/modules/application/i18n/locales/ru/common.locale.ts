@@ -1,5 +1,5 @@
 import { Channel } from 'src/common/channel/types/channel.enums';
-import { BotCommand } from 'src/modules/application/bot/types/bot.enums';
+import { BotCommand } from 'src/modules/application/bot/core/types/bot.enums';
 import { Source } from 'src/modules/application/source/types/source.enums';
 import {
   Gender,

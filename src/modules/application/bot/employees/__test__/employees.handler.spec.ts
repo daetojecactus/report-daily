@@ -18,8 +18,8 @@ import type { Report } from 'src/modules/application/report/types/report.interfa
 import type { ReportService } from 'src/modules/application/report/report.service';
 import { GitLabRetryableError } from 'src/modules/vendors/gitlab/gitlab.error';
 import type { GitLabService } from 'src/modules/vendors/gitlab/gitlab.service';
-import { AccessService } from '../../access/access.service';
-import type { BotActor, BotDialog } from '../../types/bot.interface';
+import { AccessService } from '../../core/access.service';
+import type { BotActor, BotDialog } from '../../core/types/bot.interface';
 import { createEmployee, createSourceAccount } from '../../__test__/bot.fixture';
 import { EmployeesCard } from '../employees.card';
 import { EmployeesHandler } from '../employees.handler';

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { BotNamespace } from '../../types/bot.enums';
+import { BotNamespace } from '../../core/types/bot.enums';
 import { TraitsAction } from '../types/traits.enums';
 
 export const TRAITS_PAGE_SIZE = 8;

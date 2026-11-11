@@ -12,8 +12,8 @@ import { Gender } from 'src/modules/application/user/types/user.enums';
 import type { User, UserSettingsUpdate } from 'src/modules/application/user/types/user.interface';
 import type { UserService } from 'src/modules/application/user/user.service';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
-import type { BotDialog } from '../../types/bot.interface';
-import type { MenuService } from '../../menu/menu.service';
+import type { BotDialog } from '../../core/types/bot.interface';
+import type { MenuService } from '../../core/menu.service';
 import { createEmployee } from '../../__test__/bot.fixture';
 import { SettingsHandler } from '../settings.handler';
 

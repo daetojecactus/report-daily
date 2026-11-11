@@ -12,11 +12,11 @@ import { Gender } from 'src/modules/application/user/types/user.enums';
 import type { User, UserSettingsUpdate } from 'src/modules/application/user/types/user.interface';
 import { UserService } from 'src/modules/application/user/user.service';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
-import { BotSection } from '../bot.decorator';
-import { BotAccess, BotCommand, BotNamespace } from '../types/bot.enums';
-import type { BotContext, BotHandler, BotReply } from '../types/bot.interface';
-import { BOT_BUTTON_DATA_SEPARATOR, BOT_CHANNELS } from '../constants/bot.constants';
-import { MenuService } from '../menu/menu.service';
+import { BotSection } from '../core/bot.decorator';
+import { BotAccess, BotCommand, BotNamespace } from '../core/types/bot.enums';
+import type { BotContext, BotHandler, BotReply } from '../core/types/bot.interface';
+import { BOT_BUTTON_DATA_SEPARATOR, BOT_CHANNELS } from '../core/constants/bot.constants';
+import { MenuService } from '../core/menu.service';
 import {
   SETTINGS_TEMPLATES_DATA,
   SETTINGS_BUTTON_SCHEMA,

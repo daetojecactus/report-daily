@@ -7,10 +7,10 @@ import { TRAIT_DICTIONARY } from 'src/modules/application/trait/constants/trait.
 import type { TraitDimension } from 'src/modules/application/trait/types/trait.enums';
 import type { TraitValue } from 'src/modules/application/trait/types/trait.interface';
 import type { JobRole } from 'src/modules/application/user/types/user.enums';
-import { BotNamespace } from '../types/bot.enums';
-import { BOT_BUTTON_DATA_SEPARATOR } from '../constants/bot.constants';
-import type { TraitNameList } from '../trait-names/types/trait-names.enums';
-import { TraitNamesAction } from '../trait-names/types/trait-names.enums';
+import { BotNamespace } from '../core/types/bot.enums';
+import { BOT_BUTTON_DATA_SEPARATOR } from '../core/constants/bot.constants';
+import type { TraitNameList } from './names/types/trait-names.enums';
+import { TraitNamesAction } from './names/types/trait-names.enums';
 import { TRAITS_BUTTONS_PER_ROW } from './constants/traits.constants';
 import { TraitsAction } from './types/traits.enums';
 

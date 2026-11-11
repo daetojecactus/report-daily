@@ -10,12 +10,18 @@ import type {
 } from 'src/common/channel/types/chat-channel.interface';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
 import { ChannelService } from 'src/modules/application/user/channel/channel.service';
-import { AccessService } from './access/access.service';
-import { BOT_CHANNELS } from './constants/bot.constants';
-import { BotMessages } from './constants/bot.messages';
-import type { BotActor, BotDialog, BotReply, BotRoute, BotTarget } from './types/bot.interface';
-import { DialogService } from './dialog/dialog.service';
-import { RouterService } from './router/router.service';
+import { AccessService } from './core/access.service';
+import { BOT_CHANNELS } from './core/constants/bot.constants';
+import { BotMessages } from './core/constants/bot.messages';
+import type {
+  BotActor,
+  BotDialog,
+  BotReply,
+  BotRoute,
+  BotTarget,
+} from './core/types/bot.interface';
+import { DialogService } from './core/dialog.service';
+import { RouterService } from './core/router.service';
 import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
 
 @Injectable()
