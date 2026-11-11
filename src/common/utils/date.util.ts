@@ -1,4 +1,4 @@
-import { DATE_PATTERN } from '../constants/time.constants';
+import { DATE_PATTERN } from '../constants/date.constants';
 import type { DayRange } from '../types/date.interface';
 
 export function toDate(value: string): string | null {

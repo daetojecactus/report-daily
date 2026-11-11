@@ -16,16 +16,11 @@ const [username = '', dateText = '', ...flags] = process.argv.slice(2);
 const date = toDate(dateText);
 const languageFlag = flags.find((flag) => flag.startsWith(PREVIEW_LANGUAGE_FLAG));
 const language =
-  Object.values(Language).find((item) => languageFlag === `${PREVIEW_LANGUAGE_FLAG}${item}`) ??
+  Object.values(Language).find((value) => languageFlag === `${PREVIEW_LANGUAGE_FLAG}${value}`) ??
   null;
-if (
-  !username ||
-  !date ||
-  (languageFlag && !language) ||
-  flags.some(
-    (flag) => flag !== PREVIEW_TRACE_FLAG && flag !== PREVIEW_AI_FLAG && flag !== languageFlag,
-  )
-) {
+const knownFlags = [PREVIEW_TRACE_FLAG, PREVIEW_AI_FLAG, languageFlag];
+const hasUnknownFlag = flags.some((flag) => !knownFlags.includes(flag));
+if (!username || !date || (languageFlag && !language) || hasUnknownFlag) {
   Logger.error(PreviewMessages.USAGE);
   process.exit(1);
 }

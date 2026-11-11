@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { TELEGRAM_USER_ID_PATTERN } from 'src/common/constants/telegram.constants';
+import { TELEGRAM_USER_ID_PATTERN } from 'src/common/channel/constants/channel.constants';
 import { Channel } from 'src/common/channel/types/channel.enums';
 import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
 import { ChatUnreachableError } from 'src/common/channel/chat-unreachable.error';

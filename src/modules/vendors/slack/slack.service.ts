@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ErrorCode, type WebAPIPlatformError } from '@slack/web-api';
-import { SLACK_USER_ID_PATTERN } from 'src/common/constants/slack.constants';
+import { SLACK_USER_ID_PATTERN } from 'src/common/channel/constants/channel.constants';
 import { Channel } from 'src/common/channel/types/channel.enums';
 import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
 import { ChatUnreachableError } from 'src/common/channel/chat-unreachable.error';

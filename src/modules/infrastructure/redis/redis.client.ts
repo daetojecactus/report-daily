@@ -15,7 +15,7 @@ export class RedisClient implements OnModuleDestroy {
       retryStrategy: (times) => Math.min(times * REDIS_RETRY_DELAY_MS, REDIS_RETRY_MAX_DELAY_MS),
     });
     this.client.on('error', (error: Error) =>
-      this.logger.error(`${RedisMessages.REDIS_CONNECTION_ERROR}: ${error.message}`),
+      this.logger.error({ error: error.message }, RedisMessages.REDIS_CONNECTION_ERROR),
     );
   }
 

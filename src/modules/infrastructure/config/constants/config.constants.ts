@@ -4,6 +4,12 @@ export const APP_DEFAULT_PORT = 3000;
 
 export const ENV_LIST_SEPARATOR = ',';
 
+export const ENV_URL_OPTIONS = {
+  protocols: ['http', 'https'],
+  require_protocol: true,
+  require_tld: false,
+};
+
 export const TELEGRAM_DEFAULT_API_URL = 'https://api.telegram.org';
 
 export const LLM_ENV_KEYS = ['LLM_BASE_URL', 'LLM_TOKEN', 'LLM_MODEL'] as const;

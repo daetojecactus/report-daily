@@ -15,6 +15,7 @@ import {
 import {
   APP_DEFAULT_PORT,
   ENV_LIST_SEPARATOR,
+  ENV_URL_OPTIONS,
   LLM_ENV_KEYS,
   SLACK_APP_TOKEN_PATTERN,
   SLACK_BOT_TOKEN_PATTERN,
@@ -22,17 +23,19 @@ import {
   TELEGRAM_DEFAULT_API_URL,
   TELEGRAM_ENV_KEYS,
 } from './constants/config.constants';
-import { SLACK_USER_ID_PATTERN } from 'src/common/constants/slack.constants';
-import { TELEGRAM_USER_ID_PATTERN } from 'src/common/constants/telegram.constants';
-import { TIME_ZONE_NAME_PATTERN } from 'src/common/constants/time.constants';
+import {
+  SLACK_USER_ID_PATTERN,
+  TELEGRAM_USER_ID_PATTERN,
+} from 'src/common/channel/constants/channel.constants';
+import { TIME_ZONE_NAME_PATTERN } from 'src/common/constants/time-zone.constants';
 import { DeliveryMode, LogLevel } from './types/config.enums';
-
-function hasLlmEnv(env: AppEnvs) {
-  return LLM_ENV_KEYS.some((key) => Boolean(env[key]));
-}
 
 function isSet(value: unknown) {
   return Array.isArray(value) ? value.length > 0 : Boolean(value);
+}
+
+function hasLlmEnv(env: AppEnvs) {
+  return LLM_ENV_KEYS.some((key) => isSet(env[key]));
 }
 
 function hasSlackEnv(env: AppEnvs) {
@@ -44,12 +47,13 @@ function needsTelegramEnv(env: AppEnvs) {
 }
 
 function toList({ value }: { value: unknown }) {
-  return typeof value === 'string'
-    ? value
-        .split(ENV_LIST_SEPARATOR)
-        .map((id) => id.trim())
-        .filter(Boolean)
-    : value;
+  if (typeof value !== 'string') {
+    return value;
+  }
+  return value
+    .split(ENV_LIST_SEPARATOR)
+    .map((item) => item.trim())
+    .filter(Boolean);
 }
 
 export class AppEnvs {
@@ -85,18 +89,10 @@ export class AppEnvs {
   @IsNotEmpty()
   TELEGRAM_BOT_TOKEN?: string;
 
-  @IsUrl({
-    protocols: ['http', 'https'],
-    require_protocol: true,
-    require_tld: false,
-  })
+  @IsUrl(ENV_URL_OPTIONS)
   TELEGRAM_API_URL: string = TELEGRAM_DEFAULT_API_URL;
 
-  @IsUrl({
-    protocols: ['http', 'https'],
-    require_protocol: true,
-    require_tld: false,
-  })
+  @IsUrl(ENV_URL_OPTIONS)
   GITLAB_URL!: string;
 
   @IsString()
@@ -122,11 +118,7 @@ export class AppEnvs {
   OWNER_SLACK_IDS?: string[];
 
   @ValidateIf(hasLlmEnv)
-  @IsUrl({
-    protocols: ['http', 'https'],
-    require_protocol: true,
-    require_tld: false,
-  })
+  @IsUrl(ENV_URL_OPTIONS)
   LLM_BASE_URL?: string;
 
   @ValidateIf(hasLlmEnv)
