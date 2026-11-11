@@ -1,9 +1,9 @@
-import { Channel } from 'src/common/enums/channel.enums';
-import { Gender, JobRole, UserStatus } from 'src/modules/application/user/user.enums';
-import { Language } from 'src/modules/application/i18n/i18n.enums';
-import { Source } from 'src/modules/application/source/source.enums';
-import type { User, UserWithChannel } from 'src/modules/application/user/user.interface';
-import type { UserSource } from 'src/modules/application/user/user-source/user-source.interface';
+import { Channel } from 'src/common/channel/types/channel.enums';
+import { Gender, JobRole, UserStatus } from 'src/modules/application/user/types/user.enums';
+import { Language } from 'src/modules/application/i18n/types/i18n.enums';
+import { Source } from 'src/modules/application/source/types/source.enums';
+import type { User, UserWithChannel } from 'src/modules/application/user/types/user.interface';
+import type { UserSource } from 'src/modules/application/user/user-source/types/user-source.interface';
 
 export const OWNER_ID = '100';
 

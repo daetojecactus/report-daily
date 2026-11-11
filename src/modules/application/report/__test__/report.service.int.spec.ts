@@ -11,19 +11,19 @@ import {
   type MockInstance,
   vi,
 } from 'vitest';
-import { Language } from 'src/modules/application/i18n/i18n.enums';
-import { Source } from 'src/modules/application/source/source.enums';
-import { Gender, JobRole } from 'src/modules/application/user/user.enums';
+import { Language } from 'src/modules/application/i18n/types/i18n.enums';
+import { Source } from 'src/modules/application/source/types/source.enums';
+import { Gender, JobRole } from 'src/modules/application/user/types/user.enums';
 import { users } from 'src/modules/application/user/user.schema';
 import { userSources } from 'src/modules/application/user/user-source/user-source.schema';
 import { DATABASE_INSTANCE } from 'src/modules/infrastructure/database/constants/database.constants';
 import { createTestApp } from 'test/setup/test-app';
 import { ReportComposer } from '../report.composer';
-import { ReportStatus } from '../report.enums';
-import type { ReportDraft } from '../report.interface';
+import { ReportStatus } from '../types/report.enums';
+import type { ReportDraft } from '../types/report.interface';
 import { reports } from '../report.schema';
 import { ReportService } from '../report.service';
-import type { ReportContext } from '../template/template.interface';
+import type { ReportContext } from '../template/types/template.interface';
 
 const DATE = '2026-11-09';
 

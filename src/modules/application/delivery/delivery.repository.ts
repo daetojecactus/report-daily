@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { SQL } from 'drizzle-orm';
 import { DatabaseService } from 'src/modules/infrastructure/database/database.service';
-import type { DeliveryInsert, DeliveryUpdate } from './delivery.interface';
+import type { DeliveryInsert, DeliveryUpdate } from './types/delivery.interface';
 import { deliveries } from './delivery.schema';
 
 @Injectable()

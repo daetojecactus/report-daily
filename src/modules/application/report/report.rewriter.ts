@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import type { AiNames } from 'src/modules/application/ai/ai.interface';
+import type { AiNames } from 'src/modules/application/ai/types/ai.interface';
 import { AiService } from 'src/modules/application/ai/ai.service';
-import { SourceActionKind } from 'src/modules/application/source/source.enums';
-import type { TraitIndex } from 'src/modules/application/trait/trait.interface';
+import { SourceActionKind } from 'src/modules/application/source/types/source.enums';
+import type { TraitIndex } from 'src/modules/application/trait/types/trait.interface';
 import { TraitService } from 'src/modules/application/trait/trait.service';
-import { ActivityAction } from './activity/activity.enums';
-import type { ActivityFact, ActivityResult } from './activity/activity.interface';
+import { ActivityAction } from './activity/types/activity.enums';
+import type { ActivityFact, ActivityResult } from './activity/types/activity.interface';
 import { REPORT_AI_NAME_DETAILS } from './constants/report.constants';
-import type { ReportRewriting } from './report.interface';
-import type { TemplateBuild, TemplateItem } from './template/template.interface';
+import type { ReportRewriting } from './types/report.interface';
+import type { TemplateBuild, TemplateItem } from './template/types/template.interface';
 
 @Injectable()
 export class ReportRewriter {

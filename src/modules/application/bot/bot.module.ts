@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { DiscoveryModule } from '@nestjs/core';
-import type { ChatChannel } from 'src/common/interfaces/chat-channel.interface';
+import type { ChatChannel } from 'src/common/channel/types/chat-channel.interface';
 import { AiModule } from 'src/modules/application/ai/ai.module';
 import { I18nModule } from 'src/modules/application/i18n/i18n.module';
 import { ReportModule } from 'src/modules/application/report/report.module';
@@ -12,39 +12,42 @@ import { TelegramModule } from 'src/modules/vendors/telegram/telegram.module';
 import { SlackModule } from 'src/modules/vendors/slack/slack.module';
 import { SlackService } from 'src/modules/vendors/slack/slack.service';
 import { TelegramService } from 'src/modules/vendors/telegram/telegram.service';
+import { DeliveryModule } from 'src/modules/application/delivery/delivery.module';
 import { DeliveryQueueModule } from 'src/modules/queue/delivery/delivery-queue.module';
 import { ReportQueueModule } from 'src/modules/queue/report/report-queue.module';
-import { AccessService } from './access/access.service';
+import { AccessService } from './core/access.service';
 import { AdminHandler } from './admin/admin.handler';
-import { AdminSettingsHandler } from './admin-settings/admin-settings.handler';
-import { BroadcastHandler } from './broadcast/broadcast.handler';
+import { AdminSettingsHandler } from './admin/settings/admin-settings.handler';
+import { BroadcastHandler } from './admin/broadcast/broadcast.handler';
 import { BotService } from './bot.service';
-import { BOT_CHANNELS } from './constants/bot.constants';
-import { DialogService } from './dialog/dialog.service';
-import { EmployeeAddHandler } from './employee-add/employee-add.handler';
-import { EmployeeBindHandler } from './employee-bind/employee-bind.handler';
-import { EmployeeManageHandler } from './employee-manage/employee-manage.handler';
-import { EmployeePermissionsHandler } from './employee-permissions/employee-permissions.handler';
+import { BOT_CHANNELS } from './core/constants/bot.constants';
+import { DialogService } from './core/dialog.service';
+import { EmployeeAddHandler } from './employees/add/employee-add.handler';
+import { EmployeeBindHandler } from './employees/bind/employee-bind.handler';
+import { EmployeeManageHandler } from './employees/manage/employee-manage.handler';
+import { EmployeePermissionsHandler } from './employees/permissions/employee-permissions.handler';
 import { EmployeesCard } from './employees/employees.card';
 import { EmployeesHandler } from './employees/employees.handler';
-import { CancelHandler } from './handlers/cancel.handler';
-import { HelpHandler } from './handlers/help.handler';
-import { TraitAddHandler } from './trait-add/trait-add.handler';
-import { TraitManageHandler } from './trait-manage/trait-manage.handler';
-import { TraitNamesHandler } from './trait-names/trait-names.handler';
+import { CancelHandler } from './commands/cancel.handler';
+import { HelpHandler } from './commands/help.handler';
+import { TraitAddHandler } from './traits/add/trait-add.handler';
+import { TraitManageHandler } from './traits/manage/trait-manage.handler';
+import { TraitNamesHandler } from './traits/names/trait-names.handler';
 import { TraitsHandler } from './traits/traits.handler';
 import { TraitsView } from './traits/traits.view';
-import { StartHandler } from './handlers/start.handler';
-import { MenuService } from './menu/menu.service';
+import { StartHandler } from './commands/start.handler';
+import { MenuService } from './core/menu.service';
 import { ReportHandler } from './report/report.handler';
+import { ReportDelivery } from './report/report.delivery';
 import { ReportView } from './report/report.view';
-import { SharedTemplatesHandler } from './shared-templates/shared-templates.handler';
-import { TemplateAddHandler } from './template-add/template-add.handler';
-import { TemplateEditHandler } from './template-edit/template-edit.handler';
+import { SharedTemplatesHandler } from './templates/shared/shared-templates.handler';
+import { TemplateAddHandler } from './templates/add/template-add.handler';
+import { TemplateEditHandler } from './templates/edit/template-edit.handler';
 import { TemplatesDraft } from './templates/templates.draft';
 import { TemplatesHandler } from './templates/templates.handler';
-import { RouterService } from './router/router.service';
+import { RouterService } from './core/router.service';
 import { SettingsHandler } from './settings/settings.handler';
+import { SettingsView } from './settings/settings.view';
 
 @Module({
   imports: [
@@ -59,6 +62,7 @@ import { SettingsHandler } from './settings/settings.handler';
     ReportQueueModule,
     SettingsModule,
     AiModule,
+    DeliveryModule,
     DeliveryQueueModule,
   ],
   providers: [
@@ -80,8 +84,10 @@ import { SettingsHandler } from './settings/settings.handler';
     EmployeeManageHandler,
     EmployeePermissionsHandler,
     SettingsHandler,
+    SettingsView,
     ReportHandler,
     ReportView,
+    ReportDelivery,
     TemplatesHandler,
     TemplatesDraft,
     TemplateAddHandler,
@@ -99,6 +105,6 @@ import { SettingsHandler } from './settings/settings.handler';
       inject: [TelegramService, SlackService],
     },
   ],
-  exports: [BotService, ReportView],
+  exports: [BotService, ReportDelivery],
 })
 export class BotModule {}

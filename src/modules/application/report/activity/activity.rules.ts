@@ -1,21 +1,23 @@
 import { Injectable } from '@nestjs/common';
 import { SOURCE_NAME_FACTS } from 'src/modules/application/source/constants/source.constants';
-import { SourceActionKind } from 'src/modules/application/source/source.enums';
+import { SourceActionKind } from 'src/modules/application/source/types/source.enums';
 import {
   ACTIVITY_AUTO_STATUS_MS,
-  ACTIVITY_EDIT_FACTS,
-  ACTIVITY_LIFECYCLE_FACTS,
   ACTIVITY_MERGE_CLOSE_MS,
   ACTIVITY_MOVE_MS,
-  ACTIVITY_OPPOSITE_FACTS,
-  ACTIVITY_SETUP_FACTS,
   ACTIVITY_SETUP_MS,
-  ACTIVITY_SWAP_FACTS,
   ACTIVITY_SWAP_MS,
   ACTIVITY_UNDO_MS,
-} from './constants/activity.constants';
-import { ActivityRule } from './activity.enums';
-import type { ActivityDropped, ActivityEmployee, ActivityFact } from './activity.interface';
+} from './constants/activity-windows.constants';
+import {
+  ACTIVITY_EDIT_FACTS,
+  ACTIVITY_LIFECYCLE_FACTS,
+  ACTIVITY_OPPOSITE_FACTS,
+  ACTIVITY_SETUP_FACTS,
+  ACTIVITY_SWAP_FACTS,
+} from './constants/activity-facts.constants';
+import { ActivityRule } from './types/activity.enums';
+import type { ActivityDropped, ActivityEmployee, ActivityFact } from './types/activity.interface';
 
 @Injectable()
 export class ActivityRules {

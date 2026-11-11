@@ -4,7 +4,7 @@ import type { ConfigService } from '@nestjs/config';
 import { afterAll, assert, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { TelegramClient } from '../telegram.client';
-import { TelegramMethod } from '../telegram.enums';
+import { TelegramMethod } from '../types/telegram.enums';
 import { TelegramMessages } from '../constants/telegram.messages';
 import { TelegramRetryableError } from '../telegram.error';
 

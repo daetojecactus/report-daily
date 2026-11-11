@@ -1,6 +1,6 @@
 import { sql } from 'drizzle-orm';
 import { check, pgEnum, pgTable, text, unique, uuid } from 'drizzle-orm/pg-core';
-import { Source } from '../../source/source.enums';
+import { Source } from '../../source/types/source.enums';
 import { createdAt, primaryId, updatedAt } from '../../../infrastructure/database/database.columns';
 import { users } from '../user.schema';
 

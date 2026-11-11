@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { SourceActionKind } from 'src/modules/application/source/source.enums';
-import type { GroupedIssue } from 'src/modules/application/source/source.interface';
-import { EngagementLevel } from '../activity.enums';
+import { SourceActionKind } from 'src/modules/application/source/types/source.enums';
+import type { GroupedIssue } from 'src/modules/application/source/types/source-day.interface';
+import { EngagementLevel } from '../types/activity.enums';
 import {
   at,
   createIssue,

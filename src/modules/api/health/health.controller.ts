@@ -1,6 +1,6 @@
 import { Controller, Get, HttpStatus, Res } from '@nestjs/common';
 import type { FastifyReply } from 'fastify';
-import { HealthStatus } from 'src/modules/application/system/system.enums';
+import { HealthStatus } from 'src/modules/application/system/types/system.enums';
 import { SystemService } from 'src/modules/application/system/system.service';
 
 @Controller('health')

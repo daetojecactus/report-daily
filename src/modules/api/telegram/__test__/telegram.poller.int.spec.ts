@@ -3,7 +3,10 @@ import type { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { Redis } from 'ioredis';
 import { afterAll, beforeAll, describe, expect, inject, it, onTestFinished, vi } from 'vitest';
 import { RedisService } from 'src/modules/infrastructure/redis/redis.service';
-import type { TelegramChat, TelegramUser } from 'src/modules/vendors/telegram/telegram.interface';
+import type {
+  TelegramChat,
+  TelegramUser,
+} from 'src/modules/vendors/telegram/types/telegram.interface';
 import { fakeBotApi, privateMessage, type FakeUpdate } from 'test/setup/fake-bot-api';
 import { createTestApp } from 'test/setup/test-app';
 import {

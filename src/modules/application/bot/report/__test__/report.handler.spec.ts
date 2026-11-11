@@ -1,14 +1,15 @@
 import type { ConfigService } from '@nestjs/config';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { Channel, ChatInputType } from 'src/common/enums/channel.enums';
-import type { ChatInput } from 'src/common/interfaces/chat-channel.interface';
-import { Language } from 'src/modules/application/i18n/i18n.enums';
+import { Channel } from 'src/common/channel/types/channel.enums';
+import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
+import type { ChatInput } from 'src/common/channel/types/chat-channel.interface';
+import { Language } from 'src/modules/application/i18n/types/i18n.enums';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
-import type { User } from 'src/modules/application/user/user.interface';
+import type { User } from 'src/modules/application/user/types/user.interface';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import type { RedisService } from 'src/modules/infrastructure/redis/redis.service';
 import type { ReportQueueProducer } from 'src/modules/queue/report/report-queue.producer';
-import type { BotActor } from '../../bot.interface';
+import type { BotActor } from '../../core/types/bot.interface';
 import { ReportHandler } from '../report.handler';
 import { ReportView } from '../report.view';
 

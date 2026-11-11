@@ -1,12 +1,12 @@
 import type { NestFastifyApplication } from '@nestjs/platform-fastify';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { Channel } from 'src/common/enums/channel.enums';
-import { DeliveryKind } from 'src/modules/application/delivery/delivery.enums';
+import { Channel } from 'src/common/channel/types/channel.enums';
+import { DeliveryKind } from 'src/modules/application/delivery/types/delivery.enums';
 import { deliveries } from 'src/modules/application/delivery/delivery.schema';
-import { ReportStatus } from 'src/modules/application/report/report.enums';
+import { ReportStatus } from 'src/modules/application/report/types/report.enums';
 import { reports } from 'src/modules/application/report/report.schema';
-import { Gender, JobRole } from 'src/modules/application/user/user.enums';
+import { Gender, JobRole } from 'src/modules/application/user/types/user.enums';
 import { users } from 'src/modules/application/user/user.schema';
 import { DATABASE_INSTANCE } from 'src/modules/infrastructure/database/constants/database.constants';
 import { createTestApp } from 'test/setup/test-app';

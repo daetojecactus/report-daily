@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import type { UserSource } from 'src/modules/application/user/user-source/user-source.interface';
+import type { UserSource } from 'src/modules/application/user/user-source/types/user-source.interface';
 import { SOURCE_NAME_FACTS } from './constants/source.constants';
 import { GitLabSourceService } from './gitlab/gitlab-source.service';
-import { Source } from './source.enums';
+import { Source } from './types/source.enums';
+import type { ActivitySource } from './types/source.interface';
 import type {
-  ActivitySource,
   GroupedDailyData,
   GroupedIssue,
   GroupedMergeRequest,
-} from './source.interface';
+} from './types/source-day.interface';
 
 @Injectable()
 export class SourceService {

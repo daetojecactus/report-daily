@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
-import type { DayRange } from 'src/common/interfaces/date.interface';
+import type { DayRange } from 'src/common/types/date.interface';
 import { isWithinDay } from 'src/common/utils/date.util';
 import { RedisService } from 'src/modules/infrastructure/redis/redis.service';
-import { GitLabIssuable } from 'src/modules/vendors/gitlab/gitlab.enums';
+import { GitLabIssuable } from 'src/modules/vendors/gitlab/types/gitlab.enums';
 import { GitLabService } from 'src/modules/vendors/gitlab/gitlab.service';
 import {
   GITLAB_SOURCE_INDEX_KEY,
@@ -10,9 +10,9 @@ import {
   GITLAB_SOURCE_INDEX_TTL_MS,
   GITLAB_SOURCE_LOOKBACK_DAYS,
   GITLAB_SOURCE_SCAN_LIMIT,
-} from './constants/gitlab-source.constants';
+} from './constants/gitlab-source-index.constants';
 import { GitLabSourceMessages } from './constants/gitlab-source.messages';
-import type { SourceDayIndex, SourceHiddenItems } from './gitlab-source.interface';
+import type { SourceDayIndex, SourceHiddenItems } from './types/gitlab-source.interface';
 
 @Injectable()
 export class GitLabSourceScanner {

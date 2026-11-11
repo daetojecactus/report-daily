@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { SETTINGS_AI_DEFAULTS } from './constants/settings.constants';
-import type { ReportsPause, Settings, SettingsAi, SettingsUpdate } from './settings.interface';
+import type {
+  ReportsPause,
+  Settings,
+  SettingsAi,
+  SettingsUpdate,
+} from './types/settings.interface';
 import { SettingsRepository } from './settings.repository';
 
 @Injectable()

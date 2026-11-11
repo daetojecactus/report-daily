@@ -1,18 +1,18 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { toSourceKey } from 'src/common/utils/source-name.util';
-import type { GroupedDailyData } from 'src/modules/application/source/source.interface';
+import type { GroupedDailyData } from 'src/modules/application/source/types/source-day.interface';
 import {
   Priority,
   TaskFlag,
   TaskKind,
   TraitDimension,
   WorkflowState,
-} from 'src/modules/application/trait/trait.enums';
-import type { TraitIndex, TraitValue } from 'src/modules/application/trait/trait.interface';
-import type { JobRole } from 'src/modules/application/user/user.enums';
-import { ActivityAction } from '../activity.enums';
-import type { ActivityCandidate, ActivityResult } from '../activity.interface';
+} from 'src/modules/application/trait/types/trait.enums';
+import type { TraitIndex, TraitValue } from 'src/modules/application/trait/types/trait.interface';
+import type { JobRole } from 'src/modules/application/user/types/user.enums';
+import { ActivityAction } from '../types/activity.enums';
+import type { ActivityCandidate, ActivityResult } from '../types/activity.interface';
 import { createService } from './activity.fixture';
 
 export interface GoldenVerdict {

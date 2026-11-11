@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { SourceActionKind } from 'src/modules/application/source/source.enums';
+import { SourceActionKind } from 'src/modules/application/source/types/source.enums';
 import { at, createIssue, fact } from '../../activity/__test__/activity.fixture';
 import { createGoldenIndex, loadGoldenDays } from '../../activity/__test__/activity.golden.fixture';
 import type { TemplateRepository } from '../template.repository';

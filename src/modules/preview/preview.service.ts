@@ -3,11 +3,11 @@ import { AiService } from 'src/modules/application/ai/ai.service';
 import { DEFAULT_LANGUAGE } from 'src/modules/application/i18n/constants/i18n.constants';
 import { PhraseService } from 'src/modules/application/report/phrase/phrase.service';
 import { ReportComposer } from 'src/modules/application/report/report.composer';
-import { Source } from 'src/modules/application/source/source.enums';
+import { Source } from 'src/modules/application/source/types/source.enums';
 import { UserService } from 'src/modules/application/user/user.service';
 import { UserSourceService } from 'src/modules/application/user/user-source/user-source.service';
 import { PREVIEW_EMPTY_REPORT } from './constants/preview.constants';
-import type { PreviewOptions } from './preview.interface';
+import type { PreviewOptions } from './types/preview.interface';
 import { PreviewRenderer } from './preview.renderer';
 
 @Injectable()

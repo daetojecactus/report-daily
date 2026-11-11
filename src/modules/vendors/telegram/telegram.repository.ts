@@ -9,7 +9,7 @@ import {
 } from './constants/telegram.constants';
 import { TelegramMessages } from './constants/telegram.messages';
 import { TelegramClient } from './telegram.client';
-import { TelegramMethod } from './telegram.enums';
+import { TelegramMethod } from './types/telegram.enums';
 import { TelegramRejectedError, TelegramRetryableError } from './telegram.error';
 import type {
   TelegramBotCommand,
@@ -20,7 +20,7 @@ import type {
   TelegramMessageContent,
   TelegramResponse,
   TelegramUpdate,
-} from './telegram.interface';
+} from './types/telegram.interface';
 
 @Injectable()
 export class TelegramRepository {

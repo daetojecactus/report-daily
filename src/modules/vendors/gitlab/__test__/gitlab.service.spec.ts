@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { GitLabIssuable, GitLabRefType } from '../gitlab.enums';
-import type { GitLabPushData } from '../gitlab.interface';
+import { GitLabIssuable, GitLabRefType } from '../types/gitlab.enums';
+import type { GitLabPushData } from '../types/gitlab-event.interface';
 import type { GitLabRepository } from '../gitlab.repository';
 import { GitLabService } from '../gitlab.service';
 

@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { addDays } from 'src/common/utils/date.util';
 import { GITLAB_EVENTS_MARGIN_DAYS, GITLAB_PAGE_SIZE } from './constants/gitlab.constants';
-import type { GitLabIssuable } from './gitlab.enums';
-import type { GitLabPushData } from './gitlab.interface';
+import type { GitLabIssuable } from './types/gitlab.enums';
+import type { GitLabPushData } from './types/gitlab-event.interface';
 import { GitLabRepository } from './gitlab.repository';
 
 @Injectable()

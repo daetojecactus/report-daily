@@ -1,31 +1,55 @@
+import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable } from '@nestjs/common';
-import { Channel } from 'src/common/enums/channel.enums';
-import { DeliverySlackQueueProducer } from '../delivery-slack/delivery-slack-queue.producer';
-import { DeliveryTelegramQueueProducer } from '../delivery-telegram/delivery-telegram-queue.producer';
-import type { DeliveryBroadcastMessage } from './delivery-queue.interface';
+import type { Queue } from 'bullmq';
+import { Channel } from 'src/common/channel/types/channel.enums';
+import {
+  DELIVERY_BROADCAST_ID_PREFIX,
+  DELIVERY_BROADCAST_JOB,
+  DELIVERY_JOB_ID_PREFIX,
+  DELIVERY_JOB_ID_SEPARATOR,
+  DELIVERY_JOB_OPTIONS,
+  DELIVERY_SEND_JOB,
+  DELIVERY_SLACK_QUEUE,
+  DELIVERY_TELEGRAM_QUEUE,
+} from './constants/delivery-queue.constants';
+import type {
+  DeliveryBroadcastData,
+  DeliveryBroadcastMessage,
+  DeliveryJobData,
+} from './types/delivery-queue.interface';
 
 @Injectable()
 export class DeliveryQueueProducer {
-  constructor(
-    private readonly deliveryTelegramQueueProducer: DeliveryTelegramQueueProducer,
-    private readonly deliverySlackQueueProducer: DeliverySlackQueueProducer,
-  ) {}
+  private readonly queues: Record<Channel, Queue>;
 
-  addDelivery(channel: Channel, deliveryId: string) {
-    switch (channel) {
-      case Channel.TELEGRAM:
-        return this.deliveryTelegramQueueProducer.addDelivery(deliveryId);
-      case Channel.SLACK:
-        return this.deliverySlackQueueProducer.addDelivery(deliveryId);
-    }
+  constructor(
+    @InjectQueue(DELIVERY_TELEGRAM_QUEUE) telegramQueue: Queue,
+    @InjectQueue(DELIVERY_SLACK_QUEUE) slackQueue: Queue,
+  ) {
+    this.queues = { [Channel.TELEGRAM]: telegramQueue, [Channel.SLACK]: slackQueue };
   }
 
-  addBroadcast(channel: Channel, broadcastId: string, messages: DeliveryBroadcastMessage[]) {
-    switch (channel) {
-      case Channel.TELEGRAM:
-        return this.deliveryTelegramQueueProducer.addBroadcast(broadcastId, messages);
-      case Channel.SLACK:
-        return this.deliverySlackQueueProducer.addBroadcast(broadcastId, messages);
-    }
+  async addDelivery(channel: Channel, deliveryId: string) {
+    const data: DeliveryJobData = { deliveryId };
+    await this.queues[channel].add(DELIVERY_SEND_JOB, data, {
+      ...DELIVERY_JOB_OPTIONS,
+      jobId: `${DELIVERY_JOB_ID_PREFIX}${deliveryId}`,
+    });
+  }
+
+  async addBroadcast(channel: Channel, broadcastId: string, messages: DeliveryBroadcastMessage[]) {
+    await this.queues[channel].addBulk(
+      messages.map((message) => {
+        const data: DeliveryBroadcastData = { ...message, broadcastId };
+        return {
+          name: DELIVERY_BROADCAST_JOB,
+          data,
+          opts: {
+            ...DELIVERY_JOB_OPTIONS,
+            jobId: `${DELIVERY_BROADCAST_ID_PREFIX}${[broadcastId, message.chatId].join(DELIVERY_JOB_ID_SEPARATOR)}`,
+          },
+        };
+      }),
+    );
   }
 }

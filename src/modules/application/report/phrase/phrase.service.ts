@@ -1,37 +1,40 @@
 import { Injectable } from '@nestjs/common';
-import type { GenderedText, Locale } from 'src/modules/application/i18n/i18n.interface';
-import { ItemState, SourceActionKind } from 'src/modules/application/source/source.enums';
-import type { WorkflowState } from 'src/modules/application/trait/trait.enums';
-import type { Gender } from 'src/modules/application/user/user.enums';
-import { ActivityAction } from '../activity/activity.enums';
+import type { GenderedText } from 'src/modules/application/i18n/types/i18n-phrases.interface';
+import type { Locale } from 'src/modules/application/i18n/types/i18n.interface';
+import { ItemState, SourceActionKind } from 'src/modules/application/source/types/source.enums';
+import type { WorkflowState } from 'src/modules/application/trait/types/trait.enums';
+import type { Gender } from 'src/modules/application/user/types/user.enums';
+import { ActivityAction } from '../activity/types/activity.enums';
 import type {
   ActivityCandidate,
   ActivityLine,
   ActivityLineSignals,
   ActivityResult,
   ActivitySummary,
-} from '../activity/activity.interface';
+} from '../activity/types/activity.interface';
 import {
   PHRASE_CONTEXT_ACTIONS,
   PHRASE_CONTEXTS,
   PHRASE_COUNTS,
+  PHRASE_NAME_FACTS,
+  PHRASE_NAMES,
+  PHRASE_NOTED_ACTIONS,
+  PHRASE_SUMMARIES,
+  PHRASE_SUMMARY_NAMES,
+} from './constants/phrase.constants';
+import {
   PHRASE_DATE_FORMAT,
   PHRASE_DATE_PATTERN,
   PHRASE_DATE_RANGE_PATTERN,
   PHRASE_DATE_TIME_SUFFIX,
   PHRASE_ISSUE_PREFIX,
   PHRASE_MERGE_REQUEST_PREFIX,
-  PHRASE_NAME_FACTS,
-  PHRASE_NAMES,
-  PHRASE_NOTED_ACTIONS,
   PHRASE_REFERENCE_SEPARATOR,
   PHRASE_REFERENCE_SUFFIX_PATTERN,
-  PHRASE_RULES,
-  PHRASE_SUMMARIES,
-  PHRASE_SUMMARY_NAMES,
-} from './constants/phrase.constants';
-import { PhraseCount, PhraseName, ReportPhrase } from './phrase.enums';
-import type { PhraseParts, PhraseRule, SummaryPhrase } from './phrase.interface';
+} from './constants/phrase-format.constants';
+import { PHRASE_RULES } from './constants/phrase-rules.constants';
+import { PhraseCount, PhraseName, ReportPhrase } from './types/phrase.enums';
+import type { PhraseParts, PhraseRule, SummaryPhrase } from './types/phrase.interface';
 
 @Injectable()
 export class PhraseService {

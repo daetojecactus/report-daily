@@ -14,7 +14,7 @@ import type {
   ReportTemplate,
   ReportTemplateInsert,
   ReportTemplateUpdate,
-} from './template.interface';
+} from './types/template.interface';
 import { TemplateRepository } from './template.repository';
 import { reportTemplates } from './template.schema';
 

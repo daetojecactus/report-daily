@@ -1,7 +1,7 @@
-import { Channel } from 'src/common/enums/channel.enums';
-import { ReportStatus } from 'src/modules/application/report/report.enums';
-import { Permission } from 'src/modules/application/user/user.enums';
-import type { EmployeesLocale } from '../../i18n.interface';
+import { Channel } from 'src/common/channel/types/channel.enums';
+import { ReportStatus } from 'src/modules/application/report/types/report.enums';
+import { Permission } from 'src/modules/application/user/types/user.enums';
+import type { EmployeesLocale } from '../../types/i18n-employees.interface';
 
 export const ruEmployees: EmployeesLocale = {
   employees: {
@@ -121,6 +121,8 @@ export const ruEmployees: EmployeesLocale = {
     invalid: (channel) => `Это не похоже на ${channel} ID.`,
     taken: (name) => `Этот аккаунт уже привязан к сотруднику **${name}**. Введите другой ID.`,
     alreadyBound: (channel) => `У сотрудника уже привязан ${channel}.`,
+    self: 'Свой канал привязать нельзя — это делает владелец.',
+    ownerOnly: 'Канал сотрудника с правами может привязать только владелец.',
     bound: (channel, name) => `${channel} привязан: **${name}**.`,
     hint: {
       [Channel.TELEGRAM]:

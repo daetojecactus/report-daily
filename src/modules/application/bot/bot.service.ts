@@ -1,21 +1,28 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { ChatInputType, type Channel } from 'src/common/enums/channel.enums';
-import { ChatUnreachableError } from 'src/common/errors/chat-unreachable.error';
-import type { Locale } from 'src/modules/application/i18n/i18n.interface';
+import { type Channel } from 'src/common/channel/types/channel.enums';
+import { ChatUnreachableError } from 'src/common/channel/chat-unreachable.error';
+import type { Locale } from 'src/modules/application/i18n/types/i18n.interface';
 import type {
   ChatChannel,
   ChatEvent,
   ChatInput,
   Screen,
-} from 'src/common/interfaces/chat-channel.interface';
+} from 'src/common/channel/types/chat-channel.interface';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
 import { ChannelService } from 'src/modules/application/user/channel/channel.service';
-import { AccessService } from './access/access.service';
-import { BOT_CHANNELS } from './constants/bot.constants';
-import { BotMessages } from './constants/bot.messages';
-import type { BotActor, BotDialog, BotReply, BotRoute, BotTarget } from './bot.interface';
-import { DialogService } from './dialog/dialog.service';
-import { RouterService } from './router/router.service';
+import { AccessService } from './core/access.service';
+import { BOT_CHANNELS } from './core/constants/bot.constants';
+import { BotMessages } from './core/constants/bot.messages';
+import type {
+  BotActor,
+  BotDialog,
+  BotReply,
+  BotRoute,
+  BotTarget,
+} from './core/types/bot.interface';
+import { DialogService } from './core/dialog.service';
+import { RouterService } from './core/router.service';
+import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
 
 @Injectable()
 export class BotService {
@@ -64,7 +71,7 @@ export class BotService {
         throw error;
       }
       await this.channelService.updateReachable(channel, externalId, false);
-      this.logger.warn(`${BotMessages.CHANNEL_UNREACHABLE}: ${channel} ${externalId}`);
+      this.logger.warn({ channel }, BotMessages.CHANNEL_UNREACHABLE);
     }
   }
 
@@ -149,7 +156,10 @@ export class BotService {
       }
       if (actor.user) {
         await this.channelService.updateReachable(event.channel, event.userId, false);
-        this.logger.warn(`${BotMessages.CHANNEL_UNREACHABLE}: ${actor.user.id}`);
+        this.logger.warn(
+          { userId: actor.user.id, channel: event.channel },
+          BotMessages.CHANNEL_UNREACHABLE,
+        );
       }
     }
   }

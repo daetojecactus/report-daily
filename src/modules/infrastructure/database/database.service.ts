@@ -7,11 +7,13 @@ import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 @Injectable()
 export class DatabaseService {
   constructor(
-    private readonly txHost: TransactionHost<TransactionalAdapterDrizzleOrm<NodePgDatabase>>,
+    private readonly transactionHost: TransactionHost<
+      TransactionalAdapterDrizzleOrm<NodePgDatabase>
+    >,
   ) {}
 
   get db() {
-    return this.txHost.tx;
+    return this.transactionHost.tx;
   }
 
   async ping() {

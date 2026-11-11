@@ -1,8 +1,9 @@
 import { Logger } from '@nestjs/common';
 import type { Job } from 'bullmq';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
-import { Channel, ChatInputType } from 'src/common/enums/channel.enums';
-import type { ChatEvent } from 'src/common/interfaces/chat-channel.interface';
+import { Channel } from 'src/common/channel/types/channel.enums';
+import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
+import type { ChatEvent } from 'src/common/channel/types/chat-channel.interface';
 import type { BotService } from 'src/modules/application/bot/bot.service';
 import { INBOUND_EVENT_JOB } from '../constants/inbound-queue.constants';
 import { InboundQueueMessages } from '../constants/inbound-queue.messages';
@@ -56,7 +57,8 @@ describe('InboundQueueProcessor', () => {
 
     expect(botService.replyFailure).toHaveBeenCalledWith(event);
     expect(logError).toHaveBeenCalledWith(
-      `${InboundQueueMessages.EVENT_FAILED}: tg-1: handler crashed`,
+      { jobId: 'tg-1', error: 'handler crashed' },
+      InboundQueueMessages.EVENT_FAILED,
     );
   });
 

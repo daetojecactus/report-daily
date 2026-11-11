@@ -1,27 +1,27 @@
 import { Injectable } from '@nestjs/common';
-import { ChatInputType } from 'src/common/enums/channel.enums';
-import type { ScreenButton } from 'src/common/interfaces/chat-channel.interface';
-import type { Locale } from 'src/modules/application/i18n/i18n.interface';
-import { TraitDimension } from 'src/modules/application/trait/trait.enums';
-import { Source } from 'src/modules/application/source/source.enums';
+import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
+import type { ScreenButton } from 'src/common/channel/types/chat-channel.interface';
+import type { Locale } from 'src/modules/application/i18n/types/i18n.interface';
+import { TraitDimension } from 'src/modules/application/trait/types/trait.enums';
+import { Source } from 'src/modules/application/source/types/source.enums';
 import { TraitService } from 'src/modules/application/trait/trait.service';
 import { TraitNameService } from 'src/modules/application/trait/trait-name/trait-name.service';
-import { JobRole, Permission } from 'src/modules/application/user/user.enums';
+import { JobRole, Permission } from 'src/modules/application/user/types/user.enums';
 import { ADMIN_MENU_DATA } from '../admin/constants/admin.constants';
-import { BotSection } from '../bot.decorator';
-import { BotNamespace } from '../bot.enums';
-import type { BotContext, BotHandler, BotReply } from '../bot.interface';
-import { BOT_BUTTON_DATA_SEPARATOR } from '../constants/bot.constants';
-import { TraitAddAction } from '../trait-add/trait-add.enums';
-import { TraitManageAction } from '../trait-manage/trait-manage.enums';
-import { TraitNameList } from '../trait-names/trait-names.enums';
+import { BotSection } from '../core/bot.decorator';
+import { BotNamespace } from '../core/types/bot.enums';
+import type { BotContext, BotHandler, BotReply } from '../core/types/bot.interface';
+import { BOT_BUTTON_DATA_SEPARATOR } from '../core/constants/bot.constants';
+import { TraitAddAction } from './add/types/trait-add.enums';
+import { TraitManageAction } from './manage/types/trait-manage.enums';
+import { TraitNameList } from './names/types/trait-names.enums';
 import {
   TRAITS_BUTTON_SCHEMA,
   TRAITS_ITEM_SEPARATOR,
   TRAITS_PAGE_SIZE,
   TRAITS_VALUE_PREFIX,
 } from './constants/traits.constants';
-import { TraitsAction } from './traits.enums';
+import { TraitsAction } from './types/traits.enums';
 import { TraitsView } from './traits.view';
 
 @Injectable()

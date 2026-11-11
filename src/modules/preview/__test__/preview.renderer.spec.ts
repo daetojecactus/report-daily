@@ -16,9 +16,9 @@ import {
   SourceRefType,
   SourceTargetType,
   WorkItemType,
-} from 'src/modules/application/source/source.enums';
-import type { GroupedDailyData } from 'src/modules/application/source/source.interface';
-import { JobRole } from 'src/modules/application/user/user.enums';
+} from 'src/modules/application/source/types/source.enums';
+import type { GroupedDailyData } from 'src/modules/application/source/types/source-day.interface';
+import { JobRole } from 'src/modules/application/user/types/user.enums';
 import { PreviewRenderer } from '../preview.renderer';
 
 function render(overrides: Partial<GroupedDailyData>, trace = false) {

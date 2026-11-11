@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { SQL } from 'drizzle-orm';
 import { DatabaseService } from 'src/modules/infrastructure/database/database.service';
-import type { UserChannelInsert } from './channel.interface';
+import type { UserChannelInsert } from './types/channel.interface';
 import { userChannels } from './channel.schema';
 
 @Injectable()

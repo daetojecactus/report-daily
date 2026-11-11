@@ -1,22 +1,22 @@
 import { Logger } from '@nestjs/common';
 import type { ConfigService } from '@nestjs/config';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { AiPolicy } from 'src/modules/application/ai/ai.interface';
-import { Language } from 'src/modules/application/i18n/i18n.enums';
+import type { AiPolicy } from 'src/modules/application/ai/types/ai.interface';
+import { Language } from 'src/modules/application/i18n/types/i18n.enums';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
-import { Source } from 'src/modules/application/source/source.enums';
+import { Source } from 'src/modules/application/source/types/source.enums';
 import type { SourceService } from 'src/modules/application/source/source.service';
 import type { TraitService } from 'src/modules/application/trait/trait.service';
 import type { TraitNameService } from 'src/modules/application/trait/trait-name/trait-name.service';
-import type { User } from 'src/modules/application/user/user.interface';
-import type { UserSource } from 'src/modules/application/user/user-source/user-source.interface';
+import type { User } from 'src/modules/application/user/types/user.interface';
+import type { UserSource } from 'src/modules/application/user/user-source/types/user-source.interface';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { createEmployee } from '../../bot/__test__/bot.fixture';
 import type { ActivityService } from '../activity/activity.service';
 import { ReportComposer } from '../report.composer';
 import type { ReportRewriter } from '../report.rewriter';
 import type { TemplateContext } from '../template/template.context';
-import type { ReportContext, ReportTemplate } from '../template/template.interface';
+import type { ReportContext, ReportTemplate } from '../template/types/template.interface';
 import type { TemplateRepository } from '../template/template.repository';
 import { TemplateService } from '../template/template.service';
 

@@ -1,16 +1,16 @@
 import { Logger } from '@nestjs/common';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createEmployee } from 'src/modules/application/bot/__test__/bot.fixture';
-import { Language } from 'src/modules/application/i18n/i18n.enums';
+import { Language } from 'src/modules/application/i18n/types/i18n.enums';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
-import type { SettingsAi } from 'src/modules/application/settings/settings.interface';
+import type { SettingsAi } from 'src/modules/application/settings/types/settings.interface';
 import type { SettingsService } from 'src/modules/application/settings/settings.service';
-import { TaskKind } from 'src/modules/application/trait/trait.enums';
-import { Gender, JobRole } from 'src/modules/application/user/user.enums';
+import { TaskKind } from 'src/modules/application/trait/types/trait.enums';
+import { Gender, JobRole } from 'src/modules/application/user/types/user.enums';
 import type { RedisService } from 'src/modules/infrastructure/redis/redis.service';
-import { LlmFormat } from 'src/modules/vendors/llm/llm.enums';
+import { LlmFormat } from 'src/modules/vendors/llm/types/llm.enums';
 import type { LlmService } from 'src/modules/vendors/llm/llm.service';
-import type { AiLine } from '../ai.interface';
+import type { AiLine } from '../types/ai.interface';
 import { AiService } from '../ai.service';
 
 const locale = new I18nService().getLocale(Language.EN);

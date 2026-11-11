@@ -5,7 +5,7 @@ import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { LlmClient } from '../llm.client';
-import { LlmFormat } from '../llm.enums';
+import { LlmFormat } from '../types/llm.enums';
 import { LlmError } from '../llm.error';
 import { LlmRepository } from '../llm.repository';
 import { LlmService } from '../llm.service';

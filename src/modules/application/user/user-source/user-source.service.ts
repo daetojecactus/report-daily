@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { and, eq, type SQL } from 'drizzle-orm';
-import type { Source } from 'src/modules/application/source/source.enums';
-import type { UserSourceInsert } from './user-source.interface';
+import type { Source } from 'src/modules/application/source/types/source.enums';
+import type { UserSourceInsert } from './types/user-source.interface';
 import { UserSourceRepository } from './user-source.repository';
 import { userSources } from './user-source.schema';
 

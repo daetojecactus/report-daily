@@ -1,9 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { getErrorMessage } from 'src/common/utils/error.util';
 import { SettingsService } from 'src/modules/application/settings/settings.service';
-import type { User } from 'src/modules/application/user/user.interface';
+import type { User } from 'src/modules/application/user/types/user.interface';
 import { RedisService } from 'src/modules/infrastructure/redis/redis.service';
-import type { LlmPrompt } from 'src/modules/vendors/llm/llm.interface';
+import type { LlmPrompt } from 'src/modules/vendors/llm/types/llm.interface';
 import { LlmService } from 'src/modules/vendors/llm/llm.service';
 import {
   AI_ANSWER_SCHEMA,
@@ -31,7 +31,7 @@ import {
   AI_SPACES_PATTERN,
 } from './constants/ai.constants';
 import { AiMessages } from './constants/ai.messages';
-import type { AiLine, AiNames, AiPolicy, AiProfile, AiRewording } from './ai.interface';
+import type { AiLine, AiNames, AiPolicy, AiProfile, AiRewording } from './types/ai.interface';
 
 @Injectable()
 export class AiService {

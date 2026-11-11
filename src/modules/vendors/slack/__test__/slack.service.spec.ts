@@ -1,7 +1,6 @@
 import type { ConfigService } from '@nestjs/config';
-import { WebAPIPlatformError } from '@slack/web-api';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { ChatUnreachableError } from 'src/common/errors/chat-unreachable.error';
+import { ChatUnreachableError } from 'src/common/channel/chat-unreachable.error';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { SlackClient } from '../slack.client';
 import { SlackFormatter } from '../slack.formatter';
@@ -16,8 +15,8 @@ function client(token?: string) {
   return new SlackClient({ get: () => token } as unknown as ConfigService<AppEnvs, true>);
 }
 
-function platformError(error: string) {
-  return new WebAPIPlatformError({ ok: false, error });
+function rejected(code: string) {
+  return new SlackRejectedError(`Slack rejected the request: ${code}`, code);
 }
 
 describe('SlackService', () => {
@@ -66,18 +65,18 @@ describe('SlackService', () => {
     await service.editScreen('D100', '1.1', SCREEN);
     expect(repository.updateMessage).toHaveBeenCalledWith('D100', '1.1', renderer.render(SCREEN));
 
-    repository.updateMessage.mockRejectedValueOnce(platformError('message_not_found'));
+    repository.updateMessage.mockRejectedValueOnce(rejected('message_not_found'));
     await service.editScreen('D100', '1.2', SCREEN);
     expect(repository.postMessage).toHaveBeenCalledWith('D100', renderer.render(SCREEN));
   });
 
   it('reports a member Slack cannot reach as an unreachable chat', async () => {
-    repository.postMessage.mockRejectedValueOnce(platformError('user_not_found'));
+    repository.postMessage.mockRejectedValueOnce(rejected('user_not_found'));
     await expect(service.sendScreen('U0123ABCD', SCREEN)).rejects.toBeInstanceOf(
       ChatUnreachableError,
     );
 
-    repository.postMessage.mockRejectedValueOnce(platformError('invalid_blocks'));
+    repository.postMessage.mockRejectedValueOnce(rejected('invalid_blocks'));
     await expect(service.sendScreen('U0123ABCD', SCREEN)).rejects.toMatchObject({
       constructor: SlackRejectedError,
       code: 'invalid_blocks',

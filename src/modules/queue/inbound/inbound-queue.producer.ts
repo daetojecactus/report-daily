@@ -1,7 +1,7 @@
 import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable } from '@nestjs/common';
 import type { Queue } from 'bullmq';
-import type { ChatEvent } from 'src/common/interfaces/chat-channel.interface';
+import type { ChatEvent } from 'src/common/channel/types/chat-channel.interface';
 import {
   INBOUND_EVENT_JOB,
   INBOUND_JOB_OPTIONS,
@@ -9,7 +9,7 @@ import {
   INBOUND_SLACK_JOB_ID_PREFIX,
   INBOUND_TELEGRAM_JOB_ID_PREFIX,
 } from './constants/inbound-queue.constants';
-import type { InboundEventJobData } from './inbound-queue.interface';
+import type { InboundEventJobData } from './types/inbound-queue.interface';
 
 @Injectable()
 export class InboundQueueProducer {

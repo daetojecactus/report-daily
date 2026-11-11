@@ -3,15 +3,15 @@ import type {
   Screen,
   ScreenButton,
   ScreenUserPicker,
-} from 'src/common/interfaces/chat-channel.interface';
+} from 'src/common/channel/types/chat-channel.interface';
 import { TELEGRAM_USER_PICKER_REQUEST_ID } from './constants/telegram.constants';
-import { TelegramParseMode } from './telegram.enums';
+import { TelegramParseMode } from './types/telegram.enums';
 import { TelegramFormatter } from './telegram.formatter';
 import type {
   TelegramInlineKeyboardMarkup,
   TelegramMessageContent,
   TelegramReplyKeyboardMarkup,
-} from './telegram.interface';
+} from './types/telegram.interface';
 
 @Injectable()
 export class TelegramRenderer {

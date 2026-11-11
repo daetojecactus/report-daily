@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { SQL } from 'drizzle-orm';
 import { DatabaseService } from 'src/modules/infrastructure/database/database.service';
-import type { UserSourceInsert } from './user-source.interface';
+import type { UserSourceInsert } from './types/user-source.interface';
 import { userSources } from './user-source.schema';
 
 @Injectable()

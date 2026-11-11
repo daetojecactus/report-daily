@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { SourceActionKind, WorkItemType } from 'src/modules/application/source/source.enums';
-import type { GroupedIssue } from 'src/modules/application/source/source.interface';
-import { TaskFlag, TaskKind, WorkflowState } from 'src/modules/application/trait/trait.enums';
-import { ActivityRule, EngagementLevel } from '../activity.enums';
+import { SourceActionKind, WorkItemType } from 'src/modules/application/source/types/source.enums';
+import type { GroupedIssue } from 'src/modules/application/source/types/source-day.interface';
+import { TaskFlag, TaskKind, WorkflowState } from 'src/modules/application/trait/types/trait.enums';
+import { ActivityRule, EngagementLevel } from '../types/activity.enums';
 import {
   at,
   createIssue,

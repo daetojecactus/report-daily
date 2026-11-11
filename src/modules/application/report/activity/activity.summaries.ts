@@ -3,8 +3,8 @@ import {
   ACTIVITY_SUMMARY_ACTIONS,
   ACTIVITY_SUMMARY_MIN_LINES,
 } from './constants/activity.constants';
-import { ActivityAction } from './activity.enums';
-import type { ActivityLine, ActivityResult, ActivitySummary } from './activity.interface';
+import { ActivityAction } from './types/activity.enums';
+import type { ActivityLine, ActivityResult, ActivitySummary } from './types/activity.interface';
 
 @Injectable()
 export class ActivitySummaries {

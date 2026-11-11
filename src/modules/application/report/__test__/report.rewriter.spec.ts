@@ -1,19 +1,23 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { AiPolicy } from 'src/modules/application/ai/ai.interface';
+import type { AiPolicy } from 'src/modules/application/ai/types/ai.interface';
 import type { AiService } from 'src/modules/application/ai/ai.service';
 import { createEmployee } from 'src/modules/application/bot/__test__/bot.fixture';
-import { Language } from 'src/modules/application/i18n/i18n.enums';
+import { Language } from 'src/modules/application/i18n/types/i18n.enums';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
-import { SourceActionKind } from 'src/modules/application/source/source.enums';
-import { TraitDimension, WorkflowState } from 'src/modules/application/trait/trait.enums';
-import type { TraitIndex } from 'src/modules/application/trait/trait.interface';
+import { SourceActionKind } from 'src/modules/application/source/types/source.enums';
+import { TraitDimension, WorkflowState } from 'src/modules/application/trait/types/trait.enums';
+import type { TraitIndex } from 'src/modules/application/trait/types/trait.interface';
 import type { TraitRepository } from 'src/modules/application/trait/trait.repository';
 import { TraitService } from 'src/modules/application/trait/trait.service';
 import type { TraitNameService } from 'src/modules/application/trait/trait-name/trait-name.service';
-import { ActivityAction, ActivityDetail } from '../activity/activity.enums';
-import type { ActivityCandidate, ActivityResult } from '../activity/activity.interface';
+import { ActivityAction, ActivityDetail } from '../activity/types/activity.enums';
+import type { ActivityCandidate, ActivityResult } from '../activity/types/activity.interface';
 import { ReportRewriter } from '../report.rewriter';
-import type { ReportContext, TemplateBuild, TemplateItem } from '../template/template.interface';
+import type {
+  ReportContext,
+  TemplateBuild,
+  TemplateItem,
+} from '../template/types/template.interface';
 
 const locale = new I18nService().getLocale(Language.EN);
 const USER = createEmployee().user;

@@ -1,14 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import { ItemState, SourceActionKind } from 'src/modules/application/source/source.enums';
+import { ItemState, SourceActionKind } from 'src/modules/application/source/types/source.enums';
 import type {
   GroupedIssue,
   GroupedMergeRequest,
-} from 'src/modules/application/source/source.interface';
-import { TaskFlag, TaskKind, WorkflowState } from 'src/modules/application/trait/trait.enums';
-import { JobRole } from 'src/modules/application/user/user.enums';
+} from 'src/modules/application/source/types/source-day.interface';
+import { TaskFlag, TaskKind, WorkflowState } from 'src/modules/application/trait/types/trait.enums';
+import { JobRole } from 'src/modules/application/user/types/user.enums';
 import { ActivityChains } from '../activity.chains';
-import { ActivityAction, ActivityDetail } from '../activity.enums';
-import type { ActivityCandidate, ActivityLine, ActivityLineSignals } from '../activity.interface';
+import { ActivityAction, ActivityDetail } from '../types/activity.enums';
+import type {
+  ActivityCandidate,
+  ActivityLine,
+  ActivityLineSignals,
+} from '../types/activity.interface';
 import { ActivitySelector } from '../activity.selector';
 import {
   at,

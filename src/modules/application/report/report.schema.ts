@@ -12,8 +12,8 @@ import {
 import { reportTemplates } from './template/template.schema';
 import { createdAt, primaryId, updatedAt } from '../../infrastructure/database/database.columns';
 import { users } from '../user/user.schema';
-import { ReportStatus } from './report.enums';
-import type { ReportContext } from './template/template.interface';
+import { ReportStatus } from './types/report.enums';
+import type { ReportContext } from './template/types/template.interface';
 
 export const reportStatus = pgEnum('report_status', ReportStatus);
 

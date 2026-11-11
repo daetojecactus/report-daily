@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { getErrorMessage } from 'src/common/utils/error.util';
 import { InboundQueueProducer } from 'src/modules/queue/inbound/inbound-queue.producer';
-import type { SlackEnvelope } from 'src/modules/vendors/slack/slack.interface';
+import type { SlackEnvelope } from 'src/modules/vendors/slack/types/slack.interface';
 import { SlackService } from 'src/modules/vendors/slack/slack.service';
 import { SlackSocket } from 'src/modules/vendors/slack/slack.socket';
 import { SlackListenerMessages } from './constants/slack-listener.messages';

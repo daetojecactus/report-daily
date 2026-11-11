@@ -9,8 +9,8 @@ import {
   PREVIEW_NOTE_PREFIXES,
   PREVIEW_SYSTEM_NOTE,
   PREVIEW_TITLE_NOTE,
-} from '../constants/preview.constants';
-import type { PreviewFixture } from '../preview.interface';
+} from '../constants/preview-anonymizer.constants';
+import type { PreviewFixture } from '../types/preview.interface';
 
 const DIRECTORY = join(process.cwd(), 'test', 'fixtures', 'golden');
 

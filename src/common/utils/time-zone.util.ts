@@ -1,4 +1,4 @@
-import { TIME_ZONE_NAME_PATTERN } from '../constants/time.constants';
+import { TIME_ZONE_NAME_PATTERN } from '../constants/time-zone.constants';
 
 export function toTimeZone(value: string): string | null {
   let timeZone: string;

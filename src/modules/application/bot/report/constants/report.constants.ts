@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { BotNamespace } from '../../bot.enums';
-import { ReportAction } from '../report.enums';
+import { BotNamespace } from '../../core/types/bot.enums';
+import { ReportAction } from '../types/report.enums';
 
 export const REPORT_DAYS_BACK = 14;
 

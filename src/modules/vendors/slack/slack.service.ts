@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { ErrorCode, type WebAPIPlatformError } from '@slack/web-api';
-import { SLACK_USER_ID_PATTERN } from 'src/common/constants/slack.constants';
-import { Channel, ChatInputType } from 'src/common/enums/channel.enums';
-import { ChatUnreachableError } from 'src/common/errors/chat-unreachable.error';
+import { SLACK_USER_ID_PATTERN } from 'src/common/channel/constants/channel.constants';
+import { Channel } from 'src/common/channel/types/channel.enums';
+import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
+import { ChatUnreachableError } from 'src/common/channel/chat-unreachable.error';
 import type {
   ChatChannel,
   ChatEvent,
   ChatInput,
   Screen,
-} from 'src/common/interfaces/chat-channel.interface';
+} from 'src/common/channel/types/chat-channel.interface';
 import {
   SLACK_BLOCK_ACTIONS_SCHEMA,
   SLACK_COMMAND_PREFIX,
@@ -16,13 +16,11 @@ import {
   SLACK_DEFAULT_COMMAND,
   SLACK_ENVELOPE_TYPE_SCHEMA,
   SLACK_MESSAGE_EVENT_SCHEMA,
-  SLACK_MESSAGE_GONE_ERRORS,
   SLACK_SLASH_COMMAND_SCHEMA,
-  SLACK_UNREACHABLE_ERRORS,
   SLACK_WORD_SEPARATOR,
-} from './constants/slack.constants';
-import { SlackMessages } from './constants/slack.messages';
-import { SlackElementType, SlackEnvelopeType } from './slack.enums';
+} from './constants/slack-events.constants';
+import { SLACK_MESSAGE_GONE_ERRORS, SLACK_UNREACHABLE_ERRORS } from './constants/slack.constants';
+import { SlackElementType, SlackEnvelopeType } from './types/slack.enums';
 import { SlackRejectedError } from './slack.error';
 import { SlackClient } from './slack.client';
 import { SlackFormatter } from './slack.formatter';
@@ -154,23 +152,10 @@ export class SlackService implements ChatChannel {
     try {
       return await call();
     } catch (error) {
-      if (!this.isPlatformError(error)) {
-        throw error;
+      if (error instanceof SlackRejectedError && SLACK_UNREACHABLE_ERRORS.includes(error.code)) {
+        throw new ChatUnreachableError(error.code);
       }
-      const code = error.data.error;
-      if (SLACK_UNREACHABLE_ERRORS.includes(code)) {
-        throw new ChatUnreachableError(code);
-      }
-      throw new SlackRejectedError(`${SlackMessages.REJECTED}: ${code}`, code);
+      throw error;
     }
-  }
-
-  private isPlatformError(error: unknown): error is WebAPIPlatformError {
-    return (
-      error instanceof Error &&
-      'code' in error &&
-      error.code === ErrorCode.PlatformError &&
-      'data' in error
-    );
   }
 }

@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { and, asc, eq, exists, ilike, inArray, notExists, or, type SQL } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
-import type { Channel } from 'src/common/enums/channel.enums';
-import type { Source } from 'src/modules/application/source/source.enums';
+import type { Channel } from 'src/common/channel/types/channel.enums';
+import type { Source } from 'src/modules/application/source/types/source.enums';
 import { DatabaseService } from 'src/modules/infrastructure/database/database.service';
 import { userChannels } from './channel/channel.schema';
 import { userSources } from './user-source/user-source.schema';
-import type { UserInsert, UserUpdate, UserWithChannel } from './user.interface';
+import type { UserInsert, UserUpdate, UserWithChannel } from './types/user.interface';
 import { users } from './user.schema';
 
 @Injectable()

@@ -6,8 +6,8 @@ import {
   TaskFlag,
   TaskKind,
   WorkflowState,
-} from 'src/modules/application/trait/trait.enums';
-import type { TraitsLocale } from '../../i18n.interface';
+} from 'src/modules/application/trait/types/trait.enums';
+import type { TraitsLocale } from '../../types/i18n-traits.interface';
 
 export const enTraitValues: TraitsLocale['traits'] = {
   dimensions: {

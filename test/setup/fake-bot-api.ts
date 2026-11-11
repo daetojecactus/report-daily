@@ -4,7 +4,7 @@ import { setTimeout as sleep } from 'node:timers/promises';
 import type {
   TelegramMessage,
   TelegramUpdate,
-} from 'src/modules/vendors/telegram/telegram.interface';
+} from 'src/modules/vendors/telegram/types/telegram.interface';
 
 export type FakeUpdate = Omit<TelegramUpdate, 'update_id'>;
 

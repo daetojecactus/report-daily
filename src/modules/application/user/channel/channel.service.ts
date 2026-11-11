@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { and, eq, ne, type SQL } from 'drizzle-orm';
-import type { Channel } from 'src/common/enums/channel.enums';
-import type { UserChannel, UserChannelInsert } from './channel.interface';
+import type { Channel } from 'src/common/channel/types/channel.enums';
+import type { UserChannel, UserChannelInsert } from './types/channel.interface';
 import { ChannelRepository } from './channel.repository';
 import { userChannels } from './channel.schema';
 

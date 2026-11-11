@@ -3,15 +3,15 @@ import {
   ACTIVITY_ROLE_BONUS,
   ACTIVITY_ROLE_FOCUS,
   ACTIVITY_TIERS,
-} from './constants/activity.constants';
-import { ActivityAction, ActivityReason, ActivityTier } from './activity.enums';
+} from './constants/activity-weights.constants';
+import { ActivityAction, ActivityReason, ActivityTier } from './types/activity.enums';
 import type {
   ActivityCandidate,
   ActivityChoice,
   ActivityLineSignals,
   ActivityRank,
   ActivityRoleFocus,
-} from './activity.interface';
+} from './types/activity.interface';
 
 @Injectable()
 export class ActivitySelector {

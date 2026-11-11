@@ -1,0 +1,101 @@
+import type { Channel } from 'src/common/channel/types/channel.enums';
+import type { ReportStatus } from 'src/modules/application/report/types/report.enums';
+import type { Permission } from 'src/modules/application/user/types/user.enums';
+
+export interface EmployeesLocale {
+  employees: {
+    title: (count: number) => string;
+    page: (page: number, pages: number) => string;
+    empty: string;
+    previous: string;
+    next: string;
+    search: string;
+    add: string;
+    bind: (channel: string) => string;
+    menu: string;
+    backToList: string;
+    searchPrompt: string;
+    searchTitle: (query: string) => string;
+    searchEmpty: string;
+    searchTooMany: (limit: number) => string;
+    notFound: string;
+    card: {
+      role: string;
+      gender: string;
+      status: string;
+      channels: string;
+      permissions: string;
+      noChannels: string;
+      reachable: string;
+      unreachable: string;
+      lastActivity: string;
+      activityHidden: string;
+      activityUnknown: string;
+      lastReport: string;
+      noReport: string;
+      reportStatuses: Record<ReportStatus, string>;
+    };
+  };
+  employeeAdd: {
+    prompt: string;
+    gitlabUnavailable: string;
+    gitlabCertificate: string;
+    noMatches: string;
+    pick: (query: string) => string;
+    role: (name: string) => string;
+    gender: (name: string) => string;
+    alreadyAdded: (name: string) => string;
+    added: (name: string) => string;
+    activityHidden: string;
+    activityUnknown: string;
+    pending: string;
+    openCard: string;
+    cancel: string;
+    cancelled: string;
+  };
+  employeeManage: {
+    changeRole: string;
+    block: string;
+    unblock: string;
+    delete: string;
+    confirm: string;
+    cancel: string;
+    chooseRole: (name: string, role: string) => string;
+    roleChanged: (name: string, role: string) => string;
+    blocked: (name: string) => string;
+    unblocked: (name: string) => string;
+    confirmDelete: (name: string) => string;
+    deleted: (name: string) => string;
+    self: string;
+    ownerOnly: string;
+    reportNow: string;
+    reportQueued: (name: string) => string;
+    reportEmpty: (name: string) => string;
+    reportFailed: (name: string) => string;
+    reportUnavailable: (name: string) => string;
+  };
+  employeePermissions: {
+    open: string;
+    title: (name: string) => string;
+    descriptions: Record<Permission, string>;
+    granted: string;
+    revoked: string;
+  };
+  employeeBind: {
+    prompt: (channel: string, name: string) => string;
+    promptId: (channel: string, name: string) => string;
+    idHint: Record<Channel, string>;
+    pick: (channel: string) => string;
+    pickPrompt: Record<Channel, string>;
+    pickButton: string;
+    invalid: (channel: string) => string;
+    taken: (name: string) => string;
+    alreadyBound: (channel: string) => string;
+    self: string;
+    ownerOnly: string;
+    bound: (channel: string, name: string) => string;
+    hint: Record<Channel, string>;
+    cancel: string;
+    cancelled: string;
+  };
+}

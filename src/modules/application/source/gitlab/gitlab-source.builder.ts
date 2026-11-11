@@ -1,28 +1,26 @@
 import { Injectable } from '@nestjs/common';
-import type { DayRange } from 'src/common/interfaces/date.interface';
+import type { DayRange } from 'src/common/types/date.interface';
 import { isWithinDay } from 'src/common/utils/date.util';
-import { GitLabState } from 'src/modules/vendors/gitlab/gitlab.enums';
+import { GitLabState } from 'src/modules/vendors/gitlab/types/gitlab.enums';
+import type { GitLabEvent } from 'src/modules/vendors/gitlab/types/gitlab-event.interface';
 import type {
-  GitLabEvent,
   GitLabLabelEvent,
   GitLabNote,
-} from 'src/modules/vendors/gitlab/gitlab.interface';
+} from 'src/modules/vendors/gitlab/types/gitlab-history.interface';
+import type { CleanEvent, CleanLabelEvent, CleanNote } from '../types/source.interface';
 import type {
-  CleanEvent,
-  CleanLabelEvent,
-  CleanNote,
   GroupedDailyData,
   GroupedIssue,
   GroupedMergeRequest,
   StandalonePush,
-} from '../source.interface';
-import { SourceRefType } from '../source.enums';
+} from '../types/source-day.interface';
+import { SourceRefType } from '../types/source.enums';
 import {
   GITLAB_SOURCE_ITEM_STATES,
   GITLAB_SOURCE_LABEL_ACTIONS,
   GITLAB_SOURCE_REF_TYPES,
   GITLAB_SOURCE_WORK_ITEM_TYPES,
-} from './constants/gitlab-source.constants';
+} from './constants/gitlab-source-events.constants';
 import { GitLabSourceFacts } from './gitlab-source.facts';
 import { GitLabSourceHistory } from './gitlab-source.history';
 import { GitLabSourceNotes } from './gitlab-source.notes';
@@ -34,7 +32,7 @@ import type {
   SourceBuildContext,
   SourceEmployee,
   SourceEvents,
-} from './gitlab-source.interface';
+} from './types/gitlab-source.interface';
 
 @Injectable()
 export class GitLabSourceBuilder {

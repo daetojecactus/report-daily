@@ -8,8 +8,8 @@ import {
   TaskKind,
   TraitDimension,
   WorkflowState,
-} from '../trait.enums';
-import type { TraitIndex, TraitPair } from '../trait.interface';
+} from '../types/trait.enums';
+import type { TraitIndex, TraitPair } from '../types/trait.interface';
 import type { TraitRepository } from '../trait.repository';
 import { TraitService } from '../trait.service';
 import type { TraitNameService } from '../trait-name/trait-name.service';

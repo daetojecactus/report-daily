@@ -1,12 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { GitLabRefType, GitLabTargetType } from 'src/modules/vendors/gitlab/gitlab.enums';
-import type { GitLabEvent } from 'src/modules/vendors/gitlab/gitlab.interface';
+import { GitLabRefType, GitLabTargetType } from 'src/modules/vendors/gitlab/types/gitlab.enums';
+import type { GitLabEvent } from 'src/modules/vendors/gitlab/types/gitlab-event.interface';
 import {
   GITLAB_SOURCE_ISSUE_TARGET_TYPES,
   GITLAB_SOURCE_KNOWN_EVENTS,
   GITLAB_SOURCE_PROJECT_TARGET_TYPES,
   GITLAB_SOURCE_REF_TYPES,
-} from './constants/gitlab-source.constants';
+} from './constants/gitlab-source-events.constants';
 import { GitLabSourceMessages } from './constants/gitlab-source.messages';
 import type {
   SourceBranch,
@@ -15,7 +15,7 @@ import type {
   SourceItem,
   SourceRef,
   SourceTarget,
-} from './gitlab-source.interface';
+} from './types/gitlab-source.interface';
 import { GitLabSourceKeys } from './gitlab-source.keys';
 
 @Injectable()

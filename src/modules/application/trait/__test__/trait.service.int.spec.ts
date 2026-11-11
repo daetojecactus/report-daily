@@ -3,9 +3,9 @@ import { eq } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { toSourceKey } from 'src/common/utils/source-name.util';
-import { JobRole } from 'src/modules/application/user/user.enums';
+import { JobRole } from 'src/modules/application/user/types/user.enums';
 import { DATABASE_INSTANCE } from 'src/modules/infrastructure/database/constants/database.constants';
-import { Source } from 'src/modules/application/source/source.enums';
+import { Source } from 'src/modules/application/source/types/source.enums';
 import { createTestApp } from 'test/setup/test-app';
 import {
   TraitDimension,
@@ -15,8 +15,8 @@ import {
   TaskFlag,
   TaskKind,
   WorkflowState,
-} from '../trait.enums';
-import type { TraitMappingInsert, TraitValue } from '../trait.interface';
+} from '../types/trait.enums';
+import type { TraitMappingInsert, TraitValue } from '../types/trait.interface';
 import { TraitModule } from '../trait.module';
 import { traitMappings } from '../trait.schema';
 import { TraitService } from '../trait.service';

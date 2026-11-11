@@ -1,13 +1,14 @@
 import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
-import { Channel, ChatInputType } from 'src/common/enums/channel.enums';
-import { ChatUnreachableError } from 'src/common/errors/chat-unreachable.error';
-import { Language } from 'src/modules/application/i18n/i18n.enums';
+import { Channel } from 'src/common/channel/types/channel.enums';
+import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
+import { ChatUnreachableError } from 'src/common/channel/chat-unreachable.error';
+import { Language } from 'src/modules/application/i18n/types/i18n.enums';
 import type {
   ChatCommand,
   ChatEvent,
   ChatInput,
   Screen,
-} from 'src/common/interfaces/chat-channel.interface';
+} from 'src/common/channel/types/chat-channel.interface';
 import type { TelegramClient } from '../telegram.client';
 import { TelegramRejectedError, TelegramRetryableError } from '../telegram.error';
 import { TelegramFormatter } from '../telegram.formatter';
@@ -16,7 +17,7 @@ import type {
   TelegramMessage,
   TelegramUpdate,
   TelegramUser,
-} from '../telegram.interface';
+} from '../types/telegram.interface';
 import { TelegramRenderer } from '../telegram.renderer';
 import type { TelegramRepository } from '../telegram.repository';
 import { TelegramService } from '../telegram.service';

@@ -1,16 +1,16 @@
 import { Injectable } from '@nestjs/common';
-import { ChatInputType } from 'src/common/enums/channel.enums';
-import type { ScreenButton } from 'src/common/interfaces/chat-channel.interface';
+import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
+import type { ScreenButton } from 'src/common/channel/types/chat-channel.interface';
 import { escapeMarkdown } from 'src/common/utils/markdown.util';
-import type { Locale } from 'src/modules/application/i18n/i18n.interface';
-import { Permission, UserStatus } from 'src/modules/application/user/user.enums';
-import type { User } from 'src/modules/application/user/user.interface';
+import type { Locale } from 'src/modules/application/i18n/types/i18n.interface';
+import { Permission, UserStatus } from 'src/modules/application/user/types/user.enums';
+import type { User } from 'src/modules/application/user/types/user.interface';
 import { UserService } from 'src/modules/application/user/user.service';
 import { ADMIN_MENU_DATA } from '../admin/constants/admin.constants';
-import { BotSection } from '../bot.decorator';
-import { BotNamespace } from '../bot.enums';
-import type { BotContext, BotHandler, BotReply } from '../bot.interface';
-import { BOT_BUTTON_DATA_SEPARATOR } from '../constants/bot.constants';
+import { BotSection } from '../core/bot.decorator';
+import { BotNamespace } from '../core/types/bot.enums';
+import type { BotContext, BotHandler, BotReply } from '../core/types/bot.interface';
+import { BOT_BUTTON_DATA_SEPARATOR } from '../core/constants/bot.constants';
 import {
   EMPLOYEES_BUTTON_SCHEMA,
   EMPLOYEES_ITEM_SEPARATOR,
@@ -19,9 +19,9 @@ import {
   EMPLOYEES_SEARCH_LIMIT,
   EMPLOYEES_USERNAME_PREFIX,
 } from './constants/employees.constants';
-import { EmployeeAddAction } from '../employee-add/employee-add.enums';
+import { EmployeeAddAction } from './add/types/employee-add.enums';
 import { EmployeesCard } from './employees.card';
-import { EmployeesAction, EmployeesStep } from './employees.enums';
+import { EmployeesAction, EmployeesStep } from './types/employees.enums';
 
 @Injectable()
 @BotSection({ access: Permission.USERS, namespace: BotNamespace.EMPLOYEES })

@@ -1,7 +1,7 @@
-import { Channel } from 'src/common/enums/channel.enums';
-import { ReportStatus } from 'src/modules/application/report/report.enums';
-import { Permission } from 'src/modules/application/user/user.enums';
-import type { EmployeesLocale } from '../../i18n.interface';
+import { Channel } from 'src/common/channel/types/channel.enums';
+import { ReportStatus } from 'src/modules/application/report/types/report.enums';
+import { Permission } from 'src/modules/application/user/types/user.enums';
+import type { EmployeesLocale } from '../../types/i18n-employees.interface';
 
 export const enEmployees: EmployeesLocale = {
   employees: {
@@ -121,6 +121,8 @@ export const enEmployees: EmployeesLocale = {
     invalid: (channel) => `This does not look like a ${channel} ID.`,
     taken: (name) => `This account is already bound to **${name}**. Enter another ID.`,
     alreadyBound: (channel) => `The employee already has ${channel} bound.`,
+    self: 'You cannot bind your own channel — the owner does it.',
+    ownerOnly: 'Only the owner can bind a channel of an employee with permissions.',
     bound: (channel, name) => `${channel} bound: **${name}**.`,
     hint: {
       [Channel.TELEGRAM]:

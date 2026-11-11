@@ -4,8 +4,8 @@ import { createdAt, primaryId, updatedAt } from '../../infrastructure/database/d
 import { jobRole } from '../user/user.schema';
 import { source } from '../user/user-source/user-source.schema';
 import { TRAIT_DICTIONARY, TRAIT_SOURCE_NAME_MAX_LENGTH } from './constants/trait.constants';
-import { TraitDimension } from './trait.enums';
-import type { TraitValue } from './trait.interface';
+import { TraitDimension } from './types/trait.enums';
+import type { TraitValue } from './types/trait.interface';
 
 export const traitDimension = pgEnum('trait_dimension', TraitDimension);
 

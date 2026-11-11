@@ -2,21 +2,26 @@ import type { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { eq } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
-import { Channel } from 'src/common/enums/channel.enums';
-import { Gender, JobRole, Permission, UserStatus } from 'src/modules/application/user/user.enums';
-import { Language } from 'src/modules/application/i18n/i18n.enums';
+import { Channel } from 'src/common/channel/types/channel.enums';
+import {
+  Gender,
+  JobRole,
+  Permission,
+  UserStatus,
+} from 'src/modules/application/user/types/user.enums';
+import { Language } from 'src/modules/application/i18n/types/i18n.enums';
 import { en } from 'src/modules/application/i18n/locales/en.locale';
 import { ru } from 'src/modules/application/i18n/locales/ru.locale';
 import { userChannels } from 'src/modules/application/user/channel/channel.schema';
-import type { UserInsert } from 'src/modules/application/user/user.interface';
+import type { UserInsert } from 'src/modules/application/user/types/user.interface';
 import { users } from 'src/modules/application/user/user.schema';
 import { userSources } from 'src/modules/application/user/user-source/user-source.schema';
-import { Source } from 'src/modules/application/source/source.enums';
+import { Source } from 'src/modules/application/source/types/source.enums';
 import { traitMappings } from 'src/modules/application/trait/trait.schema';
-import { ReportStatus } from 'src/modules/application/report/report.enums';
+import { ReportStatus } from 'src/modules/application/report/types/report.enums';
 import { reports } from 'src/modules/application/report/report.schema';
 import { settings } from 'src/modules/application/settings/settings.schema';
-import { TraitDimension, Priority } from 'src/modules/application/trait/trait.enums';
+import { TraitDimension, Priority } from 'src/modules/application/trait/types/trait.enums';
 import { DATABASE_INSTANCE } from 'src/modules/infrastructure/database/constants/database.constants';
 import { RedisService } from 'src/modules/infrastructure/redis/redis.service';
 import { TEST_OWNER_TELEGRAM_ID } from 'test/setup/env';

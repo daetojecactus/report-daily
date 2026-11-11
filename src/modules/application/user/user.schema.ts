@@ -10,8 +10,8 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core';
 import { reportTemplates } from '../report/template/template.schema';
-import { Language } from '../i18n/i18n.enums';
-import { Gender, JobRole, Permission, UserStatus } from './user.enums';
+import { Language } from '../i18n/types/i18n.enums';
+import { Gender, JobRole, Permission, UserStatus } from './types/user.enums';
 import { createdAt, primaryId, updatedAt } from '../../infrastructure/database/database.columns';
 import {
   USER_DEFAULT_REPORT_TIME,
