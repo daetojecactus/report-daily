@@ -78,7 +78,9 @@ export class AdminSettingsHandler implements BotHandler {
       case AdminSettingsAction.AI:
       case AdminSettingsAction.AI_COMMITS:
       case AdminSettingsAction.AI_COMMENTS:
-        return this.switchAi(actor, locale, today, button.data.action, button.data.isOn);
+        return this.aiService.isEnabled()
+          ? this.switchAi(actor, locale, today, button.data.action, button.data.isOn)
+          : { screen: { text: locale.bot.expired } };
     }
   }
 

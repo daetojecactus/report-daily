@@ -5,6 +5,7 @@ import type { ChatChannel, Screen } from 'src/common/channel/types/chat-channel.
 import { toTimeZone } from 'src/common/utils/time-zone.util';
 import type { Language } from 'src/modules/application/i18n/types/i18n.enums';
 import type { Locale } from 'src/modules/application/i18n/types/i18n.interface';
+import { AiService } from 'src/modules/application/ai/ai.service';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
 import { ChannelService } from 'src/modules/application/user/channel/channel.service';
 import type { User, UserSettingsUpdate } from 'src/modules/application/user/types/user.interface';
@@ -32,6 +33,7 @@ export class SettingsHandler implements BotHandler {
     private readonly i18nService: I18nService,
     private readonly settingsView: SettingsView,
     @Inject(BOT_CHANNELS) private readonly channels: ChatChannel[],
+    private readonly aiService: AiService,
   ) {}
 
   async handle({ actor, input, dialog, locale }: BotContext): Promise<BotReply> {
@@ -79,13 +81,13 @@ export class SettingsHandler implements BotHandler {
           scheduleEnabled: button.data.isOn,
         });
       case SettingsAction.AI:
-        return this.save(locale, user, actor.language, {
-          aiEnabled: button.data.isOn,
-        });
+        return this.aiService.isEnabled()
+          ? this.save(locale, user, actor.language, { aiEnabled: button.data.isOn })
+          : { screen: { text: locale.bot.expired } };
       case SettingsAction.AI_DATA:
-        return this.save(locale, user, actor.language, {
-          aiDataOptOut: !button.data.isOn,
-        });
+        return this.aiService.isEnabled()
+          ? this.save(locale, user, actor.language, { aiDataOptOut: !button.data.isOn })
+          : { screen: { text: locale.bot.expired } };
       case SettingsAction.RECEIVE:
         return this.saveReceiving(
           locale,
@@ -109,7 +111,16 @@ export class SettingsHandler implements BotHandler {
       channel,
       isOn: receiving.some((item) => item.channel === channel),
     }));
-    return this.reply(this.settingsView.toMenu(locale, user, language, channels, notice));
+    return this.reply(
+      this.settingsView.toMenu(
+        locale,
+        user,
+        language,
+        channels,
+        this.aiService.isEnabled(),
+        notice,
+      ),
+    );
   }
 
   private async saveLanguage(user: User, language: Language) {

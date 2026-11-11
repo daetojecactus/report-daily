@@ -191,6 +191,13 @@ describe('AdminSettingsHandler', () => {
     });
   });
 
+  it('refuses an AI switch while AI is not set up', async () => {
+    aiService.isEnabled.mockReturnValue(false);
+
+    expect(await open(button('aset:ai:off'))).toEqual({ screen: { text: locale.bot.expired } });
+    expect(repository.upsert).not.toHaveBeenCalled();
+  });
+
   it.each([
     ['aset:ai:off', { aiEnabled: false }, 'AI for everyone: no'],
     ['aset:aicommits:off', { aiSendCommits: false }, 'Commits in AI: no'],

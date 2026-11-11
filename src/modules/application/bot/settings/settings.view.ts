@@ -40,13 +40,18 @@ export class SettingsView {
     user: User,
     language: Language,
     channels: SettingsChannelState[],
+    isAiEnabled: boolean,
     notice?: string,
   ): Screen {
     const { settings } = locale;
     const switches = [
       { action: SettingsAction.SCHEDULE, text: settings.schedule, isOn: user.scheduleEnabled },
-      { action: SettingsAction.AI, text: settings.ai, isOn: user.aiEnabled },
-      { action: SettingsAction.AI_DATA, text: settings.aiData, isOn: !user.aiDataOptOut },
+      ...(isAiEnabled
+        ? [
+            { action: SettingsAction.AI, text: settings.ai, isOn: user.aiEnabled },
+            { action: SettingsAction.AI_DATA, text: settings.aiData, isOn: !user.aiDataOptOut },
+          ]
+        : []),
     ];
     const hasChoice = channels.length > 1;
     const channelButtons = channels.map(({ channel, isOn }) => ({
