@@ -48,3 +48,15 @@ export const AI_LEAD_PATTERN = /^(?:>\s*|#+\s*|[-•]\s*|\[[^\]]+\]\s*)+/;
 export const AI_SPACES_PATTERN = /\s+/g;
 
 export const AI_FINAL_PERIOD_PATTERN = /\.+$/;
+
+export const AI_WORD_PATTERN = /\p{L}+/gu;
+
+export const AI_STEM_MIN_WORD = 4;
+
+export const AI_STEM_CUT = 2;
+
+export const AI_COLON = ':';
+
+export const AI_QUOTE_PATTERN = /[«"“]/;
+
+export const AI_COLON_WINDOW = 20;

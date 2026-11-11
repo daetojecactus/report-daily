@@ -8,8 +8,8 @@ import {
   SourceRefType,
 } from 'src/modules/application/source/types/source.enums';
 import { Gender, JobRole } from 'src/modules/application/user/types/user.enums';
-import { ActivityAction } from '../../activity/types/activity.enums';
-import type { ActivityLine } from '../../activity/types/activity.interface';
+import { ActivityAction, ActivityDetail } from '../../activity/types/activity.enums';
+import type { ActivityCandidate, ActivityLine } from '../../activity/types/activity.interface';
 import {
   at,
   choose,
@@ -26,7 +26,7 @@ import {
   toSignals,
 } from '../../activity/__test__/activity.fixture';
 import { PHRASE_RULES } from '../constants/phrase-rules.constants';
-import { ReportPhrase } from '../types/phrase.enums';
+import { PhraseContext, ReportPhrase } from '../types/phrase.enums';
 import { PhraseService } from '../phrase.service';
 
 function describeLine(
@@ -114,6 +114,24 @@ describe('PhraseService', () => {
     expect(describeLine(mergedBug(), { language: Language.EN })).toBe(
       'Fixed a bug after testing "Issue 12"',
     );
+  });
+
+  it('does not tell after what it came when a part of the action already says it', () => {
+    const part = (action: ActivityAction) => ({ action }) as ActivityCandidate;
+    const merged = {
+      action: ActivityAction.MERGED_OTHER,
+      details: [ActivityDetail.AFTER_APPROVAL],
+      parts: [] as ActivityCandidate[],
+    } as ActivityCandidate;
+    const service = new PhraseService();
+
+    expect(service.findContext(merged)).toBe(PhraseContext.AFTER_APPROVAL);
+    expect(
+      service.findContext({
+        ...merged,
+        parts: [part(ActivityAction.APPROVED), part(ActivityAction.MERGED_OTHER)],
+      }),
+    ).toBeNull();
   });
 
   it('takes an urgent merge request without a task for a hotfix', () => {

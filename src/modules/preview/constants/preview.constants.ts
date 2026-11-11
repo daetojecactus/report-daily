@@ -9,6 +9,8 @@ export const PREVIEW_LANGUAGE_FLAG = '--lang=';
 
 export const PREVIEW_AI_FLAG = '--ai';
 
+export const PREVIEW_AI_COMMENTS_FLAG = '--ai-comments';
+
 export const PREVIEW_EMPTY_REPORT = '(no lines for the report)';
 
 export const PREVIEW_REASONS: Record<ActivityReason, string> = {
