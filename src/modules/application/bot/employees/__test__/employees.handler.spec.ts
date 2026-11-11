@@ -205,6 +205,7 @@ describe('EmployeesHandler', () => {
       ].join('\n'),
       buttons: [
         [{ text: 'Report now', data: `mng:report:${user.id}` }],
+        [{ text: 'Unbind Telegram', data: `bind:unbind:${user.id}:telegram` }],
         [{ text: 'Change role', data: `mng:role:${user.id}` }],
         [{ text: 'Remove admin', data: `mng:noadmin:${user.id}` }],
         [
@@ -274,7 +275,10 @@ describe('EmployeesHandler', () => {
     expect(
       (await open(button(`emp:card:${user.id}:3`), null, { channel: Channel.SLACK })).screen
         .buttons,
-    ).toContainEqual([{ text: 'Bind Slack', data: `bind:start:${user.id}:slack` }]);
+    ).toContainEqual([
+      { text: 'Bind Slack', data: `bind:start:${user.id}:slack` },
+      { text: 'Unbind Telegram', data: `bind:unbind:${user.id}:telegram` },
+    ]);
   });
 
   it('offers to unblock a blocked employee', async () => {
@@ -284,7 +288,7 @@ describe('EmployeesHandler', () => {
 
     const { screen } = await open(button(`emp:card:${user.id}:0`));
 
-    expect(screen.buttons?.[2]).toEqual([
+    expect(screen.buttons).toContainEqual([
       { text: 'Unblock', data: `mng:unblock:${user.id}` },
       { text: 'Delete', data: `mng:delete:${user.id}` },
     ]);
@@ -299,6 +303,7 @@ describe('EmployeesHandler', () => {
 
     expect(screen.buttons).toEqual([
       [{ text: 'Report now', data: `mng:report:${user.id}` }],
+      [{ text: 'Unbind Telegram', data: `bind:unbind:${user.id}:telegram` }],
       [{ text: 'Change role', data: `mng:role:${user.id}` }],
       [{ text: 'To the list', data: 'emp:list:0' }],
     ]);

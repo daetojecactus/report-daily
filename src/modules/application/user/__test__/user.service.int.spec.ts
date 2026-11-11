@@ -456,6 +456,31 @@ describe('User module', () => {
       expect((await findUser(user.id)).status).toBe(UserStatus.PENDING);
       expect(await channelService.findByUser(user.id)).toEqual([]);
     });
+
+    it('unbinds a channel and sends an active user without channels back to pending', async () => {
+      const user = await insertUser({ status: UserStatus.ACTIVE });
+      await userService.bindChannel(user.id, Channel.TELEGRAM, String(nextId++));
+      await userService.bindChannel(user.id, Channel.SLACK, `U0UNBIND${nextId++}`);
+
+      expect(await userService.unbindChannel(user.id, Channel.SLACK)).toMatchObject({
+        channel: Channel.SLACK,
+      });
+      expect((await findUser(user.id)).status).toBe(UserStatus.ACTIVE);
+      expect(await userService.unbindChannel(user.id, Channel.SLACK)).toBeNull();
+
+      await userService.unbindChannel(user.id, Channel.TELEGRAM);
+      expect((await findUser(user.id)).status).toBe(UserStatus.PENDING);
+      expect(await channelService.findByUser(user.id)).toEqual([]);
+    });
+
+    it('keeps a blocked user blocked when the last channel is unbound', async () => {
+      const user = await insertUser({ status: UserStatus.BLOCKED });
+      await userService.bindChannel(user.id, Channel.TELEGRAM, String(nextId++));
+
+      await userService.unbindChannel(user.id, Channel.TELEGRAM);
+
+      expect((await findUser(user.id)).status).toBe(UserStatus.BLOCKED);
+    });
   });
 
   describe('ChannelService', () => {

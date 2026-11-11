@@ -89,6 +89,11 @@ export interface EmployeesLocale {
     alreadyBound: (channel: string) => string;
     bound: (channel: string, name: string) => string;
     hint: Record<Channel, string>;
+    unbind: (channel: string) => string;
+    confirmUnbind: (channel: string, name: string) => string;
+    confirmUnbindButton: string;
+    unbound: (channel: string, name: string) => string;
+    notBound: (channel: string) => string;
     cancel: string;
     cancelled: string;
   };

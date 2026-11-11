@@ -119,6 +119,12 @@ export const enEmployees: EmployeesLocale = {
       [Channel.SLACK]:
         'The bot writes to the employee in Slack direct messages itself; they do not need to do anything.',
     },
+    unbind: (channel) => `Unbind ${channel}`,
+    confirmUnbind: (channel, name) =>
+      `Unbind ${channel} from **${name}**? Reports and broadcasts stop going there, and the bot stops answering the employee there.`,
+    confirmUnbindButton: 'Yes, unbind',
+    unbound: (channel, name) => `${channel} unbound from **${name}**.`,
+    notBound: (channel) => `The employee has no ${channel} bound.`,
     cancel: 'Cancel',
     cancelled: 'Binding cancelled.',
   },

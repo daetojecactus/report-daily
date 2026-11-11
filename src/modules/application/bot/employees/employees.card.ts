@@ -122,7 +122,10 @@ export class EmployeesCard {
         },
       ]);
     }
-    const bindButtons = this.toBindButtons(locale, user.id, channels);
+    const bindButtons = [
+      ...this.toBindButtons(locale, user.id, channels),
+      ...this.toUnbindButtons(locale, user.id, channels),
+    ];
     if (bindButtons.length > 0) {
       actions.push(bindButtons);
     }
@@ -200,6 +203,20 @@ export class EmployeesCard {
         data: this.toSectionData(
           BotNamespace.EMPLOYEE_BIND,
           EmployeeBindAction.START,
+          userId,
+          channel,
+        ),
+      }));
+  }
+
+  private toUnbindButtons(locale: Locale, userId: string, bound: UserChannel[]): ScreenButton[] {
+    return this.channels
+      .filter(({ channel }) => bound.some((item) => item.channel === channel))
+      .map(({ channel }) => ({
+        text: locale.employeeBind.unbind(locale.channels[channel]),
+        data: this.toSectionData(
+          BotNamespace.EMPLOYEE_BIND,
+          EmployeeBindAction.UNBIND,
           userId,
           channel,
         ),

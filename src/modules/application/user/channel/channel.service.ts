@@ -29,6 +29,10 @@ export class ChannelService {
     return this.channelRepository.deleteOne(filter);
   }
 
+  deleteByUser(userId: string, channel: Channel) {
+    return this.deleteOne(and(eq(userChannels.userId, userId), eq(userChannels.channel, channel))!);
+  }
+
   findByUser(userId: string) {
     return this.find(eq(userChannels.userId, userId));
   }

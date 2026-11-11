@@ -119,6 +119,12 @@ export const ruEmployees: EmployeesLocale = {
       [Channel.SLACK]:
         'Бот сам пишет сотруднику в личные сообщения Slack, ему ничего делать не нужно.',
     },
+    unbind: (channel) => `Отвязать ${channel}`,
+    confirmUnbind: (channel, name) =>
+      `Отвязать ${channel} от **${name}**? Отчёты и рассылки туда больше не придут, а бот перестанет отвечать там сотруднику.`,
+    confirmUnbindButton: 'Да, отвязать',
+    unbound: (channel, name) => `${channel} отвязан от **${name}**.`,
+    notBound: (channel) => `У сотрудника не привязан ${channel}.`,
     cancel: 'Отмена',
     cancelled: 'Привязка отменена.',
   },
