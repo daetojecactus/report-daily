@@ -1,3 +1,5 @@
+export const SLACK_URL_TRAILING_SLASH = '/';
+
 export const SLACK_RETRIES = 2;
 
 export const SLACK_UNREACHABLE_ERRORS = [

@@ -170,6 +170,7 @@ Redis holds only short-lived state: open dialogs, queued messages and caches. It
 | `TELEGRAM_API_URL` | no | `https://api.telegram.org` | Bot API server, for example a self-hosted `telegram-bot-api` |
 | `SLACK_BOT_TOKEN` | for Slack | | Bot token `xoxb-…`, see [Slack](#slack). Set together with `SLACK_APP_TOKEN` and `OWNER_SLACK_IDS` |
 | `SLACK_APP_TOKEN` | for Slack | | App-level token `xapp-…` with the `connections:write` scope |
+| `SLACK_API_URL` | no | `https://slack.com/api/` | Address of the Slack Web API, for another Slack deployment |
 | `OWNER_SLACK_IDS` | for Slack | | Slack member IDs of the owners, comma-separated |
 | `GITLAB_URL` | yes | | GitLab address without `/api/v4`, for example `https://gitlab.example.com` |
 | `GITLAB_TOKEN` | yes | | Token of a GitLab service account with the `read_api` and `read_user` scopes |

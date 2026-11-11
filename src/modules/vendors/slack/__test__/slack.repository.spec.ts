@@ -10,7 +10,7 @@ const CONTENT = { text: 'Report', blocks: [] };
 
 describe('SlackRepository', () => {
   const client = new SlackClient({
-    get: () => 'xoxb-test',
+    get: (key: string) => (key === 'SLACK_API_URL' ? 'https://slack.com/api' : 'xoxb-test'),
   } as unknown as ConfigService<AppEnvs, true>);
   const repository = new SlackRepository(client);
   const postMessage = vi.spyOn(client.instance!.chat, 'postMessage');
@@ -33,6 +33,10 @@ describe('SlackRepository', () => {
     postMessage.mockRejectedValueOnce(network);
 
     await expect(repository.postMessage('D100', CONTENT)).rejects.toBe(network);
+  });
+
+  it('adds the trailing slash the Slack client needs to the API address', () => {
+    expect(client.apiUrl).toBe('https://slack.com/api/');
   });
 
   it('reads the locale of a member profile', async () => {

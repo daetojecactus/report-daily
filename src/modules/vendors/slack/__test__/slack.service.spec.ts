@@ -12,7 +12,9 @@ import { SlackService } from '../slack.service';
 const SCREEN = { text: 'Report', buttons: [[{ text: 'Rebuild', data: 'rpt:rebuild:2026-11-10' }]] };
 
 function client(token?: string) {
-  return new SlackClient({ get: () => token } as unknown as ConfigService<AppEnvs, true>);
+  return new SlackClient({
+    get: (key: string) => (key === 'SLACK_API_URL' ? 'https://slack.com/api/' : token),
+  } as unknown as ConfigService<AppEnvs, true>);
 }
 
 function rejected(code: string) {

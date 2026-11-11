@@ -20,6 +20,7 @@ import {
   LLM_ENV_KEYS,
   SLACK_APP_TOKEN_PATTERN,
   SLACK_BOT_TOKEN_PATTERN,
+  SLACK_DEFAULT_API_URL,
   SLACK_ENV_KEYS,
   TELEGRAM_DEFAULT_API_URL,
   TELEGRAM_ENV_KEYS,
@@ -110,6 +111,9 @@ export class AppEnvs {
   @ValidateIf(hasSlackEnv)
   @Matches(SLACK_APP_TOKEN_PATTERN)
   SLACK_APP_TOKEN?: string;
+
+  @IsUrl(ENV_URL_OPTIONS)
+  SLACK_API_URL: string = SLACK_DEFAULT_API_URL;
 
   @Transform(toList)
   @ValidateIf(hasSlackEnv)
