@@ -87,7 +87,7 @@ The bot reads GitLab and never writes to it.
 
 ### Telegram
 
-The bot polls Telegram, sets its command menu itself and answers only in private chats. A person without access gets their Telegram ID in the bot's reply, ready to pass to an admin; an owner can learn their own ID the same way.
+The bot polls Telegram, keeps each person's command menu in line with their access and answers only in private chats. It does not answer people who are not employees and shows them no menu; it writes their ID to the log, so an owner learns their own ID by writing to the bot and reading the log. Employees are bound by picking them in Telegram, no ID needed.
 
 ### Slack
 
@@ -108,7 +108,7 @@ Without AI the bot writes every line itself. With AI the model rewords the lines
 
 | Command | Who | What |
 | --- | --- | --- |
-| `/start` | everyone | Greeting; a person without access gets their ID |
+| `/start` | employees and owners | Greeting |
 | `/report` | employees | The report of today or one of the last 14 days, with "Rebuild" |
 | `/settings` | employees | Language, report time and time zone, gender, scheduled report, AI, report template, channels |
 | `/admin` | owners and admins | Management: everything for owners, shared templates for admins |

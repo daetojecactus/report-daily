@@ -1,13 +1,14 @@
+import { getQueueToken } from '@nestjs/bullmq';
 import type { NestFastifyApplication } from '@nestjs/platform-fastify';
+import type { Queue } from 'bullmq';
 import { eq } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Channel } from 'src/common/channel/types/channel.enums';
 import { DeliveryStatus } from 'src/modules/application/delivery/types/delivery.enums';
 import { deliveries } from 'src/modules/application/delivery/delivery.schema';
 import { DeliveryService } from 'src/modules/application/delivery/delivery.service';
 import { Language } from 'src/modules/application/i18n/types/i18n.enums';
-import { I18nService } from 'src/modules/application/i18n/i18n.service';
 import { ReportStatus } from 'src/modules/application/report/types/report.enums';
 import { reports } from 'src/modules/application/report/report.schema';
 import { userChannels } from 'src/modules/application/user/channel/channel.schema';
@@ -15,8 +16,10 @@ import { Gender, JobRole, UserStatus } from 'src/modules/application/user/types/
 import { users } from 'src/modules/application/user/user.schema';
 import { DATABASE_INSTANCE } from 'src/modules/infrastructure/database/constants/database.constants';
 import { DeliveryQueueProducer } from 'src/modules/queue/delivery/delivery-queue.producer';
-import { SlackFormatter } from 'src/modules/vendors/slack/slack.formatter';
-import { SlackRenderer } from 'src/modules/vendors/slack/slack.renderer';
+import {
+  INBOUND_QUEUE,
+  INBOUND_SLACK_JOB_ID_PREFIX,
+} from 'src/modules/queue/inbound/constants/inbound-queue.constants';
 import { SlackSocket } from 'src/modules/vendors/slack/slack.socket';
 import { fakeSlackApi } from 'test/setup/fake-slack-api';
 import { createTestApp } from 'test/setup/test-app';
@@ -28,8 +31,6 @@ const SLACK_ENV = {
   OWNER_SLACK_IDS: 'U0OWNER01',
 };
 const WAIT_MS = 15_000;
-const ru = new I18nService().getLocale(Language.RU);
-const renderer = new SlackRenderer(new SlackFormatter());
 
 describe('Slack', () => {
   let app: NestFastifyApplication;
@@ -129,23 +130,39 @@ describe('Slack', () => {
     expect(reply.unfurl_links).toBe('false');
   });
 
-  it('answers a stranger in the language of the Slack profile', async () => {
+  it('answers an employee without a language in the language of the Slack profile', async () => {
     const memberId = nextMemberId();
+    const user = await addEmployee(memberId);
+    await db.update(users).set({ language: null }).where(eq(users.id, user.id));
     await fakeSlackApi.setLocale(memberId, 'ru-RU');
 
-    await message(memberId, 'hi');
+    await message(memberId, 'help');
 
     const reply = await fakeSlackApi.waitForRequest(
       'chat.postMessage',
       (body) => body.channel === `D${memberId}`,
     );
-    expect(reply.text).toBe(
-      renderer.render({ text: ru.bot.noAccess(ru.channels.slack, memberId) }).text,
-    );
+    expect(String(reply.text)).toContain('*Команды*');
     expect(await fakeSlackApi.requests()).toContainEqual({
       method: 'users.info',
       body: expect.objectContaining({ user: memberId, include_locale: 'true' }) as object,
     });
+  });
+
+  it('stays silent to a person who is not an employee', async () => {
+    const memberId = nextMemberId();
+    const jobId = `${INBOUND_SLACK_JOB_ID_PREFIX}Ev${nextEvent}`;
+
+    await message(memberId, 'hi');
+
+    const queue = app.get<Queue>(getQueueToken(INBOUND_QUEUE));
+    await vi.waitFor(
+      async () => {
+        expect(await queue.getJobState(jobId)).toBe('completed');
+      },
+      { timeout: WAIT_MS },
+    );
+    expect(JSON.stringify(await fakeSlackApi.requests())).not.toContain(memberId);
   });
 
   it('delivers a report to the Slack of the employee and marks the delivery sent', async () => {

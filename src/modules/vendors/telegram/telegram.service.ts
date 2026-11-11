@@ -24,6 +24,7 @@ import { TelegramRejectedError } from './telegram.error';
 import type {
   TelegramCallbackQuery,
   TelegramChat,
+  TelegramCommandScope,
   TelegramMessage,
   TelegramUpdate,
   TelegramUser,
@@ -115,19 +116,23 @@ export class TelegramService implements ChatChannel {
   }
 
   async setDefaultCommands(commands: ChatCommand[], languageCode: string | null) {
-    await this.telegramRepository.setMyCommands(
-      commands,
-      { type: TelegramScopeType.ALL_PRIVATE_CHATS },
-      languageCode,
-    );
+    await this.setCommands(commands, { type: TelegramScopeType.ALL_PRIVATE_CHATS }, languageCode);
   }
 
   async setChatCommands(chatId: string, commands: ChatCommand[]) {
-    await this.telegramRepository.setMyCommands(
-      commands,
-      { type: TelegramScopeType.CHAT, chat_id: chatId },
-      null,
-    );
+    await this.setCommands(commands, { type: TelegramScopeType.CHAT, chat_id: chatId }, null);
+  }
+
+  private async setCommands(
+    commands: ChatCommand[],
+    scope: TelegramCommandScope,
+    languageCode: string | null,
+  ) {
+    if (commands.length === 0) {
+      await this.telegramRepository.deleteMyCommands(scope, languageCode);
+      return;
+    }
+    await this.telegramRepository.setMyCommands(commands, scope, languageCode);
   }
 
   private async reachChat<T>(call: () => Promise<T>) {

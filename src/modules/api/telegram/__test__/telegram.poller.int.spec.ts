@@ -1,8 +1,14 @@
+import { getQueueToken } from '@nestjs/bullmq';
 import { Logger } from '@nestjs/common';
 import type { NestFastifyApplication } from '@nestjs/platform-fastify';
+import type { Queue } from 'bullmq';
 import { Redis } from 'ioredis';
 import { afterAll, beforeAll, describe, expect, inject, it, onTestFinished, vi } from 'vitest';
 import { RedisService } from 'src/modules/infrastructure/redis/redis.service';
+import {
+  INBOUND_QUEUE,
+  INBOUND_TELEGRAM_JOB_ID_PREFIX,
+} from 'src/modules/queue/inbound/constants/inbound-queue.constants';
 import type {
   TelegramChat,
   TelegramUser,
@@ -29,10 +35,6 @@ function startCommand(from: TelegramUser, chat: TelegramChat): FakeUpdate {
       entities: [{ type: 'bot_command', offset: 0, length: START_COMMAND.length }],
     },
   };
-}
-
-function replyTo(chatId: number) {
-  return fakeBotApi.waitForRequest('sendMessage', (body) => body.chat_id === String(chatId));
 }
 
 describe('TelegramPoller', () => {
@@ -63,16 +65,26 @@ describe('TelegramPoller', () => {
       );
     }
 
-    async function expectSkipped(update: FakeUpdate, chatId: number) {
+    function findJobState(updateId: number) {
+      return app
+        .get<Queue>(getQueueToken(INBOUND_QUEUE))
+        .getJobState(`${INBOUND_TELEGRAM_JOB_ID_PREFIX}${updateId}`);
+    }
+
+    async function waitHandled(updateId: number) {
+      await vi.waitFor(
+        async () => {
+          expect(await findJobState(updateId)).toBe('completed');
+        },
+        { timeout: 10_000 },
+      );
+    }
+
+    async function expectSkipped(update: FakeUpdate) {
       const updateId = await fakeBotApi.pushUpdate(update);
       await waitForOffset(updateId + 1);
 
-      const strangerId = nextTelegramId++;
-      await fakeBotApi.pushUpdate(privateMessage(strangerId, 'hello'));
-      await replyTo(strangerId);
-
-      const sent = await fakeBotApi.requests('sendMessage');
-      expect(sent.map(({ body }) => body.chat_id)).not.toContain(String(chatId));
+      expect(await findJobState(updateId)).toBe('unknown');
     }
 
     it('stores the next offset after handling an update', async () => {
@@ -80,7 +92,7 @@ describe('TelegramPoller', () => {
 
       const updateId = await fakeBotApi.pushUpdate(privateMessage(strangerId, 'hello'));
 
-      await replyTo(strangerId);
+      await waitHandled(updateId);
       await waitForOffset(updateId + 1);
     });
 
@@ -92,7 +104,6 @@ describe('TelegramPoller', () => {
           { id: userId, is_bot: false, first_name: 'Test' },
           { id: -userId, type: 'group' },
         ),
-        -userId,
       );
     });
 
@@ -104,7 +115,6 @@ describe('TelegramPoller', () => {
           { id: botId, is_bot: true, first_name: 'Bot' },
           { id: botId, type: 'private' },
         ),
-        botId,
       );
     });
 
@@ -127,9 +137,7 @@ describe('TelegramPoller', () => {
           { timeout: 15_000, interval: 100 },
         );
 
-        const strangerId = nextTelegramId++;
-        await fakeBotApi.pushUpdate(privateMessage(strangerId, 'hello'));
-        await replyTo(strangerId);
+        await waitHandled(await fakeBotApi.pushUpdate(privateMessage(nextTelegramId++, 'hello')));
         expect(await fakeBotApi.requests('deleteWebhook')).toHaveLength(1);
       },
     );

@@ -43,6 +43,13 @@ export class BotService {
 
   async handle(event: ChatEvent) {
     const actor = await this.resolveActor(event);
+    if (!actor) {
+      this.logger.log(
+        { channel: event.channel, userId: event.userId },
+        BotMessages.STRANGER_IGNORED,
+      );
+      return;
+    }
     const { screen, newMessage } = await this.dispatch(
       actor,
       event.input,
@@ -52,8 +59,12 @@ export class BotService {
   }
 
   async replyFailure(event: ChatEvent) {
+    const language = await this.findFailureLanguage(event);
+    if (!language) {
+      return;
+    }
     const channel = this.getChannel(event.channel);
-    const locale = this.i18nService.getLocale(await this.findFailureLanguage(event));
+    const locale = this.i18nService.getLocale(language);
     if (event.input.type === ChatInputType.BUTTON) {
       await channel.answerButton(event.input.callbackId);
     }
@@ -84,7 +95,7 @@ export class BotService {
 
   private async findFailureLanguage(event: ChatEvent) {
     try {
-      return (await this.resolveActor(event)).language;
+      return (await this.resolveActor(event))?.language ?? null;
     } catch (error) {
       this.logger.warn({ error: getErrorMessage(error) }, BotMessages.LANGUAGE_FAILED);
       return this.i18nService.resolveLanguage(event.languageCode);

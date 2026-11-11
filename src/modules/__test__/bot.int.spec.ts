@@ -1,4 +1,6 @@
+import { getQueueToken } from '@nestjs/bullmq';
 import type { NestFastifyApplication } from '@nestjs/platform-fastify';
+import type { Queue } from 'bullmq';
 import { eq } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
@@ -19,6 +21,10 @@ import { settings } from 'src/modules/application/settings/settings.schema';
 import { TraitDimension, Priority } from 'src/modules/application/trait/types/trait.enums';
 import { DATABASE_INSTANCE } from 'src/modules/infrastructure/database/constants/database.constants';
 import { RedisService } from 'src/modules/infrastructure/redis/redis.service';
+import {
+  INBOUND_QUEUE,
+  INBOUND_TELEGRAM_JOB_ID_PREFIX,
+} from 'src/modules/queue/inbound/constants/inbound-queue.constants';
 import { TEST_OWNER_TELEGRAM_ID } from 'test/setup/env';
 import { buttonPress, fakeBotApi, pickedUser, privateMessage } from 'test/setup/fake-bot-api';
 import { fakeGitLab } from 'test/setup/fake-gitlab';
@@ -77,53 +83,44 @@ describe('Telegram bot', () => {
     return fakeBotApi.waitForRequest('editMessageText', (body) => body.message_id === messageId);
   }
 
-  it('sets the default command menus on start', async () => {
+  it('clears the default command menus on start', async () => {
     const isDefault = (body: Record<string, unknown>) =>
       (body.scope as { type: string }).type === 'all_private_chats';
-    const russian = await fakeBotApi.waitForRequest(
-      'setMyCommands',
-      (body) => isDefault(body) && body.language_code === Language.RU,
-    );
-    const fallback = await fakeBotApi.waitForRequest(
-      'setMyCommands',
-      (body) => isDefault(body) && body.language_code === undefined,
-    );
 
-    expect(russian).toMatchObject({
-      scope: { type: 'all_private_chats' },
-      commands: [
-        { command: 'start', description: ru.commands.start },
-        { command: 'help', description: ru.commands.help },
-        { command: 'cancel', description: ru.commands.cancel },
-      ],
-    });
-    expect(fallback).toMatchObject({
-      scope: { type: 'all_private_chats' },
-      commands: [
-        { command: 'start', description: en.commands.start },
-        { command: 'help', description: en.commands.help },
-        { command: 'cancel', description: en.commands.cancel },
-      ],
-    });
+    expect(
+      await fakeBotApi.waitForRequest(
+        'deleteMyCommands',
+        (body) => isDefault(body) && body.language_code === Language.RU,
+      ),
+    ).toBeDefined();
+    expect(
+      await fakeBotApi.waitForRequest(
+        'deleteMyCommands',
+        (body) => isDefault(body) && body.language_code === undefined,
+      ),
+    ).toBeDefined();
   });
 
-  it('tells a stranger their id in their language', async () => {
+  it('stays silent to a person who is not an employee', async () => {
     const strangerId = nextTelegramId++;
+    const queue = app.get<Queue>(getQueueToken(INBOUND_QUEUE));
 
-    await fakeBotApi.pushUpdate(privateMessage(strangerId, '/start', 'ru'));
+    for (const text of ['/start', 'hello']) {
+      const updateId = await fakeBotApi.pushUpdate(privateMessage(strangerId, text, 'ru'));
+      await vi.waitFor(
+        async () => {
+          expect(await queue.getJobState(`${INBOUND_TELEGRAM_JOB_ID_PREFIX}${updateId}`)).toBe(
+            'completed',
+          );
+        },
+        { timeout: 10_000 },
+      );
+    }
 
-    const reply = await replyTo(strangerId);
-    expect(reply.parse_mode).toBe('HTML');
-    expect(reply.text).toContain('Нет доступа');
-    expect(reply.text).toContain(`<code>${strangerId}</code>`);
-  });
-
-  it('answers any message from a stranger with their id', async () => {
-    const strangerId = nextTelegramId++;
-
-    await fakeBotApi.pushUpdate(privateMessage(strangerId, 'hello'));
-
-    expect((await replyTo(strangerId)).text).toContain(`<code>${strangerId}</code>`);
+    const chats = (await fakeBotApi.requests())
+      .map(({ body }) => body.chat_id ?? (body.scope as { chat_id?: string } | undefined)?.chat_id)
+      .filter(Boolean);
+    expect(chats).not.toContain(String(strangerId));
   });
 
   it('greets an owner and sets the owner menu', async () => {

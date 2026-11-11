@@ -111,8 +111,9 @@ describe('BotService', () => {
   const userService = {
     findOneByChannel: vi.fn<() => Promise<UserWithChannel | null>>(),
     recordContact: vi.fn(),
+    find: vi.fn().mockResolvedValue([]),
   };
-  const channelService = { updateReachable: vi.fn() };
+  const channelService = { updateReachable: vi.fn(), find: vi.fn().mockResolvedValue([]) };
   const channel = {
     channel: Channel.TELEGRAM,
     sendScreen: vi.fn<ChatChannel['sendScreen']>(),
@@ -173,52 +174,45 @@ describe('BotService', () => {
     return found;
   }
 
-  it('sets the default command menus on bootstrap', async () => {
-    moduleRef.get(MenuService).onApplicationBootstrap();
+  it('clears the default menus and refreshes the chat menus once after the commands change', async () => {
+    await moduleRef.get(MenuService).refresh();
 
-    await vi.waitFor(() => expect(channel.setDefaultCommands).toHaveBeenCalledTimes(2));
-    expect(channel.setDefaultCommands).toHaveBeenCalledWith(
-      [
-        { command: 'start', description: ru.commands.start },
-        { command: 'help', description: ru.commands.help },
-        { command: 'cancel', description: ru.commands.cancel },
-      ],
-      Language.RU,
-    );
-    expect(channel.setDefaultCommands).toHaveBeenCalledWith(
-      [
-        { command: 'start', description: en.commands.start },
-        { command: 'help', description: en.commands.help },
-        { command: 'cancel', description: en.commands.cancel },
-      ],
-      null,
-    );
-  });
+    expect(channel.setDefaultCommands.mock.calls).toEqual([
+      [[], Language.RU],
+      [[], null],
+    ]);
+    expect(channel.setChatCommands).toHaveBeenCalledWith(OWNER_ID, expect.any(Array));
+    expect(store.get('menu:signature')).toMatch(/^[0-9a-f]{64}$/);
 
-  it('tells a stranger their id in their language', async () => {
-    await botService.handle(event(STRANGER_ID, command('start'), 'ru'));
-
-    expect(channel.sendScreen).toHaveBeenCalledWith(STRANGER_ID, {
-      text: ru.bot.noAccess('Telegram', STRANGER_ID),
-    });
+    channel.setChatCommands.mockClear();
+    await moduleRef.get(MenuService).refresh();
     expect(channel.setChatCommands).not.toHaveBeenCalled();
   });
 
-  it('answers any other input from a stranger with their id', async () => {
-    await botService.handle(event(STRANGER_ID, text('hello')));
-    await botService.handle(event(STRANGER_ID, button('test:open')));
+  it('stays silent to a person who is not an employee', async () => {
+    for (const input of [command('start'), command('help'), text('hello'), button('test:open')]) {
+      await botService.handle(event(STRANGER_ID, input, null));
+    }
+    await botService.replyFailure(event(STRANGER_ID, text('hi')));
 
-    const deny = { text: en.bot.noAccess('Telegram', STRANGER_ID) };
-    expect(channel.sendScreen).toHaveBeenCalledWith(STRANGER_ID, deny);
-    expect(channel.answerButton).toHaveBeenCalledWith('callback');
-    expect(channel.editScreen).toHaveBeenCalledWith(STRANGER_ID, '7', deny);
+    expect(channel.sendScreen).not.toHaveBeenCalled();
+    expect(channel.editScreen).not.toHaveBeenCalled();
+    expect(channel.answerButton).not.toHaveBeenCalled();
+    expect(channel.setChatCommands).not.toHaveBeenCalled();
+    expect(channel.findLanguageCode).not.toHaveBeenCalled();
     expect(moduleRef.get(TestHandler).contexts).toEqual([]);
   });
 
-  it('shows help to a stranger without the privacy note', async () => {
-    await botService.handle(event(STRANGER_ID, command('help')));
+  it('tells a blocked employee their id in their language and shows help without the privacy note', async () => {
+    asEmployee({ status: UserStatus.BLOCKED, language: null });
 
-    expect(channel.sendScreen).toHaveBeenCalledWith(STRANGER_ID, {
+    await botService.handle(event(EMPLOYEE_ID, command('start'), 'ru'));
+    await botService.handle(event(EMPLOYEE_ID, command('help')));
+
+    expect(channel.sendScreen).toHaveBeenCalledWith(EMPLOYEE_ID, {
+      text: ru.bot.noAccess('Telegram', EMPLOYEE_ID),
+    });
+    expect(channel.sendScreen).toHaveBeenCalledWith(EMPLOYEE_ID, {
       text: [
         en.help.title,
         `/start — ${en.commands.start}`,
@@ -226,6 +220,25 @@ describe('BotService', () => {
         `/cancel — ${en.commands.cancel}`,
       ].join('\n'),
     });
+  });
+
+  it('removes the menu of a deleted employee and keeps start and help for a blocked one', async () => {
+    const { user, channel: chat } = createEmployee({ status: UserStatus.BLOCKED });
+
+    await moduleRef.get(MenuService).syncEmployee(null, [chat]);
+    await moduleRef.get(MenuService).syncEmployee(user, [chat]);
+
+    expect(channel.setChatCommands.mock.calls).toEqual([
+      [chat.externalId, []],
+      [
+        chat.externalId,
+        [
+          { command: 'start', description: en.commands.start },
+          { command: 'help', description: en.commands.help },
+          { command: 'cancel', description: en.commands.cancel },
+        ],
+      ],
+    ]);
   });
 
   it('greets an owner and syncs the owner menu', async () => {
@@ -435,10 +448,10 @@ describe('BotService', () => {
     );
   });
 
-  it('ignores an unreachable chat of a stranger', async () => {
+  it('ignores an unreachable chat of an owner who is not an employee', async () => {
     channel.sendScreen.mockRejectedValue(new ChatUnreachableError('blocked'));
 
-    await botService.handle(event(STRANGER_ID, command('start')));
+    await botService.handle(event(OWNER_ID, command('help')));
 
     expect(channelService.updateReachable).not.toHaveBeenCalled();
   });
@@ -446,15 +459,13 @@ describe('BotService', () => {
   it('propagates other channel errors', async () => {
     channel.sendScreen.mockRejectedValue(new Error('network'));
 
-    await expect(botService.handle(event(STRANGER_ID, command('start')))).rejects.toThrow(
-      'network',
-    );
+    await expect(botService.handle(event(OWNER_ID, command('help')))).rejects.toThrow('network');
   });
 
   it('replies with a failure message in the language of the event', async () => {
-    await botService.replyFailure(event(STRANGER_ID, text('hi'), 'ru'));
+    await botService.replyFailure(event(OWNER_ID, text('hi'), 'ru'));
 
-    expect(channel.sendScreen).toHaveBeenCalledWith(STRANGER_ID, {
+    expect(channel.sendScreen).toHaveBeenCalledWith(OWNER_ID, {
       text: ru.bot.error,
     });
   });
@@ -467,22 +478,22 @@ describe('BotService', () => {
     expect(channel.sendScreen).toHaveBeenCalledWith(EMPLOYEE_ID, { text: ru.bot.error });
   });
 
-  it('answers a stranger in the language the channel knows from the profile', async () => {
+  it('answers an owner in the language the channel knows from the profile', async () => {
     channel.findLanguageCode.mockResolvedValue('ru-RU');
 
-    await botService.handle(event(STRANGER_ID, text('hi'), null));
+    await botService.handle(event(OWNER_ID, text('hi'), null));
 
-    expect(channel.findLanguageCode).toHaveBeenCalledWith(STRANGER_ID);
-    expect(channel.sendScreen).toHaveBeenCalledWith(STRANGER_ID, {
-      text: ru.bot.noAccess(ru.channels.telegram, STRANGER_ID),
+    expect(channel.findLanguageCode).toHaveBeenCalledWith(OWNER_ID);
+    expect(channel.sendScreen).toHaveBeenCalledWith(OWNER_ID, {
+      text: ru.bot.unknownInput,
     });
   });
 
   it('answers a failed button press with a new message', async () => {
-    await botService.replyFailure(event(STRANGER_ID, button('test:open')));
+    await botService.replyFailure(event(OWNER_ID, button('test:open')));
 
     expect(channel.answerButton).toHaveBeenCalledWith('callback');
-    expect(channel.sendScreen).toHaveBeenCalledWith(STRANGER_ID, {
+    expect(channel.sendScreen).toHaveBeenCalledWith(OWNER_ID, {
       text: en.bot.error,
     });
     expect(channel.editScreen).not.toHaveBeenCalled();

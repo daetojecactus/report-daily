@@ -30,8 +30,12 @@ export class AccessService {
   async resolveActor(
     event: ChatEvent,
     findLanguageCode: () => Promise<string | null> = () => Promise.resolve(null),
-  ): Promise<BotActor> {
+  ): Promise<BotActor | null> {
     const found = await this.userService.findOneByChannel(event.channel, event.userId);
+    const isOwner = this.owners[event.channel].includes(event.userId);
+    if (!found && !isOwner) {
+      return null;
+    }
     const language =
       found?.user.language ??
       this.i18nService.resolveLanguage(event.languageCode ?? (await findLanguageCode()));
@@ -45,7 +49,7 @@ export class AccessService {
       externalId: event.userId,
       chatId: event.chatId,
       language,
-      isOwner: this.owners[event.channel].includes(event.userId),
+      isOwner,
       user: isActive ? found.user : null,
     };
   }
@@ -59,6 +63,19 @@ export class AccessService {
       isOwner: this.owners[channel.channel].includes(channel.externalId),
       user: user && user.status !== UserStatus.BLOCKED ? user : null,
     };
+  }
+
+  listOwners(): BotActor[] {
+    return Object.values(Channel).flatMap((channel) =>
+      this.owners[channel].map((externalId) => ({
+        channel,
+        externalId,
+        chatId: externalId,
+        language: DEFAULT_LANGUAGE,
+        isOwner: true,
+        user: null,
+      })),
+    );
   }
 
   isKnown(actor: BotActor) {

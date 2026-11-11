@@ -151,6 +151,7 @@ describe('TelegramService', () => {
     editMessageText: Mock<TelegramRepository['editMessageText']>;
     answerCallbackQuery: Mock<TelegramRepository['answerCallbackQuery']>;
     setMyCommands: Mock<TelegramRepository['setMyCommands']>;
+    deleteMyCommands: Mock<TelegramRepository['deleteMyCommands']>;
   };
   let service: TelegramService;
 
@@ -162,6 +163,7 @@ describe('TelegramService', () => {
       editMessageText: vi.fn(),
       answerCallbackQuery: vi.fn(),
       setMyCommands: vi.fn(),
+      deleteMyCommands: vi.fn(),
     };
     service = new TelegramService(
       repository as unknown as TelegramRepository,
@@ -546,6 +548,17 @@ describe('TelegramService', () => {
         { type: 'chat', chat_id: CHAT_ID },
         null,
       );
+    });
+
+    it('deletes the commands of a scope instead of setting an empty list', async () => {
+      await service.setDefaultCommands([], Language.RU);
+      await service.setChatCommands(CHAT_ID, []);
+
+      expect(repository.deleteMyCommands.mock.calls).toEqual([
+        [{ type: 'all_private_chats' }, 'ru'],
+        [{ type: 'chat', chat_id: CHAT_ID }, null],
+      ]);
+      expect(repository.setMyCommands).not.toHaveBeenCalled();
     });
   });
 
