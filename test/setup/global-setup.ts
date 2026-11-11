@@ -4,6 +4,7 @@ import type { TestProject } from 'vitest/node';
 import { DatabaseClient } from 'src/modules/infrastructure/database/database.client';
 import { startFakeBotApi } from './fake-bot-api';
 import { startFakeGitLab } from './fake-gitlab';
+import { startFakeSlackApi } from './fake-slack-api';
 
 declare module 'vitest' {
   export interface ProvidedContext {
@@ -11,15 +12,17 @@ declare module 'vitest' {
     redisUrl: string;
     telegramApiUrl: string;
     gitlabUrl: string;
+    slackApiUrl: string;
   }
 }
 
 export default async function setup(project: TestProject) {
-  const [postgres, redis, botApi, gitlab] = await Promise.all([
+  const [postgres, redis, botApi, gitlab, slackApi] = await Promise.all([
     new PostgreSqlContainer('postgres:18-alpine').start(),
     new RedisContainer('redis:8-alpine').start(),
     startFakeBotApi(),
     startFakeGitLab(),
+    startFakeSlackApi(),
   ]);
 
   const databaseUrl = postgres.getConnectionUri();
@@ -29,8 +32,15 @@ export default async function setup(project: TestProject) {
   project.provide('redisUrl', redis.getConnectionUrl());
   project.provide('telegramApiUrl', botApi.url);
   project.provide('gitlabUrl', gitlab.url);
+  project.provide('slackApiUrl', slackApi.url);
 
   return async () => {
-    await Promise.all([postgres.stop(), redis.stop(), botApi.close(), gitlab.close()]);
+    await Promise.all([
+      postgres.stop(),
+      redis.stop(),
+      botApi.close(),
+      gitlab.close(),
+      slackApi.close(),
+    ]);
   };
 }

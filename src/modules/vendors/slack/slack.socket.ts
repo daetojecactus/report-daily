@@ -3,15 +3,22 @@ import { ConfigService } from '@nestjs/config';
 import { LogLevel, SocketModeClient } from '@slack/socket-mode';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { SLACK_SOCKET_EVENT } from './constants/slack-events.constants';
+import { SlackClient } from './slack.client';
 import type { SlackEnvelope, SlackSocketEvent } from './types/slack.interface';
 
 @Injectable()
 export class SlackSocket {
   private readonly client: SocketModeClient | null;
 
-  constructor(configService: ConfigService<AppEnvs, true>) {
+  constructor(configService: ConfigService<AppEnvs, true>, slackClient: SlackClient) {
     const appToken = configService.get('SLACK_APP_TOKEN', { infer: true });
-    this.client = appToken ? new SocketModeClient({ appToken, logLevel: LogLevel.ERROR }) : null;
+    this.client = appToken
+      ? new SocketModeClient({
+          appToken,
+          logLevel: LogLevel.ERROR,
+          clientOptions: { slackApiUrl: slackClient.apiUrl },
+        })
+      : null;
   }
 
   isEnabled() {
