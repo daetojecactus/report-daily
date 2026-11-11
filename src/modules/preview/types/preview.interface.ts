@@ -42,4 +42,5 @@ export interface PreviewOptions {
   trace: boolean;
   language: Language | null;
   ai: boolean;
+  aiComments: boolean;
 }

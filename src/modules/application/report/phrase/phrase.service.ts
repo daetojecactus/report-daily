@@ -14,6 +14,7 @@ import type {
 } from '../activity/types/activity.interface';
 import {
   PHRASE_CONTEXT_ACTIONS,
+  PHRASE_CONTEXT_PARTS,
   PHRASE_CONTEXTS,
   PHRASE_COUNTS,
   PHRASE_NAME_FACTS,
@@ -88,7 +89,12 @@ export class PhraseService {
     if (!PHRASE_CONTEXT_ACTIONS.has(candidate.action)) {
       return null;
     }
-    return PHRASE_CONTEXTS.find(([detail]) => candidate.details.includes(detail))?.[1] ?? null;
+    const context = PHRASE_CONTEXTS.find(([detail]) => candidate.details.includes(detail))?.[1];
+    const partAction = context ? PHRASE_CONTEXT_PARTS.get(context) : undefined;
+    if (!context || candidate.parts.some(({ action }) => action === partAction)) {
+      return null;
+    }
+    return context;
   }
 
   private matches(rule: PhraseRule, signals: ActivityLineSignals, candidate: ActivityCandidate) {

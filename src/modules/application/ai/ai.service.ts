@@ -9,8 +9,10 @@ import type { LlmPrompt } from 'src/modules/vendors/llm/types/llm.interface';
 import { LlmService } from 'src/modules/vendors/llm/llm.service';
 import {
   AI_ANSWER_SCHEMA,
-  AI_COMMENT_MAX_LENGTH,
+  AI_COLON,
+  AI_COLON_WINDOW,
   AI_COMMENTS_PER_LINE,
+  AI_COMMENT_MAX_LENGTH,
   AI_COMMITS_PER_LINE,
   AI_CUT_MARK,
   AI_DATA_END,
@@ -28,9 +30,14 @@ import {
   AI_MARKUP_PATTERN,
   AI_NAMES_PER_LINE,
   AI_PROMPT_SEPARATOR,
+  AI_QUOTE_PATTERN,
   AI_SCHEMA_NAME,
   AI_SPACES_PATTERN,
+  AI_STEM_CUT,
+  AI_STEM_MIN_WORD,
+  AI_WORD_PATTERN,
 } from './constants/ai.constants';
+import { AiRefusal } from './types/ai.enums';
 import { AiMessages } from './constants/ai.messages';
 import type { AiLine, AiNames, AiPolicy, AiProfile, AiRewording } from './types/ai.interface';
 
@@ -82,8 +89,11 @@ export class AiService {
         name: AI_SCHEMA_NAME,
         schema: AI_ANSWER_SCHEMA,
       });
-      const texts = this.accept(lines, data.lines);
-      this.logger.log({ model, lines: lines.length, accepted: texts.size }, AiMessages.REWORDED);
+      const { texts, refused } = this.accept(lines, data.lines);
+      this.logger.log(
+        { model, lines: lines.length, accepted: texts.size, refused },
+        AiMessages.REWORDED,
+      );
       return { texts, model: texts.size > 0 ? model : null };
     } catch (error) {
       this.logger.warn(
@@ -145,25 +155,63 @@ export class AiService {
 
   private accept(lines: AiLine[], answers: { id: string; text: string }[]) {
     const texts = new Map<string, string>();
+    const refused: Partial<Record<AiRefusal, number>> = {};
     for (const line of lines) {
-      const answer = answers.find(({ id }) => id === line.id);
-      if (!answer || AI_LINE_BREAK_PATTERN.test(answer.text.trim())) {
-        continue;
-      }
-      const text = this.clean(answer.text);
-      if (text.length <= AI_LINE_MAX_LENGTH && this.keepsPhrase(line, text.toLowerCase())) {
-        texts.set(line.id, text);
+      const answer = answers.find(({ id }) => id === line.id)?.text;
+      const refusal = this.check(line, answer);
+      if (refusal === null && answer !== undefined) {
+        texts.set(line.id, this.clean(answer));
+      } else {
+        const reason = refusal ?? AiRefusal.MISSING;
+        refused[reason] = (refused[reason] ?? 0) + 1;
       }
     }
-    return texts;
+    return { texts, refused };
   }
 
-  private keepsPhrase({ action, names }: AiLine, text: string) {
-    const phrase = action.toLowerCase();
-    if (names) {
-      return text.length > 0 && text !== phrase;
+  private check(line: AiLine, answer: string | undefined): AiRefusal | null {
+    if (answer === undefined) {
+      return AiRefusal.MISSING;
     }
-    return text.length > phrase.length && text.startsWith(phrase);
+    if (AI_LINE_BREAK_PATTERN.test(answer.trim())) {
+      return AiRefusal.BROKEN;
+    }
+    const text = this.clean(answer);
+    if (text.length > AI_LINE_MAX_LENGTH) {
+      return AiRefusal.TOO_LONG;
+    }
+    if (!this.keepsMeaning(line, text.toLowerCase())) {
+      return AiRefusal.CHANGED;
+    }
+    if (!line.names && this.hasColonAfterAction(line.action, text)) {
+      return AiRefusal.COLON;
+    }
+    return null;
+  }
+
+  private keepsMeaning({ action, names }: AiLine, text: string) {
+    const phrase = action.toLowerCase();
+    if (text.length === 0 || text === phrase) {
+      return false;
+    }
+    if (names) {
+      return true;
+    }
+    return this.toStems(phrase).every((stem) => text.includes(stem));
+  }
+
+  private toStems(phrase: string) {
+    return (phrase.match(AI_WORD_PATTERN) ?? [])
+      .filter((word) => word.length >= AI_STEM_MIN_WORD)
+      .map((word) => word.slice(0, Math.max(AI_STEM_MIN_WORD, word.length - AI_STEM_CUT)));
+  }
+
+  private hasColonAfterAction(action: string, text: string) {
+    const colon = text.indexOf(AI_COLON);
+    const quote = text.search(AI_QUOTE_PATTERN);
+    return (
+      colon !== -1 && colon < action.length + AI_COLON_WINDOW && (quote === -1 || colon < quote)
+    );
   }
 
   private toNames({ added, removed }: AiNames) {

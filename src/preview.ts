@@ -4,6 +4,7 @@ import { NestFactory } from '@nestjs/core';
 import { toDate } from './common/utils/date.util';
 import { Language } from './modules/application/i18n/types/i18n.enums';
 import {
+  PREVIEW_AI_COMMENTS_FLAG,
   PREVIEW_AI_FLAG,
   PREVIEW_LANGUAGE_FLAG,
   PREVIEW_TRACE_FLAG,
@@ -18,7 +19,7 @@ const languageFlag = flags.find((flag) => flag.startsWith(PREVIEW_LANGUAGE_FLAG)
 const language =
   Object.values(Language).find((value) => languageFlag === `${PREVIEW_LANGUAGE_FLAG}${value}`) ??
   null;
-const knownFlags = [PREVIEW_TRACE_FLAG, PREVIEW_AI_FLAG, languageFlag];
+const knownFlags = [PREVIEW_TRACE_FLAG, PREVIEW_AI_FLAG, PREVIEW_AI_COMMENTS_FLAG, languageFlag];
 const hasUnknownFlag = flags.some((flag) => !knownFlags.includes(flag));
 if (!username || !date || (languageFlag && !language) || hasUnknownFlag) {
   Logger.error(PreviewMessages.USAGE);
@@ -33,6 +34,7 @@ try {
     trace: flags.includes(PREVIEW_TRACE_FLAG),
     language,
     ai: flags.includes(PREVIEW_AI_FLAG),
+    aiComments: flags.includes(PREVIEW_AI_COMMENTS_FLAG),
   });
   if (text === null) {
     Logger.error(`${PreviewMessages.EMPLOYEE_NOT_FOUND}: ${username}`);

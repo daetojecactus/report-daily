@@ -18,6 +18,12 @@ export const PHRASE_CONTEXT_ACTIONS = new Set<ActivityAction>([
   ActivityAction.PASSED,
 ]);
 
+export const PHRASE_CONTEXT_PARTS = new Map<PhraseContext, ActivityAction>([
+  [PhraseContext.AFTER_APPROVAL, ActivityAction.APPROVED],
+  [PhraseContext.AFTER_REVIEW, ActivityAction.REVIEWED],
+  [PhraseContext.AFTER_TESTING, ActivityAction.PASSED],
+]);
+
 export const PHRASE_NOTED_ACTIONS = new Set<ActivityAction>([
   ActivityAction.COMMENTED,
   ActivityAction.DISCUSSED,

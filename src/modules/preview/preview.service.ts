@@ -1,3 +1,4 @@
+import type { User } from 'src/modules/application/user/types/user.interface';
 import { Injectable } from '@nestjs/common';
 import { AiService } from 'src/modules/application/ai/ai.service';
 import { DEFAULT_LANGUAGE } from 'src/modules/application/i18n/constants/i18n.constants';
@@ -21,7 +22,11 @@ export class PreviewService {
     private readonly aiService: AiService,
   ) {}
 
-  async describe(username: string, date: string, { trace, language, ai }: PreviewOptions) {
+  async describe(
+    username: string,
+    date: string,
+    { trace, language, ai, aiComments }: PreviewOptions,
+  ) {
     const account = await this.userSourceService.findOneByUsername(Source.GITLAB, username);
     const user = account && (await this.userService.findById(account.userId));
     if (!account || !user) {
@@ -33,7 +38,7 @@ export class PreviewService {
         account,
         date,
         language: language ?? user.language ?? DEFAULT_LANGUAGE,
-        ai: ai ? await this.aiService.findPolicy(user) : null,
+        ai: ai || aiComments ? await this.findAiPolicy(user, aiComments) : null,
       });
     const texts = {
       lines: new Map(
@@ -54,5 +59,10 @@ export class PreviewService {
       'Report',
       content || PREVIEW_EMPTY_REPORT,
     ].join('\n');
+  }
+
+  private async findAiPolicy(user: User, withComments: boolean) {
+    const policy = await this.aiService.findPolicy(user);
+    return policy && withComments ? { ...policy, comments: true } : policy;
   }
 }

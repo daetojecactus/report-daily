@@ -13,6 +13,7 @@ import type { RedisService } from 'src/modules/infrastructure/redis/redis.servic
 import { LlmFormat } from 'src/modules/vendors/llm/types/llm.enums';
 import type { LlmService } from 'src/modules/vendors/llm/llm.service';
 import type { AiLine } from '../types/ai.interface';
+import { AiMessages } from '../constants/ai.messages';
 import { AiService } from '../ai.service';
 
 const locale = new I18nService().getLocale(Language.EN);
@@ -158,7 +159,7 @@ describe('AiService', () => {
     );
   });
 
-  it('takes the lines that start with the action and cleans the markup and the final period', async () => {
+  it('takes the lines that keep the action and cleans the markup and the final period', async () => {
     answer([
       { id: '1', text: '**Fixed a bug** in the `login` form.' },
       { id: '2', text: 'Looked at the cache' },
@@ -175,6 +176,7 @@ describe('AiService', () => {
     ['too long', `Fixed a bug ${'x'.repeat(200)}`],
     ['only the action', 'Fixed a bug'],
     ['another phrase', 'Repaired the login form'],
+    ['a colon after the action', 'Fixed a bug: the login form'],
   ])('keeps our line for an answer with %s', async (_, text) => {
     answer([{ id: '1', text }]);
 
@@ -182,6 +184,36 @@ describe('AiService', () => {
       texts: new Map(),
       model: null,
     });
+  });
+
+  it.each([
+    ['Tested and confirmed it works', 'Tested the fix of broken menu links and confirmed it works'],
+    [
+      'Передал задачу на тестирование',
+      'Передал на тестирование задачу о связке услуг DDoS и Colocation',
+    ],
+    ['Fixed a bug', 'Fixed a bug in "Login: the form"'],
+  ])('takes a line that keeps every word of %j in another order', async (action, text) => {
+    answer([{ id: '1', text }]);
+
+    const { texts } = await service.reword([{ ...LINES[0], action }], PROFILE);
+
+    expect(texts.get('1')).toBe(text);
+  });
+
+  it('logs how many lines were refused and why, without their texts', async () => {
+    const log = vi.spyOn(Logger.prototype, 'log');
+    answer([
+      { id: '1', text: 'Fixed a bug: the login form' },
+      { id: '2', text: 'Reviewed the cache rules' },
+    ]);
+
+    await service.reword(LINES, PROFILE);
+
+    expect(log).toHaveBeenCalledWith(
+      { model: 'served-model', lines: 2, accepted: 1, refused: { colon: 1 } },
+      AiMessages.REWORDED,
+    );
   });
 
   it('keeps our lines when the model or Redis fails', async () => {
