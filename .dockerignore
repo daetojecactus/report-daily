@@ -1,0 +1,12 @@
+*
+!LICENSE
+!nest-cli.json
+!package.json
+!pnpm-lock.yaml
+!pnpm-workspace.yaml
+!src
+!tsconfig.build.json
+!tsconfig.json
+**/.env
+**/.env.*
+**/__test__

@@ -1,0 +1,59 @@
+name: report-daily
+
+x-app: &app
+  image: ghcr.io/daetojecactus/report-daily:${REPORT_DAILY_VERSION:-local}
+  build: .
+  init: true
+  restart: unless-stopped
+  env_file: .env
+  environment:
+    DATABASE_URL: postgres://report_daily:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@postgres:5432/report_daily
+    REDIS_URL: redis://redis:6379
+
+services:
+  migrate:
+    <<: *app
+    command: ['node', 'dist/migrate.js']
+    restart: 'no'
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  app:
+    <<: *app
+    stop_grace_period: 45s
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: report_daily
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: report_daily
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U report_daily -d report_daily']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:8-alpine
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres_data:
+  redis_data:

@@ -54,7 +54,24 @@ Fill in `GITLAB_URL`, `GITLAB_TOKEN` and at least one channel in `.env` first: `
 
 ## Running on a server
 
-Requirements: Node.js 26, pnpm 12, PostgreSQL 18 and Redis 8. The bot needs outgoing access to GitLab, to Telegram or Slack and, if you use it, to the AI service. It needs no incoming connections: it polls Telegram and connects to Slack over Socket Mode itself.
+The bot needs outgoing access to GitLab, to Telegram or Slack and, if you use it, to the AI service. It needs no incoming connections: it polls Telegram and connects to Slack over Socket Mode itself.
+
+### With Docker Compose
+
+Requirements: Docker with Compose.
+
+```bash
+git clone https://github.com/daetojecactus/report-daily.git
+cd report-daily
+cp .env.example .env
+docker compose up -d --build
+```
+
+Fill in `.env` first, see [Environment variables](#environment-variables), and set `POSTGRES_PASSWORD`. Compose starts PostgreSQL and Redis next to the bot and sets `DATABASE_URL` and `REDIS_URL` itself. The `migrate` service applies the migrations and exits, then `app` starts. No port is published: `docker compose ps` shows `app` as healthy when the bot is up, and `docker compose logs -f app` shows its log. The image is built from the source and tagged `ghcr.io/daetojecactus/report-daily:local`; `REPORT_DAILY_VERSION` changes the tag. The bot runs as an unprivileged user, and Compose gives it 45 seconds to stop.
+
+### Without Docker
+
+Requirements: Node.js 26, pnpm 12, PostgreSQL 18 and Redis 8.
 
 ```bash
 git clone https://github.com/daetojecactus/report-daily.git
@@ -104,17 +121,33 @@ After a change of the manifest, reinstall the app: new scopes work only after th
 
 ## Updating
 
+Back up the database before an update: migrations only go forward.
+
+```bash
+git pull
+docker compose up -d --build
+```
+
+Without Docker:
+
 ```bash
 git pull
 pnpm install --frozen-lockfile
 pnpm db:migrate
 ```
 
-Then restart the service. Back up the database before an update: migrations only go forward.
+Then restart the service.
 
 ## Backups
 
 PostgreSQL holds everything that matters: employees and their permissions, settings, label mappings, templates and the reports of the last 30 days. Back it up every day:
+
+```bash
+docker compose exec -T postgres pg_dump --username=report_daily --format=custom report_daily > report-daily.dump
+docker compose exec -T postgres pg_restore --username=report_daily --clean --dbname=report_daily < report-daily.dump
+```
+
+Without Docker:
 
 ```bash
 pg_dump --format=custom --file=report-daily.dump "$DATABASE_URL"
@@ -127,8 +160,10 @@ Redis holds only short-lived state: open dialogs, queued messages and caches. It
 
 | Variable | Required | Default | Description |
 | --- | --- | --- | --- |
-| `DATABASE_URL` | yes | | PostgreSQL connection URL |
-| `REDIS_URL` | yes | | Redis connection URL |
+| `DATABASE_URL` | yes, Compose sets it | | PostgreSQL connection URL |
+| `REDIS_URL` | yes, Compose sets it | | Redis connection URL |
+| `POSTGRES_PASSWORD` | with Compose | | Password of the PostgreSQL that Compose starts |
+| `REPORT_DAILY_VERSION` | no | `local` | Tag of the bot image in Compose |
 | `APP_TIMEZONE` | yes | | Default time zone of employees, an IANA name such as `Asia/Almaty` |
 | `OWNER_TELEGRAM_IDS` | for Telegram | | Telegram user IDs of the owners, comma-separated. Owners have every permission. Set together with `TELEGRAM_BOT_TOKEN`; at least Telegram or Slack is needed |
 | `TELEGRAM_BOT_TOKEN` | for Telegram | | Bot token from @BotFather |
@@ -148,7 +183,7 @@ Redis holds only short-lived state: open dialogs, queued messages and caches. It
 
 ## Security
 
-- **Network.** The bot accepts no incoming connections. Keep the health port closed to the outside, and PostgreSQL and Redis password-protected and reachable only from the bot's host.
+- **Network.** The bot accepts no incoming connections. Keep the health port closed to the outside, and PostgreSQL and Redis password-protected and reachable only from the bot's host. With Compose none of them publishes a port: PostgreSQL and Redis are reachable only from the bot's containers.
 - **Secrets** live only in `.env`, which must never be committed. Logs cut tokens: the Telegram token, the GitLab token header and the AI key; the bot does not log the Slack tokens.
 - **GitLab token.** Use a service account with the `read_api` and `read_user` scopes only. The bot never writes to GitLab.
 - **TLS** is always checked. For a company certificate authority see the next section.
@@ -165,7 +200,16 @@ If GitLab uses a certificate of an internal certificate authority, the bot repor
 Node.js reads this variable when the process starts, before `.env` is loaded with `--env-file`, so it has to be in the environment of the process:
 
 - **Development:** start the bot with the variable: `NODE_EXTRA_CA_CERTS=/path/to/company-ca.pem pnpm watch`, and the same for `pnpm preview`.
-- **Docker:** mount the file into the container and set `NODE_EXTRA_CA_CERTS` in the `environment` of the service.
+- **Docker Compose:** mount the file into the container in `compose.override.yaml`, which Compose reads next to `compose.yaml`:
+
+  ```yaml
+  services:
+    app:
+      volumes:
+        - ./company-ca.pem:/etc/ssl/company-ca.pem:ro
+      environment:
+        NODE_EXTRA_CA_CERTS: /etc/ssl/company-ca.pem
+  ```
 
 ## Your own templates
 

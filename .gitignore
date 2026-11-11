@@ -6,6 +6,12 @@ coverage/
 *.log
 
 .env
+.env.*
+!.env.example
+compose.override.yaml
+
+*.md
+!/README.md
 
 .idea/
 .vscode/
