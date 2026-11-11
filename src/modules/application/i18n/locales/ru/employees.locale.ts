@@ -28,7 +28,7 @@ export const ruEmployees: EmployeesLocale = {
       permissions: 'Права',
       noChannels: 'не подключены',
       reachable: 'подключён',
-      unreachable: 'недоступен, бот заблокирован',
+      unreachable: 'недоступен, бот не может написать',
       lastActivity: 'Последняя активность в GitLab',
       activityHidden: 'не видно — профиль закрыт или событий ещё нет',
       activityUnknown: 'не удалось проверить',
@@ -127,7 +127,8 @@ export const ruEmployees: EmployeesLocale = {
     hint: {
       [Channel.TELEGRAM]:
         'Если сотрудник ещё не писал боту, попросите его открыть бота и нажать Start.',
-      [Channel.SLACK]: 'Бот пишет сотруднику в личку Slack сам, ему ничего делать не нужно.',
+      [Channel.SLACK]:
+        'Бот сам пишет сотруднику в личные сообщения Slack, ему ничего делать не нужно.',
     },
     cancel: 'Отмена',
     cancelled: 'Привязка отменена.',
