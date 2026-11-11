@@ -1,9 +1,644 @@
 {
-  "id": "780e7ecb-19c1-44b6-b1be-1e7ee61e84fd",
+  "id": "b3814214-21b6-4789-a57a-15ed7fc05969",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
+    "public.deliveries": {
+      "name": "deliveries",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "uuidv7()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "channel": {
+          "name": "channel",
+          "type": "channel",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "kind": {
+          "name": "kind",
+          "type": "delivery_kind",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "report_id": {
+          "name": "report_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "delivery_status",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'queued'"
+        },
+        "attempts": {
+          "name": "attempts",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "redirected": {
+          "name": "redirected",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "external_message_id": {
+          "name": "external_message_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "error": {
+          "name": "error",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sent_at": {
+          "name": "sent_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "deliveries_user_id_index": {
+          "name": "deliveries_user_id_index",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "deliveries_report_id_index": {
+          "name": "deliveries_report_id_index",
+          "columns": [
+            {
+              "expression": "report_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "deliveries_user_id_users_id_fk": {
+          "name": "deliveries_user_id_users_id_fk",
+          "tableFrom": "deliveries",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "deliveries_report_id_reports_id_fk": {
+          "name": "deliveries_report_id_reports_id_fk",
+          "tableFrom": "deliveries",
+          "tableTo": "reports",
+          "columnsFrom": [
+            "report_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.reports": {
+      "name": "reports",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "uuidv7()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "report_date": {
+          "name": "report_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "report_status",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "scheduled_at": {
+          "name": "scheduled_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "snapshot": {
+          "name": "snapshot",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "content": {
+          "name": "content",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "template_id": {
+          "name": "template_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ai_used": {
+          "name": "ai_used",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "ai_model": {
+          "name": "ai_model",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "error": {
+          "name": "error",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "generated_at": {
+          "name": "generated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "reports_template_id_index": {
+          "name": "reports_template_id_index",
+          "columns": [
+            {
+              "expression": "template_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "reports_user_id_users_id_fk": {
+          "name": "reports_user_id_users_id_fk",
+          "tableFrom": "reports",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "reports_template_id_report_templates_id_fk": {
+          "name": "reports_template_id_report_templates_id_fk",
+          "tableFrom": "reports",
+          "tableTo": "report_templates",
+          "columnsFrom": [
+            "template_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "reports_user_id_report_date_unique": {
+          "name": "reports_user_id_report_date_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "user_id",
+            "report_date"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.report_templates": {
+      "name": "report_templates",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "uuidv7()"
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "body": {
+          "name": "body",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "owner_id": {
+          "name": "owner_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "report_templates_owner_id_index": {
+          "name": "report_templates_owner_id_index",
+          "columns": [
+            {
+              "expression": "owner_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "report_templates_owner_id_users_id_fk": {
+          "name": "report_templates_owner_id_users_id_fk",
+          "tableFrom": "report_templates",
+          "tableTo": "users",
+          "columnsFrom": [
+            "owner_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "report_templates_name_length": {
+          "name": "report_templates_name_length",
+          "value": "char_length(\"report_templates\".\"name\") between 1 and 64"
+        },
+        "report_templates_body_length": {
+          "name": "report_templates_body_length",
+          "value": "char_length(\"report_templates\".\"body\") between 1 and 4000"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.settings": {
+      "name": "settings",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "default": 1
+        },
+        "reports_paused": {
+          "name": "reports_paused",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "reports_paused_until": {
+          "name": "reports_paused_until",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ai_enabled": {
+          "name": "ai_enabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "ai_send_commits": {
+          "name": "ai_send_commits",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "ai_send_comments": {
+          "name": "ai_send_comments",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "settings_single_row": {
+          "name": "settings_single_row",
+          "value": "\"settings\".\"id\" = 1"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.trait_names": {
+      "name": "trait_names",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "uuidv7()"
+        },
+        "source": {
+          "name": "source",
+          "type": "source",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_name": {
+          "name": "source_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_key": {
+          "name": "source_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ignored": {
+          "name": "ignored",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "seen_at": {
+          "name": "seen_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "trait_names_source_source_key_unique": {
+          "name": "trait_names_source_source_key_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "source",
+            "source_key"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "trait_names_source_name_length": {
+          "name": "trait_names_source_name_length",
+          "value": "char_length(\"trait_names\".\"source_name\") between 1 and 255"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.trait_mappings": {
+      "name": "trait_mappings",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "uuidv7()"
+        },
+        "source": {
+          "name": "source",
+          "type": "source",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_name": {
+          "name": "source_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_key": {
+          "name": "source_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "role": {
+          "name": "role",
+          "type": "job_role",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "dimension": {
+          "name": "dimension",
+          "type": "trait_dimension",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "value": {
+          "name": "value",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "trait_mappings_source_source_key_dimension_role_unique": {
+          "name": "trait_mappings_source_source_key_dimension_role_unique",
+          "nullsNotDistinct": true,
+          "columns": [
+            "source",
+            "source_key",
+            "dimension",
+            "role"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "trait_mappings_source_name_length": {
+          "name": "trait_mappings_source_name_length",
+          "value": "char_length(\"trait_mappings\".\"source_name\") between 1 and 255"
+        },
+        "trait_mappings_dimension_value": {
+          "name": "trait_mappings_dimension_value",
+          "value": "(\"trait_mappings\".\"dimension\" = 'workflow_state' and \"trait_mappings\".\"value\" in ('backlog', 'planned', 'analysis', 'design', 'in_progress', 'review', 'changes_requested', 'ready_for_qa', 'testing', 'qa_passed', 'ready_for_release', 'staging', 'released', 'done', 'cancelled', 'blocked', 'needs_info', 'handoff')) or (\"trait_mappings\".\"dimension\" = 'task_kind' and \"trait_mappings\".\"value\" in ('hotfix', 'incident', 'bug', 'feature', 'improvement', 'maintenance', 'dependency', 'epic', 'qa_internal', 'test_automation', 'documentation', 'requirements', 'research', 'support', 'release', 'task')) or (\"trait_mappings\".\"dimension\" = 'priority' and \"trait_mappings\".\"value\" in ('critical', 'high', 'medium', 'low')) or (\"trait_mappings\".\"dimension\" = 'severity' and \"trait_mappings\".\"value\" in ('blocker', 'critical', 'major', 'minor')) or (\"trait_mappings\".\"dimension\" = 'area' and \"trait_mappings\".\"value\" in ('frontend', 'backend', 'mobile', 'api', 'database', 'data', 'infrastructure', 'ci_cd', 'security', 'performance', 'accessibility', 'design')) or (\"trait_mappings\".\"dimension\" = 'flag' and \"trait_mappings\".\"value\" in ('exclude_from_report', 'returned_from_qa', 'e2e_required', 'unit_tests_required', 'needs_rebase', 'regression', 'flaky_test', 'draft', 'breaking_change', 'customer_request'))"
+        }
+      },
+      "isRLSEnabled": false
+    },
     "public.user_channels": {
       "name": "user_channels",
       "schema": "",
@@ -35,6 +670,13 @@
         },
         "reachable": {
           "name": "reachable",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "receives": {
+          "name": "receives",
           "type": "boolean",
           "primaryKey": false,
           "notNull": true,
@@ -99,6 +741,100 @@
       },
       "isRLSEnabled": false
     },
+    "public.user_sources": {
+      "name": "user_sources",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "uuidv7()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source": {
+          "name": "source",
+          "type": "source",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "external_id": {
+          "name": "external_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "username": {
+          "name": "username",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "user_sources_user_id_users_id_fk": {
+          "name": "user_sources_user_id_users_id_fk",
+          "tableFrom": "user_sources",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "user_sources_user_id_source_unique": {
+          "name": "user_sources_user_id_source_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "user_id",
+            "source"
+          ]
+        },
+        "user_sources_source_external_id_unique": {
+          "name": "user_sources_source_external_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "source",
+            "external_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "user_sources_external_id_length": {
+          "name": "user_sources_external_id_length",
+          "value": "char_length(\"user_sources\".\"external_id\") > 0"
+        }
+      },
+      "isRLSEnabled": false
+    },
     "public.users": {
       "name": "users",
       "schema": "",
@@ -109,18 +845,6 @@
           "primaryKey": true,
           "notNull": true,
           "default": "uuidv7()"
-        },
-        "gitlab_user_id": {
-          "name": "gitlab_user_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "gitlab_username": {
-          "name": "gitlab_username",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
         },
         "display_name": {
           "name": "display_name",
@@ -147,12 +871,6 @@
           "notNull": true,
           "default": "'pending'"
         },
-        "on_leave_until": {
-          "name": "on_leave_until",
-          "type": "date",
-          "primaryKey": false,
-          "notNull": false
-        },
         "language": {
           "name": "language",
           "type": "language",
@@ -172,6 +890,13 @@
           "notNull": true,
           "default": "'18:00'"
         },
+        "schedule_enabled": {
+          "name": "schedule_enabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
         "ai_enabled": {
           "name": "ai_enabled",
           "type": "boolean",
@@ -186,25 +911,18 @@
           "notNull": true,
           "default": false
         },
-        "notify_empty": {
-          "name": "notify_empty",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": true
-        },
-        "preset": {
-          "name": "preset",
-          "type": "report_preset",
-          "primaryKey": false,
-          "notNull": false
-        },
         "permissions": {
           "name": "permissions",
           "type": "permission[]",
           "primaryKey": false,
           "notNull": true,
           "default": "'{}'"
+        },
+        "template_id": {
+          "name": "template_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",
@@ -221,18 +939,40 @@
           "default": "now()"
         }
       },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "users_gitlab_user_id_unique": {
-          "name": "users_gitlab_user_id_unique",
-          "nullsNotDistinct": false,
+      "indexes": {
+        "users_template_id_index": {
+          "name": "users_template_id_index",
           "columns": [
-            "gitlab_user_id"
-          ]
+            {
+              "expression": "template_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
+      "foreignKeys": {
+        "users_template_id_report_templates_id_fk": {
+          "name": "users_template_id_report_templates_id_fk",
+          "tableFrom": "users",
+          "tableTo": "report_templates",
+          "columnsFrom": [
+            "template_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {
         "users_display_name_length": {
@@ -248,12 +988,60 @@
     }
   },
   "enums": {
+    "public.delivery_kind": {
+      "name": "delivery_kind",
+      "schema": "public",
+      "values": [
+        "report",
+        "broadcast"
+      ]
+    },
+    "public.delivery_status": {
+      "name": "delivery_status",
+      "schema": "public",
+      "values": [
+        "queued",
+        "sent",
+        "failed"
+      ]
+    },
+    "public.report_status": {
+      "name": "report_status",
+      "schema": "public",
+      "values": [
+        "pending",
+        "generating",
+        "ready",
+        "delivered",
+        "empty",
+        "failed"
+      ]
+    },
+    "public.trait_dimension": {
+      "name": "trait_dimension",
+      "schema": "public",
+      "values": [
+        "workflow_state",
+        "task_kind",
+        "priority",
+        "severity",
+        "area",
+        "flag"
+      ]
+    },
     "public.channel": {
       "name": "channel",
       "schema": "public",
       "values": [
         "telegram",
         "slack"
+      ]
+    },
+    "public.source": {
+      "name": "source",
+      "schema": "public",
+      "values": [
+        "gitlab"
       ]
     },
     "public.gender": {
@@ -288,18 +1076,9 @@
       "schema": "public",
       "values": [
         "users",
-        "labels",
-        "broadcast",
-        "settings"
-      ]
-    },
-    "public.report_preset": {
-      "name": "report_preset",
-      "schema": "public",
-      "values": [
-        "standard",
-        "qa",
-        "analyst"
+        "traits",
+        "settings",
+        "templates"
       ]
     },
     "public.user_status": {
@@ -308,7 +1087,6 @@
       "values": [
         "pending",
         "active",
-        "on_leave",
         "blocked"
       ]
     }
