@@ -1,1 +1,0 @@
-ALTER TABLE "deliveries" ADD COLUMN "redirected" boolean DEFAULT false NOT NULL;

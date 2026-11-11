@@ -1,1 +1,0 @@
-ALTER TABLE "users" ADD COLUMN "schedule_enabled" boolean DEFAULT true NOT NULL;
