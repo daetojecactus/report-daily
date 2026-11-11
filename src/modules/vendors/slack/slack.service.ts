@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { SLACK_USER_ID_PATTERN } from 'src/common/channel/constants/channel.constants';
 import { Channel } from 'src/common/channel/types/channel.enums';
 import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
@@ -20,6 +20,8 @@ import {
   SLACK_WORD_SEPARATOR,
 } from './constants/slack-events.constants';
 import { SLACK_MESSAGE_GONE_ERRORS, SLACK_UNREACHABLE_ERRORS } from './constants/slack.constants';
+import { SlackMessages } from './constants/slack.messages';
+import { getErrorMessage } from 'src/common/utils/error.util';
 import { SlackElementType, SlackEnvelopeType } from './types/slack.enums';
 import { SlackRejectedError } from './slack.error';
 import { SlackClient } from './slack.client';
@@ -30,6 +32,7 @@ import { SlackRepository } from './slack.repository';
 @Injectable()
 export class SlackService implements ChatChannel {
   readonly channel = Channel.SLACK;
+  private readonly logger = new Logger(SlackService.name);
 
   constructor(
     private readonly slackClient: SlackClient,
@@ -61,6 +64,15 @@ export class SlackService implements ChatChannel {
 
   isUserId(value: string) {
     return SLACK_USER_ID_PATTERN.test(value);
+  }
+
+  async findLanguageCode(userId: string) {
+    try {
+      return await this.slackRepository.findLocale(userId);
+    } catch (error) {
+      this.logger.warn({ error: getErrorMessage(error) }, SlackMessages.LOCALE_FAILED);
+      return null;
+    }
   }
 
   async sendScreen(chatId: string, screen: Screen) {

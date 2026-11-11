@@ -14,6 +14,7 @@ describe('SlackRepository', () => {
   } as unknown as ConfigService<AppEnvs, true>);
   const repository = new SlackRepository(client);
   const postMessage = vi.spyOn(client.instance!.chat, 'postMessage');
+  const usersInfo = vi.spyOn(client.instance!.users, 'info');
 
   it('turns a Slack platform error into a rejection with its code', async () => {
     postMessage.mockRejectedValueOnce(
@@ -32,6 +33,13 @@ describe('SlackRepository', () => {
     postMessage.mockRejectedValueOnce(network);
 
     await expect(repository.postMessage('D100', CONTENT)).rejects.toBe(network);
+  });
+
+  it('reads the locale of a member profile', async () => {
+    usersInfo.mockResolvedValueOnce({ ok: true, user: { locale: 'ru-RU' } });
+
+    await expect(repository.findLocale('U0EMPLOY1')).resolves.toBe('ru-RU');
+    expect(usersInfo).toHaveBeenCalledWith({ user: 'U0EMPLOY1', include_locale: true });
   });
 
   it('returns the channel and the time stamp of the posted message', async () => {

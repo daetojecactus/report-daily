@@ -33,6 +33,13 @@ export class SlackRepository {
     );
   }
 
+  async findLocale(userId: string) {
+    const response = await this.call(() =>
+      this.getClient().users.info({ user: userId, include_locale: true }),
+    );
+    return response.user?.locale ?? null;
+  }
+
   private async call<T>(request: () => Promise<T>) {
     try {
       return await request();
