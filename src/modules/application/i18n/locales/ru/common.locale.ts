@@ -166,7 +166,7 @@ export const ruCommon: CommonLocale = {
     askName: (max) => `Как назвать шаблон? Название видно в списке, до ${max} символов.`,
     nameInvalid: (max) => `Название должно быть от 1 до ${max} символов.`,
     askBody: (name, max) =>
-      `**${name}**\nПришлите текст шаблона на Liquid, до ${max} символов. Данные отчёта — в \`context\`: проекты \`context.projects\` (у проекта \`name\` и строки \`items\`), у строки — \`text\`, \`title\`, \`action\`, \`url\`. Пример:\n\`{% for project in context.projects %}{{ project.name }}:\n{% for item in project.items %}• {{ item.text }}\n{% endfor %}{% endfor %}\`\nВсе поля контекста — в README, раздел «Your own templates».`,
+      `**${name}**\nПришлите текст шаблона на Liquid, до ${max} символов. Данные отчёта — в \`context\`: проекты \`context.projects\` (у проекта \`name\` и строки \`items\`), у строки — \`text\`, \`title\`, \`action\`, \`url\`. Пример:\n\`{% for project in context.projects %}{{ project.name }}:\n{% for item in project.items %}• {{ item.text }}\n{% endfor %}{% endfor %}\`\nВсе поля контекста — в README, раздел «Report templates».`,
     bodyInvalid: (max) => `Текст шаблона должен быть от 1 до ${max} символов.`,
     syntaxError: (error) => `В шаблоне ошибка: ${error}. Исправьте и пришлите текст ещё раз.`,
     renderError: (error) =>
