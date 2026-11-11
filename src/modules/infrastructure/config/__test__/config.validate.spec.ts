@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { APP_DEFAULT_PORT, TELEGRAM_DEFAULT_API_URL } from '../constants/config.constants';
+import {
+  APP_DEFAULT_PORT,
+  LLM_DEFAULT_REQUESTS_PER_MINUTE,
+  TELEGRAM_DEFAULT_API_URL,
+} from '../constants/config.constants';
 import { ConfigMessages } from '../constants/config.messages';
 import { DeliveryMode, LogLevel } from '../types/config.enums';
 import { validateEnv } from '../config.validate';
@@ -31,6 +35,14 @@ describe('validateEnv', () => {
       PORT: APP_DEFAULT_PORT,
       TELEGRAM_API_URL: TELEGRAM_DEFAULT_API_URL,
     });
+  });
+
+  it('limits the AI requests to the free tier by default and takes a paid tier limit', () => {
+    expect(validateEnv(ENV).LLM_REQUESTS_PER_MINUTE).toBe(LLM_DEFAULT_REQUESTS_PER_MINUTE);
+    expect(validateEnv({ ...ENV, LLM_REQUESTS_PER_MINUTE: '60' }).LLM_REQUESTS_PER_MINUTE).toBe(60);
+    expect(() => validateEnv({ ...ENV, LLM_REQUESTS_PER_MINUTE: '0' })).toThrow(
+      'LLM_REQUESTS_PER_MINUTE',
+    );
   });
 
   it('converts numbers', () => {

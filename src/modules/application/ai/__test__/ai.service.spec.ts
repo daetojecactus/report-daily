@@ -1,3 +1,5 @@
+import type { ConfigService } from '@nestjs/config';
+import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { Logger } from '@nestjs/common';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createEmployee } from 'src/modules/application/bot/__test__/bot.fixture';
@@ -49,6 +51,7 @@ describe('AiService', () => {
     llmService as unknown as LlmService,
     redisService as unknown as RedisService,
     settingsService as unknown as SettingsService,
+    { get: () => 10 } as unknown as ConfigService<AppEnvs, true>,
   );
   const answer = (lines: { id: string; text: string }[]) =>
     llmService.completeJson.mockResolvedValue({
@@ -189,7 +192,7 @@ describe('AiService', () => {
     expect(await service.reword(LINES, PROFILE)).toEqual({ texts: new Map(), model: null });
   });
 
-  it('waits for the next minute when the limit is reached and then gives up', async () => {
+  it('waits for a free minute when the limit is reached and gives up after five minutes', async () => {
     vi.useFakeTimers({ now: Date.parse('2026-11-10T13:00:30Z') });
     answer([{ id: '1', text: 'Fixed a bug in the login form' }]);
     redisService.increment.mockResolvedValueOnce(11).mockResolvedValueOnce(3);
@@ -205,9 +208,9 @@ describe('AiService', () => {
     ]);
 
     llmService.completeJson.mockClear();
-    redisService.increment.mockResolvedValueOnce(11).mockResolvedValueOnce(12);
+    redisService.increment.mockResolvedValue(11);
     const refused = service.reword(LINES, PROFILE);
-    await vi.advanceTimersByTimeAsync(60_000);
+    await vi.advanceTimersByTimeAsync(5 * 60_000);
 
     expect(await refused).toEqual({ texts: new Map(), model: null });
     expect(llmService.completeJson).not.toHaveBeenCalled();

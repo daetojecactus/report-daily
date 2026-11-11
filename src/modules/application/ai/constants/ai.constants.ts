@@ -1,10 +1,8 @@
 import { z } from 'zod';
 
-export const AI_REQUESTS_PER_MINUTE = 10;
-
 export const AI_LIMIT_WINDOW_MS = 60_000;
 
-export const AI_LIMIT_ATTEMPTS = 2;
+export const AI_LIMIT_ATTEMPTS = 5;
 
 export const AI_LIMIT_KEY_PREFIX = 'limit:llm:';
 

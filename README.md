@@ -176,6 +176,7 @@ Redis holds only short-lived state: open dialogs, queued messages and caches. It
 | `LLM_BASE_URL` | no | | Address of an OpenAI-compatible API, for example `https://api.openai.com/v1`, `https://openrouter.ai/api/v1` or a local `http://127.0.0.1:11434/v1` (Ollama). Set together with `LLM_TOKEN` and `LLM_MODEL`; without the three, AI is off |
 | `LLM_TOKEN` | no | | API key of that service. A local server that needs none takes any value |
 | `LLM_MODEL` | no | | Model name as the service calls it |
+| `LLM_REQUESTS_PER_MINUTE` | no | `10` | AI requests a minute for all employees together, as the tariff of the AI service allows (10 suits free tiers). A report waits up to five minutes for a free slot, then goes with the bot's own lines |
 | `DELIVERY_MODE` | no | `live` | `live`, or `redirect` to check the bot before the team uses it: scheduled reports and «Report now» go to the owners with a line saying whom they were for, and nothing reaches the employees. An employee's own `/report` is answered as usual |
 | `LOG_LEVEL` | no | `info` | `fatal`, `error`, `warn`, `info`, `debug`, `trace` or `silent` |
 | `PORT` | no | `3000` | Port of the health endpoints |
