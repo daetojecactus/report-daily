@@ -18,6 +18,7 @@ import type { MenuService } from '../../../core/menu.service';
 import { createEmployee } from '../../../__test__/bot.fixture';
 import { EmployeeManageHandler } from '../employee-manage.handler';
 import type { ReportQueueProducer } from 'src/modules/queue/report/report-queue.producer';
+import { DeliveryMode } from 'src/modules/infrastructure/config/types/config.enums';
 
 const locale = new I18nService().getLocale(Language.EN);
 const FOUND = createEmployee({ displayName: 'Anna *S*' });
@@ -43,6 +44,10 @@ describe('EmployeeManageHandler', () => {
   };
   const menuService = { syncEmployee: vi.fn() };
   const producer = { addReport: vi.fn<ReportQueueProducer['addReport']>() };
+  const env: Record<string, string> = {
+    APP_TIMEZONE: 'Europe/London',
+    DELIVERY_MODE: DeliveryMode.LIVE,
+  };
   const handler = new EmployeeManageHandler(
     userService as unknown as UserService,
     channelService as unknown as ChannelService,
@@ -52,7 +57,7 @@ describe('EmployeeManageHandler', () => {
       new I18nService(),
     ),
     menuService as unknown as MenuService,
-    { get: () => 'Europe/London' } as unknown as ConfigService<AppEnvs, true>,
+    { get: (key: string) => env[key] } as unknown as ConfigService<AppEnvs, true>,
     producer as unknown as ReportQueueProducer,
   );
 
@@ -79,6 +84,7 @@ describe('EmployeeManageHandler', () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
+    env.DELIVERY_MODE = DeliveryMode.LIVE;
     userService.findById.mockResolvedValue(USER);
     channelService.findByUser.mockResolvedValue([CHANNEL]);
   });
@@ -236,6 +242,15 @@ describe('EmployeeManageHandler', () => {
       },
     });
     vi.useRealTimers();
+  });
+
+  it('tells the admin that the report goes to the owners in the check mode', async () => {
+    env.DELIVERY_MODE = DeliveryMode.REDIRECT;
+
+    const { screen } = await open(`mng:report:${USER.id}`);
+
+    expect(screen?.text).toBe(locale.employeeManage.reportQueuedRedirected('Anna \\*S\\*'));
+    expect(producer.addReport).toHaveBeenCalledOnce();
   });
 
   it('refuses a report for an employee without a bound channel or not active', async () => {

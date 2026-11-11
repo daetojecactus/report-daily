@@ -12,6 +12,7 @@ import { JobRole, Permission, UserStatus } from 'src/modules/application/user/ty
 import type { User } from 'src/modules/application/user/types/user.interface';
 import { ChannelService } from 'src/modules/application/user/channel/channel.service';
 import { UserService } from 'src/modules/application/user/user.service';
+import { DeliveryMode } from 'src/modules/infrastructure/config/types/config.enums';
 import { AccessService } from '../../core/access.service';
 import { BotSection } from '../../core/bot.decorator';
 import { BotAccess, BotNamespace } from '../../core/types/bot.enums';
@@ -137,9 +138,12 @@ export class EmployeeManageHandler implements BotHandler {
       },
     });
     this.log(actor, user, EmployeeManageMessages.REPORT_REQUESTED);
-    return this.reply(locale.employeeManage.reportQueued(name), [
-      [this.toCardButton(locale, user.id)],
-    ]);
+    const isRedirectMode =
+      this.configService.get('DELIVERY_MODE', { infer: true }) === DeliveryMode.REDIRECT;
+    const queued = isRedirectMode
+      ? locale.employeeManage.reportQueuedRedirected(name)
+      : locale.employeeManage.reportQueued(name);
+    return this.reply(queued, [[this.toCardButton(locale, user.id)]]);
   }
 
   private async syncMenu(user: User | null) {

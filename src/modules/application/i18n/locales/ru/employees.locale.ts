@@ -84,6 +84,8 @@ export const ruEmployees: EmployeesLocale = {
     reportNow: 'Отчёт сейчас',
     reportQueued: (name) =>
       `Собираю отчёт за сегодня для **${name}**. Он придёт сотруднику; если действий нет или сборка не удастся, напишу сюда.`,
+    reportQueuedRedirected: (name) =>
+      `Собираю отчёт за сегодня для **${name}**. Режим проверки: отчёт придёт владельцам, сотруднику — нет. Если действий нет или сборка не удастся, напишу сюда.`,
     reportEmpty: (name) => `У **${name}** за сегодня нет действий в GitLab, отчёт не отправлен.`,
     reportFailed: (name) => `Не получилось собрать отчёт для **${name}**: GitLab не ответил.`,
     reportUnavailable: (name) =>

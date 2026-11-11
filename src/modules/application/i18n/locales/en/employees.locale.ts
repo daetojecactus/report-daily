@@ -84,6 +84,8 @@ export const enEmployees: EmployeesLocale = {
     reportNow: 'Report now',
     reportQueued: (name) =>
       `Building today's report for **${name}**. It goes to the employee; if there are no actions or the build fails, I'll write here.`,
+    reportQueuedRedirected: (name) =>
+      `Building today's report for **${name}**. Check mode: it goes to the owners, not to the employee. If there are no actions or the build fails, I'll write here.`,
     reportEmpty: (name) => `**${name}** has no actions in GitLab today, so no report was sent.`,
     reportFailed: (name) => `Could not build the report for **${name}**: GitLab did not answer.`,
     reportUnavailable: (name) =>

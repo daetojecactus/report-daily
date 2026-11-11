@@ -70,6 +70,7 @@ export interface EmployeesLocale {
     ownerOnly: string;
     reportNow: string;
     reportQueued: (name: string) => string;
+    reportQueuedRedirected: (name: string) => string;
     reportEmpty: (name: string) => string;
     reportFailed: (name: string) => string;
     reportUnavailable: (name: string) => string;
