@@ -118,7 +118,7 @@ Without AI the bot writes every line itself. With AI the model rewords the lines
 
 | Level | Who | Can |
 | --- | --- | --- |
-| Owner | The IDs in `OWNER_TELEGRAM_IDS` and `OWNER_SLACK_IDS` | Everything about running the bot: add, change, block and delete employees, bind their channels, "Report now", map labels in "Traits", pause scheduled reports, AI settings, broadcasts, make an employee an admin |
+| Owner | The IDs in `OWNER_TELEGRAM_IDS` and `OWNER_SLACK_IDS` | Everything about running the bot: add, change, block and delete employees, bind and unbind their channels, "Report now", map labels in "Traits", pause scheduled reports, AI settings, broadcasts, make an employee an admin |
 | Admin | An employee an owner marked as admin in the card | What an employee can, plus shared templates: create, edit, delete and make an own template shared |
 | Employee | Anyone an owner added | Their own reports, settings and personal templates; which bound channels get reports and broadcasts |
 

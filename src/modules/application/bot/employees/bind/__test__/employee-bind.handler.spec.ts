@@ -43,6 +43,7 @@ describe('EmployeeBindHandler', () => {
       vi.fn<(channel: Channel, externalId: string) => Promise<UserWithChannel | null>>(),
     bindChannel:
       vi.fn<(userId: string, channel: Channel, externalId: string) => Promise<UserChannel>>(),
+    unbindChannel: vi.fn<UserService['unbindChannel']>(),
   };
   const channelService = {
     findByUser: vi.fn<(userId: string) => Promise<UserChannel[]>>(),
@@ -276,6 +277,40 @@ describe('EmployeeBindHandler', () => {
     `bind:start:${USER.id}:email`,
   ])('answers the outdated button %s', async (data) => {
     expect((await open(button(data))).screen).toEqual({ text: locale.bot.expired });
+  });
+
+  it('unbinds a channel after a confirmation and removes the chat menu', async () => {
+    userService.findById.mockResolvedValue(USER);
+    channelService.findByUser.mockResolvedValueOnce([found.channel]).mockResolvedValue([]);
+    userService.unbindChannel.mockResolvedValue(found.channel);
+
+    const asked = await open(button(`bind:unbind:${USER.id}:telegram`));
+    expect(asked.screen.text).toBe(texts.confirmUnbind('Telegram', NAME));
+    expect(asked.screen.buttons?.[0]).toEqual([
+      { text: 'Yes, unbind', data: `bind:unbindok:${USER.id}:telegram` },
+      expect.objectContaining({ text: 'Cancel' }),
+    ]);
+
+    const done = await open(button(`bind:unbindok:${USER.id}:telegram`));
+    expect(done.screen.text).toBe(
+      [texts.unbound('Telegram', NAME), locale.employeeAdd.pending].join('\n\n'),
+    );
+    expect(userService.unbindChannel).toHaveBeenCalledWith(USER.id, Channel.TELEGRAM);
+    expect(menuService.syncEmployee).toHaveBeenCalledWith(null, [found.channel]);
+  });
+
+  it('tells that a channel is not bound when there is nothing to unbind', async () => {
+    userService.findById.mockResolvedValue(USER);
+    channelService.findByUser.mockResolvedValue([]);
+    userService.unbindChannel.mockResolvedValue(null as unknown as UserChannel);
+
+    expect((await open(button(`bind:unbind:${USER.id}:telegram`))).screen.text).toBe(
+      texts.notBound('Telegram'),
+    );
+    expect((await open(button(`bind:unbindok:${USER.id}:telegram`))).screen.text).toBe(
+      texts.notBound('Telegram'),
+    );
+    expect(menuService.syncEmployee).not.toHaveBeenCalled();
   });
 
   it('answers a button of a channel that is no longer configured', async () => {

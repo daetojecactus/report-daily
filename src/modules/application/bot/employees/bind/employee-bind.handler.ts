@@ -74,7 +74,89 @@ export class EmployeeBindHandler implements BotHandler {
           },
           dialog: null,
         };
+      case EmployeeBindAction.UNBIND:
+        return this.confirmUnbind(locale, userId, channel);
+      case EmployeeBindAction.CONFIRM_UNBIND:
+        return this.unbind(actor, locale, userId, channel);
     }
+  }
+
+  private async confirmUnbind(locale: Locale, userId: string, channel: Channel): Promise<BotReply> {
+    const { user, isBound } = await this.findTarget(userId, channel);
+    if (!user || !isBound) {
+      return this.toNotBound(locale, user, channel);
+    }
+    const name = locale.channels[channel];
+    return {
+      screen: {
+        text: locale.employeeBind.confirmUnbind(name, escapeMarkdown(user.displayName)),
+        buttons: [
+          [
+            {
+              text: locale.employeeBind.confirmUnbindButton,
+              data: [
+                BotNamespace.EMPLOYEE_BIND,
+                EmployeeBindAction.CONFIRM_UNBIND,
+                user.id,
+                channel,
+              ].join(BOT_BUTTON_DATA_SEPARATOR),
+            },
+            { ...this.toCardButton(locale, user.id), text: locale.employeeBind.cancel },
+          ],
+        ],
+      },
+      dialog: null,
+    };
+  }
+
+  private async unbind(
+    actor: BotActor,
+    locale: Locale,
+    userId: string,
+    channel: Channel,
+  ): Promise<BotReply> {
+    const user = await this.userService.findById(userId);
+    const removed = user ? await this.userService.unbindChannel(user.id, channel) : null;
+    if (!user || !removed) {
+      return this.toNotBound(locale, user, channel);
+    }
+    await this.menuService.syncEmployee(null, [removed]);
+    this.logger.log(
+      { userId: user.id, channel, actorId: actor.user?.id ?? BotAccess.OWNER },
+      EmployeeBindMessages.CHANNEL_UNBOUND,
+    );
+    const isLast = (await this.channelService.findByUser(user.id)).length === 0;
+    return {
+      screen: {
+        text: [
+          locale.employeeBind.unbound(locale.channels[channel], escapeMarkdown(user.displayName)),
+          ...(isLast ? [locale.employeeAdd.pending] : []),
+        ].join('\n\n'),
+        buttons: [
+          [this.toCardButton(locale, user.id)],
+          [
+            {
+              text: locale.employees.backToList,
+              data: this.toEmployeesData(EmployeesAction.LIST, 0),
+            },
+          ],
+        ],
+      },
+      dialog: null,
+    };
+  }
+
+  private toNotBound(locale: Locale, user: User | null, channel: Channel): BotReply {
+    if (!user) {
+      return this.refuse(locale, null, channel);
+    }
+    return {
+      screen: {
+        text: locale.employeeBind.notBound(locale.channels[channel]),
+        buttons: [[this.toCardButton(locale, user.id)]],
+      },
+      dialog: null,
+    };
   }
 
   private async askId(

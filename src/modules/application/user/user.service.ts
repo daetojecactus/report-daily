@@ -138,6 +138,17 @@ export class UserService {
     return created;
   }
 
+  @Transactional()
+  async unbindChannel(userId: string, channel: Channel) {
+    const removed = await this.channelService.deleteByUser(userId, channel);
+    if (removed && (await this.channelService.findByUser(userId)).length === 0) {
+      await this.updateOne(and(eq(users.id, userId), eq(users.status, UserStatus.ACTIVE))!, {
+        status: UserStatus.PENDING,
+      });
+    }
+    return removed;
+  }
+
   async recordContact({ user, channel }: UserWithChannel, language: Language) {
     if (user.language === null) {
       await this.updateOne(and(eq(users.id, user.id), isNull(users.language))!, { language });
