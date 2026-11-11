@@ -3,6 +3,7 @@ import {
   type AnyPgColumn,
   boolean,
   check,
+  index,
   pgEnum,
   pgTable,
   text,
@@ -59,5 +60,6 @@ export const users = pgTable(
       'users_report_time_step',
       sql`extract(minute from ${table.reportTime})::integer % ${sql.raw(String(USER_REPORT_TIME_STEP_MINUTES))} = 0`,
     ),
+    index('users_template_id_index').on(table.templateId),
   ],
 );

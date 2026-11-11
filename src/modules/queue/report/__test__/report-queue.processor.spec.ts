@@ -23,10 +23,12 @@ const DATA: ReportJobData = {
   },
 };
 const NOTICE = DATA.notice!;
+const JOB_TIMESTAMP = Date.parse('2026-11-09T18:00:00Z');
 
 function job(attemptsMade = 0, name = REPORT_BUILD_JOB, data: Partial<ReportJobData> = {}) {
   return {
     id: 'report-user-1-2026-11-09',
+    timestamp: JOB_TIMESTAMP,
     name,
     data: { ...DATA, ...data },
     attemptsMade,
@@ -39,7 +41,10 @@ describe('ReportQueueProcessor', () => {
     build: vi.fn<ReportService['build']>(),
     findFresh: vi.fn<ReportService['findFresh']>(),
   };
-  const reportDelivery = { queue: vi.fn<ReportDelivery['queue']>() };
+  const reportDelivery = {
+    findChannels: vi.fn<ReportDelivery['findChannels']>(),
+    queue: vi.fn<ReportDelivery['queue']>(),
+  };
   const botService = { sendTo: vi.fn<BotService['sendTo']>() };
   const processor = new ReportQueueProcessor(
     reportService as unknown as ReportService,
@@ -50,6 +55,9 @@ describe('ReportQueueProcessor', () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
+    reportDelivery.findChannels.mockImplementation((_userId, channel) =>
+      Promise.resolve(channel ? [channel] : [Channel.TELEGRAM, Channel.SLACK]),
+    );
   });
 
   it('hands the built report to the delivery with the channel it was asked in', async () => {
@@ -59,7 +67,13 @@ describe('ReportQueueProcessor', () => {
     await run(job(0, REPORT_BUILD_JOB, { channel: Channel.SLACK }));
 
     expect(reportService.build).toHaveBeenCalledWith('user-1', '2026-11-09');
-    expect(reportDelivery.queue).toHaveBeenCalledExactlyOnceWith(report, Channel.SLACK, true);
+    expect(reportDelivery.findChannels).toHaveBeenCalledWith('user-1', Channel.SLACK);
+    expect(reportDelivery.queue).toHaveBeenCalledExactlyOnceWith(
+      report,
+      [Channel.SLACK],
+      true,
+      new Date(JOB_TIMESTAMP),
+    );
     expect(botService.sendTo).not.toHaveBeenCalled();
   });
 
@@ -71,7 +85,13 @@ describe('ReportQueueProcessor', () => {
 
       await run(job(0, REPORT_BUILD_JOB, { own: false, channel, notice: null }));
 
-      expect(reportDelivery.queue).toHaveBeenCalledExactlyOnceWith(report, null, false);
+      expect(reportDelivery.findChannels).toHaveBeenCalledWith('user-1', null);
+      expect(reportDelivery.queue).toHaveBeenCalledExactlyOnceWith(
+        report,
+        [Channel.TELEGRAM, Channel.SLACK],
+        false,
+        new Date(JOB_TIMESTAMP),
+      );
     },
   );
 
@@ -83,7 +103,12 @@ describe('ReportQueueProcessor', () => {
 
     expect(reportService.findFresh).toHaveBeenCalledWith('user-1', '2026-11-09', 300_000);
     expect(reportService.build).not.toHaveBeenCalled();
-    expect(reportDelivery.queue).toHaveBeenCalledWith(saved, Channel.TELEGRAM, true);
+    expect(reportDelivery.queue).toHaveBeenCalledWith(
+      saved,
+      [Channel.TELEGRAM],
+      true,
+      new Date(JOB_TIMESTAMP),
+    );
   });
 
   it('builds again on a rebuild without looking for a saved report', async () => {
@@ -117,6 +142,16 @@ describe('ReportQueueProcessor', () => {
       'GitLab answered 502',
     );
     expect(botService.sendTo).not.toHaveBeenCalled();
+    expect(reportDelivery.queue).not.toHaveBeenCalled();
+  });
+
+  it('does not build the day when the report has no channel to go to', async () => {
+    reportDelivery.findChannels.mockResolvedValue([]);
+
+    await run(job(0, REPORT_BUILD_JOB, { own: false, channel: null, notice: null }));
+
+    expect(reportService.findFresh).not.toHaveBeenCalled();
+    expect(reportService.build).not.toHaveBeenCalled();
     expect(reportDelivery.queue).not.toHaveBeenCalled();
   });
 

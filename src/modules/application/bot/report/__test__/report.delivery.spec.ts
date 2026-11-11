@@ -39,6 +39,7 @@ const REPORT = {
 describe('ReportDelivery', () => {
   const deliveryService = {
     findById: vi.fn<DeliveryService['findById']>(),
+    findForReport: vi.fn<DeliveryService['findForReport']>(),
     createForReport: vi.fn<DeliveryService['createForReport']>(),
     countAttempt: vi.fn<DeliveryService['countAttempt']>(),
     markSent: vi.fn<DeliveryService['markSent']>(),
@@ -85,32 +86,51 @@ describe('ReportDelivery', () => {
     } as User);
   });
 
-  describe('queue', () => {
-    it('queues the report to the channel it was asked in', async () => {
-      deliveryService.createForReport.mockResolvedValue({ id: 'delivery-4' } as Delivery);
-
-      await delivery.queue(REPORT, Channel.SLACK, true);
-
-      expect(deliveryService.createForReport).toHaveBeenCalledWith(REPORT, Channel.SLACK, false);
-      expect(producer.addDelivery).toHaveBeenCalledExactlyOnceWith(Channel.SLACK, 'delivery-4');
+  describe('findChannels', () => {
+    it('takes the channel the report was asked in', async () => {
+      expect(await delivery.findChannels('user-1', Channel.SLACK)).toEqual([Channel.SLACK]);
       expect(channelService.findReceiving).not.toHaveBeenCalled();
     });
 
-    it('queues a report without a channel to every reachable configured channel', async () => {
+    it('takes every reachable configured channel the employee gets reports in', async () => {
       channelService.findReceiving.mockResolvedValue([
         { channel: Channel.TELEGRAM },
         { channel: Channel.SLACK },
       ] as UserChannel[]);
       botService.listChannels.mockReturnValue([Channel.TELEGRAM, Channel.SLACK]);
+
+      expect(await delivery.findChannels('user-1', null)).toEqual([
+        Channel.TELEGRAM,
+        Channel.SLACK,
+      ]);
+      expect(channelService.findReceiving).toHaveBeenCalledWith('user-1', [
+        Channel.TELEGRAM,
+        Channel.SLACK,
+      ]);
+    });
+
+    it('finds no channel when none of the employee gets reports', async () => {
+      channelService.findReceiving.mockResolvedValue([]);
+      botService.listChannels.mockReturnValue([Channel.TELEGRAM]);
+
+      expect(await delivery.findChannels('user-1', null)).toEqual([]);
+    });
+  });
+
+  describe('queue', () => {
+    const JOB_CREATED_AT = new Date('2026-11-10T09:00:00Z');
+
+    it('creates a delivery per channel and queues it', async () => {
+      deliveryService.findForReport.mockResolvedValue(null as unknown as Delivery);
       deliveryService.createForReport
         .mockResolvedValueOnce({ id: 'delivery-5' } as Delivery)
         .mockResolvedValueOnce({ id: 'delivery-6' } as Delivery);
 
-      await delivery.queue(REPORT, null, false);
+      await delivery.queue(REPORT, [Channel.TELEGRAM, Channel.SLACK], true, JOB_CREATED_AT);
 
-      expect(channelService.findReceiving).toHaveBeenCalledWith('user-1', [
-        Channel.TELEGRAM,
-        Channel.SLACK,
+      expect(deliveryService.createForReport.mock.calls).toEqual([
+        [REPORT, Channel.TELEGRAM, false],
+        [REPORT, Channel.SLACK, false],
       ]);
       expect(producer.addDelivery.mock.calls).toEqual([
         [Channel.TELEGRAM, 'delivery-5'],
@@ -118,21 +138,37 @@ describe('ReportDelivery', () => {
       ]);
     });
 
-    it('queues nothing when no channel of the employee gets reports', async () => {
-      channelService.findReceiving.mockResolvedValue([]);
-      botService.listChannels.mockReturnValue([Channel.TELEGRAM]);
+    it('reuses the delivery a failed attempt of the same job already created', async () => {
+      deliveryService.findForReport
+        .mockResolvedValueOnce({ id: 'delivery-5' } as Delivery)
+        .mockResolvedValueOnce(null as unknown as Delivery);
+      deliveryService.createForReport.mockResolvedValueOnce({ id: 'delivery-6' } as Delivery);
 
-      await delivery.queue(REPORT, null, false);
+      await delivery.queue(REPORT, [Channel.TELEGRAM, Channel.SLACK], true, JOB_CREATED_AT);
 
-      expect(deliveryService.createForReport).not.toHaveBeenCalled();
+      expect(deliveryService.findForReport).toHaveBeenCalledWith(
+        'report-1',
+        Channel.TELEGRAM,
+        JOB_CREATED_AT,
+      );
+      expect(deliveryService.createForReport).toHaveBeenCalledExactlyOnceWith(
+        REPORT,
+        Channel.SLACK,
+        false,
+      );
+      expect(producer.addDelivery.mock.calls).toEqual([
+        [Channel.TELEGRAM, 'delivery-5'],
+        [Channel.SLACK, 'delivery-6'],
+      ]);
     });
 
     it('redirects only the reports the employee did not ask for in the redirect mode', async () => {
+      deliveryService.findForReport.mockResolvedValue(null as unknown as Delivery);
       deliveryService.createForReport.mockResolvedValue({ id: 'delivery-3' } as Delivery);
       const redirecting = create(DeliveryMode.REDIRECT);
 
-      await redirecting.queue(REPORT, Channel.TELEGRAM, false);
-      await redirecting.queue(REPORT, Channel.TELEGRAM, true);
+      await redirecting.queue(REPORT, [Channel.TELEGRAM], false, JOB_CREATED_AT);
+      await redirecting.queue(REPORT, [Channel.TELEGRAM], true, JOB_CREATED_AT);
 
       expect(
         deliveryService.createForReport.mock.calls.map(([, , redirected]) => redirected),

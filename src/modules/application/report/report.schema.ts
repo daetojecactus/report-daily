@@ -1,6 +1,7 @@
 import {
   boolean,
   date,
+  index,
   jsonb,
   pgEnum,
   pgTable,
@@ -37,5 +38,8 @@ export const reports = pgTable(
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (table) => [unique('reports_user_id_report_date_unique').on(table.userId, table.reportDate)],
+  (table) => [
+    unique('reports_user_id_report_date_unique').on(table.userId, table.reportDate),
+    index('reports_template_id_index').on(table.templateId),
+  ],
 );

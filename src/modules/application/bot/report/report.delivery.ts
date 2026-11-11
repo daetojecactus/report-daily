@@ -39,15 +39,27 @@ export class ReportDelivery {
       configService.get('DELIVERY_MODE', { infer: true }) === DeliveryMode.REDIRECT;
   }
 
-  async queue(report: Report, channel: Channel | null, isOwn: boolean) {
-    const channels = channel ? [channel] : await this.findReceivingChannels(report.userId);
-    for (const target of channels) {
-      const delivery = await this.deliveryService.createForReport(
-        report,
-        target,
-        this.isRedirectMode && !isOwn,
-      );
-      await this.deliveryQueueProducer.addDelivery(target, delivery.id);
+  async findChannels(userId: string, channel: Channel | null) {
+    if (channel) {
+      return [channel];
+    }
+    const channels = await this.channelService.findReceiving(
+      userId,
+      this.botService.listChannels(),
+    );
+    return channels.map((item) => item.channel);
+  }
+
+  async queue(report: Report, channels: Channel[], isOwn: boolean, jobCreatedAt: Date) {
+    for (const channel of channels) {
+      const delivery =
+        (await this.deliveryService.findForReport(report.id, channel, jobCreatedAt)) ??
+        (await this.deliveryService.createForReport(
+          report,
+          channel,
+          this.isRedirectMode && !isOwn,
+        ));
+      await this.deliveryQueueProducer.addDelivery(channel, delivery.id);
     }
   }
 
@@ -86,14 +98,6 @@ export class ReportDelivery {
 
   async markFailed(plan: ReportDeliveryPlan, reason: string) {
     await this.deliveryService.markFailed(plan.deliveryId, reason);
-  }
-
-  private async findReceivingChannels(userId: string) {
-    const channels = await this.channelService.findReceiving(
-      userId,
-      this.botService.listChannels(),
-    );
-    return channels.map((item) => item.channel);
   }
 
   private async findChatIds(delivery: Delivery, channel: Channel) {

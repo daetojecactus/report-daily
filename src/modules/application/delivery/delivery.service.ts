@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { eq, lt, sql, type SQL } from 'drizzle-orm';
+import { and, eq, gte, lt, sql, type SQL } from 'drizzle-orm';
 import type { Channel } from 'src/common/channel/types/channel.enums';
 import type { Report } from 'src/modules/application/report/types/report.interface';
 import { DELIVERY_RETENTION_MS } from './constants/delivery.constants';
@@ -36,6 +36,16 @@ export class DeliveryService {
 
   findById(id: string) {
     return this.findOne(eq(deliveries.id, id));
+  }
+
+  findForReport(reportId: string, channel: Channel, createdSince: Date) {
+    return this.findOne(
+      and(
+        eq(deliveries.reportId, reportId),
+        eq(deliveries.channel, channel),
+        gte(deliveries.createdAt, createdSince),
+      )!,
+    );
   }
 
   createForReport(report: Report, channel: Channel, redirected: boolean) {

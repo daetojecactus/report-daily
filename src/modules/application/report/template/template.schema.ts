@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { check, pgTable, text, uuid } from 'drizzle-orm/pg-core';
+import { check, index, pgTable, text, uuid } from 'drizzle-orm/pg-core';
 import { createdAt, primaryId, updatedAt } from '../../../infrastructure/database/database.columns';
 import { users } from '../../user/user.schema';
 import { TEMPLATE_BODY_MAX_LENGTH, TEMPLATE_NAME_MAX_LENGTH } from './constants/template.constants';
@@ -23,5 +23,6 @@ export const reportTemplates = pgTable(
       'report_templates_body_length',
       sql`char_length(${table.body}) between 1 and ${sql.raw(String(TEMPLATE_BODY_MAX_LENGTH))}`,
     ),
+    index('report_templates_owner_id_index').on(table.ownerId),
   ],
 );
