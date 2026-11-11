@@ -39,6 +39,17 @@ const V1_PHRASES: Record<string, string> = {
   WROTE_CODE: 'Работал над кодом',
 };
 
+const REWORDED: Record<string, string> = {
+  CLOSED_WITHOUT_MERGE: 'Закрыл задачу без вливания',
+  COMPLETED_BY_MERGE: 'Влил изменения и завершил задачу',
+  DELEGATED_TASK: 'Назначил исполнителя задачи',
+  MERGED_OTHERS_WORK: 'Влил работу коллеги',
+  TESTED_AND_APPROVED: 'Протестировал и одобрил',
+  TESTED_WITH_COMMENTS: 'Протестировал и оставил замечания',
+};
+
+const EXPECTED_PHRASES = { ...V1_PHRASES, ...REWORDED };
+
 const WORDING_CHANGES: Record<string, Reason> = {
   'developer-user-21-2026-11-03 12#87': 'composite',
   'developer-user-21-2026-11-04 12#87': 'kind',
@@ -69,8 +80,10 @@ describe('phrases on the golden days', () => {
     return typeof text === 'string' ? text : text[Gender.MALE];
   };
 
-  it('says what V1 said on every line where the action matches, except the documented changes', () => {
-    const changed = matched.filter(({ status, result }) => toText(result) !== V1_PHRASES[status]);
+  it('says what V1 said on every line where the action matches, in the new wording, except the documented changes', () => {
+    const changed = matched.filter(
+      ({ status, result }) => toText(result) !== EXPECTED_PHRASES[status],
+    );
 
     expect(matched).toHaveLength(78);
     expect(changed.map(({ key }) => key).toSorted()).toEqual(

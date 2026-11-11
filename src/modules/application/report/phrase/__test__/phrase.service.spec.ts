@@ -155,7 +155,7 @@ describe('PhraseService', () => {
 
     expect(describeLine(approved)).toBe('Одобрил мердж-реквест «Merge request 5»');
     expect(describeLine(approved, { role: JobRole.QA })).toBe(
-      'Протестировал и подтвердил корректность «Merge request 5»',
+      'Протестировал и одобрил «Merge request 5»',
     );
   });
 
