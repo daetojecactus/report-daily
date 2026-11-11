@@ -9,7 +9,6 @@ import {
 } from 'src/modules/application/report/template/constants/template.constants';
 import type { ReportTemplate } from 'src/modules/application/report/template/types/template.interface';
 import { TemplateService } from 'src/modules/application/report/template/template.service';
-import { Permission } from 'src/modules/application/user/types/user.enums';
 import { AccessService } from '../../core/access.service';
 import { BotSection } from '../../core/bot.decorator';
 import { DialogService } from '../../core/dialog.service';
@@ -83,7 +82,7 @@ export class TemplateEditHandler implements BotHandler {
 
   private canEdit(actor: BotActor, template: ReportTemplate) {
     return template.ownerId === null
-      ? this.accessService.isAllowed(actor, Permission.TEMPLATES)
+      ? this.accessService.isAllowed(actor, BotAccess.ADMIN)
       : actor.user?.id === template.ownerId;
   }
 

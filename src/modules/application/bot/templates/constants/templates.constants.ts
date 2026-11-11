@@ -20,7 +20,13 @@ export const TEMPLATES_BUTTON_SCHEMA = z.union([
   z
     .tuple([
       NAMESPACE_SCHEMA,
-      z.enum([TemplatesAction.CARD, TemplatesAction.DELETE, TemplatesAction.CONFIRM_DELETE]),
+      z.enum([
+        TemplatesAction.CARD,
+        TemplatesAction.DELETE,
+        TemplatesAction.CONFIRM_DELETE,
+        TemplatesAction.SHARE,
+        TemplatesAction.CONFIRM_SHARE,
+      ]),
       z.uuid(),
     ])
     .transform(([, action, id]) => ({ action, id })),

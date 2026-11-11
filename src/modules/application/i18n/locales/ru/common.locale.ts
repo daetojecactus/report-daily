@@ -1,12 +1,8 @@
 import { Channel } from 'src/common/channel/types/channel.enums';
 import { BotCommand } from 'src/modules/application/bot/core/types/bot.enums';
 import { Source } from 'src/modules/application/source/types/source.enums';
-import {
-  Gender,
-  JobRole,
-  Permission,
-  UserStatus,
-} from 'src/modules/application/user/types/user.enums';
+import { Gender, JobRole, UserStatus } from 'src/modules/application/user/types/user.enums';
+import { AdminSection } from 'src/modules/application/bot/admin/types/admin.enums';
 import type { CommonLocale } from '../../types/i18n-common.interface';
 import { Language } from '../../types/i18n.enums';
 
@@ -62,12 +58,6 @@ export const ruCommon: CommonLocale = {
     [UserStatus.ACTIVE]: 'активен',
     [UserStatus.BLOCKED]: 'заблокирован',
   },
-  permissions: {
-    [Permission.USERS]: 'Сотрудники',
-    [Permission.TRAITS]: 'Признаки',
-    [Permission.SETTINGS]: 'Настройки',
-    [Permission.TEMPLATES]: 'Шаблоны',
-  },
   bot: {
     noAccess: (channel, id) =>
       `Нет доступа. Ваш ${channel} ID: \`${id}\` — передайте его администратору.`,
@@ -98,8 +88,14 @@ export const ruCommon: CommonLocale = {
   },
   admin: {
     title: '**Управление**',
-    noSections: 'Для ваших прав здесь пока ничего нет.',
-    broadcast: 'Рассылка',
+    noSections: 'Для вашего уровня доступа здесь пока ничего нет.',
+    sections: {
+      [AdminSection.EMPLOYEES]: 'Сотрудники',
+      [AdminSection.TRAITS]: 'Признаки',
+      [AdminSection.SHARED_TEMPLATES]: 'Общие шаблоны',
+      [AdminSection.SETTINGS]: 'Настройки',
+      [AdminSection.BROADCAST]: 'Рассылка',
+    },
   },
   settings: {
     title: '**Мои настройки**',
@@ -160,6 +156,11 @@ export const ruCommon: CommonLocale = {
     selected: (name) => `${name} (выбран)`,
     confirmDelete: (name) =>
       `Удалить шаблон **${name}**? Если он выбран, отчёт вернётся к «Стандартному».`,
+    makeShared: 'Сделать общим',
+    confirmShare: (name) =>
+      `Сделать шаблон **${name}** общим? Его сможет выбрать любой сотрудник, править будут админы. Из «Моих шаблонов» он уйдёт.`,
+    confirmMakeShared: 'Да, сделать общим',
+    madeShared: (name) => `Шаблон **${name}** теперь общий: он в «Общих шаблонах».`,
     confirm: 'Да, удалить',
     cancel: 'Отмена',
     deleted: (name) => `Шаблон **${name}** удалён.`,

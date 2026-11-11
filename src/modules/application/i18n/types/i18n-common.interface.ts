@@ -2,12 +2,8 @@ import type { Channel } from 'src/common/channel/types/channel.enums';
 import type { BotCommand } from 'src/modules/application/bot/core/types/bot.enums';
 import type { Source } from 'src/modules/application/source/types/source.enums';
 import type { Language } from './i18n.enums';
-import type {
-  Gender,
-  JobRole,
-  Permission,
-  UserStatus,
-} from 'src/modules/application/user/types/user.enums';
+import type { AdminSection } from 'src/modules/application/bot/admin/types/admin.enums';
+import type { Gender, JobRole, UserStatus } from 'src/modules/application/user/types/user.enums';
 
 interface LocaleSwitch {
   name: string;
@@ -38,7 +34,6 @@ export interface CommonLocale {
   roles: Record<JobRole, string>;
   genders: Record<Gender, string>;
   statuses: Record<UserStatus, string>;
-  permissions: Record<Permission, string>;
   bot: {
     noAccess: (channel: string, id: string) => string;
     forbidden: string;
@@ -63,7 +58,7 @@ export interface CommonLocale {
   admin: {
     title: string;
     noSections: string;
-    broadcast: string;
+    sections: Record<AdminSection, string>;
   };
   settings: {
     title: string;
@@ -107,6 +102,10 @@ export interface CommonLocale {
     backToMine: string;
     selected: (name: string) => string;
     confirmDelete: (name: string) => string;
+    makeShared: string;
+    confirmShare: (name: string) => string;
+    confirmMakeShared: string;
+    madeShared: (name: string) => string;
     confirm: string;
     cancel: string;
     deleted: (name: string) => string;

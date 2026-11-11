@@ -5,11 +5,9 @@ import type { ChatChannel } from 'src/common/channel/types/chat-channel.interfac
 import { escapeMarkdown } from 'src/common/utils/markdown.util';
 import type { Locale } from 'src/modules/application/i18n/types/i18n.interface';
 import { ChannelService } from 'src/modules/application/user/channel/channel.service';
-import { Permission } from 'src/modules/application/user/types/user.enums';
 import type { User } from 'src/modules/application/user/types/user.interface';
 import { UserService } from 'src/modules/application/user/user.service';
 import { BotSection } from '../../core/bot.decorator';
-import { AccessService } from '../../core/access.service';
 import { BotAccess, BotNamespace } from '../../core/types/bot.enums';
 import type { BotActor, BotContext, BotHandler, BotReply } from '../../core/types/bot.interface';
 import { BOT_BUTTON_DATA_SEPARATOR, BOT_CHANNELS } from '../../core/constants/bot.constants';
@@ -23,7 +21,7 @@ import { EmployeeBindMessages } from './constants/employee-bind.messages';
 import { EmployeeBindAction, EmployeeBindStep } from './types/employee-bind.enums';
 
 @Injectable()
-@BotSection({ access: Permission.USERS, namespace: BotNamespace.EMPLOYEE_BIND })
+@BotSection({ access: BotAccess.OWNER, namespace: BotNamespace.EMPLOYEE_BIND })
 export class EmployeeBindHandler implements BotHandler {
   private readonly logger = new Logger(EmployeeBindHandler.name);
 
@@ -31,7 +29,6 @@ export class EmployeeBindHandler implements BotHandler {
     private readonly userService: UserService,
     private readonly channelService: ChannelService,
     private readonly menuService: MenuService,
-    private readonly accessService: AccessService,
     @Inject(BOT_CHANNELS) private readonly channels: ChatChannel[],
   ) {}
 
@@ -88,8 +85,8 @@ export class EmployeeBindHandler implements BotHandler {
     isPicker: boolean,
   ): Promise<BotReply> {
     const { user, isBound } = await this.findTarget(userId, channel);
-    if (!user || isBound || !this.accessService.canManage(actor, user)) {
-      return this.refuse(actor, locale, user, channel);
+    if (!user || isBound) {
+      return this.refuse(locale, user, channel);
     }
 
     const channelName = locale.channels[channel];
@@ -152,8 +149,8 @@ export class EmployeeBindHandler implements BotHandler {
       );
     }
     const { user, isBound } = await this.findTarget(userId, channel);
-    if (!user || isBound || !this.accessService.canManage(actor, user)) {
-      return this.refuse(actor, locale, user, channel);
+    if (!user || isBound) {
+      return this.refuse(locale, user, channel);
     }
 
     const bound = await this.userService.bindChannel(user.id, channel, externalId);
@@ -182,13 +179,7 @@ export class EmployeeBindHandler implements BotHandler {
     };
   }
 
-  private toRefusalText(actor: BotActor, locale: Locale, user: User, channel: Channel) {
-    if (actor.user?.id === user.id) {
-      return locale.employeeBind.self;
-    }
-    if (!this.accessService.canManage(actor, user)) {
-      return locale.employeeBind.ownerOnly;
-    }
+  private toRefusalText(locale: Locale, channel: Channel) {
     return locale.employeeBind.alreadyBound(locale.channels[channel]);
   }
 
@@ -201,11 +192,11 @@ export class EmployeeBindHandler implements BotHandler {
     };
   }
 
-  private refuse(actor: BotActor, locale: Locale, user: User | null, channel: Channel): BotReply {
+  private refuse(locale: Locale, user: User | null, channel: Channel): BotReply {
     return {
       screen: user
         ? {
-            text: this.toRefusalText(actor, locale, user, channel),
+            text: this.toRefusalText(locale, channel),
             buttons: [[this.toCardButton(locale, user.id)]],
           }
         : {

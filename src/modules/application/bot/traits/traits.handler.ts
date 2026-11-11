@@ -6,10 +6,10 @@ import { TraitDimension } from 'src/modules/application/trait/types/trait.enums'
 import { Source } from 'src/modules/application/source/types/source.enums';
 import { TraitService } from 'src/modules/application/trait/trait.service';
 import { TraitNameService } from 'src/modules/application/trait/trait-name/trait-name.service';
-import { JobRole, Permission } from 'src/modules/application/user/types/user.enums';
+import { JobRole } from 'src/modules/application/user/types/user.enums';
 import { ADMIN_MENU_DATA } from '../admin/constants/admin.constants';
 import { BotSection } from '../core/bot.decorator';
-import { BotNamespace } from '../core/types/bot.enums';
+import { BotAccess, BotNamespace } from '../core/types/bot.enums';
 import type { BotContext, BotHandler, BotReply } from '../core/types/bot.interface';
 import { BOT_BUTTON_DATA_SEPARATOR } from '../core/constants/bot.constants';
 import { TraitAddAction } from './add/types/trait-add.enums';
@@ -25,7 +25,7 @@ import { TraitsAction } from './types/traits.enums';
 import { TraitsView } from './traits.view';
 
 @Injectable()
-@BotSection({ access: Permission.TRAITS, namespace: BotNamespace.TRAITS })
+@BotSection({ access: BotAccess.OWNER, namespace: BotNamespace.TRAITS })
 export class TraitsHandler implements BotHandler {
   constructor(
     private readonly traitService: TraitService,

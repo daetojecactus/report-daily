@@ -1,16 +1,13 @@
 import type { BotCommand } from './bot.enums';
 import type { Channel } from 'src/common/channel/types/channel.enums';
-import type { Permission } from 'src/modules/application/user/types/user.enums';
 import type { Language } from 'src/modules/application/i18n/types/i18n.enums';
 import type { Locale } from 'src/modules/application/i18n/types/i18n.interface';
 import type { ChatInput, Screen } from 'src/common/channel/types/chat-channel.interface';
 import type { User } from 'src/modules/application/user/types/user.interface';
 import type { BotAccess } from './bot.enums';
 
-export type BotSectionAccess = BotAccess | Permission;
-
 export interface BotSectionOptions {
-  access: BotSectionAccess;
+  access: BotAccess;
   commands?: BotCommand[];
   namespace?: string;
 }
@@ -59,5 +56,5 @@ export interface BotRoute extends BotSectionOptions {
 
 export interface BotMenuItem {
   command: BotCommand;
-  access: BotSectionAccess;
+  access: BotAccess;
 }

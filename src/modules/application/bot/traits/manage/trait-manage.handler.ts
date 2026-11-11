@@ -5,7 +5,6 @@ import type { Locale } from 'src/modules/application/i18n/types/i18n.interface';
 import { TRAIT_DICTIONARY } from 'src/modules/application/trait/constants/trait.constants';
 import type { TraitMapping, TraitValue } from 'src/modules/application/trait/types/trait.interface';
 import { TraitService } from 'src/modules/application/trait/trait.service';
-import { Permission } from 'src/modules/application/user/types/user.enums';
 import { BotSection } from '../../core/bot.decorator';
 import { BotAccess, BotNamespace } from '../../core/types/bot.enums';
 import type { BotActor, BotContext, BotHandler, BotReply } from '../../core/types/bot.interface';
@@ -17,7 +16,7 @@ import { TraitManageAction } from './types/trait-manage.enums';
 
 @Injectable()
 @BotSection({
-  access: Permission.TRAITS,
+  access: BotAccess.OWNER,
   namespace: BotNamespace.TRAIT_MANAGE,
 })
 export class TraitManageHandler implements BotHandler {

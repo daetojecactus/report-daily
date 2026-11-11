@@ -8,7 +8,7 @@ import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
 import type { ScreenButton } from 'src/common/channel/types/chat-channel.interface';
 import { escapeMarkdown } from 'src/common/utils/markdown.util';
 import type { Locale } from 'src/modules/application/i18n/types/i18n.interface';
-import { JobRole, Permission, UserStatus } from 'src/modules/application/user/types/user.enums';
+import { JobRole, UserStatus } from 'src/modules/application/user/types/user.enums';
 import type { User } from 'src/modules/application/user/types/user.interface';
 import { ChannelService } from 'src/modules/application/user/channel/channel.service';
 import { UserService } from 'src/modules/application/user/user.service';
@@ -25,7 +25,7 @@ import { EmployeeManageAction } from './types/employee-manage.enums';
 
 @Injectable()
 @BotSection({
-  access: Permission.USERS,
+  access: BotAccess.OWNER,
   namespace: BotNamespace.EMPLOYEE_MANAGE,
 })
 export class EmployeeManageHandler implements BotHandler {
@@ -77,10 +77,7 @@ export class EmployeeManageHandler implements BotHandler {
     >,
   ): Promise<BotReply> {
     if (!this.accessService.canManage(actor, user)) {
-      return this.reply(
-        actor.user?.id === user.id ? locale.employeeManage.self : locale.employeeManage.ownerOnly,
-        [[this.toCardButton(locale, user.id)]],
-      );
+      return this.reply(locale.employeeManage.self, [[this.toCardButton(locale, user.id)]]);
     }
 
     const name = escapeMarkdown(user.displayName);
@@ -93,6 +90,14 @@ export class EmployeeManageHandler implements BotHandler {
         await this.syncMenu(await this.userService.unblock(user.id));
         this.log(actor, user, EmployeeManageMessages.UNBLOCKED);
         return this.done(locale, user, locale.employeeManage.unblocked(name));
+      case EmployeeManageAction.GRANT_ADMIN:
+        await this.syncMenu(await this.userService.setAdmin(user.id, true));
+        this.log(actor, user, EmployeeManageMessages.ADMIN_GRANTED);
+        return this.done(locale, user, locale.employeeManage.madeAdmin(name));
+      case EmployeeManageAction.REVOKE_ADMIN:
+        await this.syncMenu(await this.userService.setAdmin(user.id, false));
+        this.log(actor, user, EmployeeManageMessages.ADMIN_REVOKED);
+        return this.done(locale, user, locale.employeeManage.removedAdmin(name));
       case EmployeeManageAction.DELETE:
         return this.reply(locale.employeeManage.confirmDelete(name), [
           [

@@ -12,7 +12,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import { reportTemplates } from '../report/template/template.schema';
 import { Language } from '../i18n/types/i18n.enums';
-import { Gender, JobRole, Permission, UserStatus } from './types/user.enums';
+import { Gender, JobRole, UserStatus } from './types/user.enums';
 import { createdAt, primaryId, updatedAt } from '../../infrastructure/database/database.columns';
 import {
   USER_DEFAULT_REPORT_TIME,
@@ -25,8 +25,6 @@ export const jobRole = pgEnum('job_role', JobRole);
 export const gender = pgEnum('gender', Gender);
 
 export const userStatus = pgEnum('user_status', UserStatus);
-
-export const permission = pgEnum('permission', Permission);
 
 export const language = pgEnum('language', Language);
 
@@ -44,7 +42,7 @@ export const users = pgTable(
     scheduleEnabled: boolean().notNull().default(true),
     aiEnabled: boolean().notNull().default(true),
     aiDataOptOut: boolean().notNull().default(false),
-    permissions: permission().array().notNull().default([]),
+    isAdmin: boolean().notNull().default(false),
     templateId: uuid().references((): AnyPgColumn => reportTemplates.id, {
       onDelete: 'set null',
     }),

@@ -1,7 +1,7 @@
 import type { ConfigService } from '@nestjs/config';
 import { describe, expect, it, vi } from 'vitest';
 import { Channel } from 'src/common/channel/types/channel.enums';
-import { Permission, UserStatus } from 'src/modules/application/user/types/user.enums';
+import { UserStatus } from 'src/modules/application/user/types/user.enums';
 import { Language } from 'src/modules/application/i18n/types/i18n.enums';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
 import type { UserService } from 'src/modules/application/user/user.service';
@@ -9,7 +9,7 @@ import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { AccessService } from '../access.service';
 import { BotAccess } from '../types/bot.enums';
 import type { User } from 'src/modules/application/user/types/user.interface';
-import type { BotActor, BotSectionAccess } from '../types/bot.interface';
+import type { BotActor } from '../types/bot.interface';
 import { createEmployee, OWNER_ID } from '../../__test__/bot.fixture';
 import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
 
@@ -41,13 +41,11 @@ function actor(values: Partial<BotActor>): BotActor {
   };
 }
 
-const LEVELS: BotSectionAccess[] = [
+const LEVELS: BotAccess[] = [
   BotAccess.ANYONE,
   BotAccess.EMPLOYEE,
   BotAccess.ADMIN,
   BotAccess.OWNER,
-  Permission.USERS,
-  Permission.TRAITS,
 ];
 
 describe('AccessService', () => {
@@ -55,15 +53,11 @@ describe('AccessService', () => {
     ['a stranger', actor({}), [BotAccess.ANYONE]],
     ['an employee', actor({ user: createEmployee().user }), [BotAccess.ANYONE, BotAccess.EMPLOYEE]],
     [
-      'an admin with the users permission',
-      actor({ user: createEmployee({ permissions: [Permission.USERS] }).user }),
-      [BotAccess.ANYONE, BotAccess.EMPLOYEE, BotAccess.ADMIN, Permission.USERS],
+      'an admin',
+      actor({ user: createEmployee({ isAdmin: true }).user }),
+      [BotAccess.ANYONE, BotAccess.EMPLOYEE, BotAccess.ADMIN],
     ],
-    [
-      'an owner',
-      actor({ isOwner: true }),
-      [BotAccess.ANYONE, BotAccess.ADMIN, BotAccess.OWNER, Permission.USERS, Permission.TRAITS],
-    ],
+    ['an owner', actor({ isOwner: true }), [BotAccess.ANYONE, BotAccess.ADMIN, BotAccess.OWNER]],
     ['an owner who is an employee', actor({ isOwner: true, user: createEmployee().user }), LEVELS],
   ])('grants %s only its access levels', (_name, subject, allowed) => {
     const { service } = createService();
@@ -72,24 +66,14 @@ describe('AccessService', () => {
   });
 
   it.each<[string, Partial<BotActor>, Partial<User>, boolean]>([
-    ['an admin by an owner', { isOwner: true }, { permissions: [Permission.USERS] }, true],
+    ['an employee by an owner', { isOwner: true }, {}, true],
+    ['an admin by an owner', { isOwner: true }, { isAdmin: true }, true],
     [
       'an employee by an admin',
-      {
-        user: createEmployee({ id: ADMIN_ID, permissions: [Permission.USERS] }).user,
-      },
+      { user: createEmployee({ id: ADMIN_ID, isAdmin: true }).user },
       {},
-      true,
-    ],
-    [
-      'an admin by another admin',
-      {
-        user: createEmployee({ id: ADMIN_ID, permissions: [Permission.USERS] }).user,
-      },
-      { permissions: [Permission.TRAITS] },
       false,
     ],
-    ['yourself as an admin', { user: createEmployee().user }, {}, false],
     [
       'your own employee record as an owner',
       { isOwner: true, user: createEmployee().user },

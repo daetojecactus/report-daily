@@ -3,12 +3,7 @@ import { eq } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { Channel } from 'src/common/channel/types/channel.enums';
-import {
-  Gender,
-  JobRole,
-  Permission,
-  UserStatus,
-} from 'src/modules/application/user/types/user.enums';
+import { Gender, JobRole, UserStatus } from 'src/modules/application/user/types/user.enums';
 import { Language } from 'src/modules/application/i18n/types/i18n.enums';
 import { en } from 'src/modules/application/i18n/locales/en.locale';
 import { ru } from 'src/modules/application/i18n/locales/ru.locale';
@@ -273,7 +268,7 @@ describe('Telegram bot', () => {
         inline_keyboard: [
           [{ text: 'Employees', callback_data: 'emp:list:0' }],
           [{ text: 'Traits', callback_data: 'trt:list:0' }],
-          [{ text: 'Templates', callback_data: 'tpls:list' }],
+          [{ text: 'Shared templates', callback_data: 'tpls:list' }],
           [{ text: 'Settings', callback_data: 'aset:menu' }],
           [{ text: 'Broadcast', callback_data: 'bcast:start' }],
         ],
@@ -319,7 +314,7 @@ describe('Telegram bot', () => {
     expect(card.text).toContain('Telegram: connected');
   });
 
-  it('forbids /admin to an employee without permissions', async () => {
+  it('forbids /admin to an employee who is not an admin', async () => {
     const { telegramId } = await createEmployee();
 
     await fakeBotApi.pushUpdate(privateMessage(telegramId, '/admin'));
@@ -327,17 +322,15 @@ describe('Telegram bot', () => {
     expect((await replyTo(telegramId)).text).toBe(en.bot.forbidden);
   });
 
-  it('opens /admin for an admin with the users permission', async () => {
-    const { telegramId } = await createEmployee({
-      permissions: [Permission.USERS],
-    });
+  it('opens /admin with the shared templates for an admin', async () => {
+    const { telegramId } = await createEmployee({ isAdmin: true });
 
     await fakeBotApi.pushUpdate(privateMessage(telegramId, '/admin'));
 
     expect(await replyTo(telegramId)).toMatchObject({
       text: '<b>Management</b>',
       reply_markup: {
-        inline_keyboard: [[{ text: 'Employees', callback_data: 'emp:list:0' }]],
+        inline_keyboard: [[{ text: 'Shared templates', callback_data: 'tpls:list' }]],
       },
     });
   });
@@ -533,18 +526,16 @@ describe('Telegram bot', () => {
     expect(await db.select().from(users).where(eq(users.id, user.id))).toEqual([]);
   });
 
-  it('lets an owner grant and revoke permissions with the menu following', async () => {
+  it('lets an owner make an employee an admin and back with the menu following', async () => {
     const { user, telegramId } = await createEmployee({
       displayName: `Rights${nextTelegramId}`,
     });
     const chatId = String(telegramId);
 
-    await fakeBotApi.pushUpdate(
-      buttonPress(TEST_OWNER_TELEGRAM_ID, `perm:grant:${user.id}:users`, 1001),
-    );
+    await fakeBotApi.pushUpdate(buttonPress(TEST_OWNER_TELEGRAM_ID, `mng:admin:${user.id}`, 1001));
     expect(
       (await fakeBotApi.waitForRequest('editMessageText', (body) => body.message_id === 1001)).text,
-    ).toContain('Permissions in the bot');
+    ).toContain('is an admin now');
     const menu = await fakeBotApi.waitForRequest(
       'setMyCommands',
       (body) => (body.scope as { chat_id?: string }).chat_id === chatId,
@@ -562,7 +553,7 @@ describe('Telegram bot', () => {
     expect((await replyTo(telegramId)).text).toBe('<b>Management</b>');
 
     await fakeBotApi.pushUpdate(
-      buttonPress(TEST_OWNER_TELEGRAM_ID, `perm:revoke:${user.id}:users`, 1002),
+      buttonPress(TEST_OWNER_TELEGRAM_ID, `mng:noadmin:${user.id}`, 1002),
     );
     await fakeBotApi.waitForRequest('editMessageText', (body) => body.message_id === 1002);
     await fakeBotApi.pushUpdate(privateMessage(telegramId, '/admin'));
@@ -572,13 +563,11 @@ describe('Telegram bot', () => {
     );
   });
 
-  it('keeps permissions for owners only', async () => {
-    const { telegramId } = await createEmployee({
-      permissions: [Permission.USERS],
-    });
+  it('keeps employee management for owners only', async () => {
+    const { telegramId } = await createEmployee({ isAdmin: true });
     const { user } = await createEmployee();
 
-    await fakeBotApi.pushUpdate(buttonPress(telegramId, `perm:open:${user.id}`, 1003));
+    await fakeBotApi.pushUpdate(buttonPress(telegramId, `mng:admin:${user.id}`, 1003));
 
     expect(
       await fakeBotApi.waitForRequest('editMessageText', (body) => body.message_id === 1003),
@@ -641,18 +630,19 @@ describe('Telegram bot', () => {
     });
   });
 
-  it('lets an admin with the labels permission map a label to our value', async () => {
-    const { telegramId } = await createEmployee({
-      permissions: [Permission.TRAITS],
-    });
-    const label = `status::easy ${telegramId}`;
+  it('lets an owner map a label to our value', async () => {
+    const telegramId = TEST_OWNER_TELEGRAM_ID;
+    const label = `status::easy ${nextTelegramId++}`;
 
     await fakeBotApi.pushUpdate(privateMessage(telegramId, '/admin'));
-    expect(await replyTo(telegramId)).toMatchObject({
-      reply_markup: {
-        inline_keyboard: [[{ text: 'Traits', callback_data: 'trt:list:0' }]],
-      },
-    });
+    expect(
+      await fakeBotApi.waitForRequest(
+        'sendMessage',
+        (body) =>
+          body.chat_id === String(telegramId) &&
+          JSON.stringify(body.reply_markup).includes('trt:list:0'),
+      ),
+    ).toBeDefined();
     expect((await press(telegramId, 'trt:list:0', 1401)).text).toMatch(
       /^<b>Traits<\/b> · GitLab labels: \d+/,
     );
@@ -683,17 +673,15 @@ describe('Telegram bot', () => {
     ]);
   });
 
-  it('keeps labels closed without the labels permission', async () => {
-    const { telegramId } = await createEmployee();
+  it('keeps labels closed to an admin', async () => {
+    const { telegramId } = await createEmployee({ isAdmin: true });
 
     expect((await press(telegramId, 'trt:list:0', 1406)).text).toBe(en.bot.forbidden);
   });
 
-  it('lets an admin change a label value and delete the label', async () => {
-    const { telegramId } = await createEmployee({
-      permissions: [Permission.TRAITS],
-    });
-    const label = `stage::wip ${telegramId}`;
+  it('lets an owner change a label value and delete the label', async () => {
+    const telegramId = TEST_OWNER_TELEGRAM_ID;
+    const label = `stage::wip ${nextTelegramId++}`;
     const [mapping] = await db
       .insert(traitMappings)
       .values({
@@ -724,8 +712,8 @@ describe('Telegram bot', () => {
     expect(await findStored()).toEqual([]);
   });
 
-  it('lets an admin with the settings permission pause and resume scheduled reports', async () => {
-    const { telegramId } = await createEmployee({ permissions: [Permission.SETTINGS] });
+  it('lets an owner pause and resume scheduled reports', async () => {
+    const telegramId = TEST_OWNER_TELEGRAM_ID;
 
     expect((await press(telegramId, 'aset:menu', 2001)).text).toContain(en.adminSettings.reportsOn);
     expect((await press(telegramId, 'aset:forever', 2002)).text).toContain(
@@ -739,8 +727,8 @@ describe('Telegram bot', () => {
     );
   });
 
-  it('keeps the settings closed without the settings permission', async () => {
-    const { telegramId } = await createEmployee();
+  it('keeps the settings closed to an admin', async () => {
+    const { telegramId } = await createEmployee({ isAdmin: true });
 
     expect((await press(telegramId, 'aset:forever', 2004)).text).toBe(en.bot.forbidden);
     expect(await db.select().from(settings)).toMatchObject([{ reportsPaused: false }]);
@@ -772,8 +760,8 @@ describe('Telegram bot', () => {
     ).toBeDefined();
   });
 
-  it('keeps the broadcast closed to an employee with every permission', async () => {
-    const { telegramId } = await createEmployee({ permissions: Object.values(Permission) });
+  it('keeps the broadcast closed to an admin', async () => {
+    const { telegramId } = await createEmployee({ isAdmin: true });
 
     expect((await press(telegramId, 'bcast:start', 2103)).text).toBe(en.bot.forbidden);
   });

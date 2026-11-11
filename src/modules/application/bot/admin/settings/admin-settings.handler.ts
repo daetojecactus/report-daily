@@ -10,7 +10,6 @@ import type {
   SettingsAi,
 } from 'src/modules/application/settings/types/settings.interface';
 import { SettingsService } from 'src/modules/application/settings/settings.service';
-import { Permission } from 'src/modules/application/user/types/user.enums';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { ADMIN_MENU_DATA } from '../constants/admin.constants';
 import { BotSection } from '../../core/bot.decorator';
@@ -32,7 +31,7 @@ import {
 import { AdminSettingsMessages } from './constants/admin-settings.messages';
 
 @Injectable()
-@BotSection({ access: Permission.SETTINGS, namespace: BotNamespace.ADMIN_SETTINGS })
+@BotSection({ access: BotAccess.OWNER, namespace: BotNamespace.ADMIN_SETTINGS })
 export class AdminSettingsHandler implements BotHandler {
   private readonly logger = new Logger(AdminSettingsHandler.name);
   private readonly timeZone: string;

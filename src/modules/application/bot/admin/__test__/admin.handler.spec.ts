@@ -5,7 +5,6 @@ import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
 import type { ChatInput } from 'src/common/channel/types/chat-channel.interface';
 import { Language } from 'src/modules/application/i18n/types/i18n.enums';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
-import { Permission } from 'src/modules/application/user/types/user.enums';
 import type { UserService } from 'src/modules/application/user/user.service';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { AccessService } from '../../core/access.service';
@@ -53,7 +52,7 @@ describe('AdminHandler', () => {
         buttons: [
           [{ text: 'Employees', data: 'emp:list:0' }],
           [{ text: 'Traits', data: 'trt:list:0' }],
-          [{ text: 'Templates', data: 'tpls:list' }],
+          [{ text: 'Shared templates', data: 'tpls:list' }],
           [{ text: 'Settings', data: 'aset:menu' }],
           [{ text: 'Broadcast', data: 'bcast:start' }],
         ],
@@ -62,40 +61,16 @@ describe('AdminHandler', () => {
     });
   });
 
-  it('shows the employees section to an admin with the users permission', () => {
-    const user = createEmployee({ permissions: [Permission.USERS] }).user;
+  it('shows an admin only the shared templates', () => {
+    const user = createEmployee({ isAdmin: true }).user;
 
     expect(open(actor({ user }), button('adm:menu')).screen.buttons).toEqual([
-      [{ text: 'Employees', data: 'emp:list:0' }],
+      [{ text: 'Shared templates', data: 'tpls:list' }],
     ]);
   });
 
-  it('shows the labels section to an admin with the labels permission', () => {
-    const user = createEmployee({ permissions: [Permission.TRAITS] }).user;
-
-    expect(open(actor({ user }), COMMAND).screen.buttons).toEqual([
-      [{ text: 'Traits', data: 'trt:list:0' }],
-    ]);
-  });
-
-  it('shows the settings section to an admin with the settings permission', () => {
-    const user = createEmployee({ permissions: [Permission.SETTINGS] }).user;
-
-    expect(open(actor({ user }), COMMAND).screen.buttons).toEqual([
-      [{ text: 'Settings', data: 'aset:menu' }],
-    ]);
-  });
-
-  it('keeps the broadcast for the owner only', () => {
-    const user = createEmployee({ permissions: Object.values(Permission) }).user;
-
-    expect(open(actor({ user }), COMMAND).screen.buttons?.flat()).not.toContainEqual(
-      expect.objectContaining({ data: 'bcast:start' }),
-    );
-  });
-
-  it('says there is nothing for an employee without permissions', () => {
-    const user = createEmployee({ permissions: [] }).user;
+  it('says there is nothing for an employee who is not an admin', () => {
+    const user = createEmployee().user;
 
     expect(open(actor({ user }), COMMAND).screen).toEqual({
       text: [locale.admin.title, locale.admin.noSections].join('\n'),

@@ -1,3 +1,4 @@
+import type { ConfigService } from '@nestjs/config';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Channel } from 'src/common/channel/types/channel.enums';
 import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
@@ -9,7 +10,9 @@ import { TemplateService } from 'src/modules/application/report/template/templat
 import type { TemplateRepository } from 'src/modules/application/report/template/template.repository';
 import type { User } from 'src/modules/application/user/types/user.interface';
 import type { UserService } from 'src/modules/application/user/user.service';
+import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { createEmployee } from '../../__test__/bot.fixture';
+import { AccessService } from '../../core/access.service';
 import { TemplatesHandler } from '../templates.handler';
 
 const locale = new I18nService().getLocale(Language.EN);
@@ -40,11 +43,17 @@ describe('TemplatesHandler', () => {
     find: vi.fn<TemplateRepository['find']>(),
     findOne: vi.fn<TemplateRepository['findOne']>(),
     deleteOne: vi.fn<TemplateRepository['deleteOne']>(),
+    updateOne: vi.fn<TemplateRepository['updateOne']>(),
   };
   const userService = { updateSettings: vi.fn<UserService['updateSettings']>() };
   const handler = new TemplatesHandler(
     new TemplateService(repository as unknown as TemplateRepository),
     userService as unknown as UserService,
+    new AccessService(
+      { get: () => [] } as unknown as ConfigService<AppEnvs, true>,
+      {} as UserService,
+      new I18nService(),
+    ),
   );
   const open = (data: string, user: User = USER) =>
     handler.handle({
@@ -170,5 +179,38 @@ describe('TemplatesHandler', () => {
     expect((await open(`tpl:delok:${FOREIGN.id}`)).screen.text).toContain(
       locale.templates.notFound,
     );
+  });
+
+  it('lets an admin make an own template shared after a confirmation', async () => {
+    const admin = { ...USER, isAdmin: true };
+    repository.findOne.mockResolvedValue(OWN);
+    repository.updateOne.mockResolvedValue({ ...OWN, ownerId: null });
+    repository.find.mockResolvedValue([] as never);
+
+    expect((await open(`tpl:card:${OWN.id}`, admin)).screen.buttons).toContainEqual([
+      { text: 'Make shared', data: `tpl:share:${OWN.id}` },
+    ]);
+    expect((await open(`tpl:share:${OWN.id}`, admin)).screen.buttons).toEqual([
+      [
+        { text: 'Yes, make shared', data: `tpl:shareok:${OWN.id}` },
+        { text: 'Cancel', data: `tpl:card:${OWN.id}` },
+      ],
+    ]);
+    expect((await open(`tpl:shareok:${OWN.id}`, admin)).screen.text).toContain(
+      locale.templates.madeShared('Mine \\*short\\*'),
+    );
+    expect(repository.updateOne).toHaveBeenCalledExactlyOnceWith(expect.anything(), {
+      ownerId: null,
+    });
+  });
+
+  it('keeps sharing from an employee who is not an admin', async () => {
+    repository.findOne.mockResolvedValue(OWN);
+
+    expect(JSON.stringify((await open(`tpl:card:${OWN.id}`)).screen.buttons)).not.toContain(
+      'tpl:share',
+    );
+    expect((await open(`tpl:shareok:${OWN.id}`)).screen).toEqual({ text: locale.bot.forbidden });
+    expect(repository.updateOne).not.toHaveBeenCalled();
   });
 });

@@ -5,7 +5,6 @@ import type { Locale } from 'src/modules/application/i18n/types/i18n.interface';
 import { Source } from 'src/modules/application/source/types/source.enums';
 import { TRAIT_NAME_SEEN_DAYS } from 'src/modules/application/trait/constants/trait.constants';
 import { TraitNameService } from 'src/modules/application/trait/trait-name/trait-name.service';
-import { Permission } from 'src/modules/application/user/types/user.enums';
 import { BotSection } from '../../core/bot.decorator';
 import { BotAccess, BotNamespace } from '../../core/types/bot.enums';
 import type { BotActor, BotContext, BotHandler, BotReply } from '../../core/types/bot.interface';
@@ -20,7 +19,7 @@ import { TraitNamesMessages } from './constants/trait-names.messages';
 import { TraitNameList, TraitNamesAction } from './types/trait-names.enums';
 
 @Injectable()
-@BotSection({ access: Permission.TRAITS, namespace: BotNamespace.TRAIT_NAMES })
+@BotSection({ access: BotAccess.OWNER, namespace: BotNamespace.TRAIT_NAMES })
 export class TraitNamesHandler implements BotHandler {
   private readonly logger = new Logger(TraitNamesHandler.name);
 

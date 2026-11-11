@@ -3,12 +3,7 @@ import { eq } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { Channel } from 'src/common/channel/types/channel.enums';
-import {
-  Gender,
-  JobRole,
-  Permission,
-  UserStatus,
-} from 'src/modules/application/user/types/user.enums';
+import { Gender, JobRole, UserStatus } from 'src/modules/application/user/types/user.enums';
 import { Language } from 'src/modules/application/i18n/types/i18n.enums';
 import { Source } from 'src/modules/application/source/types/source.enums';
 import { DATABASE_INSTANCE } from 'src/modules/infrastructure/database/constants/database.constants';
@@ -413,31 +408,15 @@ describe('User module', () => {
     });
   });
 
-  describe('permissions', () => {
-    it('grants a permission once', async () => {
+  describe('admin', () => {
+    it('makes an employee an admin and back, once each', async () => {
       const user = await insertUser();
 
-      expect(await userService.grantPermission(user.id, Permission.TRAITS)).toMatchObject({
-        permissions: [Permission.TRAITS],
-      });
-      expect(await userService.grantPermission(user.id, Permission.TRAITS)).toBeNull();
-      await Promise.all([
-        userService.grantPermission(user.id, Permission.USERS),
-        userService.grantPermission(user.id, Permission.USERS),
-      ]);
-
-      expect((await findUser(user.id)).permissions).toEqual([Permission.TRAITS, Permission.USERS]);
-    });
-
-    it('revokes a permission it has', async () => {
-      const user = await insertUser({
-        permissions: [Permission.USERS, Permission.SETTINGS],
-      });
-
-      expect(await userService.revokePermission(user.id, Permission.USERS)).toMatchObject({
-        permissions: [Permission.SETTINGS],
-      });
-      expect(await userService.revokePermission(user.id, Permission.USERS)).toBeNull();
+      expect(await userService.setAdmin(user.id, true)).toMatchObject({ isAdmin: true });
+      expect(await userService.setAdmin(user.id, true)).toBeNull();
+      expect(await userService.setAdmin(user.id, false)).toMatchObject({ isAdmin: false });
+      expect(await userService.setAdmin(user.id, false)).toBeNull();
+      expect((await findUser(user.id)).isAdmin).toBe(false);
     });
   });
 
@@ -564,7 +543,7 @@ describe('User module', () => {
         reportTime: '18:00:00',
         aiEnabled: true,
         aiDataOptOut: false,
-        permissions: [],
+        isAdmin: false,
       });
     });
 

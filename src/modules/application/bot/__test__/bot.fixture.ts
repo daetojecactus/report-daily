@@ -24,7 +24,7 @@ export function createEmployee(values: Partial<User> = {}): UserWithChannel {
     scheduleEnabled: true,
     aiEnabled: true,
     aiDataOptOut: false,
-    permissions: [],
+    isAdmin: false,
     templateId: null,
     createdAt: new Date(),
     updatedAt: new Date(),

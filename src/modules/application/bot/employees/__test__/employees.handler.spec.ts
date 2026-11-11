@@ -7,7 +7,7 @@ import { Language } from 'src/modules/application/i18n/types/i18n.enums';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
 import type { UserChannel } from 'src/modules/application/user/channel/types/channel.interface';
 import type { ChannelService } from 'src/modules/application/user/channel/channel.service';
-import { JobRole, Permission, UserStatus } from 'src/modules/application/user/types/user.enums';
+import { JobRole, UserStatus } from 'src/modules/application/user/types/user.enums';
 import type { User } from 'src/modules/application/user/types/user.interface';
 import type { UserService } from 'src/modules/application/user/user.service';
 import type { UserSource } from 'src/modules/application/user/user-source/types/user-source.interface';
@@ -173,11 +173,8 @@ describe('EmployeesHandler', () => {
     expect(screen.buttons?.[0][0].text).toBe('Employee 1 · QA · blocked');
   });
 
-  it('shows a card with channels and permissions', async () => {
-    const user = employee(1, {
-      displayName: 'Anna *Smirnova*',
-      permissions: [Permission.USERS, Permission.TRAITS],
-    });
+  it('shows a card with channels and the admin access', async () => {
+    const user = employee(1, { displayName: 'Anna *Smirnova*', isAdmin: true });
     userService.findById.mockResolvedValue(user);
     userSourceService.findByUser.mockResolvedValue([
       createSourceAccount({ userId: user.id, username: 'anna_s' }),
@@ -202,14 +199,14 @@ describe('EmployeesHandler', () => {
         'Gender: male',
         'Status: active',
         'Telegram: unreachable, the bot cannot write there',
-        'Permissions: Employees, Traits',
+        'Access: admin, publishes shared templates',
         'Last activity in GitLab: 9 November at 17:42',
         'Last report: 8 November — delivered',
       ].join('\n'),
       buttons: [
         [{ text: 'Report now', data: `mng:report:${user.id}` }],
         [{ text: 'Change role', data: `mng:role:${user.id}` }],
-        [{ text: 'Permissions', data: `perm:open:${user.id}` }],
+        [{ text: 'Remove admin', data: `mng:noadmin:${user.id}` }],
         [
           { text: 'Block', data: `mng:block:${user.id}` },
           { text: 'Delete', data: `mng:delete:${user.id}` },
@@ -226,7 +223,7 @@ describe('EmployeesHandler', () => {
     const { screen } = await open(button(`emp:card:${ID}:0`));
 
     expect(screen.text).toContain('Channels: not connected');
-    expect(screen.text).not.toContain('Permissions');
+    expect(screen.text).not.toContain('Access');
     expect(screen.text).not.toContain('Last activity');
     expect(screen.text).toContain('Last report: none yet');
     expect(screen.buttons?.flat().map((item) => item.text)).not.toContain('Report now');
@@ -293,41 +290,18 @@ describe('EmployeesHandler', () => {
     ]);
   });
 
-  it.each<[string, Partial<User>, (user: User) => Partial<BotActor>]>([
-    [
-      'an admin with permissions to another admin',
-      { permissions: [Permission.TRAITS] },
-      () => ({
-        isOwner: false,
-        user: employee(9, { permissions: [Permission.USERS] }),
-      }),
-    ],
-    ['an admin to themselves', {}, (user) => ({ isOwner: false, user })],
-  ])('hides block and delete from %s', async (_name, values, toActor) => {
-    const user = employee(1, values);
+  it('hides the admin access, block and delete from an owner on their own card', async () => {
+    const user = employee(1);
     userService.findById.mockResolvedValue(user);
     channelService.findByUser.mockResolvedValue([createEmployee().channel]);
 
-    const { screen } = await open(button(`emp:card:${user.id}:0`), null, toActor(user));
+    const { screen } = await open(button(`emp:card:${user.id}:0`), null, { user });
 
     expect(screen.buttons).toEqual([
       [{ text: 'Report now', data: `mng:report:${user.id}` }],
       [{ text: 'Change role', data: `mng:role:${user.id}` }],
       [{ text: 'To the list', data: 'emp:list:0' }],
     ]);
-  });
-
-  it('hides binding from an admin who cannot manage the employee', async () => {
-    const user = employee(1, { permissions: [Permission.TRAITS] });
-    userService.findById.mockResolvedValue(user);
-    channelService.findByUser.mockResolvedValue([]);
-    const admin = { isOwner: false, user: employee(9, { permissions: [Permission.USERS] }) };
-
-    const { screen } = await open(button(`emp:card:${user.id}:0`), null, admin);
-    const owners = await open(button(`emp:card:${user.id}:0`));
-
-    expect(JSON.stringify(screen.buttons)).not.toContain('bind:start');
-    expect(JSON.stringify(owners.screen.buttons)).toContain(`bind:start:${user.id}:telegram`);
   });
 
   it('reports a deleted employee', async () => {

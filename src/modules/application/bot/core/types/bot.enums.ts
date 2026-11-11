@@ -20,7 +20,6 @@ export enum BotNamespace {
   EMPLOYEE_ADD = 'add',
   EMPLOYEE_BIND = 'bind',
   EMPLOYEE_MANAGE = 'mng',
-  EMPLOYEE_PERMISSIONS = 'perm',
   SETTINGS = 'set',
   TRAITS = 'trt',
   TRAIT_ADD = 'trtadd',

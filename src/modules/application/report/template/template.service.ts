@@ -80,6 +80,12 @@ export class TemplateService {
     return this.deleteOne(and(eq(reportTemplates.id, id), eq(reportTemplates.ownerId, userId))!);
   }
 
+  share(id: string, userId: string) {
+    return this.updateOne(and(eq(reportTemplates.id, id), eq(reportTemplates.ownerId, userId))!, {
+      ownerId: null,
+    });
+  }
+
   rename(id: string, name: string) {
     return this.updateOne(eq(reportTemplates.id, id), { name });
   }

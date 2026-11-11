@@ -3,7 +3,7 @@ import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
 import { getErrorMessage } from 'src/common/utils/error.util';
 import { escapeMarkdown } from 'src/common/utils/markdown.util';
 import type { Locale } from 'src/modules/application/i18n/types/i18n.interface';
-import { Gender, JobRole, Permission } from 'src/modules/application/user/types/user.enums';
+import { Gender, JobRole } from 'src/modules/application/user/types/user.enums';
 import { Source } from 'src/modules/application/source/types/source.enums';
 import { UserService } from 'src/modules/application/user/user.service';
 import {
@@ -39,7 +39,7 @@ import { EmployeeAddMessages } from './constants/employee-add.messages';
 import { EmployeeAddAction, EmployeeAddStep } from './types/employee-add.enums';
 
 @Injectable()
-@BotSection({ access: Permission.USERS, namespace: BotNamespace.EMPLOYEE_ADD })
+@BotSection({ access: BotAccess.OWNER, namespace: BotNamespace.EMPLOYEE_ADD })
 export class EmployeeAddHandler implements BotHandler {
   private readonly logger = new Logger(EmployeeAddHandler.name);
 

@@ -12,10 +12,6 @@ import type { UserService } from 'src/modules/application/user/user.service';
 import type { BotDialog } from '../../../core/types/bot.interface';
 import type { MenuService } from '../../../core/menu.service';
 import { createEmployee } from '../../../__test__/bot.fixture';
-import type { ConfigService } from '@nestjs/config';
-import { Permission } from 'src/modules/application/user/types/user.enums';
-import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
-import { AccessService } from '../../../core/access.service';
 import { EmployeeBindHandler } from '../employee-bind.handler';
 
 const locale = new I18nService().getLocale(Language.EN);
@@ -65,11 +61,6 @@ describe('EmployeeBindHandler', () => {
       userService as unknown as UserService,
       channelService as unknown as ChannelService,
       menuService as unknown as MenuService,
-      new AccessService(
-        { get: () => [] } as unknown as ConfigService<AppEnvs, true>,
-        {} as UserService,
-        new I18nService(),
-      ),
       channels as ChatChannel[],
     );
   const handler = createHandler([telegram, slack]);
@@ -78,7 +69,7 @@ describe('EmployeeBindHandler', () => {
     input: ChatInput,
     dialog: BotDialog | null = null,
     channel = Channel.TELEGRAM,
-    admin: User | null = null,
+    self: User | null = null,
   ) {
     return handler.handle({
       actor: {
@@ -86,8 +77,8 @@ describe('EmployeeBindHandler', () => {
         externalId: '1',
         chatId: '1',
         language: Language.EN,
-        isOwner: admin === null,
-        user: admin,
+        isOwner: true,
+        user: self,
       },
       locale,
       input,
@@ -239,33 +230,11 @@ describe('EmployeeBindHandler', () => {
     expect(userService.bindChannel).not.toHaveBeenCalled();
   });
 
-  it('lets an admin bind a channel only of an employee without permissions', async () => {
-    const admin = createEmployee({
-      id: '019a4d2e-7c1b-7f3a-9c2d-000000000077',
-      permissions: [Permission.USERS],
-    }).user;
-    const start = { type: ChatInputType.BUTTON, data: `bind:start:${USER.id}:slack` } as const;
-    const button = { ...start, messageId: '1', callbackId: '1' };
-
-    userService.findById.mockResolvedValue({ ...USER, permissions: [Permission.TRAITS] });
-    const toAdmin = await open(button, null, Channel.TELEGRAM, admin);
-    expect(toAdmin.screen.text).toBe(texts.ownerOnly);
-    const typed = await open(
-      { type: ChatInputType.TEXT, text: 'U0ATTACK1' },
-      SLACK_DIALOG,
-      Channel.TELEGRAM,
-      admin,
-    );
-    expect(typed.screen.text).toBe(texts.ownerOnly);
-
-    userService.findById.mockResolvedValue(admin);
-    expect((await open(button, null, Channel.TELEGRAM, admin)).screen.text).toBe(texts.self);
-
+  it('lets an owner bind a channel to their own employee record', async () => {
     userService.findById.mockResolvedValue(USER);
-    expect((await open(button, null, Channel.TELEGRAM, admin)).screen.text).not.toBe(
-      texts.ownerOnly,
-    );
-    expect(userService.bindChannel).not.toHaveBeenCalled();
+    const start = button(`bind:start:${USER.id}:slack`);
+
+    expect(await open(start, null, Channel.TELEGRAM, USER)).toEqual(await open(start));
   });
 
   it('reports a deleted employee', async () => {

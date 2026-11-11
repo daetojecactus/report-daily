@@ -11,7 +11,6 @@ import type { ReportService } from 'src/modules/application/report/report.servic
 import type { ReportTemplate } from 'src/modules/application/report/template/types/template.interface';
 import type { TemplateRepository } from 'src/modules/application/report/template/template.repository';
 import { TemplateService } from 'src/modules/application/report/template/template.service';
-import { Permission } from 'src/modules/application/user/types/user.enums';
 import type { UserService } from 'src/modules/application/user/user.service';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { AccessService } from '../../../core/access.service';
@@ -165,9 +164,9 @@ describe('TemplateEditHandler', () => {
     expect(repository.updateOne).toHaveBeenCalledWith(expect.anything(), { body: BODY });
   });
 
-  it('lets the templates permission change a shared template and returns to the shared card', async () => {
+  it('lets an admin change a shared template and returns to the shared card', async () => {
     repository.findOne.mockResolvedValue(SHARED);
-    const admin = { user: { ...USER, permissions: [Permission.TEMPLATES] } };
+    const admin = { user: { ...USER, isAdmin: true } };
 
     expect(await open(text('QA'), dialog('name', { templateId: SHARED.id }), admin)).toMatchObject({
       screen: { buttons: [[{ text: 'To the template', data: `tpls:card:${SHARED.id}` }]] },
@@ -177,7 +176,7 @@ describe('TemplateEditHandler', () => {
     ).toEqual(dialog('body', { templateId: SHARED.id }));
   });
 
-  it('refuses a template of someone else and a shared one without the permission', async () => {
+  it('refuses a template of someone else and a shared one to an employee who is not an admin', async () => {
     repository.findOne.mockResolvedValueOnce(template({ ownerId: 'someone-else' }));
     repository.findOne.mockResolvedValueOnce(SHARED);
 
