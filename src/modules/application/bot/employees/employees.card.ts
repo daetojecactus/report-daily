@@ -127,7 +127,9 @@ export class EmployeesCard {
         },
       ]);
     }
-    const bindButtons = this.toBindButtons(locale, user.id, channels);
+    const bindButtons = this.accessService.canManage(actor, user)
+      ? this.toBindButtons(locale, user.id, channels)
+      : [];
     if (bindButtons.length > 0) {
       actions.push(bindButtons);
     }

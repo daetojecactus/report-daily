@@ -91,6 +91,8 @@ export interface EmployeesLocale {
     invalid: (channel: string) => string;
     taken: (name: string) => string;
     alreadyBound: (channel: string) => string;
+    self: string;
+    ownerOnly: string;
     bound: (channel: string, name: string) => string;
     hint: Record<Channel, string>;
     cancel: string;

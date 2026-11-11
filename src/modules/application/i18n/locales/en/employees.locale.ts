@@ -121,6 +121,8 @@ export const enEmployees: EmployeesLocale = {
     invalid: (channel) => `This does not look like a ${channel} ID.`,
     taken: (name) => `This account is already bound to **${name}**. Enter another ID.`,
     alreadyBound: (channel) => `The employee already has ${channel} bound.`,
+    self: 'You cannot bind your own channel — the owner does it.',
+    ownerOnly: 'Only the owner can bind a channel of an employee with permissions.',
     bound: (channel, name) => `${channel} bound: **${name}**.`,
     hint: {
       [Channel.TELEGRAM]:

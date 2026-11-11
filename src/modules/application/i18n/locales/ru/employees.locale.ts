@@ -121,6 +121,8 @@ export const ruEmployees: EmployeesLocale = {
     invalid: (channel) => `Это не похоже на ${channel} ID.`,
     taken: (name) => `Этот аккаунт уже привязан к сотруднику **${name}**. Введите другой ID.`,
     alreadyBound: (channel) => `У сотрудника уже привязан ${channel}.`,
+    self: 'Свой канал привязать нельзя — это делает владелец.',
+    ownerOnly: 'Канал сотрудника с правами может привязать только владелец.',
     bound: (channel, name) => `${channel} привязан: **${name}**.`,
     hint: {
       [Channel.TELEGRAM]:

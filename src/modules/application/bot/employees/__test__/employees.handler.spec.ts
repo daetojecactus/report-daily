@@ -317,6 +317,19 @@ describe('EmployeesHandler', () => {
     ]);
   });
 
+  it('hides binding from an admin who cannot manage the employee', async () => {
+    const user = employee(1, { permissions: [Permission.TRAITS] });
+    userService.findById.mockResolvedValue(user);
+    channelService.findByUser.mockResolvedValue([]);
+    const admin = { isOwner: false, user: employee(9, { permissions: [Permission.USERS] }) };
+
+    const { screen } = await open(button(`emp:card:${user.id}:0`), null, admin);
+    const owners = await open(button(`emp:card:${user.id}:0`));
+
+    expect(JSON.stringify(screen.buttons)).not.toContain('bind:start');
+    expect(JSON.stringify(owners.screen.buttons)).toContain(`bind:start:${user.id}:telegram`);
+  });
+
   it('reports a deleted employee', async () => {
     userService.findById.mockResolvedValue(null);
 

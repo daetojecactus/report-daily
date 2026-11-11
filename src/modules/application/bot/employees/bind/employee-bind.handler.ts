@@ -9,6 +9,7 @@ import { Permission } from 'src/modules/application/user/types/user.enums';
 import type { User } from 'src/modules/application/user/types/user.interface';
 import { UserService } from 'src/modules/application/user/user.service';
 import { BotSection } from '../../core/bot.decorator';
+import { AccessService } from '../../core/access.service';
 import { BotAccess, BotNamespace } from '../../core/types/bot.enums';
 import type { BotActor, BotContext, BotHandler, BotReply } from '../../core/types/bot.interface';
 import { BOT_BUTTON_DATA_SEPARATOR, BOT_CHANNELS } from '../../core/constants/bot.constants';
@@ -30,6 +31,7 @@ export class EmployeeBindHandler implements BotHandler {
     private readonly userService: UserService,
     private readonly channelService: ChannelService,
     private readonly menuService: MenuService,
+    private readonly accessService: AccessService,
     @Inject(BOT_CHANNELS) private readonly channels: ChatChannel[],
   ) {}
 
@@ -86,8 +88,8 @@ export class EmployeeBindHandler implements BotHandler {
     isPicker: boolean,
   ): Promise<BotReply> {
     const { user, isBound } = await this.findTarget(userId, channel);
-    if (!user || isBound) {
-      return this.refuse(locale, user, channel);
+    if (!user || isBound || !this.accessService.canManage(actor, user)) {
+      return this.refuse(actor, locale, user, channel);
     }
 
     const channelName = locale.channels[channel];
@@ -150,8 +152,8 @@ export class EmployeeBindHandler implements BotHandler {
       );
     }
     const { user, isBound } = await this.findTarget(userId, channel);
-    if (!user || isBound) {
-      return this.refuse(locale, user, channel);
+    if (!user || isBound || !this.accessService.canManage(actor, user)) {
+      return this.refuse(actor, locale, user, channel);
     }
 
     const bound = await this.userService.bindChannel(user.id, channel, externalId);
@@ -180,6 +182,16 @@ export class EmployeeBindHandler implements BotHandler {
     };
   }
 
+  private toRefusalText(actor: BotActor, locale: Locale, user: User, channel: Channel) {
+    if (actor.user?.id === user.id) {
+      return locale.employeeBind.self;
+    }
+    if (!this.accessService.canManage(actor, user)) {
+      return locale.employeeBind.ownerOnly;
+    }
+    return locale.employeeBind.alreadyBound(locale.channels[channel]);
+  }
+
   private async findTarget(userId: string, channel: Channel) {
     const user = await this.userService.findById(userId);
     const channels = user ? await this.channelService.findByUser(user.id) : [];
@@ -189,11 +201,11 @@ export class EmployeeBindHandler implements BotHandler {
     };
   }
 
-  private refuse(locale: Locale, user: User | null, channel: Channel): BotReply {
+  private refuse(actor: BotActor, locale: Locale, user: User | null, channel: Channel): BotReply {
     return {
       screen: user
         ? {
-            text: locale.employeeBind.alreadyBound(locale.channels[channel]),
+            text: this.toRefusalText(actor, locale, user, channel),
             buttons: [[this.toCardButton(locale, user.id)]],
           }
         : {
