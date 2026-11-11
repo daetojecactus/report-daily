@@ -1,6 +1,6 @@
 import type { PgUpdateSetSource } from 'drizzle-orm/pg-core';
 import type { Language } from 'src/modules/application/i18n/types/i18n.enums';
-import type { GroupedDailyData } from 'src/modules/application/source/types/source.interface';
+import type { GroupedDailyData } from 'src/modules/application/source/types/source-day.interface';
 import type {
   Priority,
   TaskKind,
@@ -22,7 +22,7 @@ export type ReportTemplateInsert = typeof reportTemplates.$inferInsert;
 
 export type ReportTemplateUpdate = PgUpdateSetSource<typeof reportTemplates>;
 
-export interface TemplateEmployee {
+interface TemplateEmployee {
   name: string;
   username: string;
   role: JobRole;
@@ -38,7 +38,7 @@ export interface TemplateDay {
   summaries: ActivitySummary[];
 }
 
-export interface TemplateAction {
+interface TemplateAction {
   action: ActivityAction;
   details: ActivityDetail[];
 }
@@ -65,7 +65,7 @@ export interface TemplateProject {
   items: TemplateItem[];
 }
 
-export interface TemplateGroup {
+interface TemplateGroup {
   category: ActivityTier;
   name: string;
   items: TemplateItem[];

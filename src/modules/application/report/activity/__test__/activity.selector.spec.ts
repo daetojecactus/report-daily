@@ -3,7 +3,7 @@ import { SourceActionKind } from 'src/modules/application/source/types/source.en
 import { TRAIT_STATE_WEIGHTS } from 'src/modules/application/trait/constants/trait.constants';
 import { WorkflowState } from 'src/modules/application/trait/types/trait.enums';
 import { JobRole } from 'src/modules/application/user/types/user.enums';
-import { ACTIVITY_CODE_WEIGHTS, ACTIVITY_WEIGHTS } from '../constants/activity.constants';
+import { ACTIVITY_CODE_WEIGHTS, ACTIVITY_WEIGHTS } from '../constants/activity-weights.constants';
 import { ActivityAction, ActivityReason, ActivityTier } from '../types/activity.enums';
 import type { ActivityCandidate } from '../types/activity.interface';
 import { ActivitySelector } from '../activity.selector';

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { GitLabNote } from 'src/modules/vendors/gitlab/types/gitlab.interface';
+import type { GitLabNote } from 'src/modules/vendors/gitlab/types/gitlab-history.interface';
 import {
   GITLAB_SOURCE_DATE_ACTIONS,
   GITLAB_SOURCE_DATE_CHANGE_PATTERN,
@@ -15,7 +15,7 @@ import {
   GITLAB_SOURCE_TIME_SPENT_PATTERN,
   GITLAB_SOURCE_TIME_UNIT_PATTERN,
   GITLAB_SOURCE_TIME_UNITS,
-} from './constants/gitlab-source.constants';
+} from './constants/gitlab-source-notes.constants';
 import type { SourceUserChange } from './types/gitlab-source.interface';
 
 @Injectable()

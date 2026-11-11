@@ -3,8 +3,8 @@ import { SourceActionKind } from 'src/modules/application/source/types/source.en
 import type { SourceFact } from 'src/modules/application/source/types/source.interface';
 import { WorkflowState } from 'src/modules/application/trait/types/trait.enums';
 import { JobRole } from 'src/modules/application/user/types/user.enums';
-import { ActivityAction, ActivityDetail, ActivityRule } from '../types/activity.enums';
-import type { ActivityLine } from '../types/activity.interface';
+import { ActivityAction, ActivityDetail, ActivityRule } from '../../types/activity.enums';
+import type { ActivityLine } from '../../types/activity.interface';
 import {
   at,
   createDetectors,
@@ -20,7 +20,7 @@ import {
   pushEvent,
   summarize,
   toSignals,
-} from './activity.fixture';
+} from '../../__test__/activity.fixture';
 
 type Place = 'issue' | 'own' | 'other';
 

@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { SourceActionKind } from 'src/modules/application/source/types/source.enums';
 import { Priority, TaskKind, WorkflowState } from 'src/modules/application/trait/types/trait.enums';
-import { ACTIVITY_WEIGHTS } from './constants/activity.constants';
-import { ActivityAction, ActivityDetail, ActivityRule } from './types/activity.enums';
+import { ACTIVITY_WEIGHTS } from '../constants/activity-weights.constants';
+import { ActivityAction, ActivityDetail, ActivityRule } from '../types/activity.enums';
 import type {
   ActivityCandidate,
   ActivityFact,
   ActivityLineSignals,
-} from './types/activity.interface';
+} from '../types/activity.interface';
 
 @Injectable()
 export class ActivityLifecycleDetector {

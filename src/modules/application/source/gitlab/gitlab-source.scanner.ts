@@ -10,7 +10,7 @@ import {
   GITLAB_SOURCE_INDEX_TTL_MS,
   GITLAB_SOURCE_LOOKBACK_DAYS,
   GITLAB_SOURCE_SCAN_LIMIT,
-} from './constants/gitlab-source.constants';
+} from './constants/gitlab-source-index.constants';
 import { GitLabSourceMessages } from './constants/gitlab-source.messages';
 import type { SourceDayIndex, SourceHiddenItems } from './types/gitlab-source.interface';
 

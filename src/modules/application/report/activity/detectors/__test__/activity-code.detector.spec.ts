@@ -4,8 +4,8 @@ import {
   SourceEventAction,
   SourceRefType,
 } from 'src/modules/application/source/types/source.enums';
-import type { GroupedMergeRequest } from 'src/modules/application/source/types/source.interface';
-import { ActivityAction, ActivityDetail } from '../types/activity.enums';
+import type { GroupedMergeRequest } from 'src/modules/application/source/types/source-day.interface';
+import { ActivityAction, ActivityDetail } from '../../types/activity.enums';
 import {
   at,
   createIssue,
@@ -20,7 +20,7 @@ import {
   pushLine,
   refEvent,
   summarize,
-} from './activity.fixture';
+} from '../../__test__/activity.fixture';
 
 function codeOf(mergeRequest: GroupedMergeRequest, issue = createIssue()) {
   return summarize(detect(issueLine({ ...issue, mergeRequests: [mergeRequest] }))).find(

@@ -3,12 +3,12 @@ import type { UserSource } from 'src/modules/application/user/user-source/types/
 import { SOURCE_NAME_FACTS } from './constants/source.constants';
 import { GitLabSourceService } from './gitlab/gitlab-source.service';
 import { Source } from './types/source.enums';
+import type { ActivitySource } from './types/source.interface';
 import type {
-  ActivitySource,
   GroupedDailyData,
   GroupedIssue,
   GroupedMergeRequest,
-} from './types/source.interface';
+} from './types/source-day.interface';
 
 @Injectable()
 export class SourceService {

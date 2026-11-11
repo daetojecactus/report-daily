@@ -5,9 +5,9 @@ import {
 } from 'src/modules/application/source/types/source.enums';
 import type { CleanEvent } from 'src/modules/application/source/types/source.interface';
 import { JobRole } from 'src/modules/application/user/types/user.enums';
-import { ActivityAction, ActivityDetail } from '../types/activity.enums';
-import type { ActivityLine } from '../types/activity.interface';
-import { at, choose, detect, summarize } from './activity.fixture';
+import { ActivityAction, ActivityDetail } from '../../types/activity.enums';
+import type { ActivityLine } from '../../types/activity.interface';
+import { at, choose, detect, summarize } from '../../__test__/activity.fixture';
 
 function event(actionName: SourceEventAction, time = at(10)): CleanEvent {
   return {

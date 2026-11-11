@@ -2,22 +2,21 @@ import { Injectable } from '@nestjs/common';
 import type { DayRange } from 'src/common/types/date.interface';
 import { isWithinDay } from 'src/common/utils/date.util';
 import { GitLabLabelAction, GitLabState } from 'src/modules/vendors/gitlab/types/gitlab.enums';
+import type { GitLabAuthor, GitLabCommit } from 'src/modules/vendors/gitlab/types/gitlab.interface';
 import type {
-  GitLabAuthor,
-  GitLabCommit,
   GitLabLabelEvent,
-  GitLabMergeRequest,
   GitLabNote,
   GitLabStateEvent,
   GitLabWeightEvent,
-} from 'src/modules/vendors/gitlab/types/gitlab.interface';
+} from 'src/modules/vendors/gitlab/types/gitlab-history.interface';
+import type { GitLabMergeRequest } from 'src/modules/vendors/gitlab/types/gitlab-issue.interface';
 import { SourceActionKind } from '../types/source.enums';
-import type { ReviewThreads } from '../types/source.interface';
+import type { ReviewThreads } from '../types/source-day.interface';
 import {
   GITLAB_SOURCE_ASSIGNEE_CHANGE,
   GITLAB_SOURCE_DRAFT_ACTIONS,
   GITLAB_SOURCE_REVIEWER_CHANGE,
-} from './constants/gitlab-source.constants';
+} from './constants/gitlab-source-events.constants';
 import type { SourcePlanHistory, SourceUserChange } from './types/gitlab-source.interface';
 import { GitLabSourceNotes } from './gitlab-source.notes';
 

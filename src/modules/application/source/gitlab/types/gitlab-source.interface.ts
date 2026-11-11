@@ -3,15 +3,19 @@ import type { GitLabLabelAction } from 'src/modules/vendors/gitlab/types/gitlab.
 import type {
   GitLabAuthor,
   GitLabCommit,
-  GitLabEvent,
-  GitLabIssue,
-  GitLabLabelEvent,
-  GitLabMergeRequest,
-  GitLabNote,
   GitLabProject,
+} from 'src/modules/vendors/gitlab/types/gitlab.interface';
+import type { GitLabEvent } from 'src/modules/vendors/gitlab/types/gitlab-event.interface';
+import type {
+  GitLabIssue,
+  GitLabMergeRequest,
+} from 'src/modules/vendors/gitlab/types/gitlab-issue.interface';
+import type {
+  GitLabLabelEvent,
+  GitLabNote,
   GitLabStateEvent,
   GitLabWeightEvent,
-} from 'src/modules/vendors/gitlab/types/gitlab.interface';
+} from 'src/modules/vendors/gitlab/types/gitlab-history.interface';
 import type { SourceActionKind, SourceRefType, SourceTargetType } from '../../types/source.enums';
 
 export interface SourceItem {
@@ -30,7 +34,7 @@ export interface SourceRef {
   refType: SourceRefType;
 }
 
-export interface SourcePlanEvent {
+interface SourcePlanEvent {
   name: string;
   action: GitLabLabelAction;
   user: GitLabAuthor;

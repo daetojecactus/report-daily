@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { SourceActionKind, SourceRefType } from 'src/modules/application/source/types/source.enums';
-import type { GroupedDailyData } from 'src/modules/application/source/types/source.interface';
+import type { GroupedDailyData } from 'src/modules/application/source/types/source-day.interface';
 import { JobRole } from 'src/modules/application/user/types/user.enums';
 import { ActivityAction, ActivityDetail, ActivityRule } from '../types/activity.enums';
 import {

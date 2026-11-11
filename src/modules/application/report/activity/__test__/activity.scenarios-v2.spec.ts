@@ -9,7 +9,7 @@ import {
 import type {
   GroupedIssue,
   GroupedMergeRequest,
-} from 'src/modules/application/source/types/source.interface';
+} from 'src/modules/application/source/types/source-day.interface';
 import { TaskKind, WorkflowState } from 'src/modules/application/trait/types/trait.enums';
 import { JobRole } from 'src/modules/application/user/types/user.enums';
 import { ActivityAction, ActivityDetail, ActivityRule } from '../types/activity.enums';

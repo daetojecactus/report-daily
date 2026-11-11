@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { toSourceKey } from 'src/common/utils/source-name.util';
-import type { GroupedDailyData } from 'src/modules/application/source/types/source.interface';
+import type { GroupedDailyData } from 'src/modules/application/source/types/source-day.interface';
 import {
   Priority,
   TaskFlag,

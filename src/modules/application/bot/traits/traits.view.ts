@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import type { ScreenButton } from 'src/common/channel/types/chat-channel.interface';
 import { escapeMarkdown } from 'src/common/utils/markdown.util';
-import type { Locale, TraitValueText } from 'src/modules/application/i18n/types/i18n.interface';
+import type { Locale } from 'src/modules/application/i18n/types/i18n.interface';
+import type { TraitValueText } from 'src/modules/application/i18n/types/i18n-traits.interface';
 import { TRAIT_DICTIONARY } from 'src/modules/application/trait/constants/trait.constants';
 import type { TraitDimension } from 'src/modules/application/trait/types/trait.enums';
 import type { TraitValue } from 'src/modules/application/trait/types/trait.interface';

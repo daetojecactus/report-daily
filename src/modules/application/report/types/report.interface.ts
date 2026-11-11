@@ -2,7 +2,7 @@ import type { AiPolicy } from 'src/modules/application/ai/types/ai.interface';
 import type { PgUpdateSetSource } from 'drizzle-orm/pg-core';
 import type { Language } from 'src/modules/application/i18n/types/i18n.enums';
 import type { Locale } from 'src/modules/application/i18n/types/i18n.interface';
-import type { GroupedDailyData } from 'src/modules/application/source/types/source.interface';
+import type { GroupedDailyData } from 'src/modules/application/source/types/source-day.interface';
 import type { TraitIndex } from 'src/modules/application/trait/types/trait.interface';
 import type { User } from 'src/modules/application/user/types/user.interface';
 import type { UserSource } from 'src/modules/application/user/user-source/types/user-source.interface';

@@ -4,8 +4,8 @@ import { getDayRange, isWithinDay } from 'src/common/utils/date.util';
 import type {
   GitLabIssue,
   GitLabMergeRequest,
-  GitLabProject,
-} from 'src/modules/vendors/gitlab/types/gitlab.interface';
+} from 'src/modules/vendors/gitlab/types/gitlab-issue.interface';
+import type { GitLabProject } from 'src/modules/vendors/gitlab/types/gitlab.interface';
 import { GitLabService } from 'src/modules/vendors/gitlab/gitlab.service';
 import { Source } from '../types/source.enums';
 import type { ActivitySource } from '../types/source.interface';

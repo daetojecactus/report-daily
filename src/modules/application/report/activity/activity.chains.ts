@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { WorkflowState } from 'src/modules/application/trait/types/trait.enums';
-import { ACTIVITY_CHAIN_BONUS, ACTIVITY_CODE_CHANGE_FACTS } from './constants/activity.constants';
+import { ACTIVITY_CHAIN_BONUS } from './constants/activity-weights.constants';
+import { ACTIVITY_CODE_CHANGE_FACTS } from './constants/activity-facts.constants';
 import { ActivityAction, ActivityDetail } from './types/activity.enums';
 import type {
   ActivityCandidate,

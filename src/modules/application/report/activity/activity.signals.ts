@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { SourceActionKind, SourceRefType } from 'src/modules/application/source/types/source.enums';
+import type { CleanEvent } from 'src/modules/application/source/types/source.interface';
 import type {
-  CleanEvent,
   GroupedIssue,
   GroupedMergeRequest,
-} from 'src/modules/application/source/types/source.interface';
+} from 'src/modules/application/source/types/source-day.interface';
 import {
   TaskFlag,
   TaskKind,
@@ -13,16 +13,18 @@ import {
 } from 'src/modules/application/trait/types/trait.enums';
 import type { TaskTraits, TraitIndex } from 'src/modules/application/trait/types/trait.interface';
 import { TraitService } from 'src/modules/application/trait/trait.service';
+import { ACTIVITY_BEFORE_DAY } from './constants/activity-windows.constants';
 import {
-  ACTIVITY_BEFORE_DAY,
   ACTIVITY_DEPENDENCY_BRANCH_PATTERN,
   ACTIVITY_CONVENTIONAL_DEPENDENCY_SCOPE,
   ACTIVITY_CONVENTIONAL_KINDS,
   ACTIVITY_CONVENTIONAL_PATTERN,
+} from './constants/activity-patterns.constants';
+import {
   ACTIVITY_PUSH_ACTIONS,
   ACTIVITY_WORK_ITEM_KINDS,
-  ACTIVITY_RETURN_STATES,
-} from './constants/activity.constants';
+} from './constants/activity-events.constants';
+import { ACTIVITY_RETURN_STATES } from './constants/activity-facts.constants';
 import { EngagementLevel } from './types/activity.enums';
 import { ActivityEngagement } from './activity.engagement';
 import type {

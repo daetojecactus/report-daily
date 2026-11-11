@@ -6,10 +6,8 @@ import {
   GitLabRefType,
   GitLabState,
 } from 'src/modules/vendors/gitlab/types/gitlab.enums';
-import type {
-  GitLabMergeRequest,
-  GitLabNote,
-} from 'src/modules/vendors/gitlab/types/gitlab.interface';
+import type { GitLabMergeRequest } from 'src/modules/vendors/gitlab/types/gitlab-issue.interface';
+import type { GitLabNote } from 'src/modules/vendors/gitlab/types/gitlab-history.interface';
 import { ItemState, SourceActionKind, SourceRefType, WorkItemType } from '../../types/source.enums';
 import { GitLabSourceMessages } from '../constants/gitlab-source.messages';
 import type {

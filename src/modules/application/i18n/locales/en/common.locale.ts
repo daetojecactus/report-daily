@@ -7,7 +7,7 @@ import {
   Permission,
   UserStatus,
 } from 'src/modules/application/user/types/user.enums';
-import type { CommonLocale } from '../../types/i18n.interface';
+import type { CommonLocale } from '../../types/i18n-common.interface';
 import { Language } from '../../types/i18n.enums';
 
 export const enCommon: CommonLocale = {

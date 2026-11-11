@@ -1,16 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { GitLabIssuable } from 'src/modules/vendors/gitlab/types/gitlab.enums';
+import type { GitLabEvent } from 'src/modules/vendors/gitlab/types/gitlab-event.interface';
 import type {
-  GitLabEvent,
   GitLabIssue,
   GitLabIteration,
   GitLabMergeRequest,
   GitLabMilestone,
-  GitLabMilestoneEvent,
-  GitLabProject,
-} from 'src/modules/vendors/gitlab/types/gitlab.interface';
+} from 'src/modules/vendors/gitlab/types/gitlab-issue.interface';
+import type { GitLabMilestoneEvent } from 'src/modules/vendors/gitlab/types/gitlab-history.interface';
+import type { GitLabProject } from 'src/modules/vendors/gitlab/types/gitlab.interface';
 import { GitLabService } from 'src/modules/vendors/gitlab/gitlab.service';
-import { GITLAB_SOURCE_ITERATION_DATES_SEPARATOR } from './constants/gitlab-source.constants';
+import { GITLAB_SOURCE_ITERATION_DATES_SEPARATOR } from './constants/gitlab-source-keys.constants';
 import type {
   DayActivity,
   IssueActivity,

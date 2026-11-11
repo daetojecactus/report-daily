@@ -9,11 +9,13 @@ import {
 import type {
   CleanEvent,
   CleanPushData,
+  SourceFact,
+} from 'src/modules/application/source/types/source.interface';
+import type {
   GroupedIssue,
   GroupedMergeRequest,
-  SourceFact,
   StandalonePush,
-} from 'src/modules/application/source/types/source.interface';
+} from 'src/modules/application/source/types/source-day.interface';
 import {
   Priority,
   TaskFlag,
@@ -30,14 +32,14 @@ import type { TraitRepository } from 'src/modules/application/trait/trait.reposi
 import { TraitService } from 'src/modules/application/trait/trait.service';
 import type { TraitNameService } from 'src/modules/application/trait/trait-name/trait-name.service';
 import { JobRole } from 'src/modules/application/user/types/user.enums';
-import { ActivityCodeDetector } from '../activity-code.detector';
-import { ActivityEventDetector } from '../activity-event.detector';
-import { ActivityLifecycleDetector } from '../activity-lifecycle.detector';
-import { ActivityLinkDetector } from '../activity-link.detector';
-import { ActivityPlanDetector } from '../activity-plan.detector';
-import { ActivityRefDetector } from '../activity-ref.detector';
+import { ActivityCodeDetector } from '../detectors/activity-code.detector';
+import { ActivityEventDetector } from '../detectors/activity-event.detector';
+import { ActivityLifecycleDetector } from '../detectors/activity-lifecycle.detector';
+import { ActivityLinkDetector } from '../detectors/activity-link.detector';
+import { ActivityPlanDetector } from '../detectors/activity-plan.detector';
+import { ActivityRefDetector } from '../detectors/activity-ref.detector';
 import { ActivityChains } from '../activity.chains';
-import { ActivityDetectors } from '../activity.detectors';
+import { ActivityDetectors } from '../detectors/activity.detectors';
 import { ActivityEngagement } from '../activity.engagement';
 import { ActivityAction } from '../types/activity.enums';
 import type {

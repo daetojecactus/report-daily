@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { SourceActionKind } from 'src/modules/application/source/types/source.enums';
-import { ACTIVITY_LINK_DETAILS, ACTIVITY_WEIGHTS } from './constants/activity.constants';
-import { ActivityAction, ActivityDetail } from './types/activity.enums';
+import { ACTIVITY_LINK_DETAILS } from '../constants/activity-facts.constants';
+import { ACTIVITY_WEIGHTS } from '../constants/activity-weights.constants';
+import { ActivityAction, ActivityDetail } from '../types/activity.enums';
 import type {
   ActivityCandidate,
   ActivityFact,
   ActivityLineSignals,
-} from './types/activity.interface';
+} from '../types/activity.interface';
 
 @Injectable()
 export class ActivityLinkDetector {

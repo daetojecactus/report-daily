@@ -1,25 +1,26 @@
 import { Injectable } from '@nestjs/common';
 import { SourceActionKind, SourceRefType } from 'src/modules/application/source/types/source.enums';
 import { TaskFlag, TaskKind, WorkflowState } from 'src/modules/application/trait/types/trait.enums';
+import { ACTIVITY_BRANCH_PUSH_ACTION } from '../constants/activity-events.constants';
 import {
-  ACTIVITY_BRANCH_PUSH_ACTION,
   ACTIVITY_CODE_CHANGE_FACTS,
   ACTIVITY_CODE_FACTS,
-  ACTIVITY_CODE_WEIGHTS,
   ACTIVITY_COMMIT_FACTS,
+} from '../constants/activity-facts.constants';
+import { ACTIVITY_CODE_WEIGHTS, ACTIVITY_WEIGHTS } from '../constants/activity-weights.constants';
+import {
   ACTIVITY_DAY_MS,
   ACTIVITY_RESUMED_WORK_DAYS,
-  ACTIVITY_TEST_COMMIT_PATTERN,
-  ACTIVITY_WEIGHTS,
-} from './constants/activity.constants';
-import { ActivityAction, ActivityDetail, EngagementLevel } from './types/activity.enums';
+} from '../constants/activity-windows.constants';
+import { ACTIVITY_TEST_COMMIT_PATTERN } from '../constants/activity-patterns.constants';
+import { ActivityAction, ActivityDetail, EngagementLevel } from '../types/activity.enums';
 import type {
   ActivityCandidate,
   ActivityFact,
   ActivityLine,
   ActivityLineSignals,
   ActivityPush,
-} from './types/activity.interface';
+} from '../types/activity.interface';
 
 @Injectable()
 export class ActivityCodeDetector {

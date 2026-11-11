@@ -1,4 +1,4 @@
-import type { TraitsLocale } from '../../types/i18n.interface';
+import type { TraitsLocale } from '../../types/i18n-traits.interface';
 import { enTraitValues } from './trait-values.locale';
 
 export const enTraits: TraitsLocale = {

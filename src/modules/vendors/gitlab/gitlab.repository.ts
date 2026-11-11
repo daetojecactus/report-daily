@@ -28,22 +28,26 @@ import { GitLabIssuable } from './types/gitlab.enums';
 import { GitLabRejectedError, GitLabRetryableError } from './gitlab.error';
 import type {
   GitLabCommit,
-  GitLabEvent,
   GitLabHttpResponse,
-  GitLabIssuableItem,
-  GitLabIssue,
-  GitLabIterationEvent,
-  GitLabLabelEvent,
-  GitLabMergeRequest,
-  GitLabMilestoneEvent,
-  GitLabNote,
   GitLabPage,
   GitLabProject,
   GitLabQuery,
-  GitLabStateEvent,
   GitLabUser,
-  GitLabWeightEvent,
 } from './types/gitlab.interface';
+import type { GitLabEvent } from './types/gitlab-event.interface';
+import type {
+  GitLabIssuableItem,
+  GitLabIssue,
+  GitLabMergeRequest,
+} from './types/gitlab-issue.interface';
+import type {
+  GitLabIterationEvent,
+  GitLabLabelEvent,
+  GitLabMilestoneEvent,
+  GitLabNote,
+  GitLabStateEvent,
+  GitLabWeightEvent,
+} from './types/gitlab-history.interface';
 
 @Injectable()
 export class GitLabRepository {

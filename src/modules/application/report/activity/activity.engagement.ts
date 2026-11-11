@@ -7,7 +7,7 @@ import {
   ENGAGEMENT_STATE_CHANGE_CAP,
   ENGAGEMENT_THRESHOLDS,
   ENGAGEMENT_WEIGHTS,
-} from './constants/activity.constants';
+} from './constants/activity-engagement.constants';
 import { EngagementLevel } from './types/activity.enums';
 import type { ActivityLineSignals } from './types/activity.interface';
 

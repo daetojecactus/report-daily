@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Source } from 'src/modules/application/source/types/source.enums';
-import type { GroupedDailyData } from 'src/modules/application/source/types/source.interface';
+import type { GroupedDailyData } from 'src/modules/application/source/types/source-day.interface';
 import { SourceService } from 'src/modules/application/source/source.service';
 import { UserService } from 'src/modules/application/user/user.service';
 import { UserSourceService } from 'src/modules/application/user/user-source/user-source.service';

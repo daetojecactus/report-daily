@@ -6,7 +6,7 @@ import {
   ReportPhrase,
 } from 'src/modules/application/report/phrase/types/phrase.enums';
 import { WorkflowState } from 'src/modules/application/trait/types/trait.enums';
-import type { PhrasesLocale } from '../../types/i18n.interface';
+import type { PhrasesLocale } from '../../types/i18n-phrases.interface';
 
 const PLURAL = new Intl.PluralRules('ru');
 

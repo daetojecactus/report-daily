@@ -17,11 +17,10 @@ import {
   SLACK_DEFAULT_COMMAND,
   SLACK_ENVELOPE_TYPE_SCHEMA,
   SLACK_MESSAGE_EVENT_SCHEMA,
-  SLACK_MESSAGE_GONE_ERRORS,
   SLACK_SLASH_COMMAND_SCHEMA,
-  SLACK_UNREACHABLE_ERRORS,
   SLACK_WORD_SEPARATOR,
-} from './constants/slack.constants';
+} from './constants/slack-events.constants';
+import { SLACK_MESSAGE_GONE_ERRORS, SLACK_UNREACHABLE_ERRORS } from './constants/slack.constants';
 import { SlackMessages } from './constants/slack.messages';
 import { SlackElementType, SlackEnvelopeType } from './types/slack.enums';
 import { SlackRejectedError } from './slack.error';

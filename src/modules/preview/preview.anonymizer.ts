@@ -4,14 +4,14 @@ import {
   GITLAB_SOURCE_BRANCH_ISSUE_PATTERN,
   GITLAB_SOURCE_COMMIT_MENTION_PATTERN,
   GITLAB_SOURCE_MAIN_BRANCHES,
-  GITLAB_SOURCE_MENTION_PATTERN,
-} from 'src/modules/application/source/gitlab/constants/gitlab-source.constants';
+} from 'src/modules/application/source/gitlab/constants/gitlab-source-keys.constants';
+import { GITLAB_SOURCE_MENTION_PATTERN } from 'src/modules/application/source/gitlab/constants/gitlab-source-notes.constants';
 import {
   ACTIVITY_CONVENTIONAL_DEPENDENCY_SCOPE,
   ACTIVITY_CONVENTIONAL_KINDS,
   ACTIVITY_CONVENTIONAL_PATTERN,
   ACTIVITY_VERSION_TAG_PATTERN,
-} from 'src/modules/application/report/activity/constants/activity.constants';
+} from 'src/modules/application/report/activity/constants/activity-patterns.constants';
 import {
   SourceActionKind,
   SourceRefType,
@@ -21,15 +21,19 @@ import type {
   CleanEvent,
   CleanNote,
   CleanPushData,
+  SourceFact,
+} from 'src/modules/application/source/types/source.interface';
+import type {
   GroupedDailyData,
   GroupedIssue,
   GroupedMergeRequest,
-  ItemSnapshot,
-  MergeRequestSnapshot,
-  SourceFact,
   SourceProject,
   StandalonePush,
-} from 'src/modules/application/source/types/source.interface';
+} from 'src/modules/application/source/types/source-day.interface';
+import type {
+  ItemSnapshot,
+  MergeRequestSnapshot,
+} from 'src/modules/application/source/types/source-snapshot.interface';
 import {
   PREVIEW_ACTION_VALUE,
   PREVIEW_BOT_BRANCH_PATTERN,
@@ -66,7 +70,7 @@ import {
   PREVIEW_URL,
   PREVIEW_USER_ALIAS,
   PREVIEW_USER_NOTE_PREFIXES,
-} from './constants/preview.constants';
+} from './constants/preview-anonymizer.constants';
 import type { PreviewAliases } from './types/preview.interface';
 
 @Injectable()

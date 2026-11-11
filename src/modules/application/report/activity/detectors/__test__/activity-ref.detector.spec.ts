@@ -6,7 +6,7 @@ import {
 } from 'src/modules/application/source/types/source.enums';
 import type { SourceFact } from 'src/modules/application/source/types/source.interface';
 import { JobRole } from 'src/modules/application/user/types/user.enums';
-import { ActivityAction, ActivityDetail } from '../types/activity.enums';
+import { ActivityAction, ActivityDetail } from '../../types/activity.enums';
 import {
   at,
   choose,
@@ -18,7 +18,7 @@ import {
   pushLine,
   refEvent,
   summarize,
-} from './activity.fixture';
+} from '../../__test__/activity.fixture';
 
 function tagLine(ref: string | null, actionName = SourceEventAction.PUSHED_NEW) {
   return pushLine({

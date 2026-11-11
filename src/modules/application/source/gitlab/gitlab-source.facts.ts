@@ -1,13 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { isWithinDay } from 'src/common/utils/date.util';
 import { GitLabLabelAction } from 'src/modules/vendors/gitlab/types/gitlab.enums';
+import type { GitLabAuthor } from 'src/modules/vendors/gitlab/types/gitlab.interface';
 import type {
-  GitLabAuthor,
   GitLabIssue,
   GitLabMergeRequest,
+} from 'src/modules/vendors/gitlab/types/gitlab-issue.interface';
+import type {
   GitLabNote,
   GitLabWeightEvent,
-} from 'src/modules/vendors/gitlab/types/gitlab.interface';
+} from 'src/modules/vendors/gitlab/types/gitlab-history.interface';
 import { SourceActionKind } from '../types/source.enums';
 import type { SourceFact } from '../types/source.interface';
 import {
@@ -16,7 +18,7 @@ import {
   GITLAB_SOURCE_MILESTONE_ACTIONS,
   GITLAB_SOURCE_REVIEWER_CHANGE,
   GITLAB_SOURCE_STATE_ACTIONS,
-} from './constants/gitlab-source.constants';
+} from './constants/gitlab-source-events.constants';
 import { GitLabSourceMessages } from './constants/gitlab-source.messages';
 import type {
   IssueActivity,

@@ -7,7 +7,7 @@ import {
   TaskKind,
   WorkflowState,
 } from 'src/modules/application/trait/types/trait.enums';
-import type { TraitsLocale } from '../../types/i18n.interface';
+import type { TraitsLocale } from '../../types/i18n-traits.interface';
 
 export const ruTraitValues: TraitsLocale['traits'] = {
   dimensions: {

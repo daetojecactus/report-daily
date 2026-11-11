@@ -25,7 +25,7 @@ import {
   refEvent,
   toSignals,
 } from '../../activity/__test__/activity.fixture';
-import { PHRASE_RULES } from '../constants/phrase.constants';
+import { PHRASE_RULES } from '../constants/phrase-rules.constants';
 import { ReportPhrase } from '../types/phrase.enums';
 import { PhraseService } from '../phrase.service';
 

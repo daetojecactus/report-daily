@@ -7,11 +7,11 @@ import {
   SourceTargetType,
   WorkItemType,
 } from 'src/modules/application/source/types/source.enums';
+import type { CleanNote } from 'src/modules/application/source/types/source.interface';
 import type {
-  CleanNote,
   GroupedDailyData,
   GroupedMergeRequest,
-} from 'src/modules/application/source/types/source.interface';
+} from 'src/modules/application/source/types/source-day.interface';
 import { PreviewAnonymizer } from '../preview.anonymizer';
 
 const SECRETS = [

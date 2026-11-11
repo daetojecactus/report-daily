@@ -1,10 +1,10 @@
 import type {
   GroupedIssue,
   GroupedMergeRequest,
-  SourceFact,
   StandaloneEvent,
   StandalonePush,
-} from 'src/modules/application/source/types/source.interface';
+} from 'src/modules/application/source/types/source-day.interface';
+import type { SourceFact } from 'src/modules/application/source/types/source.interface';
 import type {
   Priority,
   TaskFlag,
@@ -115,7 +115,7 @@ export interface ActivityRank {
   weight: number;
 }
 
-export interface ActivityTrace {
+interface ActivityTrace {
   ranked: ActivityRank[];
   reason: ActivityReason;
   dropped: ActivityDropped[];

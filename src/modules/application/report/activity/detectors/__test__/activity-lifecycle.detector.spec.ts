@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { SourceActionKind } from 'src/modules/application/source/types/source.enums';
 import { JobRole } from 'src/modules/application/user/types/user.enums';
-import { ActivityAction, ActivityDetail } from '../types/activity.enums';
+import { ActivityAction, ActivityDetail } from '../../types/activity.enums';
 import {
   at,
   choose,
@@ -16,7 +16,7 @@ import {
   othersMergeRequest,
   pushEvent,
   summarize,
-} from './activity.fixture';
+} from '../../__test__/activity.fixture';
 
 describe('ActivityLifecycleDetector', () => {
   it('tells a merge of own work from a merge of a colleague', () => {

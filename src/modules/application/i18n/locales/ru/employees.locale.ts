@@ -1,7 +1,7 @@
 import { Channel } from 'src/common/channel/types/channel.enums';
 import { ReportStatus } from 'src/modules/application/report/types/report.enums';
 import { Permission } from 'src/modules/application/user/types/user.enums';
-import type { EmployeesLocale } from '../../types/i18n.interface';
+import type { EmployeesLocale } from '../../types/i18n-employees.interface';
 
 export const ruEmployees: EmployeesLocale = {
   employees: {

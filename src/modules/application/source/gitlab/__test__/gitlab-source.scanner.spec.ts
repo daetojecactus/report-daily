@@ -9,7 +9,7 @@ import type {
   GitLabMilestoneEvent,
   GitLabNote,
   GitLabWeightEvent,
-} from 'src/modules/vendors/gitlab/types/gitlab.interface';
+} from 'src/modules/vendors/gitlab/types/gitlab-history.interface';
 import type { GitLabService } from 'src/modules/vendors/gitlab/gitlab.service';
 import { GitLabSourceScanner } from '../gitlab-source.scanner';
 import {

@@ -3,7 +3,7 @@ import type {
   ActivityResult,
   ActivitySummary,
 } from 'src/modules/application/report/activity/types/activity.interface';
-import type { GroupedDailyData } from 'src/modules/application/source/types/source.interface';
+import type { GroupedDailyData } from 'src/modules/application/source/types/source-day.interface';
 import type { JobRole } from 'src/modules/application/user/types/user.enums';
 
 export interface PreviewAliases {

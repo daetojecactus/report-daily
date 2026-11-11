@@ -2,15 +2,15 @@ import { Injectable } from '@nestjs/common';
 import type {
   GitLabIssue,
   GitLabMergeRequest,
-  GitLabProject,
-} from 'src/modules/vendors/gitlab/types/gitlab.interface';
+} from 'src/modules/vendors/gitlab/types/gitlab-issue.interface';
+import type { GitLabProject } from 'src/modules/vendors/gitlab/types/gitlab.interface';
 import {
   GITLAB_SOURCE_BRANCH_ISSUE_PATTERN,
   GITLAB_SOURCE_ISSUE_REFERENCE_PATTERN,
   GITLAB_SOURCE_KEY_SEPARATOR,
   GITLAB_SOURCE_MAIN_BRANCHES,
   GITLAB_SOURCE_PATH_SEPARATOR,
-} from './constants/gitlab-source.constants';
+} from './constants/gitlab-source-keys.constants';
 import type {
   SourceBranch,
   SourceItem,

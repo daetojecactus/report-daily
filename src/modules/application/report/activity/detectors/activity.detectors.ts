@@ -10,12 +10,12 @@ import {
 import {
   ACTIVITY_COMMENT_FACTS,
   ACTIVITY_EDIT_DETAILS,
-  ACTIVITY_MANY_COMMENTS,
   ACTIVITY_RETURN_STATES,
   ACTIVITY_REVIEW_FACTS,
-  ACTIVITY_WEIGHTS,
-} from './constants/activity.constants';
-import { ActivityAction, ActivityDetail } from './types/activity.enums';
+} from '../constants/activity-facts.constants';
+import { ACTIVITY_MANY_COMMENTS } from '../constants/activity.constants';
+import { ACTIVITY_WEIGHTS } from '../constants/activity-weights.constants';
+import { ActivityAction, ActivityDetail } from '../types/activity.enums';
 import { ActivityCodeDetector } from './activity-code.detector';
 import { ActivityEventDetector } from './activity-event.detector';
 import { ActivityLifecycleDetector } from './activity-lifecycle.detector';
@@ -26,7 +26,7 @@ import type {
   ActivityCandidate,
   ActivityFact,
   ActivityLineSignals,
-} from './types/activity.interface';
+} from '../types/activity.interface';
 
 @Injectable()
 export class ActivityDetectors {

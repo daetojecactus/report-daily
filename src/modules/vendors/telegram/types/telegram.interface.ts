@@ -30,13 +30,13 @@ export interface TelegramChat {
   type: string;
 }
 
-export interface TelegramMessageEntity {
+interface TelegramMessageEntity {
   type: string;
   offset: number;
   length: number;
 }
 
-export interface TelegramUsersShared {
+interface TelegramUsersShared {
   request_id: number;
   users: { user_id: number }[];
 }
@@ -76,7 +76,7 @@ export interface TelegramReplyKeyboardMarkup {
   one_time_keyboard: boolean;
 }
 
-export interface TelegramReplyKeyboardRemove {
+interface TelegramReplyKeyboardRemove {
   remove_keyboard: boolean;
 }
 

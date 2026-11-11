@@ -7,14 +7,14 @@ import {
   SLACK_ESCAPED_CHARACTERS,
   SLACK_ESCAPES,
   SLACK_MARKUP,
-  SLACK_SLASH_COMMAND,
   SLACK_SPECIAL_CHARACTERS,
   SLACK_SPECIAL_MARK,
-  SLACK_SPLIT_LIMIT,
   SLACK_UNESCAPES,
   SLACK_URL_SCHEME,
   SLACK_USER_MARK,
-} from './constants/slack.constants';
+} from './constants/slack-format.constants';
+import { SLACK_SLASH_COMMAND } from './constants/slack-events.constants';
+import { SLACK_SPLIT_LIMIT } from './constants/slack-blocks.constants';
 
 interface FormattedToken {
   text: string;

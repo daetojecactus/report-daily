@@ -13,7 +13,7 @@ import {
   SLACK_SECTION_TEXT_LIMIT,
   SLACK_SPLIT_LIMIT,
   SLACK_USER_PICKER_ACTION,
-} from './constants/slack.constants';
+} from './constants/slack-blocks.constants';
 import { SlackBlockType, SlackElementType, SlackTextType } from './types/slack.enums';
 import { SlackFormatter } from './slack.formatter';
 import type {

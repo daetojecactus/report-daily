@@ -5,14 +5,13 @@ import type {
   ActivitySummary,
 } from 'src/modules/application/report/activity/types/activity.interface';
 import { SourceRefType, WorkItemType } from 'src/modules/application/source/types/source.enums';
+import type { CleanEvent, SourceFact } from 'src/modules/application/source/types/source.interface';
 import type {
-  CleanEvent,
   GroupedDailyData,
   GroupedIssue,
   GroupedMergeRequest,
-  SourceFact,
   StandalonePush,
-} from 'src/modules/application/source/types/source.interface';
+} from 'src/modules/application/source/types/source-day.interface';
 import {
   PREVIEW_HOUR_SECONDS,
   PREVIEW_INDENT,

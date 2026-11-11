@@ -1,9 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { SourceActionKind } from 'src/modules/application/source/types/source.enums';
-import type {
-  GroupedIssue,
-  SourceFact,
-} from 'src/modules/application/source/types/source.interface';
+import type { GroupedIssue } from 'src/modules/application/source/types/source-day.interface';
+import type { SourceFact } from 'src/modules/application/source/types/source.interface';
 import { JobRole } from 'src/modules/application/user/types/user.enums';
 import { ActivityAction, ActivityDetail } from '../types/activity.enums';
 import { at, createIndex, createIssue, createService, fact, ME } from './activity.fixture';

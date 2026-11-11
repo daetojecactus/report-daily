@@ -1,7 +1,7 @@
 import type { ConfigService } from '@nestjs/config';
 import { Language } from 'src/modules/application/i18n/types/i18n.enums';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
-import type { GroupedDailyData } from 'src/modules/application/source/types/source.interface';
+import type { GroupedDailyData } from 'src/modules/application/source/types/source-day.interface';
 import { Gender, JobRole } from 'src/modules/application/user/types/user.enums';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { createIndex, createService, ME } from '../../activity/__test__/activity.fixture';

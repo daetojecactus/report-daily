@@ -2,17 +2,21 @@ import { GitLabLabelAction, GitLabState } from 'src/modules/vendors/gitlab/types
 import type {
   GitLabAuthor,
   GitLabCommit,
-  GitLabEvent,
+  GitLabProject,
+} from 'src/modules/vendors/gitlab/types/gitlab.interface';
+import type { GitLabEvent } from 'src/modules/vendors/gitlab/types/gitlab-event.interface';
+import type {
   GitLabIssue,
+  GitLabMergeRequest,
+} from 'src/modules/vendors/gitlab/types/gitlab-issue.interface';
+import type {
   GitLabIterationEvent,
   GitLabLabelEvent,
-  GitLabMergeRequest,
   GitLabMilestoneEvent,
   GitLabNote,
-  GitLabProject,
   GitLabStateEvent,
   GitLabWeightEvent,
-} from 'src/modules/vendors/gitlab/types/gitlab.interface';
+} from 'src/modules/vendors/gitlab/types/gitlab-history.interface';
 import { GitLabSourceBuilder } from '../gitlab-source.builder';
 import { GitLabSourceFacts } from '../gitlab-source.facts';
 import { GitLabSourceHistory } from '../gitlab-source.history';

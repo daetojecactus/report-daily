@@ -3,7 +3,7 @@ import {
   ACTIVITY_ROLE_BONUS,
   ACTIVITY_ROLE_FOCUS,
   ACTIVITY_TIERS,
-} from './constants/activity.constants';
+} from './constants/activity-weights.constants';
 import { ActivityAction, ActivityReason, ActivityTier } from './types/activity.enums';
 import type {
   ActivityCandidate,

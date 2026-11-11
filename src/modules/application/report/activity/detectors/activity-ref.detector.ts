@@ -4,11 +4,11 @@ import type { CleanEvent } from 'src/modules/application/source/types/source.int
 import {
   ACTIVITY_DELETE_ACTION,
   ACTIVITY_PUSH_ACTIONS,
-  ACTIVITY_VERSION_TAG_PATTERN,
-  ACTIVITY_WEIGHTS,
-} from './constants/activity.constants';
-import { ActivityAction, ActivityDetail } from './types/activity.enums';
-import type { ActivityCandidate, ActivityLineSignals } from './types/activity.interface';
+} from '../constants/activity-events.constants';
+import { ACTIVITY_VERSION_TAG_PATTERN } from '../constants/activity-patterns.constants';
+import { ACTIVITY_WEIGHTS } from '../constants/activity-weights.constants';
+import { ActivityAction, ActivityDetail } from '../types/activity.enums';
+import type { ActivityCandidate, ActivityLineSignals } from '../types/activity.interface';
 
 @Injectable()
 export class ActivityRefDetector {

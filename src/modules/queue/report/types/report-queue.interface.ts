@@ -1,7 +1,7 @@
 import type { Channel } from 'src/common/channel/types/channel.enums';
 import type { BotTarget } from 'src/modules/application/bot/types/bot.interface';
 
-export interface ReportJobNotice {
+interface ReportJobNotice {
   target: BotTarget;
   empty: string;
   failed: string;
