@@ -16,6 +16,7 @@ import {
   APP_DEFAULT_PORT,
   ENV_LIST_SEPARATOR,
   ENV_URL_OPTIONS,
+  LLM_DEFAULT_REQUESTS_PER_MINUTE,
   LLM_ENV_KEYS,
   SLACK_APP_TOKEN_PATTERN,
   SLACK_BOT_TOKEN_PATTERN,
@@ -130,4 +131,9 @@ export class AppEnvs {
   @IsString()
   @IsNotEmpty()
   LLM_MODEL?: string;
+
+  @Type(() => Number)
+  @IsInt()
+  @IsPositive()
+  LLM_REQUESTS_PER_MINUTE: number = LLM_DEFAULT_REQUESTS_PER_MINUTE;
 }

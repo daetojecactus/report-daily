@@ -1,4 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { getErrorMessage } from 'src/common/utils/error.util';
 import { SettingsService } from 'src/modules/application/settings/settings.service';
 import type { User } from 'src/modules/application/user/types/user.interface';
@@ -26,7 +28,6 @@ import {
   AI_MARKUP_PATTERN,
   AI_NAMES_PER_LINE,
   AI_PROMPT_SEPARATOR,
-  AI_REQUESTS_PER_MINUTE,
   AI_SCHEMA_NAME,
   AI_SPACES_PATTERN,
 } from './constants/ai.constants';
@@ -37,11 +38,16 @@ import type { AiLine, AiNames, AiPolicy, AiProfile, AiRewording } from './types/
 export class AiService {
   private readonly logger = new Logger(AiService.name);
 
+  private readonly requestsPerMinute: number;
+
   constructor(
     private readonly llmService: LlmService,
     private readonly redisService: RedisService,
     private readonly settingsService: SettingsService,
-  ) {}
+    configService: ConfigService<AppEnvs, true>,
+  ) {
+    this.requestsPerMinute = configService.get('LLM_REQUESTS_PER_MINUTE', { infer: true });
+  }
 
   isEnabled() {
     return this.llmService.isEnabled();
@@ -96,7 +102,7 @@ export class AiService {
         `${AI_LIMIT_KEY_PREFIX}${window}`,
         AI_LIMIT_WINDOW_MS,
       );
-      if (count <= AI_REQUESTS_PER_MINUTE) {
+      if (count <= this.requestsPerMinute) {
         return true;
       }
       if (attempt < AI_LIMIT_ATTEMPTS) {
