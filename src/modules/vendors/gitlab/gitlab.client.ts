@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { getFailureReason } from 'src/common/utils/error.util';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
+import { GITLAB_API_PATH } from './constants/gitlab-paths.constants';
 import {
-  GITLAB_API_PATH,
   GITLAB_CERTIFICATE_ERROR_CODES,
   GITLAB_MAX_CONCURRENT_REQUESTS,
   GITLAB_REQUEST_TIMEOUT_MS,

@@ -32,16 +32,3 @@ export const TELEGRAM_TOO_MANY_REQUESTS = 429;
 export const TELEGRAM_SERVER_ERROR = 500;
 
 export const TELEGRAM_NOT_MODIFIED_DESCRIPTION = 'message is not modified';
-
-export const TELEGRAM_LINK_PROTOCOLS = ['http:', 'https:'];
-
-export const TELEGRAM_MESSAGE_LIMIT = 4096;
-
-export const TELEGRAM_HTML_SPECIAL_CHARACTERS = /[&<>"]/g;
-
-export const TELEGRAM_HTML_ESCAPES: Record<string, string> = {
-  '&': '&amp;',
-  '<': '&lt;',
-  '>': '&gt;',
-  '"': '&quot;',
-};

@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { LogLevel, SocketModeClient } from '@slack/socket-mode';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { SLACK_SOCKET_EVENT } from './constants/slack-events.constants';
-import type { SlackEnvelope } from './types/slack.interface';
+import type { SlackEnvelope, SlackSocketEvent } from './types/slack.interface';
 
 @Injectable()
 export class SlackSocket {
@@ -24,17 +24,8 @@ export class SlackSocket {
     }
     this.client.on(
       SLACK_SOCKET_EVENT,
-      ({
-        type,
-        body,
-        envelope_id: envelopeId,
-        ack,
-      }: {
-        type: string;
-        body: unknown;
-        envelope_id: string;
-        ack: () => Promise<void>;
-      }) => void handle({ type, body, envelopeId, ack }),
+      ({ type, body, envelope_id: envelopeId, ack }: SlackSocketEvent) =>
+        void handle({ type, body, envelopeId, ack }),
     );
     await this.client.start();
   }

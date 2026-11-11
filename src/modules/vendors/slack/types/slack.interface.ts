@@ -47,3 +47,10 @@ export interface SlackEnvelope {
   envelopeId: string;
   ack: () => Promise<void>;
 }
+
+export interface SlackSocketEvent {
+  type: string;
+  body: unknown;
+  envelope_id: string;
+  ack: () => Promise<void>;
+}
