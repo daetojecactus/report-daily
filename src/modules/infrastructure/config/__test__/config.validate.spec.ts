@@ -5,7 +5,7 @@ import {
   TELEGRAM_DEFAULT_API_URL,
 } from '../constants/config.constants';
 import { ConfigMessages } from '../constants/config.messages';
-import { DeliveryMode, LogLevel } from '../types/config.enums';
+import { LogLevel } from '../types/config.enums';
 import { validateEnv } from '../config.validate';
 
 const ENV = {
@@ -30,7 +30,6 @@ function getValidationMessage(config: Record<string, unknown>) {
 describe('validateEnv', () => {
   it('applies defaults', () => {
     expect(validateEnv(ENV)).toMatchObject({
-      DELIVERY_MODE: DeliveryMode.LIVE,
       LOG_LEVEL: LogLevel.INFO,
       PORT: APP_DEFAULT_PORT,
       TELEGRAM_API_URL: TELEGRAM_DEFAULT_API_URL,
@@ -175,7 +174,6 @@ describe('validateEnv', () => {
     const message = getValidationMessage({
       ...ENV,
       LOG_LEVEL: 'secret-level',
-      DELIVERY_MODE: 'secret-mode',
       PORT: '-1',
       OWNER_TELEGRAM_IDS: '111,secret-owner',
       TELEGRAM_API_URL: 'ftp://secret-host',
@@ -183,7 +181,6 @@ describe('validateEnv', () => {
     });
 
     expect(message).toContain('LOG_LEVEL');
-    expect(message).toContain('DELIVERY_MODE');
     expect(message).toContain('PORT');
     expect(message).toContain('OWNER_TELEGRAM_IDS');
     expect(message).toContain('TELEGRAM_API_URL');

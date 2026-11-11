@@ -14,7 +14,6 @@ const DATA: ReportJobData = {
   userId: 'user-1',
   date: '2026-11-09',
   maxAgeMs: 300_000,
-  own: true,
   channel: Channel.TELEGRAM,
   notice: {
     target: { channel: Channel.TELEGRAM, chatId: '2002', externalId: '1001' },
@@ -71,7 +70,6 @@ describe('ReportQueueProcessor', () => {
     expect(reportDelivery.queue).toHaveBeenCalledExactlyOnceWith(
       report,
       [Channel.SLACK],
-      true,
       new Date(JOB_TIMESTAMP),
     );
     expect(botService.sendTo).not.toHaveBeenCalled();
@@ -83,13 +81,12 @@ describe('ReportQueueProcessor', () => {
       const report = { status: ReportStatus.READY, content: 'project:\n• Fixed a bug' } as Report;
       reportService.build.mockResolvedValue(report);
 
-      await run(job(0, REPORT_BUILD_JOB, { own: false, channel, notice: null }));
+      await run(job(0, REPORT_BUILD_JOB, { channel, notice: null }));
 
       expect(reportDelivery.findChannels).toHaveBeenCalledWith('user-1', null);
       expect(reportDelivery.queue).toHaveBeenCalledExactlyOnceWith(
         report,
         [Channel.TELEGRAM, Channel.SLACK],
-        false,
         new Date(JOB_TIMESTAMP),
       );
     },
@@ -106,7 +103,6 @@ describe('ReportQueueProcessor', () => {
     expect(reportDelivery.queue).toHaveBeenCalledWith(
       saved,
       [Channel.TELEGRAM],
-      true,
       new Date(JOB_TIMESTAMP),
     );
   });
@@ -148,7 +144,7 @@ describe('ReportQueueProcessor', () => {
   it('does not build the day when the report has no channel to go to', async () => {
     reportDelivery.findChannels.mockResolvedValue([]);
 
-    await run(job(0, REPORT_BUILD_JOB, { own: false, channel: null, notice: null }));
+    await run(job(0, REPORT_BUILD_JOB, { channel: null, notice: null }));
 
     expect(reportService.findFresh).not.toHaveBeenCalled();
     expect(reportService.build).not.toHaveBeenCalled();

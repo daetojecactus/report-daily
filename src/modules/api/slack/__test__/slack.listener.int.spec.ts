@@ -160,7 +160,7 @@ describe('Slack', () => {
         content: 'project:\n• Fixed a bug',
       })
       .returning();
-    const delivery = await app.get(DeliveryService).createForReport(report, Channel.SLACK, false);
+    const delivery = await app.get(DeliveryService).createForReport(report, Channel.SLACK);
 
     await app.get(DeliveryQueueProducer).addDelivery(Channel.SLACK, delivery.id);
 
@@ -186,7 +186,7 @@ describe('Slack', () => {
         content: 'project:\n• Reviewed a change',
       })
       .returning();
-    const delivery = await app.get(DeliveryService).createForReport(report, Channel.SLACK, false);
+    const delivery = await app.get(DeliveryService).createForReport(report, Channel.SLACK);
     await fakeSlackApi.fail({ method: 'chat.postMessage', error: 'user_not_found' });
 
     await app.get(DeliveryQueueProducer).addDelivery(Channel.SLACK, delivery.id);

@@ -30,7 +30,7 @@ import {
   TELEGRAM_USER_ID_PATTERN,
 } from 'src/common/channel/constants/channel.constants';
 import { TIME_ZONE_NAME_PATTERN } from 'src/common/constants/time-zone.constants';
-import { DeliveryMode, LogLevel } from './types/config.enums';
+import { LogLevel } from './types/config.enums';
 
 function isSet(value: unknown) {
   return Array.isArray(value) ? value.length > 0 : Boolean(value);
@@ -100,9 +100,6 @@ export class AppEnvs {
   @IsString()
   @IsNotEmpty()
   GITLAB_TOKEN!: string;
-
-  @IsEnum(DeliveryMode)
-  DELIVERY_MODE: DeliveryMode = DeliveryMode.LIVE;
 
   @ValidateIf(hasSlackEnv)
   @Matches(SLACK_BOT_TOKEN_PATTERN)

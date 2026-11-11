@@ -112,7 +112,6 @@ export class ReportHandler implements BotHandler {
       userId: actor.user.id,
       date,
       maxAgeMs,
-      own: true,
       channel: actor.channel,
       notice: {
         target: { channel: actor.channel, chatId: actor.chatId, externalId: actor.externalId },

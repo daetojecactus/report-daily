@@ -1,13 +1,4 @@
-import {
-  boolean,
-  index,
-  integer,
-  pgEnum,
-  pgTable,
-  text,
-  timestamp,
-  uuid,
-} from 'drizzle-orm/pg-core';
+import { index, integer, pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { createdAt, primaryId, updatedAt } from '../../infrastructure/database/database.columns';
 import { reports } from '../report/report.schema';
 import { channel } from '../user/channel/channel.schema';
@@ -30,7 +21,6 @@ export const deliveries = pgTable(
     reportId: uuid().references(() => reports.id, { onDelete: 'cascade' }),
     status: deliveryStatus().notNull().default(DeliveryStatus.QUEUED),
     attempts: integer().notNull().default(0),
-    redirected: boolean().notNull().default(false),
     externalMessageId: text(),
     error: text(),
     sentAt: timestamp({ withTimezone: true }),

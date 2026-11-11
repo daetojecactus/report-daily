@@ -217,16 +217,8 @@ export const enCommon: CommonLocale = {
     editText: 'Edit text',
     cancel: 'Cancel',
     sent: (count) => `The broadcast is going out. Recipients: ${count}.`,
-    sentRedirected: (count) =>
-      `Check mode: the broadcast went to the owners, not to the employees. Recipients would be: ${count}.`,
-    redirected: (count) =>
-      `Broadcast: check mode \`DELIVERY_MODE=redirect\`, not sent to the employees. Recipients would be: ${count}.`,
     cancelled: 'Broadcast cancelled.',
     menu: 'Menu',
-  },
-  delivery: {
-    redirected: (name) =>
-      `Report for **${name}**: check mode \`DELIVERY_MODE=redirect\`, not sent to the employee.`,
   },
   adminSettings: {
     title: '**Settings**',

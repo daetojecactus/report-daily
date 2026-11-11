@@ -1,16 +1,12 @@
 import { randomUUID } from 'node:crypto';
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
 import type { ChatChannel } from 'src/common/channel/types/chat-channel.interface';
 import { escapeMarkdown } from 'src/common/utils/markdown.util';
 import type { Locale } from 'src/modules/application/i18n/types/i18n.interface';
 import type { UserChannel } from 'src/modules/application/user/channel/types/channel.interface';
 import { UserService } from 'src/modules/application/user/user.service';
-import { DeliveryMode } from 'src/modules/infrastructure/config/types/config.enums';
-import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { DeliveryQueueProducer } from 'src/modules/queue/delivery/delivery-queue.producer';
-import { AccessService } from '../../core/access.service';
 import { ADMIN_MENU_DATA } from '../constants/admin.constants';
 import { BotSection } from '../../core/bot.decorator';
 import { DialogService } from '../../core/dialog.service';
@@ -36,18 +32,13 @@ import { BroadcastSectionMessages } from './constants/broadcast.messages';
 @BotSection({ access: BotAccess.OWNER, namespace: BotNamespace.BROADCAST })
 export class BroadcastHandler implements BotHandler {
   private readonly logger = new Logger(BroadcastHandler.name);
-  private readonly redirect: boolean;
 
   constructor(
     private readonly userService: UserService,
-    private readonly accessService: AccessService,
     private readonly deliveryQueueProducer: DeliveryQueueProducer,
     @Inject(BOT_CHANNELS) private readonly channels: ChatChannel[],
-    configService: ConfigService<AppEnvs, true>,
     private readonly dialogService: DialogService,
-  ) {
-    this.redirect = configService.get('DELIVERY_MODE', { infer: true }) === DeliveryMode.REDIRECT;
-  }
+  ) {}
 
   async handle({ actor, input, dialog, locale }: BotContext): Promise<BotReply> {
     if (input.type === ChatInputType.TEXT && BROADCAST_TEXT_STEPS.includes(dialog?.step ?? '')) {
@@ -124,26 +115,18 @@ export class BroadcastHandler implements BotHandler {
     const text = escapeMarkdown(draft.text);
     const broadcastId = randomUUID();
     for (const { channel } of this.channels) {
-      const messages = this.redirect
-        ? this.accessService.findOwnerIds(channel).map((chatId) => ({
-            chatId,
-            text: [locale.broadcast.redirected(people), '', text].join('\n'),
-          }))
-        : recipients
-            .filter((recipient) => recipient.channel === channel)
-            .map(({ externalId }) => ({ chatId: externalId, text }));
+      const messages = recipients
+        .filter((recipient) => recipient.channel === channel)
+        .map(({ externalId }) => ({ chatId: externalId, text }));
       if (messages.length > 0) {
         await this.deliveryQueueProducer.addBroadcast(channel, broadcastId, messages);
       }
     }
     this.logger.log(
-      { recipients: people, redirected: this.redirect, actorId: actor.user?.id ?? BotAccess.OWNER },
+      { recipients: people, actorId: actor.user?.id ?? BotAccess.OWNER },
       BroadcastSectionMessages.SENT,
     );
-    return this.toMenuReply(
-      locale,
-      this.redirect ? locale.broadcast.sentRedirected(people) : locale.broadcast.sent(people),
-    );
+    return this.toMenuReply(locale, locale.broadcast.sent(people));
   }
 
   private findRecipients() {

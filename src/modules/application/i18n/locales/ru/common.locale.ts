@@ -216,16 +216,8 @@ export const ruCommon: CommonLocale = {
     editText: 'Изменить текст',
     cancel: 'Отмена',
     sent: (count) => `Рассылка отправляется. Получателей: ${count}.`,
-    sentRedirected: (count) =>
-      `Режим проверки: рассылка ушла владельцам, сотрудникам — нет. Получателей было бы: ${count}.`,
-    redirected: (count) =>
-      `Рассылка — режим проверки \`DELIVERY_MODE=redirect\`, сотрудникам она не отправлена. Получателей было бы: ${count}.`,
     cancelled: 'Рассылка отменена.',
     menu: 'Меню',
-  },
-  delivery: {
-    redirected: (name) =>
-      `Отчёт для **${name}** — режим проверки \`DELIVERY_MODE=redirect\`, сотруднику он не отправлен.`,
   },
   adminSettings: {
     title: '**Настройки**',

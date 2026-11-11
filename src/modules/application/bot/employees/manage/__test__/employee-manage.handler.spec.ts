@@ -227,7 +227,6 @@ describe('EmployeeManageHandler', () => {
       userId: USER.id,
       date: '2026-11-09',
       maxAgeMs: 300_000,
-      own: false,
       channel: null,
       notice: {
         target: { channel: Channel.TELEGRAM, chatId: '77', externalId: '77' },

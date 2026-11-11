@@ -48,13 +48,12 @@ export class DeliveryService {
     );
   }
 
-  createForReport(report: Report, channel: Channel, redirected: boolean) {
+  createForReport(report: Report, channel: Channel) {
     return this.create({
       userId: report.userId,
       channel,
       kind: DeliveryKind.REPORT,
       reportId: report.id,
-      redirected,
     });
   }
 

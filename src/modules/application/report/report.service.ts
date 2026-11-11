@@ -125,6 +125,7 @@ export class ReportService {
         { userId, reportDate, status: report.status, lines: context.itemsCount },
         ReportMessages.BUILT,
       );
+      this.logger.verbose({ userId, reportDate, content }, ReportMessages.TEXT);
       return report;
     } catch (error) {
       await this.save({

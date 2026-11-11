@@ -33,7 +33,7 @@ docker compose up -d --build
 
 Fill in `.env` before the start, see [Configuration](#configuration). Compose starts PostgreSQL and Redis, applies the migrations and starts the bot; no port is published. `docker compose ps` shows the bot as healthy when it is up.
 
-Before the team starts using the bot, run it with `DELIVERY_MODE=redirect`: everything meant for employees then comes to the owners, marked with whom it was for.
+Before the team starts using the bot, check the reports on yourself: add yourself as an employee, and compare a few days in [`preview`](#preview) with GitLab.
 
 To run without Docker, see [Running without Docker](#running-without-docker).
 
@@ -55,12 +55,11 @@ To run without Docker, see [Running without Docker](#running-without-docker).
 | `LLM_TOKEN` | no | | API key; a local server that needs none takes any value |
 | `LLM_MODEL` | no | | Model name as the service calls it |
 | `LLM_REQUESTS_PER_MINUTE` | no | `10` | AI requests a minute for all employees together, as the service tariff allows |
-| `DELIVERY_MODE` | no | `live` | `redirect` sends scheduled reports, "Report now" and broadcasts to the owners instead of the employees |
 | `POSTGRES_PASSWORD` | with Compose | | Password of the PostgreSQL that Compose starts |
 | `DATABASE_URL` | without Compose | | PostgreSQL connection URL; Compose sets it |
 | `REDIS_URL` | without Compose | | Redis connection URL; Compose sets it |
 | `REPORT_DAILY_VERSION` | no | `local` | Tag of the bot image in Compose |
-| `LOG_LEVEL` | no | `info` | `fatal`, `error`, `warn`, `info`, `debug`, `trace` or `silent` |
+| `LOG_LEVEL` | no | `info` | `fatal`, `error`, `warn`, `info`, `debug`, `trace` or `silent`; `trace` also logs the text of every report |
 | `PORT` | no | `3000` | Port of `GET /health/live` and `GET /health/ready` |
 | `NODE_EXTRA_CA_CERTS` | no | | CA certificate of a GitLab signed by a company CA, see [GitLab](#gitlab) |
 
@@ -128,10 +127,10 @@ Owners are the IDs in `OWNER_TELEGRAM_IDS` and `OWNER_SLACK_IDS`. They can do ev
 
 ### Onboarding the team
 
-1. In `/admin`, "Employees", add an employee found in GitLab and choose the role and the gender. The role shapes the wording; the gender, the Russian word forms.
-2. Bind Telegram or Slack in the employee's card. In Telegram the employee opens the bot and presses Start; in Slack the bot writes first.
-3. If the team's labels mean statuses, task types or priorities, map them in "Traits". Its "No traits" list shows the labels the bot met but does not understand.
-4. Check the reports with "Report now" and [`preview`](#preview), then switch `DELIVERY_MODE` to `live`.
+1. Add yourself first and check your own reports with `/report` and [`preview`](#preview) against GitLab.
+2. If the team's labels mean statuses, task types or priorities, map them in "Traits". Its "No traits" list shows the labels the bot met but does not understand.
+3. In `/admin`, "Employees", add the employees found in GitLab and choose the role and the gender. The role shapes the wording; the gender, the Russian word forms.
+4. Bind Telegram or Slack in each employee's card. In Telegram the employee opens the bot and presses Start; in Slack the bot writes first.
 
 ## Report templates
 
@@ -241,7 +240,7 @@ On `SIGTERM` the bot stops taking new work and gives the running jobs up to 10 s
 - **TLS** is always checked.
 - **Owners** control the bot through their Telegram or Slack accounts and should protect them with two-step verification.
 - **Access** is checked on every action; the bot answers only in private chats.
-- **Privacy.** Only the employee sees their report; admins see only its status. `DELIVERY_MODE=redirect` is the deliberate exception.
+- **Privacy.** Only the employee sees their report: owners and admins see only whether the last one was delivered. The database keeps report texts for 30 days to answer `/report` again and to preview templates, so whoever can read the database or runs `preview` on the server can read them; the log has them only at `LOG_LEVEL=trace`.
 - **AI** gets only the data listed in [AI](#ai).
 - **Templates** run in a sandbox with size and time limits.
 

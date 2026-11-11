@@ -1,4 +1,3 @@
-import type { ConfigService } from '@nestjs/config';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Channel } from 'src/common/channel/types/channel.enums';
 import { DeliveryStatus } from 'src/modules/application/delivery/types/delivery.enums';
@@ -12,11 +11,8 @@ import type { UserChannel } from 'src/modules/application/user/channel/types/cha
 import type { ChannelService } from 'src/modules/application/user/channel/channel.service';
 import type { User } from 'src/modules/application/user/types/user.interface';
 import type { UserService } from 'src/modules/application/user/user.service';
-import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
-import { DeliveryMode } from 'src/modules/infrastructure/config/types/config.enums';
 import type { DeliveryQueueProducer } from 'src/modules/queue/delivery/delivery-queue.producer';
 import type { BotService } from '../../bot.service';
-import type { AccessService } from '../../core/access.service';
 import { ReportDeliveryMessages } from '../constants/report-delivery.messages';
 import { ReportDelivery } from '../report.delivery';
 import { ReportView } from '../report.view';
@@ -26,7 +22,6 @@ const DELIVERY = {
   userId: 'user-1',
   reportId: 'report-1',
   status: DeliveryStatus.QUEUED,
-  redirected: false,
 } as Delivery;
 
 const REPORT = {
@@ -56,21 +51,16 @@ describe('ReportDelivery', () => {
     findReceiving: vi.fn<ChannelService['findReceiving']>(),
   };
   const botService = { listChannels: vi.fn<BotService['listChannels']>() };
-  const accessService = { findOwnerIds: vi.fn<AccessService['findOwnerIds']>() };
-  const create = (mode: DeliveryMode) =>
-    new ReportDelivery(
-      deliveryService as unknown as DeliveryService,
-      producer as unknown as DeliveryQueueProducer,
-      reportService as unknown as ReportService,
-      userService as unknown as UserService,
-      channelService as unknown as ChannelService,
-      botService as unknown as BotService,
-      accessService as unknown as AccessService,
-      new I18nService(),
-      new ReportView(),
-      { get: () => mode } as unknown as ConfigService<AppEnvs, true>,
-    );
-  const delivery = create(DeliveryMode.LIVE);
+  const delivery = new ReportDelivery(
+    deliveryService as unknown as DeliveryService,
+    producer as unknown as DeliveryQueueProducer,
+    reportService as unknown as ReportService,
+    userService as unknown as UserService,
+    channelService as unknown as ChannelService,
+    botService as unknown as BotService,
+    new I18nService(),
+    new ReportView(),
+  );
 
   beforeEach(() => {
     vi.resetAllMocks();
@@ -126,11 +116,11 @@ describe('ReportDelivery', () => {
         .mockResolvedValueOnce({ id: 'delivery-5' } as Delivery)
         .mockResolvedValueOnce({ id: 'delivery-6' } as Delivery);
 
-      await delivery.queue(REPORT, [Channel.TELEGRAM, Channel.SLACK], true, JOB_CREATED_AT);
+      await delivery.queue(REPORT, [Channel.TELEGRAM, Channel.SLACK], JOB_CREATED_AT);
 
       expect(deliveryService.createForReport.mock.calls).toEqual([
-        [REPORT, Channel.TELEGRAM, false],
-        [REPORT, Channel.SLACK, false],
+        [REPORT, Channel.TELEGRAM],
+        [REPORT, Channel.SLACK],
       ]);
       expect(producer.addDelivery.mock.calls).toEqual([
         [Channel.TELEGRAM, 'delivery-5'],
@@ -144,7 +134,7 @@ describe('ReportDelivery', () => {
         .mockResolvedValueOnce(null as unknown as Delivery);
       deliveryService.createForReport.mockResolvedValueOnce({ id: 'delivery-6' } as Delivery);
 
-      await delivery.queue(REPORT, [Channel.TELEGRAM, Channel.SLACK], true, JOB_CREATED_AT);
+      await delivery.queue(REPORT, [Channel.TELEGRAM, Channel.SLACK], JOB_CREATED_AT);
 
       expect(deliveryService.findForReport).toHaveBeenCalledWith(
         'report-1',
@@ -154,25 +144,11 @@ describe('ReportDelivery', () => {
       expect(deliveryService.createForReport).toHaveBeenCalledExactlyOnceWith(
         REPORT,
         Channel.SLACK,
-        false,
       );
       expect(producer.addDelivery.mock.calls).toEqual([
         [Channel.TELEGRAM, 'delivery-5'],
         [Channel.SLACK, 'delivery-6'],
       ]);
-    });
-
-    it('redirects only the reports the employee did not ask for in the redirect mode', async () => {
-      deliveryService.findForReport.mockResolvedValue(null as unknown as Delivery);
-      deliveryService.createForReport.mockResolvedValue({ id: 'delivery-3' } as Delivery);
-      const redirecting = create(DeliveryMode.REDIRECT);
-
-      await redirecting.queue(REPORT, [Channel.TELEGRAM], false, JOB_CREATED_AT);
-      await redirecting.queue(REPORT, [Channel.TELEGRAM], true, JOB_CREATED_AT);
-
-      expect(
-        deliveryService.createForReport.mock.calls.map(([, , redirected]) => redirected),
-      ).toEqual([true, false]);
     });
   });
 
@@ -183,33 +159,14 @@ describe('ReportDelivery', () => {
       expect(plan).toEqual({
         deliveryId: 'delivery-1',
         reportId: 'report-1',
-        chatIds: ['1001'],
-        redirected: false,
+        chatId: '1001',
         screen: {
           text: REPORT.content,
           buttons: [[{ text: 'Пересобрать', data: 'rpt:rebuild:2026-11-09' }]],
         },
       });
       expect(deliveryService.countAttempt).toHaveBeenCalledWith('delivery-1');
-      expect((await delivery.prepare('delivery-1', Channel.SLACK))?.chatIds).toEqual(['U0EMPLOY1']);
-    });
-
-    it('prepares a redirected report for every owner of the channel without buttons', async () => {
-      deliveryService.findById.mockResolvedValue({ ...DELIVERY, redirected: true });
-      accessService.findOwnerIds.mockReturnValue(['100', '101']);
-
-      const plan = await delivery.prepare('delivery-1', Channel.TELEGRAM);
-
-      expect(accessService.findOwnerIds).toHaveBeenCalledWith(Channel.TELEGRAM);
-      expect(plan?.chatIds).toEqual(['100', '101']);
-      expect(plan?.screen).toEqual({
-        text: [
-          new I18nService().getLocale(Language.RU).delivery.redirected('Анна\\_С'),
-          '',
-          REPORT.content,
-        ].join('\n'),
-      });
-      expect(channelService.findByUser).not.toHaveBeenCalled();
+      expect((await delivery.prepare('delivery-1', Channel.SLACK))?.chatId).toBe('U0EMPLOY1');
     });
 
     it('skips a delivery that is gone or already handled', async () => {
