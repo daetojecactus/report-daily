@@ -36,6 +36,11 @@ export class ReportQueueProcessor extends WorkerHost implements OnModuleDestroy 
     }
     const { userId, date, maxAgeMs, own, channel, notice } = job.data as ReportJobData;
     try {
+      const channels = await this.reportDelivery.findChannels(userId, channel ?? null);
+      if (channels.length === 0) {
+        this.logger.warn({ userId, date }, ReportQueueMessages.NO_CHANNEL);
+        return;
+      }
       const saved =
         maxAgeMs === 0 ? null : await this.reportService.findFresh(userId, date, maxAgeMs);
       const report = saved ?? (await this.reportService.build(userId, date));
@@ -44,7 +49,7 @@ export class ReportQueueProcessor extends WorkerHost implements OnModuleDestroy 
           await this.botService.sendTo(notice.target, { text: notice.empty });
         }
       } else {
-        await this.reportDelivery.queue(report, channel ?? null, own);
+        await this.reportDelivery.queue(report, channels, own, new Date(job.timestamp));
       }
     } catch (error) {
       this.logger.warn(

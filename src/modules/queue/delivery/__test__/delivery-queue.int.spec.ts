@@ -120,4 +120,16 @@ describe('Telegram delivery queue', () => {
       .where(eq(userChannels.externalId, telegramId));
     expect(chat.reachable).toBe(false);
   });
+  it('finds the delivery a report job created only from the time of that job', async () => {
+    const before = new Date(Date.now() - 1_000);
+    const { report, delivery } = await queueReport('project:\n• Wrote tests');
+    await waitForDelivery(delivery.id, DeliveryStatus.SENT);
+    const service = app.get(DeliveryService);
+
+    expect((await service.findForReport(report.id, Channel.TELEGRAM, before))?.id).toBe(
+      delivery.id,
+    );
+    expect(await service.findForReport(report.id, Channel.SLACK, before)).toBeNull();
+    expect(await service.findForReport(report.id, Channel.TELEGRAM, new Date())).toBeNull();
+  });
 });
