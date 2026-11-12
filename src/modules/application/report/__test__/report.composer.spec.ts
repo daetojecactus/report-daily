@@ -115,6 +115,7 @@ describe('ReportComposer', () => {
     expect(built.sources).toBeInstanceOf(Map);
     expect(request).toEqual({
       user: USER,
+      language: Language.EN,
       locale: new I18nService().getLocale(Language.EN),
       policy,
       index: {},

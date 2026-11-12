@@ -17,7 +17,13 @@ import { AiMessages } from '../constants/ai.messages';
 import { AiService } from '../ai.service';
 
 const locale = new I18nService().getLocale(Language.EN);
-const PROFILE = { userId: 'user-1', role: JobRole.QA, gender: Gender.FEMALE, locale };
+const PROFILE = {
+  userId: 'user-1',
+  role: JobRole.QA,
+  gender: Gender.FEMALE,
+  language: Language.EN,
+  locale,
+};
 const DAILY_KEY = /^limit:llm:employee:user-1:\d+$/;
 const LINES: AiLine[] = [
   {
@@ -60,6 +66,7 @@ describe('AiService', () => {
       data: { lines },
       model: 'served-model',
       format: LlmFormat.JSON_SCHEMA,
+      outputTokens: 40,
     });
 
   beforeAll(() => {
@@ -178,6 +185,7 @@ describe('AiService', () => {
     ['only the action', 'Fixed a bug'],
     ['another phrase', 'Repaired the login form'],
     ['a colon after the action', 'Fixed a bug: the login form'],
+    ['a link the title does not have', 'Fixed a bug in the login form, see https://example.com'],
   ])('keeps our line for an answer with %s', async (_, text) => {
     answer([{ id: '1', text }]);
 
@@ -199,7 +207,7 @@ describe('AiService', () => {
     expect(texts.get('1')).toBe(text);
   });
 
-  it('logs how many lines were refused and why, without their texts', async () => {
+  it('logs how many lines were refused and why and the tokens against the budget, without texts', async () => {
     const log = vi.spyOn(Logger.prototype, 'log');
     answer([
       { id: '1', text: 'Fixed a bug: the login form' },
@@ -209,7 +217,14 @@ describe('AiService', () => {
     await service.reword(LINES, PROFILE);
 
     expect(log).toHaveBeenCalledWith(
-      { model: 'served-model', lines: 2, accepted: 1, refused: { colon: 1 } },
+      {
+        model: 'served-model',
+        lines: 2,
+        accepted: 1,
+        refused: { colon: 1 },
+        tokens: 40,
+        maxTokens: 250,
+      },
       AiMessages.REWORDED,
     );
   });
@@ -280,6 +295,85 @@ describe('AiService', () => {
     const data = llmService.completeJson.mock.calls[0][0].prompt.user.split('\n')[2];
     expect((JSON.parse(data) as { lines: { names: unknown }[] }).lines[0].names).toEqual({
       added: ['stage::ready-for-qa', 'a', 'b', 'c', 'd'],
+    });
+  });
+
+  it('keeps our line when a Russian answer has slang and takes the merge request', async () => {
+    const ru = {
+      ...PROFILE,
+      language: Language.RU,
+      locale: new I18nService().getLocale(Language.RU),
+    };
+    const line = { ...LINES[0], action: 'Исправил баг' };
+
+    for (const text of [
+      'Исправил баг в форме входа и смерджил',
+      'Исправил баг в форме входа, получил апрув',
+      'Исправил баг в форме входа и слил ветку',
+    ]) {
+      answer([{ id: '1', text }]);
+      expect((await service.reword([line], ru)).texts.size).toBe(0);
+    }
+    answer([{ id: '1', text: 'Исправил баг в форме входа, обновил мердж-реквест' }]);
+    expect((await service.reword([line], ru)).texts.get('1')).toBe(
+      'Исправил баг в форме входа, обновил мердж-реквест',
+    );
+  });
+
+  it('keeps our line when an action picked by a label name is followed by a colon', async () => {
+    const line = {
+      ...LINES[0],
+      action: 'Updated the labels',
+      names: { added: ['release::current'], removed: [] },
+    };
+    answer([{ id: '1', text: 'Moved the task to the current release: the login form' }]);
+
+    expect(await service.reword([line], PROFILE)).toEqual({ texts: new Map(), model: null });
+  });
+
+  it('asks about a long report in parts of up to eight lines, each with its answer budget', async () => {
+    const lines = Array.from({ length: 9 }, (_, index) => ({
+      ...LINES[0],
+      id: String(index + 1),
+    }));
+    llmService.completeJson.mockImplementation(({ prompt }) => {
+      const data = JSON.parse(prompt.user.split('\n')[2]) as { lines: { id: string }[] };
+      return Promise.resolve({
+        data: {
+          lines: data.lines.map(({ id }) => ({ id, text: `Fixed a bug in the form ${id}` })),
+        },
+        model: 'served-model',
+        format: LlmFormat.JSON_SCHEMA,
+        outputTokens: 40,
+      });
+    });
+
+    const { texts, model } = await service.reword(lines, PROFILE);
+
+    expect(llmService.completeJson.mock.calls.map(([request]) => request.maxTokens)).toEqual([
+      550, 450,
+    ]);
+    expect([...texts.keys()]).toEqual(['1', '2', '3', '4', '5', '6', '7', '8', '9']);
+    expect(model).toBe('served-model');
+  });
+
+  it('keeps the lines of the parts it got when a later part fails', async () => {
+    const lines = Array.from({ length: 9 }, (_, index) => ({
+      ...LINES[0],
+      id: String(index + 1),
+    }));
+    llmService.completeJson
+      .mockResolvedValueOnce({
+        data: { lines: [{ id: '1', text: 'Fixed a bug in the login form' }] },
+        model: 'served-model',
+        format: LlmFormat.JSON_SCHEMA,
+        outputTokens: 40,
+      })
+      .mockRejectedValueOnce(new Error('429 Request too large'));
+
+    expect(await service.reword(lines, PROFILE)).toEqual({
+      texts: new Map([['1', 'Fixed a bug in the login form']]),
+      model: 'served-model',
     });
   });
 

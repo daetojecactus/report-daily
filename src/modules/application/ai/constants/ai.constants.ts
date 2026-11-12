@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { Language } from 'src/modules/application/i18n/types/i18n.enums';
 
 export const AI_LIMIT_WINDOW_MS = 60_000;
 
@@ -11,6 +12,12 @@ export const AI_DAILY_LIMIT_KEY_PREFIX = 'limit:llm:employee:';
 export const AI_DAY_MS = 24 * 60 * 60 * 1000;
 
 export const AI_LINE_MAX_LENGTH = 200;
+
+export const AI_LINES_PER_REQUEST = 8;
+
+export const AI_ANSWER_BASE_TOKENS = 50;
+
+export const AI_ANSWER_LINE_TOKENS = 100;
 
 export const AI_ERROR_MAX_LENGTH = 300;
 
@@ -64,3 +71,12 @@ export const AI_COLON = ':';
 export const AI_QUOTE_PATTERN = /[«"“]/;
 
 export const AI_COLON_WINDOW = 20;
+
+export const AI_NAMES_ACTION_MAX_LENGTH = 50;
+
+export const AI_LINK_PATTERN = /https?:\/\/|www\./i;
+
+export const AI_SLANG_PATTERNS: Partial<Record<Language, RegExp>> = {
+  [Language.RU]:
+    /(?<![\p{L}])(?:(?:с|за)?мердж(?:ил|нул|у)|(?:за)?апрув|запуш|пушнул|пофикс|фиксанул|задепло|деплойнул|слил(?:а|и)?(?![\p{L}]))/iu,
+};

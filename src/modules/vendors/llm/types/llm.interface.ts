@@ -14,16 +14,19 @@ export interface LlmJsonSchema {
 export interface LlmCompletion {
   content: string;
   model: string;
+  outputTokens: number | null;
 }
 
 export interface LlmJsonRequest<T> {
   prompt: LlmPrompt;
   name: string;
   schema: z.ZodType<T>;
+  maxTokens: number;
 }
 
 export interface LlmJsonAnswer<T> {
   data: T;
   model: string;
   format: LlmFormat;
+  outputTokens: number | null;
 }

@@ -26,6 +26,7 @@ function completion(content: string) {
     created: 0,
     model: 'served-model',
     choices: [{ index: 0, message: { role: 'assistant', content }, finish_reason: 'stop' }],
+    usage: { prompt_tokens: 30, completion_tokens: 12, total_tokens: 42 },
   };
 }
 
@@ -48,7 +49,8 @@ function createService(replies: Reply[]) {
     model: 'test-model',
   } as LlmClient;
   const service = new LlmService(new LlmRepository(client), client);
-  const ask = () => service.completeJson({ prompt: PROMPT, name: 'report_lines', schema: SCHEMA });
+  const ask = () =>
+    service.completeJson({ prompt: PROMPT, name: 'report_lines', schema: SCHEMA, maxTokens: 250 });
   return { service, ask, bodies };
 }
 
@@ -57,18 +59,20 @@ describe('LlmService', () => {
     Logger.overrideLogger(false);
   });
 
-  it('asks for the JSON schema and returns the checked answer', async () => {
+  it('asks for the JSON schema within the answer budget and returns the checked answer', async () => {
     const { ask, bodies } = createService([{ status: 200, content: ANSWER }]);
 
     expect(await ask()).toEqual({
       data: { lines: [{ id: '1', text: 'Fixed the login bug' }] },
       model: 'served-model',
       format: LlmFormat.JSON_SCHEMA,
+      outputTokens: 12,
     });
     expect(bodies).toEqual([
       {
         model: 'test-model',
         temperature: 0.2,
+        max_tokens: 250,
         messages: [
           { role: 'system', content: PROMPT.system },
           { role: 'user', content: PROMPT.user },
@@ -136,7 +140,12 @@ describe('LlmService', () => {
 
     expect(service.isEnabled()).toBe(false);
     await expect(
-      service.completeJson({ prompt: PROMPT, name: 'report_lines', schema: SCHEMA }),
+      service.completeJson({
+        prompt: PROMPT,
+        name: 'report_lines',
+        schema: SCHEMA,
+        maxTokens: 250,
+      }),
     ).rejects.toThrow('LLM is not configured');
   });
 });

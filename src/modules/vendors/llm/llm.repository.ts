@@ -15,6 +15,7 @@ export class LlmRepository {
     { system, user }: LlmPrompt,
     format: LlmFormat,
     jsonSchema: LlmJsonSchema,
+    maxTokens: number,
   ): Promise<LlmCompletion> {
     const { instance, model } = this.llmClient;
     if (!instance) {
@@ -23,6 +24,7 @@ export class LlmRepository {
     const completion = await instance.chat.completions.create({
       model,
       temperature: LLM_TEMPERATURE,
+      max_tokens: maxTokens,
       messages: [
         { role: 'system', content: system },
         { role: 'user', content: user },
@@ -32,6 +34,7 @@ export class LlmRepository {
     return {
       content: completion.choices[0]?.message.content ?? '',
       model: completion.model || model,
+      outputTokens: completion.usage?.completion_tokens ?? null,
     };
   }
 

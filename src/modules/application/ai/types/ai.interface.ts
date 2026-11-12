@@ -1,6 +1,7 @@
 import type { Locale } from 'src/modules/application/i18n/types/i18n.interface';
 import type { TaskKind } from 'src/modules/application/trait/types/trait.enums';
 import type { Gender, JobRole } from 'src/modules/application/user/types/user.enums';
+import type { Language } from 'src/modules/application/i18n/types/i18n.enums';
 
 export interface AiLine {
   id: string;
@@ -26,6 +27,7 @@ export interface AiProfile {
   userId: string;
   role: JobRole;
   gender: Gender;
+  language: Language;
   locale: Locale;
 }
 
