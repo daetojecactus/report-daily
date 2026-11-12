@@ -1,4 +1,4 @@
-import type { JobsOptions } from 'bullmq';
+import type { JobState, JobsOptions } from 'bullmq';
 
 export const REPORT_QUEUE = 'report';
 
@@ -16,3 +16,11 @@ export const REPORT_JOB_OPTIONS: JobsOptions = {
   removeOnComplete: true,
   removeOnFail: true,
 };
+
+export const REPORT_QUEUED_STATES: (JobState | 'unknown')[] = [
+  'waiting',
+  'waiting-children',
+  'prioritized',
+  'delayed',
+  'active',
+];

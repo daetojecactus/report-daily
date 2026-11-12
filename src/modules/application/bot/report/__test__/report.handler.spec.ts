@@ -33,7 +33,10 @@ function button(data: string): ChatInput {
 }
 
 describe('ReportHandler', () => {
-  const producer = { addReport: vi.fn<ReportQueueProducer['addReport']>() };
+  const producer = {
+    addReport: vi.fn<ReportQueueProducer['addReport']>(),
+    isQueued: vi.fn<ReportQueueProducer['isQueued']>(),
+  };
   const redis = {
     claim: vi.fn<RedisService['claim']>(),
     getTtlMs: vi.fn<RedisService['getTtlMs']>(),
@@ -50,6 +53,7 @@ describe('ReportHandler', () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
+    producer.isQueued.mockResolvedValue(false);
     vi.useFakeTimers({ now: Date.parse('2026-11-09T20:30:00Z') });
   });
 
@@ -133,6 +137,24 @@ describe('ReportHandler', () => {
       newMessage: true,
     });
     expect(producer.addReport).toHaveBeenCalledOnce();
+  });
+
+  it('answers that the report is on its way while the day is still being built', async () => {
+    producer.isQueued.mockResolvedValue(true);
+
+    expect(await open(button('rpt:day:0'))).toEqual({
+      screen: { text: locale.report.inProgress('сегодня') },
+    });
+    expect(await open(button('rpt:rebuild:2026-11-03'))).toEqual({
+      screen: { text: locale.report.inProgress('3 ноября') },
+      newMessage: true,
+    });
+    expect(producer.isQueued.mock.calls).toEqual([
+      ['user-1', '2026-11-10'],
+      ['user-1', '2026-11-03'],
+    ]);
+    expect(producer.addReport).not.toHaveBeenCalled();
+    expect(redis.claim).not.toHaveBeenCalled();
   });
 
   it('refuses to rebuild a day older than 14 days and broken buttons', async () => {

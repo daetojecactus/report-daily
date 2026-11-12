@@ -26,6 +26,7 @@ export interface CommonLocale {
     yesterdayText: string;
     building: (day: string) => string;
     rebuilding: (day: string) => string;
+    inProgress: (day: string) => string;
     empty: (day: string) => string;
     failed: string;
     rebuild: string;

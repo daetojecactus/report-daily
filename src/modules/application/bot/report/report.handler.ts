@@ -60,6 +60,9 @@ export class ReportHandler implements BotHandler {
       case ReportAction.DAY: {
         const date = addDays(today, -button.data.offset);
         const dayText = this.reportView.toDayText(locale, date, today);
+        if (await this.isQueued(actor, date)) {
+          return { screen: { text: locale.report.inProgress(dayText) } };
+        }
         await this.queue(
           actor,
           locale,
@@ -83,6 +86,10 @@ export class ReportHandler implements BotHandler {
     if (!actor.user || date > today || date < addDays(today, -REPORT_DAYS_BACK)) {
       return { screen: { text: locale.bot.expired }, newMessage: true };
     }
+    const dayText = this.reportView.toDayText(locale, date, today);
+    if (await this.isQueued(actor, date)) {
+      return { screen: { text: locale.report.inProgress(dayText) }, newMessage: true };
+    }
     const key = `${REPORT_REBUILD_LIMIT_PREFIX}${actor.user.id}`;
     if (!(await this.redisService.claim(key, REPORT_REBUILD_COOLDOWN_MS))) {
       const waitMs = await this.redisService.getTtlMs(key);
@@ -93,9 +100,12 @@ export class ReportHandler implements BotHandler {
         newMessage: true,
       };
     }
-    const dayText = this.reportView.toDayText(locale, date, today);
     await this.queue(actor, locale, date, dayText, 0);
     return { screen: { text: locale.report.rebuilding(dayText) }, newMessage: true };
+  }
+
+  private async isQueued(actor: BotActor, date: string) {
+    return actor.user ? this.reportQueueProducer.isQueued(actor.user.id, date) : false;
   }
 
   private async queue(
