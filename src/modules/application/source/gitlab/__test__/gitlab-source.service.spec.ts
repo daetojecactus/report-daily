@@ -251,26 +251,29 @@ describe('GitLabSourceService', () => {
     expect(gitlab.findIssue).toHaveBeenCalledTimes(1);
   });
 
-  it('links a merge request to the issue of its branch and loads that issue', async () => {
-    const gitlab = createGitLab({
-      events: [
-        createEvent({
-          action_name: 'opened',
-          target_type: 'MergeRequest',
-          target_iid: 5,
-        }),
-      ],
-      issues: [createIssue({ iid: 12 })],
-      mergeRequests: [createMergeRequest({ iid: 5, source_branch: '12-login' })],
-    });
+  it.each(['12-login', '12_login'])(
+    'links a merge request to the issue of its branch %s and loads that issue',
+    async (branch) => {
+      const gitlab = createGitLab({
+        events: [
+          createEvent({
+            action_name: 'opened',
+            target_type: 'MergeRequest',
+            target_iid: 5,
+          }),
+        ],
+        issues: [createIssue({ iid: 12 })],
+        mergeRequests: [createMergeRequest({ iid: 5, source_branch: branch })],
+      });
 
-    const grouped = await collect(gitlab);
+      const grouped = await collect(gitlab);
 
-    expect(gitlab.findIssue).toHaveBeenCalledWith(PROJECT_ID, 12);
-    expect(grouped.issues).toHaveLength(1);
-    expect(grouped.issues[0].mergeRequests.map((item) => item.iid)).toEqual([5]);
-    expect(grouped.standaloneMergeRequests).toEqual([]);
-  });
+      expect(gitlab.findIssue).toHaveBeenCalledWith(PROJECT_ID, 12);
+      expect(grouped.issues).toHaveLength(1);
+      expect(grouped.issues[0].mergeRequests.map((item) => item.iid)).toEqual([5]);
+      expect(grouped.standaloneMergeRequests).toEqual([]);
+    },
+  );
 
   it('keeps a merge request alone when its branch names no issue it can load', async () => {
     const gitlab = createGitLab({

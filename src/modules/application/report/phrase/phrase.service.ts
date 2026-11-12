@@ -34,6 +34,7 @@ import {
   PHRASE_REFERENCE_SEPARATOR,
   PHRASE_REFERENCE_SUFFIX_PATTERN,
   PHRASE_RESOLVE_TITLE_PATTERN,
+  PHRASE_SUMMARY_MAX_REFERENCES,
   PHRASE_TITLE_SPACES_PATTERN,
 } from './constants/phrase-format.constants';
 import { PHRASE_RULES } from './constants/phrase-rules.constants';
@@ -64,10 +65,22 @@ export class PhraseService {
     return { text: note ? texts.withNote(text, note) : text, actionText, title, note };
   }
 
-  summarize({ results }: ActivitySummary, gender: Gender, locale: Locale) {
+  summarize({ results, projects }: ActivitySummary, gender: Gender, locale: Locale) {
     const [first] = results;
     const key = this.findPhrase(first.signals, first.choice.main);
     const phrase: SummaryPhrase = this.isSummaryPhrase(key) ? key : ReportPhrase.TASK_PLANNED;
+    if (projects) {
+      const titles = new Set(results.map(({ line }) => this.toTitle(line)));
+      const [title] = titles;
+      return locale.phrases.summaryLine(
+        [
+          this.toGendered(locale.phrases.actions[key], gender),
+          ...(titles.size === 1 && title ? [locale.phrases.quote(title)] : []),
+          locale.phrases.inProjects(projects.length),
+        ].join(' '),
+        this.toList(locale, projects),
+      );
+    }
     const nameKind = PHRASE_NAMES.get(phrase);
     const names = new Set(
       results.map(({ choice }) => (nameKind ? this.findName(locale, nameKind, choice.main) : null)),
@@ -77,8 +90,17 @@ export class PhraseService {
       nameKind && PHRASE_SUMMARY_NAMES.has(nameKind) ? locale.phrases.names[nameKind](name) : '';
     return locale.phrases.summaryLine(
       `${this.toGendered(locale.phrases.summaries[phrase](results.length), gender)}${value}`,
-      results.map(({ line }) => this.toReference(locale, line)).join(PHRASE_REFERENCE_SEPARATOR),
+      this.toList(
+        locale,
+        results.map(({ line }) => this.toReference(locale, line)),
+      ),
     );
+  }
+
+  private toList(locale: Locale, items: string[]) {
+    const shown = items.slice(0, PHRASE_SUMMARY_MAX_REFERENCES).join(PHRASE_REFERENCE_SEPARATOR);
+    const rest = items.length - PHRASE_SUMMARY_MAX_REFERENCES;
+    return rest > 0 ? `${shown} ${locale.phrases.more(rest)}` : shown;
   }
 
   findPhrase(signals: ActivityLineSignals, candidate: ActivityCandidate) {

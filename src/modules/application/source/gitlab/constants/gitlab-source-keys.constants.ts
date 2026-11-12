@@ -1,4 +1,4 @@
-export const GITLAB_SOURCE_BRANCH_ISSUE_PATTERN = /^(\d+)-/;
+export const GITLAB_SOURCE_BRANCH_ISSUE_PATTERN = /^(\d+)[-_]/;
 
 export const GITLAB_SOURCE_COMMIT_MENTION_PATTERN =
   /^mentioned in commit (?:\S+@)?([0-9a-f]{7,40})/;

@@ -1,5 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import type { GroupedDailyData } from 'src/modules/application/source/types/source-day.interface';
+import type {
+  GroupedDailyData,
+  SourceProject,
+} from 'src/modules/application/source/types/source-day.interface';
 import { TaskFlag } from 'src/modules/application/trait/types/trait.enums';
 import type { TraitIndex } from 'src/modules/application/trait/types/trait.interface';
 import { ActivityChains } from './activity.chains';
@@ -26,8 +29,8 @@ export class ActivityService {
     private readonly activitySummaries: ActivitySummaries,
   ) {}
 
-  summarize(results: ActivityResult[]) {
-    return this.activitySummaries.collect(results);
+  summarize(results: ActivityResult[], projects: SourceProject[]) {
+    return this.activitySummaries.collect(results, projects);
   }
 
   findProjectId(line: ActivityLine) {

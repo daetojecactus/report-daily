@@ -22,6 +22,7 @@ import {
   ACTIVITY_CONVENTIONAL_SUPPORTING_KINDS,
 } from './constants/activity-patterns.constants';
 import {
+  ACTIVITY_DELETE_ACTION,
   ACTIVITY_PUSH_ACTIONS,
   ACTIVITY_WORK_ITEM_KINDS,
 } from './constants/activity-events.constants';
@@ -208,9 +209,11 @@ export class ActivitySignals {
       ...line.pushes
         .filter((push) => push.refType === SourceRefType.BRANCH)
         .map((push) => ({
-          events: push.mainBranch
-            ? push.events.filter((event) => (event.pushData?.commitCount ?? 0) > 0)
-            : push.events,
+          events:
+            push.mainBranch ||
+            push.events.some((event) => event.actionName === ACTIVITY_DELETE_ACTION)
+              ? push.events.filter((event) => (event.pushData?.commitCount ?? 0) > 0)
+              : push.events,
           mergeRequestIid: null,
         })),
     ];

@@ -34,7 +34,12 @@ function render(overrides: Partial<GroupedDailyData>, trace = false) {
   };
   const service = createService();
   const results = service.classify(day, { username: ME, role: JobRole.DEVELOPER }, createIndex());
-  return new PreviewRenderer().render(day, results, trace, service.summarize(results));
+  return new PreviewRenderer().render(
+    day,
+    results,
+    trace,
+    service.summarize(results, day.projects),
+  );
 }
 
 const reviewed = createIssue({
@@ -221,7 +226,7 @@ describe('PreviewRenderer', () => {
     };
     const service = createService();
     const results = service.classify(day, { username: ME, role: JobRole.DEVELOPER }, createIndex());
-    const summaries = service.summarize(results);
+    const summaries = service.summarize(results, day.projects);
     expect(
       new PreviewRenderer()
         .render(day, results, false, summaries, {

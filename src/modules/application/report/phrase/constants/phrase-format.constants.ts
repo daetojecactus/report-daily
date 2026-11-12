@@ -14,6 +14,8 @@ export const PHRASE_REFERENCE_SUFFIX_PATTERN = /#\d+$/;
 
 export const PHRASE_REFERENCE_SEPARATOR = ', ';
 
+export const PHRASE_SUMMARY_MAX_REFERENCES = 10;
+
 export const PHRASE_ISSUE_PREFIX = '#';
 
 export const PHRASE_MERGE_REQUEST_PREFIX = '!';

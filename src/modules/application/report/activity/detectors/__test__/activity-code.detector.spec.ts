@@ -229,15 +229,19 @@ describe('ActivityCodeDetector', () => {
     });
   });
 
-  it('takes creating a main branch without commits for neither work nor a start', () => {
+  it('takes a branch made without commits for neither work nor a start when it is main or deleted the same day', () => {
     const created = refEvent(at(10), SourceEventAction.PUSHED_NEW);
     const deleted = refEvent(at(12), SourceEventAction.DELETED);
+    const actions = (ref: string, mainBranch: boolean, events = [created, deleted]) =>
+      summarize(detect(pushLine({ ref, mainBranch, events }))).map((candidate) => candidate.action);
 
-    expect(
-      summarize(
-        detect(pushLine({ ref: 'develop', mainBranch: true, events: [created, deleted] })),
-      ).map((candidate) => candidate.action),
-    ).toEqual([ActivityAction.DELETED]);
+    expect(actions('develop', true)).toEqual([ActivityAction.DELETED]);
+    expect(actions('12-spike', false)).toEqual([ActivityAction.DELETED]);
+    expect(actions('12-spike', false, [created])).toEqual([ActivityAction.CODE]);
+    expect(actions('12-spike', false, [pushEvent(at(11)), deleted])).toEqual([
+      ActivityAction.CODE,
+      ActivityAction.DELETED,
+    ]);
   });
 
   it('pushes to many branches at once without starting work', () => {

@@ -25,6 +25,9 @@ export interface PhrasesLocale {
     counts: Record<PhraseCount, (count: number | null) => string>;
     summaries: Record<SummaryPhrase, (count: number) => GenderedText>;
     summaryLine: (text: string, references: string) => string;
+    more: (count: number) => string;
+    inProjects: (count: number) => string;
+    acrossProjects: string;
     dateLocale: string;
     categories: Record<ActivityTier, string>;
   };

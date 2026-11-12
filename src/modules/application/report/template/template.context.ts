@@ -57,11 +57,17 @@ export class TemplateContext {
     );
     const placed = new Set<ActivitySummary>();
     const entries: TemplateEntry[] = [];
+    const across: TemplateItem[] = [];
     const sources = new Map<TemplateItem, ActivityResult>();
     for (const result of results.filter((item) => !item.excluded)) {
       const projectId = this.activityService.findProjectId(result.line);
       const summary = summaryOf.get(result);
-      if (summary && !placed.has(summary)) {
+      if (summary?.projects && !placed.has(summary)) {
+        placed.add(summary);
+        across.push(
+          this.toSummaryItem(summary, employee.gender, locale, locale.phrases.acrossProjects),
+        );
+      } else if (summary && !placed.has(summary)) {
         placed.add(summary);
         entries.push({
           projectId,
@@ -75,16 +81,17 @@ export class TemplateContext {
       }
     }
     const sorted = entries.toSorted((left, right) => right.weight - left.weight);
-    const projects: TemplateProject[] = [...new Set(entries.map((entry) => entry.projectId))].map(
-      (projectId) => {
+    const projects: TemplateProject[] = [
+      ...[...new Set(entries.map((entry) => entry.projectId))].map((projectId) => {
         const project = day.projects.find((item) => item.id === projectId);
         return {
           name: projectName(projectId),
           url: this.toUrl(project?.webUrl ?? null),
           items: sorted.filter((entry) => entry.projectId === projectId).map((entry) => entry.item),
         };
-      },
-    );
+      }),
+      ...(across.length ? [{ name: locale.phrases.acrossProjects, url: null, items: across }] : []),
+    ];
     const items = projects.flatMap((project) => project.items);
     const at = new Date(`${date}${TEMPLATE_DATE_TIME_SUFFIX}`);
     const context: ReportContext = {

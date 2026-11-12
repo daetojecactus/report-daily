@@ -622,12 +622,23 @@ export const ruPhrases: PhrasesLocale = {
         male: `Назначил приоритет ${toTasks(value)}`,
         female: `Назначила приоритет ${toTasks(value)}`,
       }),
+      [ReportPhrase.TASK_ASSIGNED]: (value) => ({
+        male: `Назначил исполнителей ${toTasks(value)}`,
+        female: `Назначила исполнителей ${toTasks(value)}`,
+      }),
+      [ReportPhrase.ASSIGNEE_REMOVED]: (value) => ({
+        male: `Снял исполнителей с ${ofTasks(value)}`,
+        female: `Сняла исполнителей с ${ofTasks(value)}`,
+      }),
       [ReportPhrase.MOVED_FROM_PROJECT]: (value) => ({
         male: `Перенёс ${tasks(value)} из других проектов`,
         female: `Перенесла ${tasks(value)} из других проектов`,
       }),
     },
     summaryLine: (text, references) => `${text}: ${references}`,
+    more: (value) => `и ещё ${value}`,
+    inProjects: (value) => `в ${count(value, 'проекте', 'проектах', 'проектах')}`,
+    acrossProjects: 'Несколько проектов',
     dateLocale: 'ru',
     categories: {
       [ActivityTier.OUTCOME]: 'Итоги',

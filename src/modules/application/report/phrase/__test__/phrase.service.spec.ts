@@ -83,7 +83,7 @@ function summarize(
     createIndex(),
   );
   return service
-    .summarize(results)
+    .summarize(results, [])
     .map((summary) =>
       new PhraseService().summarize(summary, gender, new I18nService().getLocale(language)),
     );
@@ -389,6 +389,95 @@ describe('PhraseService', () => {
     ).toEqual(['Взяла 5 задач в спринт: #1, #2, #3, #4, #5']);
     expect(summarize([planned(1), planned(2), planned(3)], { language: Language.EN })).toEqual([
       'Added 3 tasks to sprint 5\u2009–\u200918 November: #1, #2, #3',
+    ]);
+  });
+
+  it('sums up dependency work across projects and shortens a long list', () => {
+    const projects = Array.from({ length: 12 }, (_, index) => ({
+      id: index + 1,
+      name: `project-${index + 1}`,
+      path: '',
+      webUrl: '',
+    }));
+    const service = createService();
+    const results = service.classify(
+      {
+        projects,
+        issues: [],
+        standaloneMergeRequests: projects.map(({ id }) =>
+          createMergeRequest({
+            projectId: id,
+            iid: id,
+            title: `Update packages ${id}`,
+            sourceBranch: 'renovate/packages',
+            events: [pushEvent(at(11))],
+          }),
+        ),
+        standalonePushes: [],
+        standaloneEvents: [],
+      },
+      { username: ME, role: JobRole.DEVELOPER },
+      createIndex(),
+    );
+    const [summary] = service.summarize(results, projects);
+    const phraseService = new PhraseService();
+
+    expect(
+      phraseService.summarize(summary, Gender.FEMALE, new I18nService().getLocale(Language.RU)),
+    ).toBe(
+      'Работала над обновлением зависимостей в 12 проектах: project-1, project-2, project-3, ' +
+        'project-4, project-5, project-6, project-7, project-8, project-9, project-10 и ещё 2',
+    );
+    expect(
+      phraseService.summarize(
+        { ...summary, projects: ['project-1', 'project-2', 'project-3'] },
+        Gender.MALE,
+        new I18nService().getLocale(Language.EN),
+      ),
+    ).toBe('Worked on dependency updates in 3 projects: project-1, project-2, project-3');
+  });
+
+  it('sums up the same branch started in several projects with its name', () => {
+    const projects = [1, 2, 3].map((id) => ({
+      id,
+      name: `project-${id}`,
+      path: '',
+      webUrl: '',
+    }));
+    const service = createService();
+    const results = service.classify(
+      {
+        projects,
+        issues: [],
+        standaloneMergeRequests: [],
+        standalonePushes: projects.map(({ id }) => ({
+          projectId: id,
+          ref: 'restore-dev',
+          refType: SourceRefType.BRANCH,
+          mainBranch: false,
+          events: [refEvent(at(11), SourceEventAction.PUSHED_NEW)],
+        })),
+        standaloneEvents: [],
+      },
+      { username: ME, role: JobRole.DEVELOPER },
+      createIndex(),
+    );
+    const [summary] = service.summarize(results, projects);
+
+    expect(
+      new PhraseService().summarize(summary, Gender.MALE, new I18nService().getLocale(Language.RU)),
+    ).toBe('Начал реализацию «restore-dev» в 3 проектах: project-1, project-2, project-3');
+  });
+
+  it('sums up the assignees set in several tasks', () => {
+    const assigned = (iid: number) =>
+      createIssue({
+        iid,
+        facts: [fact(SourceActionKind.ASSIGNED, at(10), { users: ['dev.other'] })],
+      });
+
+    expect(summarize([assigned(1), assigned(2), assigned(3)], { gender: Gender.FEMALE })).toEqual([
+      'Назначила исполнителей 3 задачам: #1, #2, #3',
     ]);
   });
 
