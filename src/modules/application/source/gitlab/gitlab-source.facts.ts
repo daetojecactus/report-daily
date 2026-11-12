@@ -10,6 +10,7 @@ import type {
   GitLabNote,
   GitLabWeightEvent,
 } from 'src/modules/vendors/gitlab/types/gitlab-history.interface';
+import { SOURCE_CLOSED_BY_MERGE_REQUEST } from '../constants/source.constants';
 import { SourceActionKind } from '../types/source.enums';
 import type { SourceFact } from '../types/source.interface';
 import {
@@ -66,7 +67,17 @@ export class GitLabSourceFacts {
     for (const event of stateEvents) {
       const kind = GITLAB_SOURCE_STATE_ACTIONS.get(event.state);
       if (kind && this.isOfDay(event.created_at, context)) {
-        facts.push(this.toFact(kind, event.created_at, event.user, context));
+        facts.push(
+          this.toFact(
+            kind,
+            event.created_at,
+            event.user,
+            context,
+            kind === SourceActionKind.CLOSED && event.source_merge_request_id
+              ? SOURCE_CLOSED_BY_MERGE_REQUEST
+              : null,
+          ),
+        );
       }
     }
     const plans = [

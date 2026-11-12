@@ -28,10 +28,13 @@ import {
   PHRASE_DATE_PATTERN,
   PHRASE_DATE_RANGE_PATTERN,
   PHRASE_DATE_TIME_SUFFIX,
+  PHRASE_DRAFT_TITLE_PATTERN,
   PHRASE_ISSUE_PREFIX,
   PHRASE_MERGE_REQUEST_PREFIX,
   PHRASE_REFERENCE_SEPARATOR,
   PHRASE_REFERENCE_SUFFIX_PATTERN,
+  PHRASE_RESOLVE_TITLE_PATTERN,
+  PHRASE_TITLE_SPACES_PATTERN,
 } from './constants/phrase-format.constants';
 import { PHRASE_RULES } from './constants/phrase-rules.constants';
 import { PhraseCount, PhraseName, ReportPhrase } from './types/phrase.enums';
@@ -195,12 +198,18 @@ export class PhraseService {
   }
 
   private toTitle(line: ActivityLine) {
-    return (
+    const mergeRequest = line.mergeRequests.at(0);
+    const title =
       line.issue?.title ??
-      line.mergeRequests.at(0)?.title ??
+      (mergeRequest ? this.toMergeRequestTitle(mergeRequest.title) : null) ??
       line.event?.title ??
       line.pushes.at(0)?.ref ??
-      null
-    );
+      null;
+    return title?.replace(PHRASE_TITLE_SPACES_PATTERN, ' ').trim() || null;
+  }
+
+  private toMergeRequestTitle(title: string) {
+    const plain = title.trim().replace(PHRASE_DRAFT_TITLE_PATTERN, '');
+    return PHRASE_RESOLVE_TITLE_PATTERN.exec(plain)?.[1] ?? plain;
   }
 }

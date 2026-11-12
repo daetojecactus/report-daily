@@ -13,6 +13,11 @@ export const ACTIVITY_CONVENTIONAL_KINDS = new Map<string, TaskKind>([
   ['refactor', TaskKind.MAINTENANCE],
 ]);
 
+export const ACTIVITY_CONVENTIONAL_SUPPORTING_KINDS = new Set<TaskKind>([
+  TaskKind.TEST_AUTOMATION,
+  TaskKind.DOCUMENTATION,
+]);
+
 export const ACTIVITY_TEST_COMMIT_PATTERN =
   /(?<![\p{L}\p{N}_])(?:test|tests|testing|e2e|spec|specs|autotest|autotests|pom|fixture|fixtures|cypress|playwright|selenium|тест|тесты|автотест|автотесты)(?![\p{L}\p{N}_])/iu;
 

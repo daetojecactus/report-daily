@@ -20,6 +20,9 @@ export class ActivityChains {
     const isTesting = (candidate: ActivityCandidate) =>
       candidate.action === ActivityAction.TOOK_REVIEW ||
       isState(candidate, [WorkflowState.TESTING]);
+    const isCodeBefore = (candidate: ActivityCandidate, head: ActivityCandidate) =>
+      candidate.action === ActivityAction.CODE &&
+      this.toChangedAt(signals, candidate.facts) <= head.time;
     const chains: ActivityChain[] = [
       {
         isHead: (candidate) =>
@@ -58,12 +61,24 @@ export class ActivityChains {
         details: () => [ActivityDetail.WITH_TESTING],
       },
       {
+        isHead: (candidate) => candidate.action === ActivityAction.PASSED,
+        isPart: (candidate, head) => isCodeBefore(candidate, head),
+        details: () => [ActivityDetail.WITH_CODE],
+      },
+      {
         isHead: (candidate) =>
           isState(candidate, [WorkflowState.REVIEW, WorkflowState.READY_FOR_QA]),
-        isPart: (candidate, head) =>
-          candidate.action === ActivityAction.CODE &&
-          this.toChangedAt(signals, candidate.facts) <= head.time,
+        isPart: (candidate, head) => isCodeBefore(candidate, head),
         details: (parts) => [ActivityDetail.WITH_CODE, ...parts.flatMap((part) => part.details)],
+      },
+      {
+        isHead: (candidate) =>
+          candidate.action === ActivityAction.CLOSED &&
+          candidate.details.includes(ActivityDetail.WITH_MERGE),
+        isPart: (candidate) =>
+          candidate.action === ActivityAction.CLOSED &&
+          candidate.details.includes(ActivityDetail.MERGE_REQUEST),
+        details: () => [],
       },
       {
         isHead: (candidate) => candidate.action === ActivityAction.PLANNED,
@@ -116,16 +131,16 @@ export class ActivityChains {
   }
 
   private absorb(candidates: ActivityCandidate[], chain: ActivityChain) {
+    const toParts = (head: ActivityCandidate) =>
+      candidates.filter((candidate) => candidate !== head && chain.isPart(candidate, head));
     const head = candidates
       .filter((candidate) => chain.isHead(candidate))
-      .toSorted((left, right) => right.time - left.time)
-      .at(0);
-    const parts = head
-      ? candidates.filter((candidate) => candidate !== head && chain.isPart(candidate, head))
-      : [];
-    if (!head || !parts.length) {
+      .toSorted((left, right) => right.weight - left.weight || right.time - left.time)
+      .find((candidate) => toParts(candidate).length);
+    if (!head) {
       return candidates;
     }
+    const parts = toParts(head);
     const composite: ActivityCandidate = {
       ...head,
       weight: head.parts.length ? head.weight : head.weight + ACTIVITY_CHAIN_BONUS,

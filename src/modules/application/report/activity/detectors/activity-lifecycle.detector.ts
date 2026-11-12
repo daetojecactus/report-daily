@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
+import { SOURCE_CLOSED_BY_MERGE_REQUEST } from 'src/modules/application/source/constants/source.constants';
 import { SourceActionKind } from 'src/modules/application/source/types/source.enums';
 import { Priority, TaskKind, WorkflowState } from 'src/modules/application/trait/types/trait.enums';
+import { ACTIVITY_PASSED_SKIPPED_DETAILS } from '../constants/activity.constants';
 import { ACTIVITY_WEIGHTS } from '../constants/activity-weights.constants';
 import { ActivityAction, ActivityDetail, ActivityRule } from '../types/activity.enums';
 import type {
@@ -48,6 +50,7 @@ export class ActivityLifecycleDetector {
             [fact, ...duplicates],
             [
               ...(fact.mergeRequestIid === null ? [] : [ActivityDetail.MERGE_REQUEST]),
+              ...(this.isClosedByMergeRequest(fact) ? [ActivityDetail.WITH_MERGE] : []),
               ...(duplicates.length ? [ActivityDetail.DUPLICATE] : []),
               ...this.toContext(
                 signals,
@@ -117,7 +120,9 @@ export class ActivityLifecycleDetector {
       ACTIVITY_WEIGHTS.COMPLETED,
       [],
       [
-        ...(signals.mergedToday ? [ActivityDetail.WITH_MERGE] : []),
+        ...(signals.mergedToday || (closing && this.isClosedByMergeRequest(closing))
+          ? [ActivityDetail.WITH_MERGE]
+          : []),
         ...this.toContext(signals, time, everyMergeRequest),
       ],
     );
@@ -140,10 +145,14 @@ export class ActivityLifecycleDetector {
       ACTIVITY_WEIGHTS.PASSED,
       [],
       this.toContext(signals, passed.fact.time, everyMergeRequest).filter(
-        (detail) => detail !== ActivityDetail.TESTED,
+        (detail) => !ACTIVITY_PASSED_SKIPPED_DETAILS.has(detail),
       ),
     );
     return [{ ...candidate, time: passed.fact.time }];
+  }
+
+  private isClosedByMergeRequest(fact: ActivityFact) {
+    return fact.mergeRequestIid === null && fact.value === SOURCE_CLOSED_BY_MERGE_REQUEST;
   }
 
   private toContext(signals: ActivityLineSignals, time: number, iids: number[]) {

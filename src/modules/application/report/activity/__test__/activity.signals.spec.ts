@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { SOURCE_CLOSED_BY_MERGE_REQUEST } from 'src/modules/application/source/constants/source.constants';
 import { SourceActionKind, WorkItemType } from 'src/modules/application/source/types/source.enums';
 import type { GroupedIssue } from 'src/modules/application/source/types/source-day.interface';
 import { TaskFlag, TaskKind, WorkflowState } from 'src/modules/application/trait/types/trait.enums';
@@ -44,7 +45,7 @@ describe('ActivitySignals', () => {
     );
   });
 
-  it('takes the most frequent prefix of the commits when no title has one', () => {
+  it('takes the prefix most commits agree on when no title has one', () => {
     const kind = (titles: string[]) =>
       toSignals(
         issueLine(
@@ -57,7 +58,10 @@ describe('ActivitySignals', () => {
       ).kind;
 
     expect(kind(['fix: a typo', 'feat: the form', 'feat: the button'])).toBe(TaskKind.FEATURE);
-    expect(kind(['fix: a typo', 'feat: the form'])).toBe(TaskKind.BUG);
+    expect(kind(['fix: a typo', 'feat: the form'])).toBeNull();
+    expect(kind(['test: the form', 'test: the button', 'fix: the form'])).toBe(TaskKind.BUG);
+    expect(kind(['test: the form', 'test: the button'])).toBe(TaskKind.TEST_AUTOMATION);
+    expect(kind(['test: the form', 'docs: the form', 'feat: the form', 'fix: a typo'])).toBeNull();
     expect(kind(['update the form'])).toBeNull();
   });
 
@@ -75,6 +79,23 @@ describe('ActivitySignals', () => {
   });
 
   describe('accuracy rules', () => {
+    it('drops closing a task that GitLab did on an own merge at any time of the day', () => {
+      const closed = (value: string | null) =>
+        toSignals(
+          issueLine(
+            createIssue({
+              facts: [fact(SourceActionKind.CLOSED, at(16), { value })],
+              mergeRequests: [
+                createMergeRequest({ facts: [fact(SourceActionKind.MERGED, at(11))] }),
+              ],
+            }),
+          ),
+        ).dropped.map(({ rule }) => rule);
+
+      expect(closed(SOURCE_CLOSED_BY_MERGE_REQUEST)).toEqual([ActivityRule.CLOSED_BY_MERGE]);
+      expect(closed(null)).toEqual([]);
+    });
+
     it('drops an action undone by the same person within two minutes', () => {
       const issue = createIssue({
         facts: [

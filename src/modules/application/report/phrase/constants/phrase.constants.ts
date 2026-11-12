@@ -31,6 +31,7 @@ export const PHRASE_NOTED_ACTIONS = new Set<ActivityAction>([
   ActivityAction.ASSIGNED,
   ActivityAction.LINKED,
   ActivityAction.ESTIMATED,
+  ActivityAction.PRIORITIZED,
   ActivityAction.EDITED,
 ]);
 
@@ -79,5 +80,7 @@ export const PHRASE_SUMMARIES = [
   ReportPhrase.TASK_PLANNED,
   ReportPhrase.ESTIMATE_CHANGED,
   ReportPhrase.TASK_ESTIMATED,
+  ReportPhrase.PRIORITY_CHANGED,
+  ReportPhrase.PRIORITY_SET,
   ReportPhrase.MOVED_FROM_PROJECT,
 ] as const;

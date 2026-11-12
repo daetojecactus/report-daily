@@ -116,6 +116,43 @@ describe('ActivityChains', () => {
     expect(composites(combine(issueLine(sentBefore)))).toEqual([]);
   });
 
+  it('gives the code to the handover that outweighs, not to the latest one', () => {
+    const mergeRequest = createMergeRequest({
+      events: [pushEvent(at(11))],
+      facts: [fact(SourceActionKind.REVIEW_REQUESTED, at(13), { users: [OTHER] })],
+    });
+    const issue = createIssue({
+      facts: [fact(SourceActionKind.LABEL_ADDED, at(12), { value: 'status::ready for qa' })],
+      mergeRequests: [mergeRequest],
+    });
+
+    expect(choose(issueLine(issue)).main).toMatchObject({
+      action: ActivityAction.STATE_SET,
+      state: WorkflowState.READY_FOR_QA,
+      details: [ActivityDetail.WITH_CODE],
+    });
+  });
+
+  it('gives the parts to the strongest head that can take them', () => {
+    const own = createMergeRequest({ facts: [fact(SourceActionKind.MERGED, at(15))] });
+    const other = othersMergeRequest({
+      iid: 6,
+      facts: [fact(SourceActionKind.AUTO_MERGE_SET, at(12)), fact(SourceActionKind.MERGED, at(13))],
+    });
+
+    expect(
+      composites(combine({ issue: null, event: null, pushes: [], mergeRequests: [own, other] })),
+    ).toEqual([
+      {
+        action: ActivityAction.MERGED_OTHER,
+        weight: 905,
+        state: null,
+        details: [ActivityDetail.AUTO_MERGE],
+        parts: [ActivityAction.MERGE_SCHEDULED],
+      },
+    ]);
+  });
+
   it('fixes and returns to QA after a return at the start or during the day', () => {
     const ready = fact(SourceActionKind.LABEL_ADDED, at(14), { value: 'status::ready for qa' });
     const during = createIssue({

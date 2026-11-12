@@ -76,7 +76,8 @@ export class ActivityCodeDetector {
   private toStartDetails(signals: ActivityLineSignals, facts: ActivityFact[]) {
     const has = (kind: SourceActionKind) => facts.some((fact) => fact.kind === kind);
     return [
-      ...(has(SourceActionKind.BRANCH_CREATED) || has(SourceActionKind.OPENED)
+      ...(has(SourceActionKind.BRANCH_CREATED) ||
+      (signals.lastCommitAt === null && has(SourceActionKind.OPENED))
         ? [ActivityDetail.STARTED]
         : []),
       ...(has(SourceActionKind.THREADS_RESOLVED) ? [ActivityDetail.RESOLVED] : []),
@@ -105,7 +106,7 @@ export class ActivityCodeDetector {
           push.commitTitles.some((title) => ACTIVITY_TEST_COMMIT_PATTERN.test(title)),
         ),
       ],
-      [ActivityDetail.STARTED, this.isStarted(line, facts)],
+      [ActivityDetail.STARTED, this.isStarted(signals, facts)],
       [
         ActivityDetail.RESUMED,
         signals.lastCommitAt !== null &&
@@ -170,12 +171,15 @@ export class ActivityCodeDetector {
     );
   }
 
-  private isStarted(line: ActivityLine, facts: ActivityFact[]) {
+  private isStarted({ line, lastCommitAt }: ActivityLineSignals, facts: ActivityFact[]) {
     return (
       this.hasFact(facts, SourceActionKind.BRANCH_CREATED) ||
-      this.hasFact(facts, SourceActionKind.OPENED) ||
-      [...line.mergeRequests, ...line.pushes.filter((push) => push.ref !== null)].some(
-        ({ events }) => events.some((event) => event.actionName === ACTIVITY_BRANCH_PUSH_ACTION),
+      (lastCommitAt === null && this.hasFact(facts, SourceActionKind.OPENED)) ||
+      [
+        ...line.mergeRequests,
+        ...line.pushes.filter((push) => push.ref !== null && !push.mainBranch),
+      ].some(({ events }) =>
+        events.some((event) => event.actionName === ACTIVITY_BRANCH_PUSH_ACTION),
       )
     );
   }

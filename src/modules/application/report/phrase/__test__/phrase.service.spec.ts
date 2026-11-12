@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Language } from 'src/modules/application/i18n/types/i18n.enums';
 import { I18nService } from 'src/modules/application/i18n/i18n.service';
+import { SOURCE_CLOSED_BY_MERGE_REQUEST } from 'src/modules/application/source/constants/source.constants';
 import {
   ItemState,
   SourceActionKind,
@@ -21,6 +22,8 @@ import {
   issueLine,
   othersMergeRequest,
   ME,
+  otherFact,
+  pushEvent,
   pushLine,
   refEvent,
   toSignals,
@@ -112,7 +115,7 @@ describe('PhraseService', () => {
       'Исправила баг после тестирования «Issue 12»',
     );
     expect(describeLine(mergedBug(), { language: Language.EN })).toBe(
-      'Fixed a bug after testing "Issue 12"',
+      'Fixed a bug after testing “Issue 12”',
     );
   });
 
@@ -159,6 +162,94 @@ describe('PhraseService', () => {
     );
   });
 
+  it('says that a task passed testing with an approval only when there was one', () => {
+    const passed = (facts = [fact(SourceActionKind.APPROVED, at(13))]) =>
+      issueLine(
+        createIssue({
+          labels: ['status::qa passed'],
+          facts: [fact(SourceActionKind.LABEL_ADDED, at(14), { value: 'status::qa passed' })],
+          mergeRequests: [othersMergeRequest({ facts })],
+        }),
+      );
+
+    expect(describeLine(passed(), { role: JobRole.QA })).toBe('Протестировал и одобрил «Issue 12»');
+    expect(describeLine(passed([]), { role: JobRole.QA })).toBe(
+      'Протестировал без замечаний «Issue 12»',
+    );
+    expect(describeLine(passed([]), { gender: Gender.FEMALE })).toBe(
+      'Отметила, что задача прошла тестирование «Issue 12»',
+    );
+  });
+
+  it('words a review handed over, a reviewer assigned and comments of a tester', () => {
+    const request = fact(SourceActionKind.REVIEW_REQUESTED, at(10), { users: ['dev.third'] });
+    const leave = fact(SourceActionKind.REVIEW_REQUEST_REMOVED, at(10), { users: [ME] });
+    const comment = fact(SourceActionKind.COMMENTED, at(11));
+    const line = (facts: ReturnType<typeof fact>[]) =>
+      mergeRequestLine(othersMergeRequest({ title: 'Draft: Resolve "Fix  the login "', facts }));
+
+    expect(describeLine(line([request, leave]), { role: JobRole.QA })).toBe(
+      'Передал проверку коллеге «Fix the login»',
+    );
+    expect(describeLine(line([request]))).toBe('Назначил ревьюера «Fix the login»');
+    expect(describeLine(line([comment]), { role: JobRole.QA, language: Language.EN })).toBe(
+      'Commented on “Fix the login”',
+    );
+    expect(describeLine(line([comment]))).toBe('Оставил замечания по коду «Fix the login»');
+  });
+
+  it('tells who merged the changes that completed a task', () => {
+    const completed = issueLine(
+      createIssue({
+        closedOnReportDate: true,
+        mergeRequests: [othersMergeRequest({ mergedOnReportDate: true })],
+      }),
+    );
+    const closed = issueLine(
+      createIssue({
+        facts: [fact(SourceActionKind.CLOSED, at(14), { value: SOURCE_CLOSED_BY_MERGE_REQUEST })],
+        mergeRequests: [createMergeRequest({ facts: [fact(SourceActionKind.CLOSED, at(15))] })],
+      }),
+    );
+
+    expect(describeLine(completed)).toBe('Завершил задачу, изменения влиты «Issue 12»');
+    expect(describeLine(closed)).toBe('Влил изменения и завершил задачу «Issue 12»');
+  });
+
+  it('finishes the work of a task that passed testing the same day', () => {
+    expect(
+      describeLine(
+        issueLine(
+          createIssue({
+            labels: ['status::qa passed'],
+            facts: [
+              otherFact(SourceActionKind.LABEL_ADDED, at(14), { value: 'status::qa passed' }),
+            ],
+            mergeRequests: [createMergeRequest({ events: [pushEvent(at(11))] })],
+          }),
+        ),
+        { gender: Gender.FEMALE },
+      ),
+    ).toBe('Завершила работу, задача прошла тестирование «Issue 12»');
+  });
+
+  it('builds E2E coverage only as a tester', () => {
+    const merged = issueLine(
+      createIssue({
+        labels: ['test::e2e required'],
+        mergeRequests: [
+          createMergeRequest({
+            mergedOnReportDate: true,
+            facts: [fact(SourceActionKind.MERGED, at(15))],
+          }),
+        ],
+      }),
+    );
+
+    expect(describeLine(merged, { role: JobRole.QA })).toBe('Разработал E2E-покрытие «Issue 12»');
+    expect(describeLine(merged)).toBe('Влил изменения и завершил задачу «Issue 12»');
+  });
+
   it('adds the state of the task to a weak own action', () => {
     expect(
       describeLine(
@@ -169,7 +260,7 @@ describe('PhraseService', () => {
           }),
         ),
       ),
-    ).toBe('Оставил комментарий «Issue 12» · задача на тестировании');
+    ).toBe('Прокомментировал «Issue 12» · задача на тестировании');
     expect(
       describeLine(
         issueLine(
@@ -180,7 +271,7 @@ describe('PhraseService', () => {
         ),
         { language: Language.EN },
       ),
-    ).toBe('Left a comment "Issue 12" · task closed');
+    ).toBe('Commented on “Issue 12” · task closed');
   });
 
   it('describes a line without own actions by the state of the task', () => {
@@ -231,7 +322,7 @@ describe('PhraseService', () => {
       'Взял задачу в спринт 5–18 ноября «Issue 12»',
     );
     expect(describeLine(issueLine(planned(12)), { language: Language.EN })).toBe(
-      'Added the task to sprint 5\u2009–\u200918 November "Issue 12"',
+      'Added the task to sprint 5\u2009–\u200918 November “Issue 12”',
     );
     expect(
       describeLine(
@@ -276,7 +367,7 @@ describe('PhraseService', () => {
     expect(describeLine(decomposed(1))).toBe('Декомпозировал задачу на 1 подзадачу «Issue 12»');
     expect(describeLine(decomposed(3))).toBe('Декомпозировал задачу на 3 подзадачи «Issue 12»');
     expect(describeLine(decomposed(5), { language: Language.EN })).toBe(
-      'Broke the task down into 5 subtasks "Issue 12"',
+      'Broke the task down into 5 subtasks “Issue 12”',
     );
   });
 
@@ -299,5 +390,29 @@ describe('PhraseService', () => {
     expect(summarize([planned(1), planned(2), planned(3)], { language: Language.EN })).toEqual([
       'Added 3 tasks to sprint 5\u2009–\u200918 November: #1, #2, #3',
     ]);
+  });
+
+  it('sums up the priorities set and changed in several tasks', () => {
+    const prioritized = (iid: number, start: string[] = []) =>
+      createIssue({
+        iid,
+        labels: ['priority::high'],
+        startOfDay: { ...createIssue().startOfDay, labels: start },
+        facts: [fact(SourceActionKind.LABEL_ADDED, at(10), { value: 'priority::high' })],
+      });
+    const changed = [1, 2, 3].map((iid) => prioritized(iid, ['priority::critical']));
+
+    expect(summarize([prioritized(1), prioritized(2), prioritized(3)])).toEqual([
+      'Назначил приоритет 3 задачам: #1, #2, #3',
+    ]);
+    expect(summarize(changed, { gender: Gender.FEMALE })).toEqual([
+      'Изменила приоритет у 3 задач: #1, #2, #3',
+    ]);
+    expect(summarize(changed, { language: Language.EN })).toEqual([
+      'Changed the priority of 3 tasks: #1, #2, #3',
+    ]);
+    expect(describeLine(issueLine(prioritized(12)), { role: JobRole.PROJECT_MANAGER })).toBe(
+      'Назначил приоритет «Issue 12»',
+    );
   });
 });

@@ -50,4 +50,5 @@ export interface GitLabStateEvent {
   user?: GitLabAuthor | null;
   created_at: string;
   state: GitLabState;
+  source_merge_request_id?: number | null;
 }

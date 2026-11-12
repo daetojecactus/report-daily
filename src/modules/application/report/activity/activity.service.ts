@@ -6,7 +6,12 @@ import { ActivityChains } from './activity.chains';
 import { ActivityDetectors } from './detectors/activity.detectors';
 import { ACTIVITY_EXCLUDING_RULES } from './constants/activity.constants';
 import { ActivityAction } from './types/activity.enums';
-import type { ActivityEmployee, ActivityLine, ActivityResult } from './types/activity.interface';
+import type {
+  ActivityEmployee,
+  ActivityLine,
+  ActivityLineSignals,
+  ActivityResult,
+} from './types/activity.interface';
 import { ActivitySelector } from './activity.selector';
 import { ActivitySignals } from './activity.signals';
 import { ActivitySummaries } from './activity.summaries';
@@ -44,9 +49,20 @@ export class ActivityService {
         excluded:
           signals.endFlags.includes(TaskFlag.EXCLUDE_FROM_REPORT) ||
           (choice.main.action === ActivityAction.STATE_ONLY &&
-            signals.dropped.some(({ rule }) => ACTIVITY_EXCLUDING_RULES.has(rule))),
+            (signals.dropped.some(({ rule }) => ACTIVITY_EXCLUDING_RULES.has(rule)) ||
+              this.isUntouched(signals))),
       };
     });
+  }
+
+  private isUntouched({ own, pushes, line }: ActivityLineSignals) {
+    return (
+      !own.length &&
+      !pushes.length &&
+      !line.event &&
+      !line.issue?.events.length &&
+      !line.mergeRequests.some((mergeRequest) => mergeRequest.events.length)
+    );
   }
 
   private toLines(day: GroupedDailyData): ActivityLine[] {

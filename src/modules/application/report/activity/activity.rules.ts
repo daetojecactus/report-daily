@@ -1,5 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { SOURCE_NAME_FACTS } from 'src/modules/application/source/constants/source.constants';
+import {
+  SOURCE_CLOSED_BY_MERGE_REQUEST,
+  SOURCE_NAME_FACTS,
+} from 'src/modules/application/source/constants/source.constants';
 import { SourceActionKind } from 'src/modules/application/source/types/source.enums';
 import {
   ACTIVITY_AUTO_STATUS_MS,
@@ -144,7 +147,9 @@ export class ActivityRules {
       fact.kind === SourceActionKind.CLOSED &&
       fact.mergeRequestIid === null &&
       merges.some(
-        (merge) => fact.time >= merge.time && fact.time - merge.time <= ACTIVITY_MERGE_CLOSE_MS,
+        (merge) =>
+          fact.value === SOURCE_CLOSED_BY_MERGE_REQUEST ||
+          (fact.time >= merge.time && fact.time - merge.time <= ACTIVITY_MERGE_CLOSE_MS),
       )
     );
   }

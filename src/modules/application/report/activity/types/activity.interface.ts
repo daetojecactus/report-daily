@@ -74,6 +74,7 @@ export interface ActivityLineSignals {
   startFlags: TaskFlag[];
   endFlags: TaskFlag[];
   priority: Priority | null;
+  startPriority: Priority | null;
   removedFlags: TaskFlag[];
   ownMergeRequests: number[];
   assignee: boolean;

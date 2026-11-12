@@ -111,6 +111,34 @@ describe('ActivityService', () => {
     });
   });
 
+  it('leaves out a task the employee did nothing with that day', () => {
+    const results = classify({
+      issues: [
+        createIssue({ labels: ['status::todo'] }),
+        createIssue({
+          iid: 13,
+          labels: ['status::todo'],
+          events: [
+            {
+              id: 2,
+              projectId: 1,
+              actionName: 'commented on',
+              targetType: 'Note',
+              targetTitle: null,
+              createdAt: at(10),
+            },
+          ],
+        }),
+      ],
+    });
+
+    expect(results.map(({ choice }) => choice.main.action)).toEqual([
+      ActivityAction.STATE_ONLY,
+      ActivityAction.STATE_ONLY,
+    ]);
+    expect(results.map(({ excluded }) => excluded)).toEqual([true, false]);
+  });
+
   it('marks a task that the company keeps out of the report', () => {
     const results = classify({
       issues: [

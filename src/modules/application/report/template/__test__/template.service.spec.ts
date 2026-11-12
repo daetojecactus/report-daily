@@ -26,11 +26,11 @@ describe('TemplateService', () => {
     expect(await service.renderStandard(context)).toBe(
       [
         'project-1:',
-        '• Оставил комментарий «Issue 1»',
-        '• Оставил комментарий «Issue 2»',
+        '• Прокомментировал «Issue 1»',
+        '• Прокомментировал «Issue 2»',
         '',
         'project-2:',
-        '• Оставил комментарий «Issue 3»',
+        '• Прокомментировал «Issue 3»',
       ].join('\n'),
     );
     expect(await service.renderStandard(buildContext(createDay()))).toBe('');
@@ -40,7 +40,7 @@ describe('TemplateService', () => {
     const context = buildContext(createDay({ issues: [commented(1, 'Fix *bold* _it_ [x]')] }));
 
     expect(await service.renderStandard(context)).toBe(
-      'project-1:\n• Оставил комментарий «Fix \\*bold\\* \\_it\\_ \\[x\\]»',
+      'project-1:\n• Прокомментировал «Fix \\*bold\\* \\_it\\_ \\[x\\]»',
     );
     expect(
       await service.render(

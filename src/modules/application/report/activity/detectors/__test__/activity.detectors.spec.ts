@@ -69,6 +69,7 @@ const PLACES: Record<SourceActionKind, [Place, Partial<SourceFact>][] | Activity
   [SourceActionKind.REVIEW_REQUESTED]: [
     ['own', { users: [OTHER] }],
     ['other', { users: [ME] }],
+    ['other', { users: ['dev.third'] }],
   ],
   [SourceActionKind.REVIEW_REQUEST_REMOVED]: [['own', { users: [OTHER] }]],
   [SourceActionKind.APPROVED]: [['other', {}]],
@@ -269,6 +270,33 @@ describe('ActivityDetectors', () => {
       expect(action(['type::bug']).action).toBe(ActivityAction.ESCALATED);
     });
 
+    it('sets the priority of a task or changes the one it had at the start of the day', () => {
+      const priority = (start: string[]) =>
+        summarize(
+          detect(
+            issueLine(
+              createIssue({
+                labels: ['priority::high'],
+                startOfDay: { ...createIssue().startOfDay, labels: start },
+                facts: [fact(SourceActionKind.LABEL_ADDED, at(10), { value: 'priority::high' })],
+              }),
+            ),
+          ),
+        );
+
+      expect(priority([])).toEqual([
+        { action: ActivityAction.PRIORITIZED, weight: 175, state: null, details: [] },
+      ]);
+      expect(priority(['priority::critical'])).toEqual([
+        {
+          action: ActivityAction.PRIORITIZED,
+          weight: 175,
+          state: null,
+          details: [ActivityDetail.CHANGED],
+        },
+      ]);
+    });
+
     it('reads the Status field like a label', () => {
       const issue = createIssue({
         facts: [fact(SourceActionKind.STATUS_SET, at(11), { value: 'Done' })],
@@ -346,6 +374,57 @@ describe('ActivityDetectors', () => {
           }),
         )[0].weight,
       ).toBe(720);
+    });
+  });
+
+  describe('reviewers of others', () => {
+    const line = (mergeRequest: ReturnType<typeof othersMergeRequest>): ActivityLine => ({
+      issue: null,
+      event: null,
+      pushes: [],
+      mergeRequests: [mergeRequest],
+    });
+
+    it('hands the review over to a colleague when the reviewer leaves it', () => {
+      const mergeRequest = othersMergeRequest({
+        facts: [
+          fact(SourceActionKind.REVIEW_REQUESTED, at(10), { users: ['dev.third'] }),
+          fact(SourceActionKind.REVIEW_REQUEST_REMOVED, at(10), { users: [ME] }),
+        ],
+      });
+
+      expect(summarize(detect(line(mergeRequest)))).toEqual([
+        {
+          action: ActivityAction.ASSIGNED_REVIEW,
+          weight: 285,
+          state: null,
+          details: [ActivityDetail.UNASSIGNED],
+        },
+      ]);
+    });
+
+    it('assigns a reviewer to a merge request of someone else and sends one with own code to review', () => {
+      const request = fact(SourceActionKind.REVIEW_REQUESTED, at(10), { users: ['dev.third'] });
+
+      expect(summarize(detect(line(othersMergeRequest({ facts: [request] }))))).toEqual([
+        { action: ActivityAction.ASSIGNED_REVIEW, weight: 285, state: null, details: [] },
+      ]);
+      expect(
+        summarize(
+          detect(line(othersMergeRequest({ facts: [request], events: [pushEvent(at(9))] }))),
+        ).map((candidate) => candidate.action),
+      ).toEqual([ActivityAction.STATE_SET, ActivityAction.HELPED]);
+    });
+
+    it('does not count comments in a merge request the employee pushed to as a review', () => {
+      const mergeRequest = othersMergeRequest({
+        facts: [fact(SourceActionKind.COMMENTED, at(12))],
+        events: [pushEvent(at(11))],
+      });
+
+      expect(
+        summarize(detect(line(mergeRequest))).map((candidate) => candidate.action),
+      ).not.toContain(ActivityAction.REVIEWED);
     });
   });
 
@@ -472,14 +551,15 @@ describe('ActivityDetectors', () => {
         ],
       });
 
-      expect(summarize(detect(issueLine(issue)))).toEqual(
-        [ActivityDetail.TITLE, ActivityDetail.LABELS, ActivityDetail.STATUS].map((detail) => ({
+      expect(summarize(detect(issueLine(issue)))).toEqual([
+        { action: ActivityAction.PRIORITIZED, weight: 175, state: null, details: [] },
+        ...[ActivityDetail.TITLE, ActivityDetail.LABELS, ActivityDetail.STATUS].map((detail) => ({
           action: ActivityAction.EDITED,
           weight: 150,
           state: null,
           details: [detail],
         })),
-      );
+      ]);
     });
 
     it('keeps the description, the draft and the reviewers of a merge request as edits', () => {

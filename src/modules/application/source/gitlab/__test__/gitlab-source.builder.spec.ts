@@ -8,6 +8,7 @@ import {
 } from 'src/modules/vendors/gitlab/types/gitlab.enums';
 import type { GitLabMergeRequest } from 'src/modules/vendors/gitlab/types/gitlab-issue.interface';
 import type { GitLabNote } from 'src/modules/vendors/gitlab/types/gitlab-history.interface';
+import { SOURCE_CLOSED_BY_MERGE_REQUEST } from '../../constants/source.constants';
 import { ItemState, SourceActionKind, SourceRefType, WorkItemType } from '../../types/source.enums';
 import { GitLabSourceMessages } from '../constants/gitlab-source.messages';
 import type {
@@ -880,6 +881,26 @@ describe('GitLabSourceBuilder', () => {
         action(SourceActionKind.MOVED_OUT, 16, 'team/frontend#3'),
         action(SourceActionKind.CLOSED, 17),
       ]);
+    });
+
+    it('marks an issue that GitLab closed by a merge request', () => {
+      const closed = (sourceMergeRequestId: number | null) =>
+        toOwn(
+          buildIssue({
+            stateEvents: [
+              {
+                ...createStateEvent(GitLabState.CLOSED, `${REPORT_DATE}T17:00:00.000Z`),
+                user: EMPLOYEE,
+                source_merge_request_id: sourceMergeRequestId,
+              },
+            ],
+          }).facts,
+        );
+
+      expect(closed(44)).toEqual([
+        action(SourceActionKind.CLOSED, 17, SOURCE_CLOSED_BY_MERGE_REQUEST),
+      ]);
+      expect(closed(null)).toEqual([action(SourceActionKind.CLOSED, 17)]);
     });
 
     it('collects what the employee did on a merge request', () => {
