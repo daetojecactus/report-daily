@@ -126,14 +126,18 @@ export class EmployeeBindHandler implements BotHandler {
       EmployeeBindMessages.CHANNEL_UNBOUND,
     );
     const isLast = (await this.channelService.findByUser(user.id)).length === 0;
+    return this.toDone(locale, user.id, [
+      locale.employeeBind.unbound(locale.channels[channel], escapeMarkdown(user.displayName)),
+      ...(isLast ? [locale.employeeAdd.pending] : []),
+    ]);
+  }
+
+  private toDone(locale: Locale, userId: string, lines: string[]): BotReply {
     return {
       screen: {
-        text: [
-          locale.employeeBind.unbound(locale.channels[channel], escapeMarkdown(user.displayName)),
-          ...(isLast ? [locale.employeeAdd.pending] : []),
-        ].join('\n\n'),
+        text: lines.join('\n\n'),
         buttons: [
-          [this.toCardButton(locale, user.id)],
+          [this.toCardButton(locale, userId)],
           [
             {
               text: locale.employees.backToList,
@@ -241,24 +245,10 @@ export class EmployeeBindHandler implements BotHandler {
       { userId: user.id, channel, actorId: actor.user?.id ?? BotAccess.OWNER },
       EmployeeBindMessages.CHANNEL_BOUND,
     );
-    return {
-      screen: {
-        text: [
-          locale.employeeBind.bound(locale.channels[channel], escapeMarkdown(user.displayName)),
-          locale.employeeBind.hint[channel],
-        ].join('\n\n'),
-        buttons: [
-          [this.toCardButton(locale, user.id)],
-          [
-            {
-              text: locale.employees.backToList,
-              data: this.toEmployeesData(EmployeesAction.LIST, 0),
-            },
-          ],
-        ],
-      },
-      dialog: null,
-    };
+    return this.toDone(locale, user.id, [
+      locale.employeeBind.bound(locale.channels[channel], escapeMarkdown(user.displayName)),
+      locale.employeeBind.hint[channel],
+    ]);
   }
 
   private toRefusalText(locale: Locale, channel: Channel) {

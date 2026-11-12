@@ -188,11 +188,8 @@ describe('AiService', () => {
   });
 
   it.each([
-    ['Tested and confirmed it works', 'Tested the fix of broken menu links and confirmed it works'],
-    [
-      'Передал задачу на тестирование',
-      'Передал на тестирование задачу о связке услуг DDoS и Colocation',
-    ],
+    ['Tested and approved', 'Tested the fix of broken menu links and approved it'],
+    ['Передал задачу на тестирование', 'Передал на тестирование задачу об экспорте заказов в CSV'],
     ['Fixed a bug', 'Fixed a bug in "Login: the form"'],
   ])('takes a line that keeps every word of %j in another order', async (action, text) => {
     answer([{ id: '1', text }]);

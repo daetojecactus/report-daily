@@ -62,7 +62,6 @@ To run without Docker, see [Running without Docker](#running-without-docker).
 | `REPORT_DAILY_VERSION` | no | `local` | Tag of the bot image in Compose |
 | `LOG_LEVEL` | no | `info` | `fatal`, `error`, `warn`, `info`, `debug`, `trace` or `silent`; `trace` also logs the text of every report |
 | `PORT` | no | `3000` | Port of `GET /health/live` and `GET /health/ready` |
-| `NODE_EXTRA_CA_CERTS` | no | | CA certificate of a GitLab signed by a company CA, see [GitLab](#gitlab) |
 
 At least one channel is needed: Telegram, Slack or both. The variables of a channel are set together.
 
@@ -75,16 +74,6 @@ The bot reads GitLab and never writes to it.
 - **Account.** A service account with the Reporter role in the groups the team works in. The bot sees only what this account sees.
 - **Token scopes.** `read_api` and `read_user`.
 - **Profiles.** Employees' GitLab profiles must be public: GitLab hides the activity of a private profile. The bot warns about it in the employee's card.
-- **Company CA.** TLS is always checked. For a GitLab signed by a company certificate authority, give Node.js the CA in `NODE_EXTRA_CA_CERTS`. Node.js reads it at start, before `.env`, so with Compose set it in `compose.override.yaml`:
-
-  ```yaml
-  services:
-    app:
-      volumes:
-        - ./company-ca.pem:/etc/ssl/company-ca.pem:ro
-      environment:
-        NODE_EXTRA_CA_CERTS: /etc/ssl/company-ca.pem
-  ```
 
 ### Telegram
 
@@ -237,7 +226,6 @@ On `SIGTERM` the bot stops taking new work and gives the running jobs up to 10 s
 - **Network.** No incoming connections. Keep the health port, PostgreSQL and Redis closed to the outside; with Compose none of them is published.
 - **Secrets** live only in `.env`, which must never be committed. Logs cut the Telegram, GitLab and AI tokens and never include the Slack tokens.
 - **GitLab** is read with a read-only token.
-- **TLS** is always checked.
 - **Owners** control the bot through their Telegram or Slack accounts and should protect them with two-step verification.
 - **Access** is checked on every action; the bot answers only in private chats.
 - **Privacy.** Only the employee sees their report: owners see only whether the last one was delivered. The database keeps report texts for 30 days to answer `/report` again and to preview templates, so whoever can read the database or runs `preview` on the server can read them; the log has them only at `LOG_LEVEL=trace`.

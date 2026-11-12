@@ -9,9 +9,7 @@ compose.override.yaml
 
 .idea/
 .vscode/
-.claude/
 .DS_Store
 
 /docs/
-/CLAUDE.md
 /TASKS.md

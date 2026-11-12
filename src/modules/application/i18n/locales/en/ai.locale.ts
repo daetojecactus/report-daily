@@ -20,7 +20,7 @@ Rules:
 Examples:
 - action "Sent for review", title "fix: validation error" → "Sent for review the fix of the validation error"
 - action "Took the task for testing", title "Order push notifications" → "Took the task on order push notifications for testing"
-- action "Tested and confirmed it works", title "Fix of broken links in the menu" → "Tested the fix of broken links in the menu and confirmed it works"
+- action "Tested and approved", title "Fix of broken links in the menu" → "Tested and approved the fix of broken links in the menu"
 - action "Left a comment", title "Slow catalog search", comments "An index on the name is needed" → "Left a comment on the slow catalog search, suggested an index on the name"`,
     roles: {
       [JobRole.DEVELOPER]:
