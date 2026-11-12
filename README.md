@@ -184,7 +184,7 @@ docker compose exec -T postgres pg_restore --username=report_daily --clean --dbn
 
 ### Preview
 
-`preview` prints what an employee did in GitLab on a day and the report the bot would build. It sends and saves nothing, so it is safe next to the running bot.
+`preview` prints what an employee did in GitLab on a day and the report the bot would build. It sends nothing and keeps no report, so it is safe next to the running bot; like a real report, it adds the labels it meets to the "No traits" list.
 
 ```bash
 docker compose exec app node dist/preview.js <gitlab-username> <YYYY-MM-DD> [--trace] [--lang=ru|en] [--ai] [--ai-comments]
