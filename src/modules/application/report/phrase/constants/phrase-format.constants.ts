@@ -17,3 +17,9 @@ export const PHRASE_REFERENCE_SEPARATOR = ', ';
 export const PHRASE_ISSUE_PREFIX = '#';
 
 export const PHRASE_MERGE_REQUEST_PREFIX = '!';
+
+export const PHRASE_DRAFT_TITLE_PATTERN = /^(?:(?:draft|wip):\s*|[[(](?:draft|wip)[\])]\s*)+/i;
+
+export const PHRASE_RESOLVE_TITLE_PATTERN = /^Resolve "(.+)"$/;
+
+export const PHRASE_TITLE_SPACES_PATTERN = /\s+/g;

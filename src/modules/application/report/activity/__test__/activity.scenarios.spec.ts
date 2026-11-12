@@ -575,7 +575,7 @@ const SCENARIOS: Scenario[] = [
   },
   {
     id: '50',
-    name: 'QA passed the task of a developer today while the developer pushed',
+    name: 'QA passed the task of a developer today after the developer pushed',
     role: DEVELOPER,
     v1: 'DEV_PASSED_QA',
     verdict: 'rule',
@@ -584,8 +584,7 @@ const SCENARIOS: Scenario[] = [
       facts: [otherFact(SourceActionKind.LABEL_ADDED, at(14), { value: 'status::qa passed' })],
       mergeRequests: [pushed(['feat: unrelated'])],
     }),
-    main: { action: ActivityAction.PASSED },
-    secondary: [ActivityAction.CODE],
+    main: { action: ActivityAction.PASSED, details: [ActivityDetail.WITH_CODE] },
   },
   {
     id: '51',

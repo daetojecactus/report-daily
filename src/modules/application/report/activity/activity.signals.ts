@@ -19,6 +19,7 @@ import {
   ACTIVITY_CONVENTIONAL_DEPENDENCY_SCOPE,
   ACTIVITY_CONVENTIONAL_KINDS,
   ACTIVITY_CONVENTIONAL_PATTERN,
+  ACTIVITY_CONVENTIONAL_SUPPORTING_KINDS,
 } from './constants/activity-patterns.constants';
 import {
   ACTIVITY_PUSH_ACTIONS,
@@ -99,6 +100,7 @@ export class ActivitySignals {
       startFlags: start.flags,
       endFlags: end.flags,
       priority: end.priority,
+      startPriority: start.priority,
       removedFlags: facts
         .filter((fact) => fact.kind === SourceActionKind.LABEL_REMOVED && fact.value)
         .flatMap((fact) =>
@@ -205,7 +207,12 @@ export class ActivitySignals {
       })),
       ...line.pushes
         .filter((push) => push.refType === SourceRefType.BRANCH)
-        .map((push) => ({ events: push.events, mergeRequestIid: null })),
+        .map((push) => ({
+          events: push.mainBranch
+            ? push.events.filter((event) => (event.pushData?.commitCount ?? 0) > 0)
+            : push.events,
+          mergeRequestIid: null,
+        })),
     ];
     return sources.flatMap(({ events, mergeRequestIid }) =>
       events
@@ -237,12 +244,12 @@ export class ActivitySignals {
         counts.set(kind, (counts.get(kind) ?? 0) + 1);
       }
     }
-    return (
-      [...counts].reduce<[TaskKind, number] | null>(
-        (best, entry) => (best === null || entry[1] > best[1] ? entry : best),
-        null,
-      )?.[0] ?? null
+    const entries = [...counts].filter(
+      ([kind]) => counts.size === 1 || !ACTIVITY_CONVENTIONAL_SUPPORTING_KINDS.has(kind),
     );
+    const total = entries.reduce((sum, [, value]) => sum + value, 0);
+    const [best] = entries.toSorted((left, right) => right[1] - left[1]);
+    return best && best[1] * 2 > total ? best[0] : null;
   }
 
   private toKindOfTitle(title: string) {

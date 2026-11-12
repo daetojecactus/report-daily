@@ -9,7 +9,14 @@ import {
 } from '../../activity/__test__/activity.golden.fixture';
 import { PhraseService } from '../phrase.service';
 
-type Reason = 'composite' | 'kind' | 'dependencies' | 'took_review' | 'new_signal';
+type Reason =
+  | 'composite'
+  | 'kind'
+  | 'dependencies'
+  | 'took_review'
+  | 'new_signal'
+  | 'no_approval'
+  | 'tester_comment';
 
 const V1_PHRASES: Record<string, string> = {
   APPROVED_MR: 'Одобрил мердж-реквест',
@@ -41,6 +48,7 @@ const V1_PHRASES: Record<string, string> = {
 
 const REWORDED: Record<string, string> = {
   CLOSED_WITHOUT_MERGE: 'Закрыл задачу без вливания',
+  COMMENTED: 'Прокомментировал',
   COMPLETED_BY_MERGE: 'Влил изменения и завершил задачу',
   DELEGATED_TASK: 'Назначил исполнителя задачи',
   MERGED_OTHERS_WORK: 'Влил работу коллеги',
@@ -59,6 +67,11 @@ const WORDING_CHANGES: Record<string, Reason> = {
   'qa-user-1-2026-10-30 1#749': 'composite',
   'qa-user-1-2026-11-02 14#909': 'composite',
   'qa-user-1-2026-11-03 14#826': 'took_review',
+  'qa-user-1-2026-11-03 14#909': 'tester_comment',
+  'qa-user-1-2026-11-03 15#626': 'no_approval',
+  'qa-user-1-2026-11-03 15#660': 'no_approval',
+  'qa-user-1-2026-11-03 15#662': 'no_approval',
+  'qa-user-1-2026-11-03 15#670': 'no_approval',
   'qa-user-1-2026-11-03 8#693': 'took_review',
   'qa-user-1-2026-11-04 1#748': 'composite',
   'qa-user-1-2026-11-04 1#749': 'composite',
@@ -94,6 +107,14 @@ describe('phrases on the golden days', () => {
         (total, reason) => ({ ...total, [reason]: (total[reason] ?? 0) + 1 }),
         {},
       ),
-    ).toEqual({ composite: 7, kind: 1, dependencies: 3, took_review: 2, new_signal: 1 });
+    ).toEqual({
+      composite: 7,
+      kind: 1,
+      dependencies: 3,
+      took_review: 2,
+      new_signal: 1,
+      no_approval: 4,
+      tester_comment: 1,
+    });
   });
 });

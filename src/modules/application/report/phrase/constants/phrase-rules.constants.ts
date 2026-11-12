@@ -28,6 +28,7 @@ const OUTCOMES: PhraseRule[] = [
   {
     action: ActivityAction.MERGED,
     flags: [TaskFlag.E2E_REQUIRED],
+    roles: [JobRole.QA],
     phrase: ReportPhrase.E2E_DEVELOPED,
   },
   {
@@ -86,6 +87,11 @@ const OUTCOMES: PhraseRule[] = [
   { action: ActivityAction.MERGED_OTHER, phrase: ReportPhrase.OTHERS_MERGED },
   {
     action: ActivityAction.CLOSED,
+    details: [ActivityDetail.WITH_MERGE],
+    phrase: ReportPhrase.COMPLETED_BY_MERGE,
+  },
+  {
+    action: ActivityAction.CLOSED,
     details: [ActivityDetail.MERGE_REQUEST],
     phrase: ReportPhrase.MERGE_REQUEST_CLOSED,
   },
@@ -114,7 +120,7 @@ const OUTCOMES: PhraseRule[] = [
   {
     action: ActivityAction.COMPLETED,
     details: [ActivityDetail.WITH_MERGE],
-    phrase: ReportPhrase.COMPLETED_BY_MERGE,
+    phrase: ReportPhrase.COMPLETED_AND_MERGED,
   },
   { action: ActivityAction.COMPLETED, phrase: ReportPhrase.TASK_COMPLETED },
   {
@@ -173,6 +179,11 @@ const CHECKS: PhraseRule[] = [
     phrase: ReportPhrase.RETURNED_TO_DEVELOPMENT,
   },
   { action: ActivityAction.RETURNED, phrase: ReportPhrase.RETURNED_FOR_REWORK },
+  {
+    action: ActivityAction.PASSED,
+    details: [ActivityDetail.WITH_CODE],
+    phrase: ReportPhrase.FINISHED_AND_PASSED_TESTING,
+  },
   { action: ActivityAction.PASSED, phrase: ReportPhrase.PASSED_TESTING },
   { action: ActivityAction.RELEASE_BLOCKED, phrase: ReportPhrase.RELEASE_BLOCKED },
   {
@@ -181,7 +192,23 @@ const CHECKS: PhraseRule[] = [
     roles: [JobRole.QA],
     phrase: ReportPhrase.TESTED_WITH_REMARKS,
   },
-  { action: ActivityAction.REVIEWED, roles: MANAGERS, phrase: ReportPhrase.COMMENTED },
+  {
+    action: ActivityAction.REVIEWED,
+    details: [ActivityDetail.CHANGES_REQUESTED],
+    roles: [JobRole.QA],
+    phrase: ReportPhrase.TESTED_WITH_REMARKS,
+  },
+  {
+    action: ActivityAction.REVIEWED,
+    details: [ActivityDetail.RESOLVED],
+    roles: [JobRole.QA],
+    phrase: ReportPhrase.FIXES_CHECKED,
+  },
+  {
+    action: ActivityAction.REVIEWED,
+    roles: [JobRole.QA, ...MANAGERS],
+    phrase: ReportPhrase.COMMENTED,
+  },
   {
     action: ActivityAction.REVIEWED,
     details: [ActivityDetail.CHANGES_REQUESTED],
@@ -211,6 +238,18 @@ const CHECKS: PhraseRule[] = [
 const TRANSITIONS: PhraseRule[] = [
   {
     action: ActivityAction.STATE_SET,
+    states: [WorkflowState.QA_PASSED],
+    details: [ActivityDetail.WITH_APPROVAL],
+    phrase: ReportPhrase.TESTED_AND_APPROVED,
+  },
+  {
+    action: ActivityAction.STATE_SET,
+    states: [WorkflowState.QA_PASSED],
+    roles: [JobRole.QA],
+    phrase: ReportPhrase.TESTED_WITHOUT_REMARKS,
+  },
+  {
+    action: ActivityAction.STATE_SET,
     states: [WorkflowState.READY_FOR_QA],
     details: [ActivityDetail.AFTER_QA],
     phrase: ReportPhrase.RESUBMITTED_TO_TESTING,
@@ -238,7 +277,7 @@ const TRANSITIONS: PhraseRule[] = [
       [WorkflowState.CHANGES_REQUESTED, ReportPhrase.RETURNED_FOR_REWORK],
       [WorkflowState.READY_FOR_QA, ReportPhrase.SENT_TO_TESTING],
       [WorkflowState.TESTING, ReportPhrase.TESTING_TASK],
-      [WorkflowState.QA_PASSED, ReportPhrase.TESTED_AND_APPROVED],
+      [WorkflowState.QA_PASSED, ReportPhrase.MARKED_TESTED],
       [WorkflowState.READY_FOR_RELEASE, ReportPhrase.READY_FOR_RELEASE],
       [WorkflowState.STAGING, ReportPhrase.DEPLOYED_TO_STAGING],
       [WorkflowState.RELEASED, ReportPhrase.MARKED_RELEASED],
@@ -261,6 +300,12 @@ const WORK: PhraseRule[] = [
     phrase: ReportPhrase.TOOK_FOR_TESTING,
   },
   { action: ActivityAction.TOOK_REVIEW, phrase: ReportPhrase.TOOK_FOR_REVIEW },
+  {
+    action: ActivityAction.ASSIGNED_REVIEW,
+    details: [ActivityDetail.UNASSIGNED],
+    phrase: ReportPhrase.REVIEW_HANDED_OVER,
+  },
+  { action: ActivityAction.ASSIGNED_REVIEW, phrase: ReportPhrase.REVIEWER_ASSIGNED },
   {
     action: ActivityAction.CODE,
     flags: [TaskFlag.E2E_REQUIRED],
@@ -426,6 +471,12 @@ const PARTICIPATION: PhraseRule[] = [
     phrase: ReportPhrase.ASSIGNEE_REMOVED,
   },
   { action: ActivityAction.ASSIGNED, phrase: ReportPhrase.TASK_ASSIGNED },
+  {
+    action: ActivityAction.PRIORITIZED,
+    details: [ActivityDetail.CHANGED],
+    phrase: ReportPhrase.PRIORITY_CHANGED,
+  },
+  { action: ActivityAction.PRIORITIZED, phrase: ReportPhrase.PRIORITY_SET },
   {
     action: ActivityAction.ESTIMATED,
     details: [ActivityDetail.CHANGED],

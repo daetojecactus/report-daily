@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { SOURCE_CLOSED_BY_MERGE_REQUEST } from 'src/modules/application/source/constants/source.constants';
 import { SourceActionKind } from 'src/modules/application/source/types/source.enums';
 import { JobRole } from 'src/modules/application/user/types/user.enums';
 import { ActivityAction, ActivityDetail } from '../../types/activity.enums';
@@ -47,6 +48,53 @@ describe('ActivityLifecycleDetector', () => {
         details: [ActivityDetail.MERGE_REQUEST],
       },
       { action: ActivityAction.CLOSED, weight: 940, state: null, details: [] },
+    ]);
+  });
+
+  it('closes a task by a merge of a merge request outside the line', () => {
+    const closing = { value: SOURCE_CLOSED_BY_MERGE_REQUEST };
+    const issue = createIssue({
+      facts: [fact(SourceActionKind.CLOSED, at(14), closing)],
+      mergeRequests: [createMergeRequest({ facts: [fact(SourceActionKind.CLOSED, at(15))] })],
+    });
+
+    expect(summarize(detect(issueLine(issue)))).toEqual([
+      {
+        action: ActivityAction.CLOSED,
+        weight: 940,
+        state: null,
+        details: [ActivityDetail.WITH_MERGE],
+      },
+      {
+        action: ActivityAction.CLOSED,
+        weight: 940,
+        state: null,
+        details: [ActivityDetail.MERGE_REQUEST],
+      },
+    ]);
+    expect(choose(issueLine(issue)).main).toMatchObject({
+      action: ActivityAction.CLOSED,
+      details: [ActivityDetail.WITH_MERGE],
+      parts: [expect.objectContaining({ details: [ActivityDetail.MERGE_REQUEST] })],
+    });
+    expect(
+      summarize(
+        detect(
+          issueLine(
+            createIssue({
+              closedOnReportDate: true,
+              facts: [otherFact(SourceActionKind.CLOSED, at(14), closing)],
+            }),
+          ),
+        ),
+      ),
+    ).toEqual([
+      {
+        action: ActivityAction.COMPLETED,
+        weight: 890,
+        state: null,
+        details: [ActivityDetail.WITH_MERGE],
+      },
     ]);
   });
 
@@ -115,7 +163,7 @@ describe('ActivityLifecycleDetector', () => {
     ]);
   });
 
-  it('tells the assignee that the task passed testing today', () => {
+  it('tells the assignee that the task passed testing today after the code of the day', () => {
     const passed = otherFact(SourceActionKind.LABEL_ADDED, at(14), { value: 'status::qa passed' });
     const line = (assignees: string[], facts = [passed]) =>
       issueLine(
@@ -130,10 +178,11 @@ describe('ActivityLifecycleDetector', () => {
 
     expect(choice.main).toMatchObject({
       action: ActivityAction.PASSED,
-      weight: 785,
+      weight: 790,
       time: Date.parse(at(14)),
+      details: [ActivityDetail.WITH_CODE],
     });
-    expect(choice.secondary.map((candidate) => candidate.action)).toEqual([ActivityAction.CODE]);
+    expect(choice.secondary).toEqual([]);
     expect(
       summarize(detect(line([OTHER]))).some((item) => item.action === ActivityAction.PASSED),
     ).toBe(false);
@@ -144,6 +193,29 @@ describe('ActivityLifecycleDetector', () => {
         ),
       ).some((item) => item.action === ActivityAction.PASSED),
     ).toBe(false);
+  });
+
+  it('tells only a rework before passed testing, not the approval and the review', () => {
+    const passed = otherFact(SourceActionKind.LABEL_ADDED, at(14), { value: 'status::qa passed' });
+    const mergeRequest = createMergeRequest({
+      reviewThreads: { total: 1, unresolved: 0 },
+      facts: [otherFact(SourceActionKind.APPROVED, at(12))],
+    });
+    const passedOf = (start: string[]) =>
+      summarize(
+        detect(
+          issueLine(
+            createIssue({
+              startOfDay: { ...createIssue().startOfDay, labels: start },
+              facts: [passed],
+              mergeRequests: [mergeRequest],
+            }),
+          ),
+        ),
+      ).find((candidate) => candidate.action === ActivityAction.PASSED);
+
+    expect(passedOf([])?.details).toEqual([]);
+    expect(passedOf(['qa::returned'])?.details).toEqual([ActivityDetail.AFTER_REWORK]);
   });
 
   it('gives a merge the context of what came before it and how it went', () => {

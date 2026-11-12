@@ -15,7 +15,7 @@ import {
 } from '../constants/activity-facts.constants';
 import { ACTIVITY_MANY_COMMENTS } from '../constants/activity.constants';
 import { ACTIVITY_WEIGHTS } from '../constants/activity-weights.constants';
-import { ActivityAction, ActivityDetail } from '../types/activity.enums';
+import { ActivityAction, ActivityDetail, ActivityRule } from '../types/activity.enums';
 import { ActivityCodeDetector } from './activity-code.detector';
 import { ActivityEventDetector } from './activity-event.detector';
 import { ActivityLifecycleDetector } from './activity-lifecycle.detector';
@@ -55,7 +55,7 @@ export class ActivityDetectors {
   }
 
   private detectChanges(signals: ActivityLineSignals): ActivityCandidate[] {
-    const { returnedAt, assignee } = signals;
+    const { returnedAt, assignee, startPriority } = signals;
     const testing = [...signals.startStates, ...signals.endStates].includes(WorkflowState.TESTING);
     const candidates: ActivityCandidate[] = [];
     for (const { fact, state, flags, priority, returnedFrom } of signals.changes) {
@@ -100,13 +100,22 @@ export class ActivityDetectors {
               ])
             : this.toCandidate(ActivityAction.ESCALATED, ACTIVITY_WEIGHTS.ESCALATED, [fact]),
         );
+      } else if (priority) {
+        candidates.push(
+          this.toCandidate(
+            ActivityAction.PRIORITIZED,
+            ACTIVITY_WEIGHTS.PRIORITIZED,
+            [fact],
+            startPriority !== null && startPriority !== priority ? [ActivityDetail.CHANGED] : [],
+          ),
+        );
       }
     }
     return candidates;
   }
 
   private detectReview(signals: ActivityLineSignals): ActivityCandidate[] {
-    const { own, ownMergeRequests, employee } = signals;
+    const { own, employee } = signals;
     const candidates: ActivityCandidate[] = [];
     const rework =
       signals.startStates.includes(WorkflowState.CHANGES_REQUESTED) ||
@@ -136,6 +145,19 @@ export class ActivityDetectors {
           this.toCandidate(ActivityAction.TOOK_REVIEW, ACTIVITY_WEIGHTS.TOOK_REVIEW, [fact]),
         );
       } else if (
+        fact.kind === SourceActionKind.REVIEW_REQUESTED &&
+        fact.mergeRequestIid !== null &&
+        !this.isOwnWork(signals, fact.mergeRequestIid)
+      ) {
+        candidates.push(
+          this.toCandidate(
+            ActivityAction.ASSIGNED_REVIEW,
+            ACTIVITY_WEIGHTS.ASSIGNED_REVIEW,
+            [fact],
+            this.hasLeftReview(signals, fact.mergeRequestIid) ? [ActivityDetail.UNASSIGNED] : [],
+          ),
+        );
+      } else if (
         fact.kind === SourceActionKind.REVIEW_REQUESTED ||
         fact.kind === SourceActionKind.MARKED_READY
       ) {
@@ -154,7 +176,7 @@ export class ActivityDetectors {
       (fact) =>
         ACTIVITY_REVIEW_FACTS.has(fact.kind) &&
         fact.mergeRequestIid !== null &&
-        !ownMergeRequests.includes(fact.mergeRequestIid),
+        !this.isOwnWork(signals, fact.mergeRequestIid),
     );
     if (remarks.length) {
       const many =
@@ -178,6 +200,16 @@ export class ActivityDetectors {
       );
     }
     return candidates;
+  }
+
+  private isOwnWork({ ownMergeRequests, pushes }: ActivityLineSignals, iid: number) {
+    return ownMergeRequests.includes(iid) || pushes.some((push) => push.mergeRequestIid === iid);
+  }
+
+  private hasLeftReview({ dropped }: ActivityLineSignals, iid: number) {
+    return dropped.some(
+      ({ fact, rule }) => rule === ActivityRule.SELF_REVIEW_REMOVAL && fact.mergeRequestIid === iid,
+    );
   }
 
   private detectDiscussion(signals: ActivityLineSignals): ActivityCandidate[] {

@@ -162,6 +162,17 @@ describe('ActivityCodeDetector', () => {
     });
   });
 
+  it('does not start the work when a merge request opens on a branch with earlier commits', () => {
+    const earlier = { lastCommitAt: '2026-07-31T10:00:00.000Z' };
+    const opened = fact(SourceActionKind.OPENED, at(9));
+
+    expect(codeOf(createMergeRequest({ ...earlier, facts: [opened] }))?.details).toEqual([]);
+    expect(
+      codeOf(createMergeRequest({ ...earlier, facts: [opened], events: [pushEvent(at(11))] }))
+        ?.details,
+    ).toEqual([]);
+  });
+
   it('closes review remarks in an own merge request with and without pushes', () => {
     const resolved = fact(SourceActionKind.THREADS_RESOLVED, at(12));
 
@@ -216,6 +227,17 @@ describe('ActivityCodeDetector', () => {
       state: null,
       details: [ActivityDetail.DIRECT],
     });
+  });
+
+  it('takes creating a main branch without commits for neither work nor a start', () => {
+    const created = refEvent(at(10), SourceEventAction.PUSHED_NEW);
+    const deleted = refEvent(at(12), SourceEventAction.DELETED);
+
+    expect(
+      summarize(
+        detect(pushLine({ ref: 'develop', mainBranch: true, events: [created, deleted] })),
+      ).map((candidate) => candidate.action),
+    ).toEqual([ActivityAction.DELETED]);
   });
 
   it('pushes to many branches at once without starting work', () => {

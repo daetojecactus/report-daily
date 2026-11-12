@@ -23,6 +23,10 @@ function toTasks(value: number) {
   return count(value, 'задаче', 'задачам', 'задачам');
 }
 
+function ofTasks(value: number) {
+  return count(value, 'задачи', 'задач', 'задач');
+}
+
 export const ruPhrases: PhrasesLocale = {
   phrases: {
     actions: {
@@ -104,6 +108,10 @@ export const ruPhrases: PhrasesLocale = {
         male: 'Влил изменения и завершил задачу',
         female: 'Влила изменения и завершила задачу',
       },
+      [ReportPhrase.COMPLETED_AND_MERGED]: {
+        male: 'Завершил задачу, изменения влиты',
+        female: 'Завершила задачу, изменения влиты',
+      },
       [ReportPhrase.TASK_COMPLETED]: { male: 'Завершил задачу', female: 'Завершила задачу' },
       [ReportPhrase.MILESTONE_REOPENED]: { male: 'Переоткрыл веху', female: 'Переоткрыла веху' },
       [ReportPhrase.BUG_REOPENED]: { male: 'Переоткрыл баг', female: 'Переоткрыла баг' },
@@ -120,6 +128,10 @@ export const ruPhrases: PhrasesLocale = {
       [ReportPhrase.TESTED_AND_APPROVED]: {
         male: 'Протестировал и одобрил',
         female: 'Протестировала и одобрила',
+      },
+      [ReportPhrase.TESTED_WITHOUT_REMARKS]: {
+        male: 'Протестировал без замечаний',
+        female: 'Протестировала без замечаний',
       },
       [ReportPhrase.FIXES_ACCEPTED]: {
         male: 'Принял исправления',
@@ -154,6 +166,10 @@ export const ruPhrases: PhrasesLocale = {
         female: 'Вернула на доработку',
       },
       [ReportPhrase.PASSED_TESTING]: 'Задача прошла тестирование',
+      [ReportPhrase.FINISHED_AND_PASSED_TESTING]: {
+        male: 'Завершил работу, задача прошла тестирование',
+        female: 'Завершила работу, задача прошла тестирование',
+      },
       [ReportPhrase.RELEASE_BLOCKED]: {
         male: 'Заблокировал релиз из-за бага',
         female: 'Заблокировала релиз из-за бага',
@@ -238,6 +254,10 @@ export const ruPhrases: PhrasesLocale = {
         male: 'Отметил задачу выполненной',
         female: 'Отметила задачу выполненной',
       },
+      [ReportPhrase.MARKED_TESTED]: {
+        male: 'Отметил, что задача прошла тестирование',
+        female: 'Отметила, что задача прошла тестирование',
+      },
       [ReportPhrase.TASK_CANCELLED]: { male: 'Отменил задачу', female: 'Отменила задачу' },
       [ReportPhrase.PUT_ON_HOLD]: { male: 'Отложил задачу', female: 'Отложила задачу' },
       [ReportPhrase.ASKED_FOR_DETAILS]: {
@@ -263,6 +283,14 @@ export const ruPhrases: PhrasesLocale = {
       [ReportPhrase.TOOK_FOR_REVIEW]: {
         male: 'Взял мердж-реквест на ревью',
         female: 'Взяла мердж-реквест на ревью',
+      },
+      [ReportPhrase.REVIEW_HANDED_OVER]: {
+        male: 'Передал проверку коллеге',
+        female: 'Передала проверку коллеге',
+      },
+      [ReportPhrase.REVIEWER_ASSIGNED]: {
+        male: 'Назначил ревьюера',
+        female: 'Назначила ревьюера',
       },
       [ReportPhrase.E2E_IN_PROGRESS]: {
         male: 'Разрабатывал E2E-покрытие',
@@ -423,6 +451,14 @@ export const ruPhrases: PhrasesLocale = {
         male: 'Назначил исполнителя задачи',
         female: 'Назначила исполнителя задачи',
       },
+      [ReportPhrase.PRIORITY_CHANGED]: {
+        male: 'Изменил приоритет',
+        female: 'Изменила приоритет',
+      },
+      [ReportPhrase.PRIORITY_SET]: {
+        male: 'Назначил приоритет',
+        female: 'Назначила приоритет',
+      },
       [ReportPhrase.ESTIMATE_CHANGED]: {
         male: 'Изменил оценку задачи',
         female: 'Изменила оценку задачи',
@@ -484,7 +520,7 @@ export const ruPhrases: PhrasesLocale = {
         male: 'Уточнил детали бага',
         female: 'Уточнила детали бага',
       },
-      [ReportPhrase.COMMENTED]: { male: 'Оставил комментарий', female: 'Оставила комментарий' },
+      [ReportPhrase.COMMENTED]: { male: 'Прокомментировал', female: 'Прокомментировала' },
       [ReportPhrase.WORKED_ON_TASK]: {
         male: 'Работал над задачей',
         female: 'Работала над задачей',
@@ -577,6 +613,14 @@ export const ruPhrases: PhrasesLocale = {
       [ReportPhrase.TASK_ESTIMATED]: (value) => ({
         male: `Оценил ${tasks(value)}`,
         female: `Оценила ${tasks(value)}`,
+      }),
+      [ReportPhrase.PRIORITY_CHANGED]: (value) => ({
+        male: `Изменил приоритет у ${ofTasks(value)}`,
+        female: `Изменила приоритет у ${ofTasks(value)}`,
+      }),
+      [ReportPhrase.PRIORITY_SET]: (value) => ({
+        male: `Назначил приоритет ${toTasks(value)}`,
+        female: `Назначила приоритет ${toTasks(value)}`,
       }),
       [ReportPhrase.MOVED_FROM_PROJECT]: (value) => ({
         male: `Перенёс ${tasks(value)} из других проектов`,
