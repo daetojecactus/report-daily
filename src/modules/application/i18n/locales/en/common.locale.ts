@@ -38,7 +38,10 @@ export const enCommon: CommonLocale = {
     building: (day) => `Building the report for ${day}. I'll send it as soon as it is ready.`,
     rebuilding: (day) =>
       `Rebuilding the report for ${day}. I'll send the new one as soon as it is ready.`,
-    empty: (day) => `You have no actions in GitLab for ${day}, so there is no report.`,
+    inProgress: (day) =>
+      `The report for ${day} is already being built. I'll send it as soon as it is ready.`,
+    empty: (day) =>
+      `You have no actions in GitLab for ${day}, so there is no report. If you did work, check that your GitLab profile is public: the bot cannot see the actions of a private profile.`,
     failed: 'Could not build the report: GitLab did not answer. Please try again later.',
     rebuild: 'Rebuild',
     wait: (seconds) => `You can rebuild once a minute. Try again in ${seconds} s.`,
