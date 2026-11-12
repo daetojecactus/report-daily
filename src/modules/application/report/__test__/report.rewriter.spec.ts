@@ -78,7 +78,7 @@ describe('ReportRewriter', () => {
     new TraitService({} as TraitRepository, {} as TraitNameService),
   );
   const rewrite = (built: TemplateBuild, policy = NONE) =>
-    rewriter.rewrite(built, { user: USER, locale, policy, index: INDEX });
+    rewriter.rewrite(built, { user: USER, language: Language.EN, locale, policy, index: INDEX });
 
   beforeEach(() => {
     vi.resetAllMocks();
@@ -100,7 +100,7 @@ describe('ReportRewriter', () => {
           names: null,
         },
       ],
-      { userId: USER.id, role: USER.role, gender: USER.gender, locale },
+      { userId: USER.id, role: USER.role, gender: USER.gender, language: Language.EN, locale },
     );
   });
 

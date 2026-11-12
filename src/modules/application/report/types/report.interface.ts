@@ -38,6 +38,7 @@ export interface ReportDraft {
 
 export interface ReportRewriting {
   user: User;
+  language: Language;
   locale: Locale;
   policy: AiPolicy;
   index: TraitIndex;

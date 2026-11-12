@@ -28,13 +28,23 @@ export class LlmService {
     return this.llmClient.instance !== null;
   }
 
-  async completeJson<T>({ prompt, name, schema }: LlmJsonRequest<T>): Promise<LlmJsonAnswer<T>> {
+  async completeJson<T>({
+    prompt,
+    name,
+    schema,
+    maxTokens,
+  }: LlmJsonRequest<T>): Promise<LlmJsonAnswer<T>> {
     const jsonSchema = { name, schema: z.toJSONSchema(schema) };
     for (;;) {
       const format = this.format;
       try {
-        const { content, model } = await this.llmRepository.complete(prompt, format, jsonSchema);
-        return { data: this.parse(content, schema), model, format };
+        const { content, model, outputTokens } = await this.llmRepository.complete(
+          prompt,
+          format,
+          jsonSchema,
+          maxTokens,
+        );
+        return { data: this.parse(content, schema), model, format, outputTokens };
       } catch (error) {
         const next = this.findNextFormat(format, error);
         if (!next) {

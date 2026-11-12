@@ -8,6 +8,8 @@ import { RedisService } from 'src/modules/infrastructure/redis/redis.service';
 import type { LlmPrompt } from 'src/modules/vendors/llm/types/llm.interface';
 import { LlmService } from 'src/modules/vendors/llm/llm.service';
 import {
+  AI_ANSWER_BASE_TOKENS,
+  AI_ANSWER_LINE_TOKENS,
   AI_ANSWER_SCHEMA,
   AI_COLON,
   AI_COLON_WINDOW,
@@ -29,11 +31,15 @@ import {
   AI_LIMIT_WINDOW_MS,
   AI_LINE_BREAK_PATTERN,
   AI_LINE_MAX_LENGTH,
+  AI_LINES_PER_REQUEST,
+  AI_LINK_PATTERN,
   AI_MARKUP_PATTERN,
+  AI_NAMES_ACTION_MAX_LENGTH,
   AI_NAMES_PER_LINE,
   AI_PROMPT_SEPARATOR,
   AI_QUOTE_PATTERN,
   AI_SCHEMA_NAME,
+  AI_SLANG_PATTERNS,
   AI_SPACES_PATTERN,
   AI_STEM_CUT,
   AI_STEM_MIN_WORD,
@@ -82,9 +88,9 @@ export class AiService {
   }
 
   async reword(lines: AiLine[], profile: AiProfile): Promise<AiRewording> {
-    const kept: AiRewording = { texts: new Map(), model: null };
+    const rewording: AiRewording = { texts: new Map(), model: null };
     if (lines.length === 0 || !this.isEnabled()) {
-      return kept;
+      return rewording;
     }
     try {
       if (!(await this.takeDailySlot(profile.userId))) {
@@ -92,30 +98,56 @@ export class AiService {
           { userId: profile.userId, limit: this.requestsPerEmployeePerDay },
           AiMessages.DAILY_LIMITED,
         );
-        return kept;
+        return rewording;
       }
-      if (!(await this.takeSlot())) {
-        this.logger.warn({ lines: lines.length }, AiMessages.RATE_LIMITED);
-        return kept;
+      for (const part of this.toParts(lines)) {
+        if (!(await this.takeSlot())) {
+          this.logger.warn({ lines: part.length }, AiMessages.RATE_LIMITED);
+          return rewording;
+        }
+        const maxTokens = AI_ANSWER_BASE_TOKENS + part.length * AI_ANSWER_LINE_TOKENS;
+        const { data, model, outputTokens } = await this.llmService.completeJson({
+          prompt: this.toPrompt(part, profile),
+          name: AI_SCHEMA_NAME,
+          schema: AI_ANSWER_SCHEMA,
+          maxTokens,
+        });
+        const { texts, refused } = this.accept(
+          part,
+          data.lines,
+          AI_SLANG_PATTERNS[profile.language] ?? null,
+        );
+        this.logger.log(
+          {
+            model,
+            lines: part.length,
+            accepted: texts.size,
+            refused,
+            tokens: outputTokens,
+            maxTokens,
+          },
+          AiMessages.REWORDED,
+        );
+        texts.forEach((text, id) => rewording.texts.set(id, text));
+        if (texts.size > 0) {
+          rewording.model = model;
+        }
       }
-      const { data, model } = await this.llmService.completeJson({
-        prompt: this.toPrompt(lines, profile),
-        name: AI_SCHEMA_NAME,
-        schema: AI_ANSWER_SCHEMA,
-      });
-      const { texts, refused } = this.accept(lines, data.lines);
-      this.logger.log(
-        { model, lines: lines.length, accepted: texts.size, refused },
-        AiMessages.REWORDED,
-      );
-      return { texts, model: texts.size > 0 ? model : null };
     } catch (error) {
       this.logger.warn(
         { lines: lines.length, error: getErrorMessage(error).slice(0, AI_ERROR_MAX_LENGTH) },
         AiMessages.FAILED,
       );
-      return kept;
     }
+    return rewording;
+  }
+
+  private toParts(lines: AiLine[]) {
+    const count = Math.ceil(lines.length / AI_LINES_PER_REQUEST);
+    const size = Math.ceil(lines.length / count);
+    return Array.from({ length: count }, (_, index) =>
+      lines.slice(index * size, (index + 1) * size),
+    );
   }
 
   private async takeDailySlot(userId: string) {
@@ -176,12 +208,12 @@ export class AiService {
     };
   }
 
-  private accept(lines: AiLine[], answers: { id: string; text: string }[]) {
+  private accept(lines: AiLine[], answers: { id: string; text: string }[], slang: RegExp | null) {
     const texts = new Map<string, string>();
     const refused: Partial<Record<AiRefusal, number>> = {};
     for (const line of lines) {
       const answer = answers.find(({ id }) => id === line.id)?.text;
-      const refusal = this.check(line, answer);
+      const refusal = this.check(line, answer, slang);
       if (refusal === null && answer !== undefined) {
         texts.set(line.id, this.clean(answer));
       } else {
@@ -192,7 +224,7 @@ export class AiService {
     return { texts, refused };
   }
 
-  private check(line: AiLine, answer: string | undefined): AiRefusal | null {
+  private check(line: AiLine, answer: string | undefined, slang: RegExp | null): AiRefusal | null {
     if (answer === undefined) {
       return AiRefusal.MISSING;
     }
@@ -206,8 +238,16 @@ export class AiService {
     if (!this.keepsMeaning(line, text.toLowerCase())) {
       return AiRefusal.CHANGED;
     }
-    if (!line.names && this.hasColonAfterAction(line.action, text)) {
+    if (
+      this.hasColonAfterAction(line.names ? AI_NAMES_ACTION_MAX_LENGTH : line.action.length, text)
+    ) {
       return AiRefusal.COLON;
+    }
+    if (AI_LINK_PATTERN.test(text) && !AI_LINK_PATTERN.test(line.title)) {
+      return AiRefusal.LINK;
+    }
+    if (slang?.test(text)) {
+      return AiRefusal.SLANG;
     }
     return null;
   }
@@ -229,11 +269,11 @@ export class AiService {
       .map((word) => word.slice(0, Math.max(AI_STEM_MIN_WORD, word.length - AI_STEM_CUT)));
   }
 
-  private hasColonAfterAction(action: string, text: string) {
+  private hasColonAfterAction(actionLength: number, text: string) {
     const colon = text.indexOf(AI_COLON);
     const quote = text.search(AI_QUOTE_PATTERN);
     return (
-      colon !== -1 && colon < action.length + AI_COLON_WINDOW && (quote === -1 || colon < quote)
+      colon !== -1 && colon < actionLength + AI_COLON_WINDOW && (quote === -1 || colon < quote)
     );
   }
 

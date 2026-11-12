@@ -18,7 +18,7 @@ export class ReportRewriter {
   ) {}
 
   async rewrite({ context, sources }: TemplateBuild, request: ReportRewriting) {
-    const { user, locale, policy, index } = request;
+    const { user, language, locale, policy, index } = request;
     const entries = [...sources].filter(
       (entry): entry is [TemplateItem & { title: string }, ActivityResult] =>
         entry[0].title !== null,
@@ -33,7 +33,7 @@ export class ReportRewriter {
         comments: policy.comments ? this.toComments(result) : [],
         names: this.toNames(result, index),
       })),
-      { userId: user.id, role: user.role, gender: user.gender, locale },
+      { userId: user.id, role: user.role, gender: user.gender, language, locale },
     );
     entries.forEach(([item], position) => {
       item.text = texts.get(String(position + 1)) ?? item.text;

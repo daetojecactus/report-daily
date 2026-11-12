@@ -4,4 +4,6 @@ export enum AiRefusal {
   TOO_LONG = 'too_long',
   CHANGED = 'changed',
   COLON = 'colon',
+  LINK = 'link',
+  SLANG = 'slang',
 }
