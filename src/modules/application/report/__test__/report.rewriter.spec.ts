@@ -100,7 +100,7 @@ describe('ReportRewriter', () => {
           names: null,
         },
       ],
-      { role: USER.role, gender: USER.gender, locale },
+      { userId: USER.id, role: USER.role, gender: USER.gender, locale },
     );
   });
 

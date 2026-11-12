@@ -33,7 +33,7 @@ export class ReportRewriter {
         comments: policy.comments ? this.toComments(result) : [],
         names: this.toNames(result, index),
       })),
-      { role: user.role, gender: user.gender, locale },
+      { userId: user.id, role: user.role, gender: user.gender, locale },
     );
     entries.forEach(([item], position) => {
       item.text = texts.get(String(position + 1)) ?? item.text;

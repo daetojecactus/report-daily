@@ -22,6 +22,8 @@ import {
   AI_ESCAPED_MARKUP_PATTERN,
   AI_FINAL_PERIOD_PATTERN,
   AI_LEAD_PATTERN,
+  AI_DAILY_LIMIT_KEY_PREFIX,
+  AI_DAY_MS,
   AI_LIMIT_ATTEMPTS,
   AI_LIMIT_KEY_PREFIX,
   AI_LIMIT_WINDOW_MS,
@@ -47,6 +49,8 @@ export class AiService {
 
   private readonly requestsPerMinute: number;
 
+  private readonly requestsPerEmployeePerDay: number;
+
   constructor(
     private readonly llmService: LlmService,
     private readonly redisService: RedisService,
@@ -54,6 +58,9 @@ export class AiService {
     configService: ConfigService<AppEnvs, true>,
   ) {
     this.requestsPerMinute = configService.get('LLM_REQUESTS_PER_MINUTE', { infer: true });
+    this.requestsPerEmployeePerDay = configService.get('LLM_REQUESTS_PER_EMPLOYEE_PER_DAY', {
+      infer: true,
+    });
   }
 
   isEnabled() {
@@ -80,6 +87,13 @@ export class AiService {
       return kept;
     }
     try {
+      if (!(await this.takeDailySlot(profile.userId))) {
+        this.logger.warn(
+          { userId: profile.userId, limit: this.requestsPerEmployeePerDay },
+          AiMessages.DAILY_LIMITED,
+        );
+        return kept;
+      }
       if (!(await this.takeSlot())) {
         this.logger.warn({ lines: lines.length }, AiMessages.RATE_LIMITED);
         return kept;
@@ -102,6 +116,15 @@ export class AiService {
       );
       return kept;
     }
+  }
+
+  private async takeDailySlot(userId: string) {
+    const day = Math.floor(Date.now() / AI_DAY_MS);
+    const count = await this.redisService.increment(
+      `${AI_DAILY_LIMIT_KEY_PREFIX}${userId}:${day}`,
+      AI_DAY_MS,
+    );
+    return count <= this.requestsPerEmployeePerDay;
   }
 
   private async takeSlot() {

@@ -55,6 +55,7 @@ To run without Docker, see [Running without Docker](#running-without-docker).
 | `LLM_TOKEN` | no | | API key; a local server that needs none takes any value |
 | `LLM_MODEL` | no | | Model name as the service calls it |
 | `LLM_REQUESTS_PER_MINUTE` | no | `10` | AI requests a minute for all employees together, as the service tariff allows |
+| `LLM_REQUESTS_PER_EMPLOYEE_PER_DAY` | no | `20` | AI requests of one employee a day; above it their reports go without AI until the next day (UTC) |
 | `POSTGRES_PASSWORD` | with Compose | | Password of the PostgreSQL that Compose starts |
 | `DATABASE_URL` | without Compose | | PostgreSQL connection URL; Compose sets it |
 | `REDIS_URL` | without Compose | | Redis connection URL; Compose sets it |
@@ -102,7 +103,7 @@ Without AI the bot writes every line itself. With AI the model rewords the lines
 
 - AI is on for everyone once the three `LLM_*` variables are set; without them the bot shows no AI switches. The owner can switch it off for everyone in `/admin`, and each employee for themselves in `/settings`.
 - The model gets the action phrase, the title and the type of each task; the employee's commit titles by default; excerpts of their own comments only if the owner allows it. Never: other people's comments, task descriptions, emails or tokens. An employee can keep their data out in `/settings`.
-- One report is one request. Set `LLM_REQUESTS_PER_MINUTE` to the service limit: a report waits up to five minutes for a free slot, then goes without AI.
+- One report is one request. Set `LLM_REQUESTS_PER_MINUTE` to the service limit: a report waits up to five minutes for a free slot, then goes without AI. `LLM_REQUESTS_PER_EMPLOYEE_PER_DAY` keeps one employee who rebuilds a report again and again from using up the limit of everyone.
 
 ## Usage
 
