@@ -15,6 +15,7 @@ import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import type { BotDialog } from '../../core/types/bot.interface';
 import type { MenuService } from '../../core/menu.service';
 import { createEmployee } from '../../__test__/bot.fixture';
+import type { AiService } from 'src/modules/application/ai/ai.service';
 import { SettingsHandler } from '../settings.handler';
 import { SettingsView } from '../settings.view';
 
@@ -55,6 +56,7 @@ describe('SettingsHandler', () => {
     toReceiving: (bound: UserChannel[]) => channels.toReceiving(bound),
   };
   const menuService = { syncEmployee: vi.fn() };
+  const aiService = { isEnabled: vi.fn<AiService['isEnabled']>(() => true) };
   const handler = new SettingsHandler(
     userService as unknown as UserService,
     channelService as unknown as ChannelService,
@@ -62,6 +64,7 @@ describe('SettingsHandler', () => {
     i18nService,
     new SettingsView({ get: () => 'Asia/Almaty' } as unknown as ConfigService<AppEnvs, true>),
     [{ channel: Channel.TELEGRAM }, { channel: Channel.SLACK }] as ChatChannel[],
+    aiService as unknown as AiService,
   );
 
   function open(input: ChatInput, dialog: BotDialog | null = null, user: User | null = USER) {
@@ -104,6 +107,22 @@ describe('SettingsHandler', () => {
       },
       dialog: null,
     });
+  });
+
+  it('shows no AI switches and refuses them while AI is not set up', async () => {
+    aiService.isEnabled.mockReturnValueOnce(false);
+    const { screen } = await open({ type: ChatInputType.COMMAND, command: 'settings' });
+
+    expect(screen.text).not.toContain('AI');
+    expect(screen.buttons?.flat().map(({ data }) => data)).not.toEqual(
+      expect.arrayContaining(['set:ai:off']),
+    );
+
+    aiService.isEnabled.mockReturnValue(false);
+    expect(await open(button('set:ai:off'))).toEqual({ screen: { text: en.bot.expired } });
+    expect(await open(button('set:aidata:off'))).toEqual({ screen: { text: en.bot.expired } });
+    expect(userService.updateSettings).not.toHaveBeenCalled();
+    aiService.isEnabled.mockReturnValue(true);
   });
 
   it('switches the language, the screen and the menu', async () => {

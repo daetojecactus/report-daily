@@ -100,7 +100,7 @@ The bot connects over Socket Mode and needs no public address.
 
 Without AI the bot writes every line itself. With AI the model rewords the lines and keeps their meaning; a line it changed too much or did not return stays as the bot wrote it, and a failure of the service never breaks a report.
 
-- AI is on for everyone once the three `LLM_*` variables are set. The owner can switch it off for everyone in `/admin`, and each employee for themselves in `/settings`.
+- AI is on for everyone once the three `LLM_*` variables are set; without them the bot shows no AI switches. The owner can switch it off for everyone in `/admin`, and each employee for themselves in `/settings`.
 - The model gets the action phrase, the title and the type of each task; the employee's commit titles by default; excerpts of their own comments only if the owner allows it. Never: other people's comments, task descriptions, emails or tokens. An employee can keep their data out in `/settings`.
 - One report is one request. Set `LLM_REQUESTS_PER_MINUTE` to the service limit: a report waits up to five minutes for a free slot, then goes without AI.
 

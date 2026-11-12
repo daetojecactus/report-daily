@@ -604,25 +604,23 @@ describe('Telegram bot', () => {
     });
   });
 
-  it('lets an employee switch the scheduled report, AI and data in AI and set the gender', async () => {
+  it('lets an employee switch the scheduled report and set the gender, without AI switches while AI is not set up', async () => {
     const { user, telegramId } = await createEmployee();
 
     await fakeBotApi.pushUpdate(privateMessage(telegramId, '/settings'));
-    expect((await replyTo(telegramId)).text).toContain('Gender: male');
+    const menu = await replyTo(telegramId);
+    expect(menu.text).toContain('Gender: male');
+    expect(JSON.stringify(menu.reply_markup)).not.toContain('set:ai');
 
-    const switched = await press(telegramId, 'set:ai:off', 1201);
-    expect(
-      (switched.reply_markup as { inline_keyboard: unknown[][] }).inline_keyboard,
-    ).toContainEqual([{ text: 'AI: no', callback_data: 'set:ai:on' }]);
-    await press(telegramId, 'set:aidata:off', 1202);
+    expect((await press(telegramId, 'set:ai:off', 1201)).text).toBe(en.bot.expired);
     expect((await press(telegramId, 'set:gender:female', 1203)).text).toContain('Gender: female');
     await press(telegramId, 'set:sched:off', 1204);
 
     const [stored] = await db.select().from(users).where(eq(users.id, user.id));
     expect(stored).toMatchObject({
       scheduleEnabled: false,
-      aiEnabled: false,
-      aiDataOptOut: true,
+      aiEnabled: true,
+      aiDataOptOut: false,
       gender: Gender.FEMALE,
     });
   });
