@@ -60,13 +60,9 @@ function toList({ value }: { value: unknown }) {
 }
 
 export class AppEnvs {
-  @IsString()
-  @IsNotEmpty()
-  DATABASE_URL!: string;
-
-  @IsString()
-  @IsNotEmpty()
-  REDIS_URL!: string;
+  @IsTimeZone()
+  @Matches(TIME_ZONE_NAME_PATTERN)
+  APP_TIMEZONE!: string;
 
   @IsEnum(LogLevel)
   LOG_LEVEL: LogLevel = LogLevel.INFO;
@@ -76,9 +72,25 @@ export class AppEnvs {
   @IsPositive()
   PORT: number = APP_DEFAULT_PORT;
 
-  @IsTimeZone()
-  @Matches(TIME_ZONE_NAME_PATTERN)
-  APP_TIMEZONE!: string;
+  @IsString()
+  @IsNotEmpty()
+  DATABASE_URL!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  REDIS_URL!: string;
+
+  @IsUrl(ENV_URL_OPTIONS)
+  GITLAB_URL!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  GITLAB_TOKEN!: string;
+
+  @ValidateIf(needsTelegramEnv)
+  @IsString()
+  @IsNotEmpty()
+  TELEGRAM_BOT_TOKEN?: string;
 
   @Transform(toList)
   @ValidateIf(needsTelegramEnv)
@@ -87,20 +99,8 @@ export class AppEnvs {
   @Matches(TELEGRAM_USER_ID_PATTERN, { each: true })
   OWNER_TELEGRAM_IDS?: string[];
 
-  @ValidateIf(needsTelegramEnv)
-  @IsString()
-  @IsNotEmpty()
-  TELEGRAM_BOT_TOKEN?: string;
-
   @IsUrl(ENV_URL_OPTIONS)
   TELEGRAM_API_URL: string = TELEGRAM_DEFAULT_API_URL;
-
-  @IsUrl(ENV_URL_OPTIONS)
-  GITLAB_URL!: string;
-
-  @IsString()
-  @IsNotEmpty()
-  GITLAB_TOKEN!: string;
 
   @ValidateIf(hasSlackEnv)
   @Matches(SLACK_BOT_TOKEN_PATTERN)
@@ -110,15 +110,15 @@ export class AppEnvs {
   @Matches(SLACK_APP_TOKEN_PATTERN)
   SLACK_APP_TOKEN?: string;
 
-  @IsUrl(ENV_URL_OPTIONS)
-  SLACK_API_URL: string = SLACK_DEFAULT_API_URL;
-
   @Transform(toList)
   @ValidateIf(hasSlackEnv)
   @IsArray()
   @ArrayNotEmpty()
   @Matches(SLACK_USER_ID_PATTERN, { each: true })
   OWNER_SLACK_IDS?: string[];
+
+  @IsUrl(ENV_URL_OPTIONS)
+  SLACK_API_URL: string = SLACK_DEFAULT_API_URL;
 
   @ValidateIf(hasLlmEnv)
   @IsUrl(ENV_URL_OPTIONS)

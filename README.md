@@ -2,11 +2,9 @@
 
 Self-hosted bot that turns GitLab activity into daily work reports in Telegram and Slack.
 
-Version 2 is in development. Version 1 is kept in the [`v1`](https://github.com/daetojecactus/report-daily/tree/v1) branch.
-
 ## Features
 
-- **Reports from real activity.** Merges, reviews, approvals, status and label changes, comments and pushes become short lines grouped by project, worded for the employee's role.
+- **Reports from real activity.** Merges, reviews, approvals, status and label changes, comments and pushes become short lines grouped by project, worded for the employee's role. Repeated work, such as dependency updates in many projects, is summed up in one line.
 - **Telegram and Slack.** Each employee gets reports in one channel or both and talks to the bot in private messages.
 - **On schedule or on demand.** Reports come at each employee's own time and time zone on days with activity; any of the last 14 days can be built on request.
 - **Optional AI.** An OpenAI-compatible model can make the lines read naturally. It gets only the minimum of data, and a report never depends on it.
@@ -31,7 +29,7 @@ cp .env.example .env
 docker compose up -d --build
 ```
 
-Fill in `.env` before the start, see [Configuration](#configuration). Compose starts PostgreSQL and Redis, applies the migrations and starts the bot; no port is published. `docker compose ps` shows the bot as healthy when it is up.
+Fill in `.env` before the first start, see [Configuration](#configuration). Compose starts PostgreSQL and Redis, applies the migrations and starts the bot; no port is published. `docker compose ps` shows the bot as healthy when it is up.
 
 Before the team starts using the bot, check the reports on yourself: add yourself as an employee, and compare a few days in [`preview`](#preview) with GitLab.
 
@@ -39,31 +37,53 @@ To run without Docker, see [Running without Docker](#running-without-docker).
 
 ## Configuration
 
+Set the variables in `.env`. At least one channel is needed, Telegram, Slack or both; the variables of a channel are set together, and AI is on once its first three variables are set.
+
+**System**
+
 | Variable | Required | Default | Description |
 | --- | --- | --- | --- |
 | `APP_TIMEZONE` | yes | | Default time zone of employees, an IANA name such as `Asia/Almaty` |
-| `GITLAB_URL` | yes | | GitLab address without `/api/v4` |
-| `GITLAB_TOKEN` | yes | | GitLab token, see [GitLab](#gitlab) |
-| `TELEGRAM_BOT_TOKEN` | for Telegram | | Bot token |
-| `OWNER_TELEGRAM_IDS` | for Telegram | | Telegram user IDs of the owners, comma-separated |
-| `TELEGRAM_API_URL` | no | `https://api.telegram.org` | Bot API server, for example a self-hosted `telegram-bot-api` |
-| `SLACK_BOT_TOKEN` | for Slack | | Bot token `xoxb-…` |
-| `SLACK_APP_TOKEN` | for Slack | | App-level token `xapp-…` with the `connections:write` scope |
-| `OWNER_SLACK_IDS` | for Slack | | Slack member IDs of the owners, comma-separated |
-| `SLACK_API_URL` | no | `https://slack.com/api/` | Slack Web API address, for another Slack deployment |
-| `LLM_BASE_URL` | no | | OpenAI-compatible API, for example `https://api.openai.com/v1` or a local `http://127.0.0.1:11434/v1`. AI is off unless the three `LLM_*` variables are set |
-| `LLM_TOKEN` | no | | API key; a local server that needs none takes any value |
-| `LLM_MODEL` | no | | Model name as the service calls it |
-| `LLM_REQUESTS_PER_MINUTE` | no | `10` | AI requests a minute for all employees together, as the service tariff allows |
-| `LLM_REQUESTS_PER_EMPLOYEE_PER_DAY` | no | `20` | Reports with AI of one employee a day; above it their reports go without AI until the next day (UTC) |
+| `LOG_LEVEL` | no | `info` | `fatal`, `error`, `warn`, `info`, `debug`, `trace` or `silent`; `trace` also logs the text of every report |
+| `PORT` | no | `3000` | Port of `GET /health/live` and `GET /health/ready` |
 | `POSTGRES_PASSWORD` | with Compose | | Password of the PostgreSQL that Compose starts |
 | `DATABASE_URL` | without Compose | | PostgreSQL connection URL; Compose sets it |
 | `REDIS_URL` | without Compose | | Redis connection URL; Compose sets it |
 | `REPORT_DAILY_VERSION` | no | `local` | Tag of the bot image in Compose |
-| `LOG_LEVEL` | no | `info` | `fatal`, `error`, `warn`, `info`, `debug`, `trace` or `silent`; `trace` also logs the text of every report |
-| `PORT` | no | `3000` | Port of `GET /health/live` and `GET /health/ready` |
 
-At least one channel is needed: Telegram, Slack or both. The variables of a channel are set together.
+**GitLab**
+
+| Variable | Required | Default | Description |
+| --- | --- | --- | --- |
+| `GITLAB_URL` | yes | | GitLab address without `/api/v4` |
+| `GITLAB_TOKEN` | yes | | Token of the service account, see [GitLab](#gitlab) |
+
+**Telegram**
+
+| Variable | Required | Default | Description |
+| --- | --- | --- | --- |
+| `TELEGRAM_BOT_TOKEN` | for Telegram | | Bot token |
+| `OWNER_TELEGRAM_IDS` | for Telegram | | Telegram user IDs of the owners, comma-separated |
+| `TELEGRAM_API_URL` | no | `https://api.telegram.org` | Bot API server, such as a self-hosted `telegram-bot-api` |
+
+**Slack**
+
+| Variable | Required | Default | Description |
+| --- | --- | --- | --- |
+| `SLACK_BOT_TOKEN` | for Slack | | Bot token `xoxb-…` |
+| `SLACK_APP_TOKEN` | for Slack | | App-level token `xapp-…` with the `connections:write` scope |
+| `OWNER_SLACK_IDS` | for Slack | | Slack member IDs of the owners, comma-separated |
+| `SLACK_API_URL` | no | `https://slack.com/api/` | Slack Web API address, for another Slack deployment |
+
+**AI**
+
+| Variable | Required | Default | Description |
+| --- | --- | --- | --- |
+| `LLM_BASE_URL` | for AI | | OpenAI-compatible API, such as `https://api.openai.com/v1` or a local `http://127.0.0.1:11434/v1` |
+| `LLM_TOKEN` | for AI | | API key; a local server that needs none takes any value |
+| `LLM_MODEL` | for AI | | Model name as the service calls it |
+| `LLM_REQUESTS_PER_MINUTE` | no | `10` | AI requests a minute for all employees together, as the tariff allows, see [AI](#ai) |
+| `LLM_REQUESTS_PER_EMPLOYEE_PER_DAY` | no | `20` | Reports with AI of one employee a day; above it their reports go without AI until the next day (UTC) |
 
 ## Integrations
 
@@ -84,7 +104,7 @@ The bot polls Telegram, keeps each person's command menu in line with their acce
 The bot connects over Socket Mode and needs no public address.
 
 - **App.** Create it from [`slack-manifest.yaml`](slack-manifest.yaml): the manifest sets Socket Mode, the scopes, direct messages and the `/report-daily` command. Reinstall the app after a change of the manifest.
-- **Commands.** `/report-daily report`, `/report-daily settings` and so on, or the same words in the direct messages with the bot. The command name in the manifest must match `SLACK_SLASH_COMMAND` in the code.
+- **Commands.** `/report-daily report`, `/report-daily settings` and so on, or the same words in the direct messages with the bot. Keep the command name `/report-daily` as the manifest has it: the bot answers to this name only.
 
 ### AI
 
@@ -138,6 +158,8 @@ The built-in "Standard" template lists projects with their lines:
 {%- endfor -%}
 ```
 
+Work summed up across several projects comes last, as a project named "Several projects".
+
 Any employee can write a personal template in `/settings`, "Report template"; owners and admins make shared ones in `/admin`, or make an own template shared from its card. The bot checks the syntax and shows a preview on the employee's latest report. A change of a shared template reaches everyone who picked it.
 
 Templates produce Markdown: `**bold**`, `_italic_`, `` `code` `` and `[text](url)`. Data is escaped, so a title with `*` or `_` does not break the message; a link goes in as `[{{ item.title }}]({{ item.url | raw }})`. Templates run in a sandbox without file access and stop after one second of rendering.
@@ -147,7 +169,7 @@ Templates produce Markdown: `**bold**`, `_italic_`, `` `code` `` and `[text](url
 | `context.date`, `context.dateText`, `context.weekday` | The day: `2026-11-09`, `9 November`, `Monday` in the report language |
 | `context.user` | `name`, `username`, `role`, `roleName` |
 | `context.isEmpty`, `context.itemsCount` | Whether the day has lines, and how many |
-| `context.projects` | Projects with `name`, `url` and lines `items`, the more important first |
+| `context.projects` | Projects with `name`, `url` and lines `items`, the more important first; "Several projects" comes last and has no URL |
 | `context.items` | All lines |
 | `context.groups` | Lines by `category` with `name` and `items`: `outcome`, `check`, `transition`, `work`, `participation`, `context` |
 
@@ -201,22 +223,7 @@ pnpm db:migrate
 pnpm start
 ```
 
-`pnpm db:migrate` builds the application and applies the migrations. Run the bot under a process manager with restart, for example systemd:
-
-```ini
-[Unit]
-Description=Report Daily
-After=network-online.target postgresql.service redis.service
-
-[Service]
-WorkingDirectory=/opt/report-daily
-ExecStart=/usr/bin/node --env-file=.env dist/main.js
-Restart=always
-TimeoutStopSec=45
-
-[Install]
-WantedBy=multi-user.target
-```
+`pnpm db:migrate` builds the application and applies the migrations. Run the bot under a process manager that restarts it, such as systemd: the command is `node --env-file=.env dist/main.js` in the project folder, after PostgreSQL and Redis, with a stop timeout of at least 45 seconds.
 
 To update, run `git pull`, `pnpm install --frozen-lockfile` and `pnpm db:migrate`, then restart the service. Without Compose, `preview` is `pnpm preview` with the same arguments, and backups are `pg_dump --format=custom --file=report-daily.dump "$DATABASE_URL"`.
 
