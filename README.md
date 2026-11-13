@@ -7,7 +7,7 @@ Self-hosted bot that turns GitLab activity into daily work reports in Telegram a
 - **Reports from real activity.** Merges, reviews, approvals, status and label changes, comments and pushes become short lines grouped by project, worded for the employee's role. Repeated work, such as dependency updates in many projects, is summed up in one line.
 - **Telegram and Slack.** Each employee gets reports in one channel or both and talks to the bot in private messages.
 - **On schedule or on demand.** Reports come at each employee's own time and time zone on days with activity; any of the last 14 days can be built on request.
-- **Optional AI.** An OpenAI-compatible model can make the lines read naturally. It gets only the minimum of data, and a report never depends on it.
+- **Optional AI.** A Claude model or any OpenAI-compatible one can make the lines read naturally. It gets only the minimum of data, and a report never depends on it.
 - **Templates.** The report layout is a [Liquid](https://liquidjs.com/tutorials/intro-to-liquid.html) template, personal or shared across the team.
 - **Three access levels.** Owners run the bot, admins publish shared templates, employees see only their own reports.
 - **Russian and English.**
@@ -18,7 +18,7 @@ Self-hosted bot that turns GitLab activity into daily work reports in Telegram a
 - Docker with Compose, or Node.js 26, PostgreSQL 18 and Redis 8.
 - A GitLab token, see [GitLab](#gitlab).
 - A Telegram bot, a Slack app, or both, see [Telegram](#telegram) and [Slack](#slack).
-- Optionally, an OpenAI-compatible API, see [AI](#ai).
+- Optionally, the Claude API or an OpenAI-compatible API, see [AI](#ai).
 
 ## Installation
 
@@ -37,7 +37,7 @@ To run without Docker, see [Running without Docker](#running-without-docker).
 
 ## Configuration
 
-Set the variables in `.env`. At least one channel is needed, Telegram, Slack or both; the variables of a channel are set together, and AI is on once its first three variables are set.
+Set the variables in `.env`. At least one channel is needed, Telegram, Slack or both; the variables of a channel are set together, and AI is on once `LLM_BASE_URL`, `LLM_TOKEN` and `LLM_MODEL` are set.
 
 **System**
 
@@ -79,9 +79,10 @@ Set the variables in `.env`. At least one channel is needed, Telegram, Slack or 
 
 | Variable | Required | Default | Description |
 | --- | --- | --- | --- |
-| `LLM_BASE_URL` | for AI | | OpenAI-compatible API, such as `https://api.openai.com/v1` or a local `http://127.0.0.1:11434/v1` |
+| `LLM_API` | no | `openai` | `anthropic` for the Claude API, `openai` for an OpenAI-compatible API |
+| `LLM_BASE_URL` | for AI | | API address: `https://api.anthropic.com` for Claude, without `/v1`; `https://api.openai.com/v1` or a local `http://127.0.0.1:11434/v1` for an OpenAI-compatible API |
 | `LLM_TOKEN` | for AI | | API key; a local server that needs none takes any value |
-| `LLM_MODEL` | for AI | | Model name as the service calls it |
+| `LLM_MODEL` | for AI | | Model name as the service calls it, such as `claude-sonnet-5-5` |
 | `LLM_REQUESTS_PER_MINUTE` | no | `10` | AI requests a minute for all employees together, as the tariff allows, see [AI](#ai) |
 | `LLM_REQUESTS_PER_EMPLOYEE_PER_DAY` | no | `20` | Reports with AI of one employee a day; above it their reports go without AI until the next day (UTC) |
 
@@ -110,9 +111,10 @@ The bot connects over Socket Mode and needs no public address.
 
 Without AI the bot writes every line itself. With AI the model rewords the lines and keeps their meaning; a line it changed too much or did not return stays as the bot wrote it, and a failure of the service never breaks a report.
 
-- AI is on for everyone once the three `LLM_*` variables are set; without them the bot shows no AI switches. The owner can switch it off for everyone in `/admin`, and each employee for themselves in `/settings`.
+- AI is on for everyone once `LLM_BASE_URL`, `LLM_TOKEN` and `LLM_MODEL` are set; without them the bot shows no AI switches. The owner can switch it off for everyone in `/admin`, and each employee for themselves in `/settings`.
 - The model gets the action phrase, the title and the type of each task; the employee's commit titles by default; excerpts of their own comments only if the owner allows it. Never: other people's comments, task descriptions, emails or tokens. An employee can keep their data out in `/settings`.
-- A report of up to eight lines is one request; a longer one goes in parts of up to eight lines. Each request asks for at most 50 output tokens plus 100 a line. Set `LLM_REQUESTS_PER_MINUTE` to the service limit, and on a tariff that limits output tokens a minute keep it within that limit divided by 850: a request waits up to five minutes for a free slot, then the rest of the report goes without AI. `LLM_REQUESTS_PER_EMPLOYEE_PER_DAY` keeps one employee who rebuilds a report again and again from using up the limit of everyone.
+- **Claude.** Set `LLM_API=anthropic`, `LLM_BASE_URL=https://api.anthropic.com` and a model of the Claude 5 family, such as `claude-sonnet-5-5` or the cheaper `claude-haiku-5-5`. The bot uses Anthropic's SDK: the answer follows a JSON schema, and the model works at low effort, so simple lines go without thinking.
+- A report of up to eight lines is one request; a longer one goes in parts of up to eight lines. A request asks for at most 50 output tokens plus 100 a line, 850 in all, and with the Claude API up to 1,024 more for thinking. Set `LLM_REQUESTS_PER_MINUTE` to the service limit, and on a tariff that limits output tokens a minute keep it within that limit divided by the largest request: a request waits up to five minutes for a free slot, then the rest of the report goes without AI. `LLM_REQUESTS_PER_EMPLOYEE_PER_DAY` keeps one employee who rebuilds a report again and again from using up the limit of everyone.
 - The model only writes text. It gets no tools and no access to the bot, its database or GitLab; the data it reads is never taken as instructions, and a line with a link the task title does not have stays as the bot wrote it.
 
 ## Usage

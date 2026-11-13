@@ -6,7 +6,7 @@ import {
   TELEGRAM_DEFAULT_API_URL,
 } from '../constants/config.constants';
 import { ConfigMessages } from '../constants/config.messages';
-import { LogLevel } from '../types/config.enums';
+import { LlmApi, LogLevel } from '../types/config.enums';
 import { validateEnv } from '../config.validate';
 
 const ENV = {
@@ -103,6 +103,12 @@ describe('validateEnv', () => {
         LLM_MODEL: 'qwen3:8b',
       }),
     ).toMatchObject({ LLM_BASE_URL: 'http://127.0.0.1:11434/v1', LLM_MODEL: 'qwen3:8b' });
+  });
+
+  it('talks to an OpenAI-compatible API by default and takes the Claude API', () => {
+    expect(validateEnv(ENV).LLM_API).toBe(LlmApi.OPENAI);
+    expect(validateEnv({ ...ENV, LLM_API: 'anthropic' }).LLM_API).toBe(LlmApi.ANTHROPIC);
+    expect(() => validateEnv({ ...ENV, LLM_API: 'claude' })).toThrow('LLM_API');
   });
 
   it('accepts the whole Slack group and splits the Slack owners', () => {

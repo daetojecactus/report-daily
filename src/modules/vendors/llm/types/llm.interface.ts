@@ -6,15 +6,22 @@ export interface LlmPrompt {
   user: string;
 }
 
-export interface LlmJsonSchema {
+export interface LlmSchema {
   name: string;
-  schema: Record<string, unknown>;
+  schema: z.ZodType;
+}
+
+export interface LlmUsage {
+  inputTokens: number | null;
+  outputTokens: number | null;
+  thinkingTokens: number | null;
 }
 
 export interface LlmCompletion {
   content: string;
   model: string;
-  outputTokens: number | null;
+  cut: boolean;
+  usage: LlmUsage;
 }
 
 export interface LlmJsonRequest<T> {
@@ -28,5 +35,5 @@ export interface LlmJsonAnswer<T> {
   data: T;
   model: string;
   format: LlmFormat;
-  outputTokens: number | null;
+  usage: LlmUsage;
 }

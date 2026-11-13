@@ -25,6 +25,7 @@ const PROFILE = {
   locale,
 };
 const DAILY_KEY = /^limit:llm:employee:user-1:\d+$/;
+const USAGE = { inputTokens: 900, outputTokens: 40, thinkingTokens: null };
 const LINES: AiLine[] = [
   {
     id: '1',
@@ -66,7 +67,7 @@ describe('AiService', () => {
       data: { lines },
       model: 'served-model',
       format: LlmFormat.JSON_SCHEMA,
-      outputTokens: 40,
+      usage: USAGE,
     });
 
   beforeAll(() => {
@@ -222,7 +223,9 @@ describe('AiService', () => {
         lines: 2,
         accepted: 1,
         refused: { colon: 1 },
-        tokens: 40,
+        inputTokens: 900,
+        outputTokens: 40,
+        thinkingTokens: null,
         maxTokens: 250,
       },
       AiMessages.REWORDED,
@@ -344,7 +347,7 @@ describe('AiService', () => {
         },
         model: 'served-model',
         format: LlmFormat.JSON_SCHEMA,
-        outputTokens: 40,
+        usage: USAGE,
       });
     });
 
@@ -367,7 +370,7 @@ describe('AiService', () => {
         data: { lines: [{ id: '1', text: 'Fixed a bug in the login form' }] },
         model: 'served-model',
         format: LlmFormat.JSON_SCHEMA,
-        outputTokens: 40,
+        usage: USAGE,
       })
       .mockRejectedValueOnce(new Error('429 Request too large'));
 

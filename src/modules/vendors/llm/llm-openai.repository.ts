@@ -1,27 +1,28 @@
 import { Injectable } from '@nestjs/common';
 import type { ChatCompletionCreateParamsNonStreaming } from 'openai/resources/chat/completions';
+import { z } from 'zod';
 import { LlmMessages } from './constants/llm.messages';
 import { LLM_TEMPERATURE } from './constants/llm.constants';
 import { LlmClient } from './llm.client';
 import { LlmFormat } from './types/llm.enums';
 import { LlmError } from './llm.error';
-import type { LlmCompletion, LlmJsonSchema, LlmPrompt } from './types/llm.interface';
+import type { LlmCompletion, LlmPrompt, LlmSchema } from './types/llm.interface';
 
 @Injectable()
-export class LlmRepository {
+export class LlmOpenAiRepository {
   constructor(private readonly llmClient: LlmClient) {}
 
   async complete(
     { system, user }: LlmPrompt,
     format: LlmFormat,
-    jsonSchema: LlmJsonSchema,
+    schema: LlmSchema,
     maxTokens: number,
   ): Promise<LlmCompletion> {
-    const { instance, model } = this.llmClient;
-    if (!instance) {
+    const { openAi, model } = this.llmClient;
+    if (!openAi) {
       throw new LlmError(LlmMessages.DISABLED);
     }
-    const completion = await instance.chat.completions.create({
+    const completion = await openAi.chat.completions.create({
       model,
       temperature: LLM_TEMPERATURE,
       max_tokens: maxTokens,
@@ -29,22 +30,33 @@ export class LlmRepository {
         { role: 'system', content: system },
         { role: 'user', content: user },
       ],
-      ...this.toResponseFormat(format, jsonSchema),
+      ...this.toResponseFormat(format, schema),
     });
+    const choice = completion.choices[0];
     return {
-      content: completion.choices[0]?.message.content ?? '',
+      content: choice?.message.content ?? '',
       model: completion.model || model,
-      outputTokens: completion.usage?.completion_tokens ?? null,
+      cut: choice?.finish_reason === 'length',
+      usage: {
+        inputTokens: completion.usage?.prompt_tokens ?? null,
+        outputTokens: completion.usage?.completion_tokens ?? null,
+        thinkingTokens: completion.usage?.completion_tokens_details?.reasoning_tokens ?? null,
+      },
     };
   }
 
   private toResponseFormat(
     format: LlmFormat,
-    { name, schema }: LlmJsonSchema,
+    { name, schema }: LlmSchema,
   ): Pick<ChatCompletionCreateParamsNonStreaming, 'response_format'> {
     switch (format) {
       case LlmFormat.JSON_SCHEMA:
-        return { response_format: { type: 'json_schema', json_schema: { name, schema } } };
+        return {
+          response_format: {
+            type: 'json_schema',
+            json_schema: { name, schema: z.toJSONSchema(schema) },
+          },
+        };
       case LlmFormat.JSON_OBJECT:
         return { response_format: { type: 'json_object' } };
       case LlmFormat.TEXT:
