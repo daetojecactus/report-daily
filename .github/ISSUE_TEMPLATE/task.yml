@@ -1,0 +1,29 @@
+name: Task
+description: A planned change, one pull request in size
+labels: [enhancement]
+body:
+  - type: textarea
+    id: why
+    attributes:
+      label: Why
+      description: What problem this solves, in one or two sentences.
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What
+      description: The concrete changes, as a list.
+      placeholder: |
+        - …
+    validations:
+      required: true
+  - type: textarea
+    id: done
+    attributes:
+      label: Done when
+      description: The observable result and how it is checked.
+      placeholder: |
+        - …
+    validations:
+      required: true
