@@ -31,7 +31,7 @@ import {
   TELEGRAM_USER_ID_PATTERN,
 } from 'src/common/channel/constants/channel.constants';
 import { TIME_ZONE_NAME_PATTERN } from 'src/common/constants/time-zone.constants';
-import { LogLevel } from './types/config.enums';
+import { LlmApi, LogLevel } from './types/config.enums';
 
 function isSet(value: unknown) {
   return Array.isArray(value) ? value.length > 0 : Boolean(value);
@@ -119,6 +119,9 @@ export class AppEnvs {
 
   @IsUrl(ENV_URL_OPTIONS)
   SLACK_API_URL: string = SLACK_DEFAULT_API_URL;
+
+  @IsEnum(LlmApi)
+  LLM_API: LlmApi = LlmApi.OPENAI;
 
   @ValidateIf(hasLlmEnv)
   @IsUrl(ENV_URL_OPTIONS)

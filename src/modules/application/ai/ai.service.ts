@@ -106,7 +106,7 @@ export class AiService {
           return rewording;
         }
         const maxTokens = AI_ANSWER_BASE_TOKENS + part.length * AI_ANSWER_LINE_TOKENS;
-        const { data, model, outputTokens } = await this.llmService.completeJson({
+        const { data, model, usage } = await this.llmService.completeJson({
           prompt: this.toPrompt(part, profile),
           name: AI_SCHEMA_NAME,
           schema: AI_ANSWER_SCHEMA,
@@ -123,7 +123,7 @@ export class AiService {
             lines: part.length,
             accepted: texts.size,
             refused,
-            tokens: outputTokens,
+            ...usage,
             maxTokens,
           },
           AiMessages.REWORDED,
