@@ -6,8 +6,6 @@ import { UserModule } from 'src/modules/application/user/user.module';
 import { AppConfigModule } from 'src/modules/infrastructure/config/config.module';
 import { DatabaseModule } from 'src/modules/infrastructure/database/database.module';
 import { RedisModule } from 'src/modules/infrastructure/redis/redis.module';
-import { PreviewAnonymizer } from './preview.anonymizer';
-import { PreviewRecorder } from './preview.recorder';
 import { PreviewRenderer } from './preview.renderer';
 import { PreviewService } from './preview.service';
 
@@ -21,6 +19,6 @@ import { PreviewService } from './preview.service';
     ReportModule,
     AiModule,
   ],
-  providers: [PreviewService, PreviewRenderer, PreviewRecorder, PreviewAnonymizer],
+  providers: [PreviewService, PreviewRenderer],
 })
 export class PreviewModule {}
