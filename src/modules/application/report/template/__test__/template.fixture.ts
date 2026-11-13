@@ -47,7 +47,7 @@ export function buildContext(
       employee: { name: 'Dev Me', username, role, gender: Gender.MALE },
       day,
       results,
-      summaries: service.summarize(results),
+      summaries: service.summarize(results, day.projects),
     },
     new I18nService().getLocale(language),
   );

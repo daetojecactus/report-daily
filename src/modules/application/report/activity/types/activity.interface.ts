@@ -139,4 +139,5 @@ export interface ActivitySummary {
   action: ActivityAction;
   details: ActivityDetail[];
   results: ActivityResult[];
+  projects: string[] | null;
 }

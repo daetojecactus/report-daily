@@ -9,6 +9,7 @@ import {
   createMergeRequest,
   fact,
   ME,
+  pushEvent,
 } from '../../activity/__test__/activity.fixture';
 import { TemplateItemType } from '../types/template.enums';
 import { buildContext, createDay, GITLAB_URL } from './template.fixture';
@@ -123,6 +124,47 @@ describe('TemplateContext', () => {
     ).toEqual([
       ['project-1', [[TemplateItemType.SUMMARY, 'Взял 3 задачи в спринт 5–18 ноября: #1, #2, #3']]],
       ['project-2', [[TemplateItemType.ISSUE, 'Взял задачу в спринт 5–18 ноября «Issue 4»']]],
+    ]);
+  });
+
+  it('puts a summary of dependency work in several projects into its own section at the end', () => {
+    const update = (projectId: number, iid: number) =>
+      createMergeRequest({
+        projectId,
+        iid,
+        title: `Update packages ${iid}`,
+        sourceBranch: 'renovate/packages',
+        events: [pushEvent(at(11))],
+      });
+    const context = buildContext(
+      createDay({
+        issues: [planned(1)],
+        standaloneMergeRequests: [update(1, 5), update(2, 6), update(1, 7)],
+      }),
+    );
+
+    expect(
+      context.projects.map(({ name, url, items }) => [
+        name,
+        url,
+        items.map(({ type, text }) => [type, text]),
+      ]),
+    ).toEqual([
+      [
+        'project-1',
+        `${GITLAB_URL}/group/project-1`,
+        [[TemplateItemType.ISSUE, 'Взял задачу в спринт 5–18 ноября «Issue 1»']],
+      ],
+      [
+        'Несколько проектов',
+        null,
+        [
+          [
+            TemplateItemType.SUMMARY,
+            'Работал над обновлением зависимостей в 2 проектах: project-1, project-2',
+          ],
+        ],
+      ],
     ]);
   });
 

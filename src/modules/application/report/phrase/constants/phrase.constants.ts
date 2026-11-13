@@ -82,5 +82,7 @@ export const PHRASE_SUMMARIES = [
   ReportPhrase.TASK_ESTIMATED,
   ReportPhrase.PRIORITY_CHANGED,
   ReportPhrase.PRIORITY_SET,
+  ReportPhrase.TASK_ASSIGNED,
+  ReportPhrase.ASSIGNEE_REMOVED,
   ReportPhrase.MOVED_FROM_PROJECT,
 ] as const;

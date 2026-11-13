@@ -1,10 +1,19 @@
 import { describe, expect, it } from 'vitest';
-import { SourceActionKind } from 'src/modules/application/source/types/source.enums';
+import { SourceActionKind, SourceRefType } from 'src/modules/application/source/types/source.enums';
 import type { GroupedIssue } from 'src/modules/application/source/types/source-day.interface';
 import type { SourceFact } from 'src/modules/application/source/types/source.interface';
 import { JobRole } from 'src/modules/application/user/types/user.enums';
 import { ActivityAction, ActivityDetail } from '../types/activity.enums';
-import { at, createIndex, createIssue, createService, fact, ME } from './activity.fixture';
+import {
+  at,
+  createIndex,
+  createIssue,
+  createMergeRequest,
+  createService,
+  fact,
+  ME,
+  pushEvent,
+} from './activity.fixture';
 
 const SPRINT = '2026-08-03 – 2026-08-16';
 
@@ -22,7 +31,7 @@ function summarize(issues: GroupedIssue[]) {
     createIndex(),
   );
   return service
-    .summarize(results)
+    .summarize(results, [])
     .map(({ action, details, results: lines }) => [
       action,
       details,
@@ -86,6 +95,83 @@ describe('ActivitySummaries', () => {
         issue(4, [sprint(4)], { labels: ['type::ignore'] }),
       ]),
     ).toEqual([]);
+  });
+
+  it('sums up assignments of three tasks', () => {
+    const assign = (minute: number) =>
+      fact(SourceActionKind.ASSIGNED, at(10, minute), { users: ['dev.other'] });
+
+    expect(
+      summarize([issue(1, [assign(1)]), issue(2, [assign(2)]), issue(3, [assign(3)])]),
+    ).toEqual([[ActivityAction.ASSIGNED, [], [1, 2, 3]]]);
+  });
+
+  it('sums up dependency work across projects with their names, but not inside one project', () => {
+    const projects = [1, 2, 3].map((id) => ({
+      id,
+      name: `project-${id}`,
+      path: `group/project-${id}`,
+      webUrl: '',
+    }));
+    const update = (projectId: number, iid: number) =>
+      createMergeRequest({
+        projectId,
+        iid,
+        sourceBranch: 'renovate/packages',
+        events: [pushEvent(at(11))],
+      });
+    const collect = (mergeRequests: ReturnType<typeof update>[]) => {
+      const service = createService();
+      const results = service.classify(
+        {
+          projects,
+          issues: [],
+          standaloneMergeRequests: mergeRequests,
+          standalonePushes: [],
+          standaloneEvents: [],
+        },
+        { username: ME, role: JobRole.DEVELOPER },
+        createIndex(),
+      );
+      return service
+        .summarize(results, projects)
+        .map(({ action, details, projects: names }) => [action, details.toSorted(), names]);
+    };
+
+    expect(collect([update(1, 5), update(2, 6), update(3, 7)])).toEqual([
+      [ActivityAction.CODE, [ActivityDetail.DEPENDENCIES], ['project-1', 'project-2', 'project-3']],
+    ]);
+    expect(collect([update(1, 5), update(1, 6), update(1, 7)])).toEqual([]);
+  });
+
+  it('sums up the same branch in several projects, but not different branches', () => {
+    const projects = [1, 2, 3].map((id) => ({ id, name: `project-${id}`, path: '', webUrl: '' }));
+    const collect = (refs: string[]) => {
+      const service = createService();
+      const results = service.classify(
+        {
+          projects,
+          issues: [],
+          standaloneMergeRequests: [],
+          standalonePushes: refs.map((ref, index) => ({
+            projectId: index + 1,
+            ref,
+            refType: SourceRefType.BRANCH,
+            mainBranch: false,
+            events: [pushEvent(at(11))],
+          })),
+          standaloneEvents: [],
+        },
+        { username: ME, role: JobRole.DEVELOPER },
+        createIndex(),
+      );
+      return service.summarize(results, projects).map(({ projects: names }) => names);
+    };
+
+    expect(collect(['restore-dev', 'restore-dev', 'restore-dev'])).toEqual([
+      ['project-1', 'project-2', 'project-3'],
+    ]);
+    expect(collect(['login', 'cart', 'menu'])).toEqual([]);
   });
 
   it('sums up estimates and moves too, but never code or comments', () => {

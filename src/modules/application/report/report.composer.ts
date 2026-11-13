@@ -40,7 +40,7 @@ export class ReportComposer {
       { username: account.username, role: user.role },
       index,
     );
-    const summaries = this.activityService.summarize(results);
+    const summaries = this.activityService.summarize(results, day.projects);
     const locale = this.i18nService.getLocale(language);
     const built = this.templateContext.buildWithSources(
       {

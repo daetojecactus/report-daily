@@ -4,10 +4,15 @@ export const ACTIVITY_SUMMARY_ACTIONS = new Set<ActivityAction>([
   ActivityAction.PLANNED,
   ActivityAction.ESTIMATED,
   ActivityAction.PRIORITIZED,
+  ActivityAction.ASSIGNED,
   ActivityAction.MOVED,
 ]);
 
 export const ACTIVITY_SUMMARY_MIN_LINES = 3;
+
+export const ACTIVITY_SUMMARY_MIN_PROJECTS = 2;
+
+export const ACTIVITY_SUMMARY_ACROSS_KEY = '*';
 
 export const ACTIVITY_EXCLUDING_RULES = new Set<ActivityRule>([
   ActivityRule.MOVED_AWAY,
