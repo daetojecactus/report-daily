@@ -1,5 +1,9 @@
 # Report Daily
 
+[![CI](https://github.com/daetojecactus/report-daily/actions/workflows/ci.yml/badge.svg)](https://github.com/daetojecactus/report-daily/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/daetojecactus/report-daily?include_prereleases&sort=semver)](https://github.com/daetojecactus/report-daily/releases)
+[![License](https://img.shields.io/github/license/daetojecactus/report-daily)](LICENSE)
+
 Self-hosted bot that turns GitLab activity into daily work reports in Telegram and Slack.
 
 ## Features
@@ -26,10 +30,13 @@ Self-hosted bot that turns GitLab activity into daily work reports in Telegram a
 git clone https://github.com/daetojecactus/report-daily.git
 cd report-daily
 cp .env.example .env
-docker compose up -d --build
+docker compose pull
+docker compose up -d
 ```
 
-Fill in `.env` before the first start, see [Configuration](#configuration). Compose starts PostgreSQL and Redis, applies the migrations and starts the bot; no port is published. `docker compose ps` shows the bot as healthy when it is up.
+Fill in `.env` before the first start, see [Configuration](#configuration). `REPORT_DAILY_VERSION` in `.env.example` is the latest release, and Compose pulls its image from `ghcr.io/daetojecactus/report-daily`. Then Compose starts PostgreSQL and Redis, applies the migrations and starts the bot; no port is published. `docker compose ps` shows the bot as healthy when it is up.
+
+To build the image from the sources instead, set `REPORT_DAILY_VERSION=local` and run `docker compose up -d --build`.
 
 Before the team starts using the bot, check the reports on yourself: add yourself as an employee, and compare a few days in [`preview`](#preview) with GitLab.
 
@@ -49,7 +56,7 @@ Set the variables in `.env`. At least one channel is needed, Telegram, Slack or 
 | `POSTGRES_PASSWORD` | with Compose | | Password of the PostgreSQL that Compose starts |
 | `DATABASE_URL` | without Compose | | PostgreSQL connection URL; Compose sets it |
 | `REDIS_URL` | without Compose | | Redis connection URL; Compose sets it |
-| `REPORT_DAILY_VERSION` | no | `local` | Tag of the bot image in Compose |
+| `REPORT_DAILY_VERSION` | no | `local` | Release of the bot image in Compose, such as `1.0.0`; `local` is the image built from the sources |
 
 **GitLab**
 
@@ -191,12 +198,18 @@ _{{ group.name }}_
 
 ### Updating
 
-Back up the database first: migrations only go forward.
+Back up the database first, see [Backups](#backups): migrations only go forward. Then set the new release in `REPORT_DAILY_VERSION` and run:
 
 ```bash
-git pull
-docker compose up -d --build
+docker compose pull
+docker compose up -d
 ```
+
+Compose applies the migrations before the bot starts. [UPGRADING.md](UPGRADING.md) lists the releases that need more than this. To go back after an update with a migration, restore the backup and set the older release. With an image built from the sources, update with `git pull` and `docker compose up -d --build`.
+
+### Releases
+
+Releases follow [Semantic Versioning](https://semver.org/): a breaking change in the environment variables, the Compose services, the bot commands or the minimal PostgreSQL and Redis versions raises the major version. Until `1.0.0`, releases are pre-releases (`-beta.N`, `-rc.N`). Each release has its notes in [CHANGELOG.md](CHANGELOG.md) and on the [Releases](https://github.com/daetojecactus/report-daily/releases) page, which also has `compose.yaml`, `env.example` and `slack-manifest.yaml` of that release. A stable release also updates the image tags `X.Y`, `X` and `latest`.
 
 ### Backups
 
@@ -241,10 +254,11 @@ On `SIGTERM` the bot stops taking new work and gives the running jobs up to 10 s
 - **Privacy.** Only the employee sees their report: owners see only whether the last one was delivered. The database keeps report texts for 30 days to answer `/report` again and to preview templates, so whoever can read the database or runs `preview` on the server can read them; the log has them only at `LOG_LEVEL=trace`.
 - **AI** gets only the data listed in [AI](#ai).
 - **Templates** run in a sandbox with size and time limits.
+- **Vulnerabilities** are reported privately, see [SECURITY.md](SECURITY.md).
 
 ## Development
 
-Node.js 26, pnpm 12 and Docker. Use a separate test bot or Slack workspace.
+Node.js 26, pnpm 12 and Docker. Use a separate test bot or Slack workspace. The conventions and the pull request flow are in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ```bash
 pnpm install
