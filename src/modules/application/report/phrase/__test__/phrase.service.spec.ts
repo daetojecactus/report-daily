@@ -469,6 +469,38 @@ describe('PhraseService', () => {
     ).toBe('Начал реализацию «restore-dev» в 3 проектах: project-1, project-2, project-3');
   });
 
+  it('sums up deleted branches with different names in several projects without a name', () => {
+    const projects = [1, 2, 3].map((id) => ({
+      id,
+      name: `project-${id}`,
+      path: '',
+      webUrl: '',
+    }));
+    const service = createService();
+    const results = service.classify(
+      {
+        projects,
+        issues: [],
+        standaloneMergeRequests: [],
+        standalonePushes: projects.map(({ id }) => ({
+          projectId: id,
+          ref: `restore-dev-${id}`,
+          refType: SourceRefType.BRANCH,
+          mainBranch: false,
+          events: [refEvent(at(11), SourceEventAction.DELETED)],
+        })),
+        standaloneEvents: [],
+      },
+      { username: ME, role: JobRole.DEVELOPER },
+      createIndex(),
+    );
+    const [summary] = service.summarize(results, projects);
+
+    expect(
+      new PhraseService().summarize(summary, Gender.MALE, new I18nService().getLocale(Language.RU)),
+    ).toBe('Удалил ветки в 3 проектах: project-1, project-2, project-3');
+  });
+
   it('sums up the assignees set in several tasks', () => {
     const assigned = (iid: number) =>
       createIssue({

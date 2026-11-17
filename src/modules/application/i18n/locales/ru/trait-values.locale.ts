@@ -164,19 +164,19 @@ export const ruTraitValues: TraitsLocale['traits'] = {
     },
     [TraitDimension.SEVERITY]: {
       [Severity.BLOCKER]: {
-        name: 'S1 — блокирующая',
+        name: 'S1: блокирующая',
         description: 'Работа невозможна, обхода нет',
       },
       [Severity.CRITICAL]: {
-        name: 'S2 — критичная',
+        name: 'S2: критичная',
         description: 'Важная функция не работает',
       },
       [Severity.MAJOR]: {
-        name: 'S3 — значительная',
+        name: 'S3: значительная',
         description: 'Работает с ошибками, есть обход',
       },
       [Severity.MINOR]: {
-        name: 'S4 — незначительная',
+        name: 'S4: незначительная',
         description: 'Косметика, мелочи',
       },
     },

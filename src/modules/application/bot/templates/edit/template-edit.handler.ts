@@ -1,4 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { ScreenButtonStyle } from 'src/common/channel/types/screen.enums';
+import { withNotice } from 'src/common/utils/text.util';
 import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
 import type { ScreenButton } from 'src/common/channel/types/chat-channel.interface';
 import { escapeMarkdown } from 'src/common/utils/markdown.util';
@@ -117,10 +119,12 @@ export class TemplateEditHandler implements BotHandler {
   private askBody(locale: Locale, template: ReportTemplate, error?: string): BotReply {
     return {
       screen: {
-        text: [
-          ...(error ? [error, ''] : []),
-          locale.templates.askBody(escapeMarkdown(template.name), TEMPLATE_BODY_MAX_LENGTH),
-        ].join('\n'),
+        text: withNotice(
+          locale.templates
+            .askBody(escapeMarkdown(template.name), TEMPLATE_BODY_MAX_LENGTH)
+            .split('\n'),
+          error,
+        ).join('\n'),
         buttons: [[this.toCancelButton(locale)]],
       },
       dialog: this.toDialog(TemplateEditStep.BODY, { templateId: template.id }),
@@ -142,7 +146,11 @@ export class TemplateEditHandler implements BotHandler {
         text: preview,
         buttons: [
           [
-            { text: locale.templates.save, data: this.toData(TemplateEditAction.SAVE) },
+            {
+              text: locale.templates.save,
+              data: this.toData(TemplateEditAction.SAVE),
+              style: ScreenButtonStyle.PRIMARY,
+            },
             {
               text: locale.templates.editText,
               data: this.toData(TemplateEditAction.TEXT, template.id),

@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { ScreenButtonStyle } from 'src/common/channel/types/screen.enums';
 import { getToday } from 'src/common/utils/date.util';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { ReportQueueProducer } from 'src/modules/queue/report/report-queue.producer';
@@ -19,7 +20,10 @@ import type { BotActor, BotContext, BotHandler, BotReply } from '../../core/type
 import { BOT_BUTTON_DATA_SEPARATOR } from '../../core/constants/bot.constants';
 import { EmployeesAction } from '../types/employees.enums';
 import { MenuService } from '../../core/menu.service';
-import { EMPLOYEE_MANAGE_BUTTON_SCHEMA } from './constants/employee-manage.constants';
+import {
+  EMPLOYEE_MANAGE_BUTTON_SCHEMA,
+  EMPLOYEE_MANAGE_CONFIRM,
+} from './constants/employee-manage.constants';
 import { EmployeeManageMessages } from './constants/employee-manage.messages';
 import { EmployeeManageAction } from './types/employee-manage.enums';
 
@@ -54,6 +58,9 @@ export class EmployeeManageHandler implements BotHandler {
     const user = await this.userService.findById(button.data.userId);
     if (!user) {
       return this.reply(locale.employees.notFound, [[this.toListButton(locale)]]);
+    }
+    if (!button.data.isConfirmed) {
+      return this.confirm(locale, user, button.data.action);
     }
     switch (button.data.action) {
       case EmployeeManageAction.ROLE:
@@ -104,6 +111,7 @@ export class EmployeeManageHandler implements BotHandler {
             {
               text: locale.employeeManage.confirm,
               data: this.toData(EmployeeManageAction.CONFIRM_DELETE, user.id),
+              style: ScreenButtonStyle.DANGER,
             },
             {
               text: locale.employeeManage.cancel,
@@ -194,6 +202,39 @@ export class EmployeeManageHandler implements BotHandler {
       user,
       locale.employeeManage.roleChanged(escapeMarkdown(user.displayName), locale.roles[role]),
     );
+  }
+
+  private confirm(
+    locale: Locale,
+    user: User,
+    action:
+      | EmployeeManageAction.BLOCK
+      | EmployeeManageAction.UNBLOCK
+      | EmployeeManageAction.REPORT
+      | EmployeeManageAction.GRANT_ADMIN
+      | EmployeeManageAction.REVOKE_ADMIN,
+  ): BotReply {
+    const texts = locale.employeeManage;
+    const name = escapeMarkdown(user.displayName);
+    const { PRIMARY, DANGER } = ScreenButtonStyle;
+    const options: Record<typeof action, [string, string, ScreenButtonStyle]> = {
+      [EmployeeManageAction.BLOCK]: [texts.confirmBlock(name), texts.block, DANGER],
+      [EmployeeManageAction.UNBLOCK]: [texts.confirmUnblock(name), texts.unblock, PRIMARY],
+      [EmployeeManageAction.REPORT]: [texts.confirmReport(name), texts.reportNow, PRIMARY],
+      [EmployeeManageAction.GRANT_ADMIN]: [texts.confirmMakeAdmin(name), texts.makeAdmin, PRIMARY],
+      [EmployeeManageAction.REVOKE_ADMIN]: [
+        texts.confirmRemoveAdmin(name),
+        texts.removeAdmin,
+        DANGER,
+      ],
+    };
+    const [question, label, style] = options[action];
+    return this.reply(question, [
+      [
+        { text: label, data: this.toData(action, user.id, EMPLOYEE_MANAGE_CONFIRM), style },
+        { text: texts.cancel, data: this.toCardData(user.id) },
+      ],
+    ]);
   }
 
   private done(locale: Locale, user: User, text: string): BotReply {

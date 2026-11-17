@@ -6,8 +6,7 @@ export const ruTraits: TraitsLocale = {
   traitList: {
     title: (count) => `**Признаки** · лейблов GitLab: ${count}`,
     page: (page, pages) => `Страница ${page} из ${pages}`,
-    empty:
-      'Лейблов пока нет. Нажмите «Добавить»: бот спросит лейбл как в GitLab и какой признак задачи он означает.',
+    empty: 'Лейблов пока нет. Добавьте первый: бот спросит лейбл и его признак.',
     previous: 'Назад',
     next: 'Дальше',
     add: 'Добавить',
@@ -22,9 +21,8 @@ export const ruTraits: TraitsLocale = {
   traitNames: {
     title: (count) => `**Без признаков** · ${count}`,
     hint: (days) =>
-      `Лейблы и статусы из задач за последние ${days} дней, у которых нет признака: бот не знает, что они значат. Выберите название, чтобы сопоставить его с признаком или не учитывать.`,
-    empty: (days) =>
-      `Новых названий нет: всё, что бот встретил в задачах за последние ${days} дней, сопоставлено или не учитывается.`,
+      `Лейблы и статусы за последние ${days} дней, которые бот не понимает. Выберите название, чтобы задать ему признак или не учитывать.`,
+    empty: (days) => `Новых названий нет: всё, что бот встретил за ${days} дней, сопоставлено.`,
     ignoredTitle: (count) => `**Не учитываются** · ${count}`,
     ignoredHint:
       'Смена этих лейблов и статусов не попадает в отчёт. Выберите название, чтобы снова его учитывать.',
@@ -45,11 +43,11 @@ export const ruTraits: TraitsLocale = {
   traitManage: {
     selected: (value) => `${value} (выбрано)`,
     askValue: (label, whom, dimension, value) =>
-      `${label} ${whom} · ${dimension}\nСейчас: ${value}. Выберите другой признак или удалите этот.`,
+      `${label} ${whom} · ${dimension}\nТекущий: ${value}`,
     deleteValue: 'Удалить признак',
     back: 'Назад',
-    changed: (label, whom, value) => `Готово: ${label} ${whom} — теперь ${value}.`,
-    valueDeleted: (label, whom, value) => `Признак удалён: ${label} ${whom} — ${value}.`,
+    changed: (label, whom, value) => `Готово: ${label} ${whom} теперь ${value}.`,
+    valueDeleted: (label, whom, value) => `Признак удалён: ${label} ${whom}, ${value}.`,
     labelEmpty: 'У лейбла больше нет признаков, он убран из списка.',
     confirmDrop: (label, count) => `Удалить лейбл ${label}? Признаков у него: ${count}.`,
     confirm: 'Да, удалить',
@@ -72,7 +70,7 @@ export const ruTraits: TraitsLocale = {
       `${label} ${whom} · ${dimension}\nВыберите признак задачи.`,
     alreadySet: (label) =>
       `У лейбла ${label} уже есть признак в этой группе для выбранной роли. Изменить его можно в карточке.`,
-    added: (label, whom, value) => `Готово: ${label} ${whom} — ${value}.`,
+    added: (label, whom, value) => `Готово: ${label} ${whom}: ${value}.`,
     openCard: 'Открыть карточку',
     addMore: 'Добавить ещё',
     back: 'Назад',

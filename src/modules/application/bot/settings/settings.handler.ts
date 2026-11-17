@@ -16,7 +16,10 @@ import type { BotContext, BotHandler, BotReply } from '../core/types/bot.interfa
 import { BOT_BUTTON_DATA_SEPARATOR, BOT_CHANNELS } from '../core/constants/bot.constants';
 import { MenuService } from '../core/menu.service';
 import { SETTINGS_BUTTON_SCHEMA, SETTINGS_TIME_SEPARATOR } from './constants/settings.constants';
+import type { SettingsSwitchButton } from './types/settings.interface';
 import { SettingsAction, SettingsStep } from './types/settings.enums';
+import { TemplateService } from 'src/modules/application/report/template/template.service';
+import { TemplatesView } from '../templates/templates.view';
 import { SettingsView } from './settings.view';
 
 @Injectable()
@@ -34,6 +37,8 @@ export class SettingsHandler implements BotHandler {
     private readonly settingsView: SettingsView,
     @Inject(BOT_CHANNELS) private readonly channels: ChatChannel[],
     private readonly aiService: AiService,
+    private readonly templateService: TemplateService,
+    private readonly templatesView: TemplatesView,
   ) {}
 
   async handle({ actor, input, dialog, locale }: BotContext): Promise<BotReply> {
@@ -57,76 +62,79 @@ export class SettingsHandler implements BotHandler {
     if (!button.success) {
       return { screen: { text: locale.bot.expired } };
     }
-    switch (button.data.action) {
+    const { data } = button;
+    switch (data.action) {
       case SettingsAction.MENU:
         return this.showMenu(locale, user, actor.language);
+      case SettingsAction.GENERAL:
+        return this.reply(this.settingsView.toGeneral(locale, user, actor.language));
+      case SettingsAction.REPORTS:
+        return this.reply(this.settingsView.toReports(locale, user, this.aiService.isEnabled()));
+      case SettingsAction.CHANNELS:
+        return this.showChannels(locale, user);
       case SettingsAction.LANGUAGE:
-        return button.data.language
-          ? this.saveLanguage(user, button.data.language)
+        return data.language
+          ? this.saveLanguage(user, data.language)
           : this.reply(this.settingsView.toLanguages(locale));
       case SettingsAction.TIME:
-        return this.chooseTime(locale, user, actor.language, button.data.hour, button.data.minute);
+        return this.chooseTime(locale, user, actor.language, data.hour, data.minute);
       case SettingsAction.TIME_ZONE:
-        return button.data.isDefault
-          ? this.save(locale, user, actor.language, { timezone: null })
+        return data.isDefault
+          ? this.saveGeneral(locale, user, actor.language, { timezone: null })
           : this.askTimeZone(locale, user);
       case SettingsAction.GENDER:
-        return button.data.gender
-          ? this.save(locale, user, actor.language, {
-              gender: button.data.gender,
-            })
+        return data.gender
+          ? this.saveGeneral(locale, user, actor.language, { gender: data.gender })
           : this.reply(this.settingsView.toGenders(locale));
       case SettingsAction.SCHEDULE:
-        return this.save(locale, user, actor.language, {
-          scheduleEnabled: button.data.isOn,
-        });
+        return this.saveSwitch(locale, user, data, { scheduleEnabled: data.isOn });
       case SettingsAction.AI:
         return this.aiService.isEnabled()
-          ? this.save(locale, user, actor.language, { aiEnabled: button.data.isOn })
+          ? this.saveSwitch(locale, user, data, { aiEnabled: data.isOn })
           : { screen: { text: locale.bot.expired } };
       case SettingsAction.AI_DATA:
         return this.aiService.isEnabled()
-          ? this.save(locale, user, actor.language, { aiDataOptOut: !button.data.isOn })
+          ? this.saveSwitch(locale, user, data, { aiDataOptOut: !data.isOn })
           : { screen: { text: locale.bot.expired } };
       case SettingsAction.RECEIVE:
-        return this.saveReceiving(
-          locale,
-          user,
-          actor.language,
-          button.data.channel,
-          button.data.isOn,
-        );
+        return data.isConfirmed
+          ? this.saveReceiving(locale, user, data.channel, data.isOn)
+          : this.reply(this.settingsView.toChannelConfirm(locale, data.channel, data.isOn));
     }
   }
 
-  private async showMenu(
-    locale: Locale,
-    user: User,
-    language: Language,
-    notice?: string,
-  ): Promise<BotReply> {
+  private async showMenu(locale: Locale, user: User, language: Language): Promise<BotReply> {
+    const bound = await this.findBound(user.id);
+    const templates = await this.templateService.findAvailable(user.id);
+    const template = templates.find(({ id }) => id === user.templateId) ?? null;
+    return this.reply(
+      this.settingsView.toMenu(locale, {
+        user,
+        language,
+        channels: this.channelService.toReceiving(bound).map(({ channel }) => channel),
+        hasChannelChoice: bound.length > 1,
+        isAiEnabled: this.aiService.isEnabled(),
+        templateName: this.templatesView.toName(locale, template),
+      }),
+    );
+  }
+
+  private async showChannels(locale: Locale, user: User, notice?: string): Promise<BotReply> {
     const bound = await this.findBound(user.id);
     const receiving = this.channelService.toReceiving(bound);
     const channels = bound.map(({ channel }) => ({
       channel,
       isOn: receiving.some((item) => item.channel === channel),
     }));
-    return this.reply(
-      this.settingsView.toMenu(
-        locale,
-        user,
-        language,
-        channels,
-        this.aiService.isEnabled(),
-        notice,
-      ),
-    );
+    return this.reply(this.settingsView.toChannels(locale, channels, notice));
   }
 
   private async saveLanguage(user: User, language: Language) {
     const updated = (await this.userService.updateSettings(user.id, { language })) ?? user;
     await this.menuService.syncEmployee(updated, await this.channelService.findByUser(updated.id));
-    return this.showMenu(this.i18nService.getLocale(language), updated, language);
+    return this.reply(
+      this.settingsView.toGeneral(this.i18nService.getLocale(language), updated, language),
+    );
   }
 
   private chooseTime(
@@ -137,7 +145,7 @@ export class SettingsHandler implements BotHandler {
     minute: string | null,
   ): BotReply | Promise<BotReply> {
     if (hour && minute) {
-      return this.save(locale, user, language, {
+      return this.saveGeneral(locale, user, language, {
         reportTime: [hour, minute].join(SETTINGS_TIME_SEPARATOR),
       });
     }
@@ -158,16 +166,23 @@ export class SettingsHandler implements BotHandler {
     if (!timezone) {
       return this.askTimeZone(locale, user, locale.settings.timeZoneInvalid);
     }
-    return this.save(locale, user, language, { timezone });
+    return this.saveGeneral(locale, user, language, { timezone });
   }
 
-  private async saveReceiving(
+  private async saveSwitch(
     locale: Locale,
     user: User,
-    language: Language,
-    channel: Channel,
-    isOn: boolean,
-  ) {
+    { action, isOn, isConfirmed }: SettingsSwitchButton,
+    update: UserSettingsUpdate,
+  ): Promise<BotReply> {
+    if (!isConfirmed) {
+      return this.reply(this.settingsView.toSwitchConfirm(locale, action, isOn));
+    }
+    const updated = (await this.userService.updateSettings(user.id, update)) ?? user;
+    return this.reply(this.settingsView.toReports(locale, updated, this.aiService.isEnabled()));
+  }
+
+  private async saveReceiving(locale: Locale, user: User, channel: Channel, isOn: boolean) {
     const bound = await this.findBound(user.id);
     if (bound.some((item) => item.channel === channel)) {
       const receiving = this.channelService
@@ -178,7 +193,7 @@ export class SettingsHandler implements BotHandler {
         receiving.push(channel);
       }
       if (receiving.length === 0) {
-        return this.showMenu(locale, user, language, locale.settings.lastChannel);
+        return this.showChannels(locale, user, locale.settings.lastChannel);
       }
       await this.channelService.updateReceiving(
         user.id,
@@ -186,7 +201,7 @@ export class SettingsHandler implements BotHandler {
         receiving,
       );
     }
-    return this.showMenu(locale, user, language);
+    return this.showChannels(locale, user);
   }
 
   private findBound(userId: string) {
@@ -196,9 +211,14 @@ export class SettingsHandler implements BotHandler {
     );
   }
 
-  private async save(locale: Locale, user: User, language: Language, update: UserSettingsUpdate) {
+  private async saveGeneral(
+    locale: Locale,
+    user: User,
+    language: Language,
+    update: UserSettingsUpdate,
+  ) {
     const updated = (await this.userService.updateSettings(user.id, update)) ?? user;
-    return this.showMenu(locale, updated, language);
+    return this.reply(this.settingsView.toGeneral(locale, updated, language));
   }
 
   private reply(screen: Screen): BotReply {

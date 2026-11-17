@@ -1,5 +1,8 @@
 export enum SettingsAction {
   MENU = 'menu',
+  GENERAL = 'general',
+  REPORTS = 'reports',
+  CHANNELS = 'channels',
   LANGUAGE = 'lang',
   TIME = 'time',
   TIME_ZONE = 'tz',

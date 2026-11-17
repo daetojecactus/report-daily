@@ -33,8 +33,10 @@ export interface CommonLocale {
     wait: (seconds: number) => string;
   };
   roles: Record<JobRole, string>;
+  rolesShort: Record<JobRole, string>;
   genders: Record<Gender, string>;
   statuses: Record<UserStatus, string>;
+  statusesShort: Record<UserStatus, string>;
   bot: {
     noAccess: (channel: string, id: string) => string;
     forbidden: string;
@@ -59,10 +61,16 @@ export interface CommonLocale {
   admin: {
     title: string;
     noSections: string;
+    employees: (total: number, active: number) => string;
     sections: Record<AdminSection, string>;
   };
   settings: {
     title: string;
+    general: string;
+    reports: string;
+    reportsWithoutAi: string;
+    channels: string;
+    channelDescription: string;
     language: string;
     reportTime: string;
     timeZone: string;
@@ -79,10 +87,12 @@ export interface CommonLocale {
     schedule: LocaleSwitch;
     ai: LocaleSwitch;
     aiData: LocaleSwitch;
-    channels: LocaleSwitch;
     lastChannel: string;
     on: string;
     off: string;
+    now: (state: string) => string;
+    turnOn: string;
+    turnOff: string;
     template: string;
   };
   templates: {
@@ -91,7 +101,6 @@ export interface CommonLocale {
     standard: string;
     shared: (name: string) => string;
     mine: string;
-    toSettings: string;
     chosen: (name: string) => string;
     notFound: string;
     mineTitle: (count: number) => string;
@@ -159,24 +168,32 @@ export interface CommonLocale {
   };
   adminSettings: {
     title: string;
+    reports: string;
     reportsOn: string;
     pausedToday: string;
     pausedUntil: (date: string) => string;
     pausedForever: string;
-    hint: string;
+    pause: string;
+    pauseHint: string;
     pauseToday: string;
     pauseUntil: string;
     pauseForever: string;
     resume: string;
+    confirmToday: string;
+    confirmForever: string;
+    confirmResume: string;
+    setPause: string;
     chooseDay: (days: number) => string;
     back: string;
     menu: string;
-    aiAlways: string;
     aiNotConfigured: string;
     ai: LocaleSwitch;
     aiCommits: LocaleSwitch;
     aiComments: LocaleSwitch;
     on: string;
     off: string;
+    now: (state: string) => string;
+    turnOn: string;
+    turnOff: string;
   };
 }

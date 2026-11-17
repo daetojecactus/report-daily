@@ -73,10 +73,10 @@ export class TraitsHandler implements BotHandler {
         buttons: [
           ...mappings.map((mapping) => [
             {
-              text: [
+              text: this.traitsView.toItemLabel(
                 mapping.sourceName,
                 this.traitsView.toValueName(locale, mapping.dimension, mapping.value),
-              ].join(TRAITS_ITEM_SEPARATOR),
+              ),
               data: this.traitsView.toCardData(mapping.id, current),
             },
           ]),

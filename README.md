@@ -8,7 +8,7 @@ Self-hosted bot that turns GitLab activity into daily work reports in Telegram a
 
 ## Features
 
-- **Reports from real activity.** Merges, reviews, approvals, status and label changes, comments and pushes become short lines grouped by project, worded for the employee's role. Repeated work, such as dependency updates in many projects, is summed up in one line.
+- **Reports from real activity.** Merges, reviews, approvals, status and label changes, comments and pushes become short lines grouped by project, worded for the employee's role. Repeated work, such as dependency updates or the same action on tasks of the same name in many projects, is summed up in one line.
 - **Telegram and Slack.** Each employee gets reports in one channel or both and talks to the bot in private messages.
 - **On schedule or on demand.** Reports come at each employee's own time and time zone on days with activity; any of the last 14 days can be built on request.
 - **Optional AI.** A Claude model or any OpenAI-compatible one can make the lines read naturally. It gets only the minimum of data, and a report never depends on it.
@@ -105,21 +105,27 @@ The bot reads GitLab and never writes to it.
 
 ### Telegram
 
-The bot polls Telegram, keeps each person's command menu in line with their access and answers only in private chats. It does not answer people who are not employees and shows them no menu; it writes their ID to the log, so an owner learns their own ID by writing to the bot and reading the log. Employees are bound by picking them in Telegram, no ID needed.
+- **Bot.** Create it with [@BotFather](https://t.me/BotFather) and put its token into `TELEGRAM_BOT_TOKEN`.
+- **Owners.** Put the Telegram user IDs of the owners into `OWNER_TELEGRAM_IDS`. The bot does not answer people who are not employees and shows them no menu, but writes their ID to the log: write to the bot and read the log to learn your ID.
+- **Work.** The bot polls Telegram, so it needs no public address. It answers only in private chats and keeps each person's command menu in line with their access. Employees are bound by picking them in Telegram, no ID needed.
 
 ### Slack
 
 The bot connects over Socket Mode and needs no public address.
 
-- **App.** Create it from [`slack-manifest.yaml`](slack-manifest.yaml): the manifest sets Socket Mode, the scopes, direct messages and the `/report-daily` command. Reinstall the app after a change of the manifest.
-- **Commands.** `/report-daily report`, `/report-daily settings` and so on, or the same words in the direct messages with the bot. Keep the command name `/report-daily` as the manifest has it: the bot answers to this name only.
+1. **App.** In [Slack apps](https://api.slack.com/apps) choose "Create New App", "From a manifest", pick the workspace and paste [`slack-manifest.yaml`](slack-manifest.yaml). The manifest sets Socket Mode, direct messages, the `/report-daily` command and the scopes `chat:write`, `commands`, `im:history` and `users:read`.
+2. **App token.** In "Basic Information", "App-Level Tokens", generate a token with the `connections:write` scope and put it into `SLACK_APP_TOKEN`.
+3. **Bot token.** Install the app to the workspace ("Install App") and put the "Bot User OAuth Token" into `SLACK_BOT_TOKEN`.
+4. **Owners.** Put the member IDs of the owners into `OWNER_SLACK_IDS`: a member's profile, the "⋮" menu, "Copy member ID".
+
+Employees write `/report-daily report`, `/report-daily settings` and so on, or the same words in the direct messages with the bot. Keep the command name `/report-daily` as the manifest has it: the bot answers to this name only. Reinstall the app after a change of the manifest.
 
 ### AI
 
 Without AI the bot writes every line itself. With AI the model rewords the lines and keeps their meaning; a line it changed too much or did not return stays as the bot wrote it, and a failure of the service never breaks a report.
 
 - AI is on for everyone once `LLM_BASE_URL`, `LLM_TOKEN` and `LLM_MODEL` are set; without them the bot shows no AI switches. The owner can switch it off for everyone in `/admin`, and each employee for themselves in `/settings`.
-- The model gets the action phrase, the title and the type of each task; the employee's commit titles by default; excerpts of their own comments only if the owner allows it. Never: other people's comments, task descriptions, emails or tokens. An employee can keep their data out in `/settings`.
+- The model gets the action phrase, the title and the type of each task; the employee's commit titles by default; excerpts of their own comments only if the owner allows it, without links, images, mentions, emails and token-like strings. Never: other people's comments, task descriptions, emails or tokens. An employee can keep their data out in `/settings`.
 - **Claude.** Set `LLM_API=anthropic`, `LLM_BASE_URL=https://api.anthropic.com` and a model of the Claude 5 family, such as `claude-sonnet-5-5` or the cheaper `claude-haiku-5-5`. The bot uses Anthropic's SDK: the answer follows a JSON schema, and the model works at low effort, so simple lines go without thinking.
 - A report of up to eight lines is one request; a longer one goes in parts of up to eight lines. A request asks for at most 50 output tokens plus 100 a line, 850 in all, and with the Claude API up to 1,024 more for thinking. Set `LLM_REQUESTS_PER_MINUTE` to the service limit, and on a tariff that limits output tokens a minute keep it within that limit divided by the largest request: a request waits up to five minutes for a free slot, then the rest of the report goes without AI. `LLM_REQUESTS_PER_EMPLOYEE_PER_DAY` keeps one employee who rebuilds a report again and again from using up the limit of everyone.
 - The model only writes text. It gets no tools and no access to the bot, its database or GitLab; the data it reads is never taken as instructions, and a line with a link the task title does not have stays as the bot wrote it.
@@ -167,11 +173,11 @@ The built-in "Standard" template lists projects with their lines:
 {%- endfor -%}
 ```
 
-Work summed up across several projects comes last, as a project named "Several projects".
+Work summed up across several projects, such as dependency updates or the same action on tasks of the same name, comes last, as a project named "Several projects".
 
 Any employee can write a personal template in `/settings`, "Report template"; owners and admins make shared ones in `/admin`, or make an own template shared from its card. The bot checks the syntax and shows a preview on the employee's latest report. A change of a shared template reaches everyone who picked it.
 
-Templates produce Markdown: `**bold**`, `_italic_`, `` `code` `` and `[text](url)`. Data is escaped, so a title with `*` or `_` does not break the message; a link goes in as `[{{ item.title }}]({{ item.url | raw }})`. Templates run in a sandbox without file access and stop after one second of rendering.
+Templates produce Markdown: `**bold**`, `_italic_`, `` `code` `` and `[text](url)`. Data is escaped, so a title with `*` or `_` does not break the message; a link goes in as `[{{ item.title }}]({{ item.url | raw }})`. Templates run in a sandbox without file access, stop after one second of rendering and write up to 20,000 characters; when a template fails on a day's data, that report uses Standard.
 
 | Field | Value |
 | --- | --- |
@@ -209,7 +215,7 @@ Compose applies the migrations before the bot starts. [UPGRADING.md](UPGRADING.m
 
 ### Releases
 
-Releases follow [Semantic Versioning](https://semver.org/): a breaking change in the environment variables, the Compose services, the bot commands or the minimal PostgreSQL and Redis versions raises the major version. Until `1.0.0`, releases are pre-releases (`-beta.N`, `-rc.N`). Each release has its notes in [CHANGELOG.md](CHANGELOG.md) and on the [Releases](https://github.com/daetojecactus/report-daily/releases) page, which also has `compose.yaml`, `env.example` and `slack-manifest.yaml` of that release. A stable release also updates the image tags `X.Y`, `X` and `latest`.
+Releases follow [Semantic Versioning](https://semver.org/): a breaking change in the environment variables, the Compose services, the bot commands or the minimal PostgreSQL and Redis versions raises the major version. Each release has its notes in [CHANGELOG.md](CHANGELOG.md) and on the [Releases](https://github.com/daetojecactus/report-daily/releases) page, which also has `compose.yaml`, `env.example` and `slack-manifest.yaml` of that release. A stable release also updates the image tags `X.Y`, `X` and `latest`.
 
 ### Backups
 

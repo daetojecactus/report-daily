@@ -168,6 +168,42 @@ describe('TemplateContext', () => {
     ]);
   });
 
+  it('puts the same line of tasks in several projects into one line at the end', () => {
+    const shared = (iid: number, projectId: number) =>
+      commented(iid, { projectId, title: 'Integration with the new IAM' });
+    const context = buildContext(createDay({ issues: [shared(1, 1), shared(2, 2), commented(4)] }));
+
+    expect(
+      context.projects.map(({ name, items }) => [
+        name,
+        items.map(({ type, text }) => [type, text]),
+      ]),
+    ).toEqual([
+      ['project-1', [[TemplateItemType.ISSUE, 'Прокомментировал «Issue 4»']]],
+      [
+        'Несколько проектов',
+        [
+          [
+            TemplateItemType.SUMMARY,
+            'Прокомментировал «Integration with the new IAM» в 2 проектах: project-1, project-2',
+          ],
+        ],
+      ],
+    ]);
+    expect(context.itemsCount).toBe(2);
+  });
+
+  it('keeps the same lines apart when one project has two of them', () => {
+    const shared = (iid: number, projectId: number) =>
+      commented(iid, { projectId, title: 'Integration with the new IAM' });
+    const context = buildContext(createDay({ issues: [shared(1, 1), shared(2, 1), shared(3, 2)] }));
+
+    expect(context.projects.map(({ name, items }) => [name, items.length])).toEqual([
+      ['project-1', 2],
+      ['project-2', 1],
+    ]);
+  });
+
   it('links only to GitLab', () => {
     const context = buildContext(
       createDay({ issues: [commented(1, { webUrl: 'https://elsewhere.example.com/issues/1' })] }),

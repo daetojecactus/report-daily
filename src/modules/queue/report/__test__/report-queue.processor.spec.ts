@@ -39,6 +39,7 @@ describe('ReportQueueProcessor', () => {
   const reportService = {
     build: vi.fn<ReportService['build']>(),
     findFresh: vi.fn<ReportService['findFresh']>(),
+    redraw: vi.fn<ReportService['redraw']>(),
   };
   const reportDelivery = {
     findChannels: vi.fn<ReportDelivery['findChannels']>(),
@@ -92,16 +93,22 @@ describe('ReportQueueProcessor', () => {
     },
   );
 
-  it('delivers a fresh saved report without building the day again', async () => {
+  it('delivers a fresh saved report drawn with the current template without building the day again', async () => {
     const saved = { status: ReportStatus.DELIVERED, content: 'project:\n• Fixed a bug' } as Report;
+    const redrawn = {
+      ...saved,
+      content: 'project:\n• [Fixed a bug](https://gitlab.example.com/1)',
+    };
     reportService.findFresh.mockResolvedValue(saved);
+    reportService.redraw.mockResolvedValue(redrawn);
 
     await run(job());
 
     expect(reportService.findFresh).toHaveBeenCalledWith('user-1', '2026-11-09', 300_000);
+    expect(reportService.redraw).toHaveBeenCalledWith(saved);
     expect(reportService.build).not.toHaveBeenCalled();
     expect(reportDelivery.queue).toHaveBeenCalledWith(
-      saved,
+      redrawn,
       [Channel.TELEGRAM],
       new Date(JOB_TIMESTAMP),
     );

@@ -32,3 +32,5 @@ export const TEMPLATE_WEEKDAY_FORMAT: Intl.DateTimeFormatOptions = {
 export const TEMPLATE_NAME_MAX_LENGTH = 64;
 
 export const TEMPLATE_BODY_MAX_LENGTH = 4000;
+
+export const TEMPLATE_OUTPUT_MAX_LENGTH = 20_000;

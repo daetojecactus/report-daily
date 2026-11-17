@@ -23,15 +23,28 @@ describe('SlackFormatter', () => {
   });
 
   it.each([
-    ['/help', '/report-daily help'],
-    ['Bot settings — /admin.', 'Bot settings — /report-daily admin.'],
+    ['/help', '`/report-daily help`'],
+    ['Bot settings: /admin.', 'Bot settings: `/report-daily admin`.'],
     ['`/report` always works', '`/report-daily report` always works'],
-    ['(/settings → Template)', '(/report-daily settings → Template)'],
+    ['`/report or /settings`', '`/report-daily report or /report-daily settings`'],
+    ['(/settings → Template)', '(`/report-daily settings` → Template)'],
     ['https://example.com/report', 'https://example.com/report'],
     ['src/help and ./start', 'src/help and ./start'],
     ['/report-daily and /reporting', '/report-daily and /reporting'],
   ])('writes the command in %j as the Slack command', (markdown, text) => {
     expect(formatter.formatCommands(markdown)).toBe(text);
+  });
+
+  it.each([
+    ['**Settings**', 'Settings'],
+    ['**Employees** · 26', 'Employees · 26'],
+    ['**Mine \\*short\\***', 'Mine *short*'],
+    ['**Search:** anna', null],
+    ['Done: **QA** is shared', null],
+    ['**QA** and **Dev**', null],
+    ['Language: English', null],
+  ])('reads %j as the title %j', (line, title) => {
+    expect(formatter.toTitle(line)).toBe(title);
   });
 
   it.each([

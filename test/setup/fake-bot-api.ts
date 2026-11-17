@@ -32,6 +32,7 @@ const CONTROL_PREFIX = '/control/';
 const MAX_POLL_TIMEOUT_MS = 25_000;
 const WAIT_STEP_MS = 25;
 const WAIT_TIMEOUT_MS = 10_000;
+const SCREEN_FILLER = /\u2800+$/gm;
 
 let nextMessageId = 1;
 
@@ -100,7 +101,11 @@ export async function startFakeBotApi() {
   };
 
   const callMethod = (method: string, body: Record<string, unknown>, response: ServerResponse) => {
-    requests.push({ method, body, at: Date.now() });
+    const recorded =
+      typeof body.text === 'string'
+        ? { ...body, text: body.text.replace(SCREEN_FILLER, '') }
+        : body;
+    requests.push({ method, body: recorded, at: Date.now() });
     const isMessage = method === 'sendMessage' || method === 'editMessageText';
     const result: TelegramMessage | boolean = isMessage
       ? {

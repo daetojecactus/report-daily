@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { ScreenButtonStyle } from 'src/common/channel/types/screen.enums';
 import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
 import type { ScreenButton } from 'src/common/channel/types/chat-channel.interface';
 import type { Locale } from 'src/modules/application/i18n/types/i18n.interface';
@@ -157,6 +158,7 @@ export class TraitManageHandler implements BotHandler {
           {
             text: locale.traitManage.confirm,
             data: this.toData(TraitManageAction.CONFIRM_DROP, mapping.id),
+            style: ScreenButtonStyle.DANGER,
           },
           {
             text: locale.traitManage.cancel,

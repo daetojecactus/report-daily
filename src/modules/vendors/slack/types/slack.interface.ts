@@ -1,9 +1,19 @@
-import type { SlackBlockType, SlackElementType, SlackTextType } from './slack.enums';
+import type {
+  SlackBlockType,
+  SlackButtonStyle,
+  SlackElementType,
+  SlackTextType,
+} from './slack.enums';
 
 interface SlackText {
   type: SlackTextType;
   text: string;
   emoji?: boolean;
+}
+
+export interface SlackHeaderBlock {
+  type: SlackBlockType.HEADER;
+  text: SlackText;
 }
 
 export interface SlackSectionBlock {
@@ -16,6 +26,7 @@ interface SlackButton {
   text: SlackText;
   action_id: string;
   value: string;
+  style?: SlackButtonStyle;
 }
 
 interface SlackUsersSelect {
@@ -29,7 +40,7 @@ export interface SlackActionsBlock {
   elements: (SlackButton | SlackUsersSelect)[];
 }
 
-type SlackBlock = SlackSectionBlock | SlackActionsBlock;
+type SlackBlock = SlackHeaderBlock | SlackSectionBlock | SlackActionsBlock;
 
 export interface SlackMessageContent {
   text: string;

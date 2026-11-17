@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
 import type { ScreenButton } from 'src/common/channel/types/chat-channel.interface';
 import { escapeMarkdown } from 'src/common/utils/markdown.util';
+import { truncateText } from 'src/common/utils/text.util';
 import type { Locale } from 'src/modules/application/i18n/types/i18n.interface';
 import { UserStatus } from 'src/modules/application/user/types/user.enums';
 import type { User } from 'src/modules/application/user/types/user.interface';
@@ -10,7 +11,10 @@ import { ADMIN_MENU_DATA } from '../admin/constants/admin.constants';
 import { BotSection } from '../core/bot.decorator';
 import { BotAccess, BotNamespace } from '../core/types/bot.enums';
 import type { BotContext, BotHandler, BotReply } from '../core/types/bot.interface';
-import { BOT_BUTTON_DATA_SEPARATOR } from '../core/constants/bot.constants';
+import {
+  BOT_BUTTON_DATA_SEPARATOR,
+  BOT_BUTTON_LABEL_MAX_LENGTH,
+} from '../core/constants/bot.constants';
 import {
   EMPLOYEES_BUTTON_SCHEMA,
   EMPLOYEES_ITEM_SEPARATOR,
@@ -166,12 +170,16 @@ export class EmployeesHandler implements BotHandler {
   }
 
   private toCardButton(locale: Locale, user: User, page: number) {
-    const parts = [user.displayName, locale.roles[user.role]];
-    if (user.status !== UserStatus.ACTIVE) {
-      parts.push(locale.statuses[user.status]);
-    }
+    const detail =
+      user.status === UserStatus.ACTIVE
+        ? locale.rolesShort[user.role]
+        : locale.statusesShort[user.status];
+    const name = truncateText(
+      user.displayName,
+      BOT_BUTTON_LABEL_MAX_LENGTH - EMPLOYEES_ITEM_SEPARATOR.length - detail.length,
+    );
     return {
-      text: parts.join(EMPLOYEES_ITEM_SEPARATOR),
+      text: [name, detail].join(EMPLOYEES_ITEM_SEPARATOR),
       data: this.toData(EmployeesAction.CARD, user.id, page),
     };
   }

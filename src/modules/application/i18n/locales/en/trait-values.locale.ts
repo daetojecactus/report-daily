@@ -167,19 +167,19 @@ export const enTraitValues: TraitsLocale['traits'] = {
     },
     [TraitDimension.SEVERITY]: {
       [Severity.BLOCKER]: {
-        name: 'S1 — blocker',
+        name: 'S1: blocker',
         description: 'Work is impossible, no workaround',
       },
       [Severity.CRITICAL]: {
-        name: 'S2 — critical',
+        name: 'S2: critical',
         description: 'An important function does not work',
       },
       [Severity.MAJOR]: {
-        name: 'S3 — major',
+        name: 'S3: major',
         description: 'Works with errors, there is a workaround',
       },
       [Severity.MINOR]: {
-        name: 'S4 — minor',
+        name: 'S4: minor',
         description: 'Cosmetic issues and small things',
       },
     },

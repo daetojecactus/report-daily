@@ -1,6 +1,12 @@
 export enum SlackBlockType {
+  HEADER = 'header',
   SECTION = 'section',
   ACTIONS = 'actions',
+}
+
+export enum SlackButtonStyle {
+  PRIMARY = 'primary',
+  DANGER = 'danger',
 }
 
 export enum SlackElementType {

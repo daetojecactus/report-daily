@@ -8,3 +8,9 @@ export const TELEGRAM_HTML_ESCAPES: Record<string, string> = {
   '>': '&gt;',
   '"': '&quot;',
 };
+
+export const TELEGRAM_SCREEN_WIDTH = 40;
+
+export const TELEGRAM_WIDTH_FILLER = '⠀';
+
+export const TELEGRAM_MARKUP_PATTERN = /\*\*|`|\\(?=\S)|\]\([^)]*\)|\[/g;

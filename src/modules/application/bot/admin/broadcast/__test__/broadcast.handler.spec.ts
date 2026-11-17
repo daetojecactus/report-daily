@@ -1,5 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { ScreenButtonStyle } from 'src/common/channel/types/screen.enums';
 import { Channel } from 'src/common/channel/types/channel.enums';
 import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
 import type { ChatChannel, ChatInput } from 'src/common/channel/types/chat-channel.interface';
@@ -91,7 +92,7 @@ describe('BroadcastHandler', () => {
           texts.previewHint,
         ].join('\n'),
         buttons: [
-          [{ text: 'Send (3)', data: 'bcast:send' }],
+          [{ text: 'Send (3)', data: 'bcast:send', style: ScreenButtonStyle.PRIMARY }],
           [{ text: 'Edit text', data: 'bcast:text' }, CANCEL],
         ],
       },

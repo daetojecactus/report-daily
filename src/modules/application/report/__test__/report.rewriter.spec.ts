@@ -172,6 +172,21 @@ describe('ReportRewriter', () => {
     expect(built.context.ai.used).toBe(true);
   });
 
+  it('keeps the state note of the task after the AI text', async () => {
+    aiService.reword.mockResolvedValue({
+      texts: new Map([['1', 'Fixed a bug in the login form']]),
+      model: 'served-model',
+    });
+    const built = build();
+    built.context.items[0].note = 'the task waits for details';
+
+    await rewrite(built);
+
+    expect(built.context.items[0].text).toBe(
+      'Fixed a bug in the login form · the task waits for details',
+    );
+  });
+
   it('keeps the lines and the mark when AI kept them', async () => {
     const built = build();
 

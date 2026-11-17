@@ -6,8 +6,7 @@ export const enTraits: TraitsLocale = {
   traitList: {
     title: (count) => `**Traits** · GitLab labels: ${count}`,
     page: (page, pages) => `Page ${page} of ${pages}`,
-    empty:
-      'No labels yet. Press "Add": the bot asks for a label as in GitLab and the task trait it stands for.',
+    empty: 'No labels yet. Add the first one: the bot asks for the label and its trait.',
     previous: 'Back',
     next: 'Next',
     add: 'Add',
@@ -22,9 +21,8 @@ export const enTraits: TraitsLocale = {
   traitNames: {
     title: (count) => `**No traits** · ${count}`,
     hint: (days) =>
-      `Labels and statuses from tasks of the last ${days} days that have no trait: the bot does not know what they mean. Choose a name to map it to a trait or to ignore it.`,
-    empty: (days) =>
-      `No new names: everything the bot met in tasks of the last ${days} days is mapped or ignored.`,
+      `Labels and statuses of the last ${days} days the bot does not understand. Choose a name to give it a trait or to ignore it.`,
+    empty: (days) => `No new names: everything the bot met in ${days} days is mapped.`,
     ignoredTitle: (count) => `**Ignored** · ${count}`,
     ignoredHint:
       'Changes of these labels and statuses do not go to the report. Choose a name to count it again.',
@@ -45,11 +43,11 @@ export const enTraits: TraitsLocale = {
   traitManage: {
     selected: (value) => `${value} (selected)`,
     askValue: (label, whom, dimension, value) =>
-      `${label} ${whom} · ${dimension}\nNow: ${value}. Choose another trait or delete this one.`,
+      `${label} ${whom} · ${dimension}\nCurrent: ${value}`,
     deleteValue: 'Delete the trait',
     back: 'Back',
-    changed: (label, whom, value) => `Done: ${label} ${whom} — now ${value}.`,
-    valueDeleted: (label, whom, value) => `Trait deleted: ${label} ${whom} — ${value}.`,
+    changed: (label, whom, value) => `Done: ${label} ${whom} is now ${value}.`,
+    valueDeleted: (label, whom, value) => `Trait deleted: ${label} ${whom}, ${value}.`,
     labelEmpty: 'The label has no traits left and is gone from the list.',
     confirmDrop: (label, count) => `Delete the label ${label}? Traits: ${count}.`,
     confirm: 'Yes, delete',
@@ -72,7 +70,7 @@ export const enTraits: TraitsLocale = {
       `${label} ${whom} · ${dimension}\nChoose the task trait.`,
     alreadySet: (label) =>
       `The label ${label} already has a trait in this group for this role. You can change it in the card.`,
-    added: (label, whom, value) => `Done: ${label} ${whom} — ${value}.`,
+    added: (label, whom, value) => `Done: ${label} ${whom}: ${value}.`,
     openCard: 'Open the card',
     addMore: 'Add another',
     back: 'Back',

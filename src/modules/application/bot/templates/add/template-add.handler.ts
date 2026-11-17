@@ -1,4 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { ScreenButtonStyle } from 'src/common/channel/types/screen.enums';
+import { withNotice } from 'src/common/utils/text.util';
 import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
 import { escapeMarkdown } from 'src/common/utils/markdown.util';
 import type { Locale } from 'src/modules/application/i18n/types/i18n.interface';
@@ -115,10 +117,10 @@ export class TemplateAddHandler implements BotHandler {
   private askBody(locale: Locale, shared: boolean, name: string, error?: string): BotReply {
     return {
       screen: {
-        text: [
-          ...(error ? [error, ''] : []),
-          locale.templates.askBody(escapeMarkdown(name), TEMPLATE_BODY_MAX_LENGTH),
-        ].join('\n'),
+        text: withNotice(
+          locale.templates.askBody(escapeMarkdown(name), TEMPLATE_BODY_MAX_LENGTH).split('\n'),
+          error,
+        ).join('\n'),
         buttons: [[this.toCancelButton(locale)]],
       },
       dialog: this.toDialog(TemplateAddStep.BODY, { shared, name }),
@@ -152,7 +154,11 @@ export class TemplateAddHandler implements BotHandler {
         text: preview,
         buttons: [
           [
-            { text: locale.templates.save, data: this.toData(TemplateAddAction.SAVE) },
+            {
+              text: locale.templates.save,
+              data: this.toData(TemplateAddAction.SAVE),
+              style: ScreenButtonStyle.PRIMARY,
+            },
             { text: locale.templates.editText, data: this.toData(TemplateAddAction.TEXT) },
           ],
           [this.toCancelButton(locale)],

@@ -86,3 +86,7 @@ export const PHRASE_SUMMARIES = [
   ReportPhrase.ASSIGNEE_REMOVED,
   ReportPhrase.MOVED_FROM_PROJECT,
 ] as const;
+
+export const PHRASE_ACROSS_PLURALS = new Map<ReportPhrase, ReportPhrase>([
+  [ReportPhrase.BRANCH_DELETED, ReportPhrase.BRANCHES_DELETED],
+]);

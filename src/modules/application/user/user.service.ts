@@ -62,6 +62,10 @@ export class UserService {
     return this.userRepository.count();
   }
 
+  countActive() {
+    return this.userRepository.count(eq(users.status, UserStatus.ACTIVE));
+  }
+
   countByTemplate(templateId: string) {
     return this.userRepository.count(eq(users.templateId, templateId));
   }

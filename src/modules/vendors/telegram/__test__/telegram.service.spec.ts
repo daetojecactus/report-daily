@@ -9,6 +9,10 @@ import type {
   ChatInput,
   Screen,
 } from 'src/common/channel/types/chat-channel.interface';
+import {
+  TELEGRAM_SCREEN_WIDTH,
+  TELEGRAM_WIDTH_FILLER,
+} from '../constants/telegram-format.constants';
 import type { TelegramClient } from '../telegram.client';
 import { TelegramRejectedError, TelegramRetryableError } from '../telegram.error';
 import { TelegramFormatter } from '../telegram.formatter';
@@ -41,7 +45,9 @@ const SCREEN: Screen = {
 };
 
 const RENDERED_SCREEN = {
-  text: '<b>Menu</b> for &lt;you&gt; &amp; me',
+  text: `<b>Menu</b> for &lt;you&gt; &amp; me${TELEGRAM_WIDTH_FILLER.repeat(
+    TELEGRAM_SCREEN_WIDTH - 'Menu for <you> & me'.length,
+  )}`,
   parse_mode: 'HTML',
   link_preview_options: { is_disabled: true },
   reply_markup: {

@@ -1,14 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { ScreenButtonStyle } from 'src/common/channel/types/screen.enums';
 import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
 import type { ScreenButton } from 'src/common/channel/types/chat-channel.interface';
 import { addDays, getToday } from 'src/common/utils/date.util';
 import { AiService } from 'src/modules/application/ai/ai.service';
 import type { Locale } from 'src/modules/application/i18n/types/i18n.interface';
-import type {
-  ReportsPause,
-  SettingsAi,
-} from 'src/modules/application/settings/types/settings.interface';
 import { SettingsService } from 'src/modules/application/settings/settings.service';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { ADMIN_MENU_DATA } from '../constants/admin.constants';
@@ -20,8 +17,7 @@ import { AdminSettingsAction } from './types/admin-settings.enums';
 import {
   ADMIN_SETTINGS_AI_SWITCHES,
   ADMIN_SETTINGS_BUTTON_SCHEMA,
-  ADMIN_SETTINGS_DATE_FORMAT,
-  ADMIN_SETTINGS_DATE_TIME_SUFFIX,
+  ADMIN_SETTINGS_CONFIRM,
   ADMIN_SETTINGS_DAY_BUTTON_FORMAT,
   ADMIN_SETTINGS_DAYS_AHEAD,
   ADMIN_SETTINGS_DAYS_PER_ROW,
@@ -29,6 +25,7 @@ import {
   ADMIN_SETTINGS_ON,
 } from './constants/admin-settings.constants';
 import { AdminSettingsMessages } from './constants/admin-settings.messages';
+import { AdminSettingsView } from './admin-settings.view';
 
 @Injectable()
 @BotSection({ access: BotAccess.OWNER, namespace: BotNamespace.ADMIN_SETTINGS })
@@ -39,6 +36,7 @@ export class AdminSettingsHandler implements BotHandler {
   constructor(
     private readonly settingsService: SettingsService,
     private readonly aiService: AiService,
+    private readonly adminSettingsView: AdminSettingsView,
     configService: ConfigService<AppEnvs, true>,
   ) {
     this.timeZone = configService.get('APP_TIMEZONE', { infer: true });
@@ -55,32 +53,39 @@ export class AdminSettingsHandler implements BotHandler {
       return { screen: { text: locale.bot.expired } };
     }
     const today = getToday(this.timeZone);
-    switch (button.data.action) {
+    const { data } = button;
+    switch (data.action) {
       case AdminSettingsAction.MENU:
         return this.showMenu(locale, today);
+      case AdminSettingsAction.PAUSE:
+        return this.showPause(locale, today);
       case AdminSettingsAction.DAYS:
         return this.showDays(locale, today);
       case AdminSettingsAction.TODAY:
-        return this.pause(actor, locale, today, today);
+        return data.isConfirmed
+          ? this.pause(actor, locale, today, today)
+          : this.confirmPause(locale, data.action);
       case AdminSettingsAction.UNTIL:
-        return this.isAhead(button.data.date, today)
-          ? this.pause(actor, locale, today, button.data.date)
+        return this.isAhead(data.date, today)
+          ? this.pause(actor, locale, today, data.date)
           : { screen: { text: locale.bot.expired } };
       case AdminSettingsAction.FOREVER:
-        return this.pause(actor, locale, today, null);
+        return data.isConfirmed
+          ? this.pause(actor, locale, today, null)
+          : this.confirmPause(locale, data.action);
       case AdminSettingsAction.RESUME:
-        await this.settingsService.resumeReports();
-        this.logger.log(
-          { actorId: actor.user?.id ?? BotAccess.OWNER },
-          AdminSettingsMessages.RESUMED,
-        );
-        return this.showMenu(locale, today);
+        return data.isConfirmed
+          ? this.resume(actor, locale, today)
+          : this.confirmPause(locale, data.action);
       case AdminSettingsAction.AI:
       case AdminSettingsAction.AI_COMMITS:
       case AdminSettingsAction.AI_COMMENTS:
-        return this.aiService.isEnabled()
-          ? this.switchAi(actor, locale, today, button.data.action, button.data.isOn)
-          : { screen: { text: locale.bot.expired } };
+        if (!this.aiService.isEnabled()) {
+          return { screen: { text: locale.bot.expired } };
+        }
+        return data.isConfirmed
+          ? this.switchAi(actor, locale, today, data.action, data.isOn)
+          : this.confirmAi(locale, data.action, data.isOn);
     }
   }
 
@@ -112,29 +117,108 @@ export class AdminSettingsHandler implements BotHandler {
       screen: {
         text: [
           texts.title,
-          this.toState(locale, pause, today),
-          texts.hint,
-          '',
+          `${texts.reports}: ${this.adminSettingsView.toPauseState(locale, pause, today)}`,
           ...(switches.length
-            ? [
-                texts.aiAlways,
-                ...switches.map(
-                  ({ text }) => `**${texts[text].name}** — ${texts[text].description}`,
-                ),
-              ]
+            ? switches.map(
+                ({ field, text }) => `${texts[text].name}: ${ai[field] ? texts.on : texts.off}`,
+              )
             : [texts.aiNotConfigured]),
         ].join('\n'),
         buttons: [
-          [{ text: texts.pauseToday, data: this.toData(AdminSettingsAction.TODAY) }],
-          [{ text: texts.pauseUntil, data: this.toData(AdminSettingsAction.DAYS) }],
-          [{ text: texts.pauseForever, data: this.toData(AdminSettingsAction.FOREVER) }],
+          [{ text: texts.pause, data: this.toData(AdminSettingsAction.PAUSE) }],
+          ...switches.map(({ action, field, text }) => [
+            {
+              text: texts[text].name,
+              data: this.toData(action, ai[field] ? ADMIN_SETTINGS_OFF : ADMIN_SETTINGS_ON),
+            },
+          ]),
+          [{ text: texts.menu, data: ADMIN_MENU_DATA }],
+        ],
+      },
+      dialog: null,
+    };
+  }
+
+  private async showPause(locale: Locale, today: string): Promise<BotReply> {
+    const texts = locale.adminSettings;
+    const pause = this.settingsService.toReportsPause(await this.settingsService.findOne(), today);
+    return {
+      screen: {
+        text: [
+          `**${texts.pause}**`,
+          texts.pauseHint,
+          texts.now(this.adminSettingsView.toPauseState(locale, pause, today)),
+        ].join('\n'),
+        buttons: [
+          [
+            { text: texts.pauseToday, data: this.toData(AdminSettingsAction.TODAY) },
+            { text: texts.pauseUntil, data: this.toData(AdminSettingsAction.DAYS) },
+            { text: texts.pauseForever, data: this.toData(AdminSettingsAction.FOREVER) },
+          ],
           ...(pause
             ? [[{ text: texts.resume, data: this.toData(AdminSettingsAction.RESUME) }]]
             : []),
-          ...switches.map(({ action, field, text }) => [
-            this.toSwitchButton(texts, ai, action, field, text),
-          ]),
-          [{ text: texts.menu, data: ADMIN_MENU_DATA }],
+          [{ text: texts.back, data: this.toData(AdminSettingsAction.MENU) }],
+        ],
+      },
+      dialog: null,
+    };
+  }
+
+  private confirmPause(
+    locale: Locale,
+    action: AdminSettingsAction.TODAY | AdminSettingsAction.FOREVER | AdminSettingsAction.RESUME,
+  ): BotReply {
+    const texts = locale.adminSettings;
+    const description = {
+      [AdminSettingsAction.TODAY]: texts.confirmToday,
+      [AdminSettingsAction.FOREVER]: texts.confirmForever,
+      [AdminSettingsAction.RESUME]: texts.confirmResume,
+    }[action];
+    return {
+      screen: {
+        text: [`**${texts.pause}**`, description].join('\n'),
+        buttons: [
+          [
+            {
+              text: action === AdminSettingsAction.RESUME ? texts.resume : texts.setPause,
+              data: this.toData(action, ADMIN_SETTINGS_CONFIRM),
+              style:
+                action === AdminSettingsAction.RESUME
+                  ? ScreenButtonStyle.PRIMARY
+                  : ScreenButtonStyle.DANGER,
+            },
+            { text: texts.back, data: this.toData(AdminSettingsAction.PAUSE) },
+          ],
+        ],
+      },
+      dialog: null,
+    };
+  }
+
+  private confirmAi(locale: Locale, action: AdminSettingsAction, isOn: boolean): BotReply {
+    const texts = locale.adminSettings;
+    const text = ADMIN_SETTINGS_AI_SWITCHES.find((item) => item.action === action)?.text ?? 'ai';
+    return {
+      screen: {
+        text: [
+          `**${texts[text].name}**`,
+          texts[text].description,
+          texts.now(isOn ? texts.off : texts.on),
+        ].join('\n'),
+        buttons: [
+          [
+            {
+              text: isOn ? texts.turnOn : texts.turnOff,
+              data: this.toData(
+                action,
+                isOn ? ADMIN_SETTINGS_ON : ADMIN_SETTINGS_OFF,
+                ADMIN_SETTINGS_CONFIRM,
+              ),
+              style: isOn ? ScreenButtonStyle.PRIMARY : ScreenButtonStyle.DANGER,
+            },
+            { text: texts.back, data: this.toData(AdminSettingsAction.MENU) },
+          ],
         ],
       },
       dialog: null,
@@ -150,7 +234,7 @@ export class AdminSettingsHandler implements BotHandler {
     for (let offset = 1; offset <= ADMIN_SETTINGS_DAYS_AHEAD; offset++) {
       const date = addDays(today, offset);
       days.push({
-        text: format.format(this.toInstant(date)),
+        text: format.format(this.adminSettingsView.toInstant(date)),
         data: this.toData(AdminSettingsAction.UNTIL, date),
       });
     }
@@ -163,7 +247,7 @@ export class AdminSettingsHandler implements BotHandler {
         text: locale.adminSettings.chooseDay(ADMIN_SETTINGS_DAYS_AHEAD),
         buttons: [
           ...rows,
-          [{ text: locale.adminSettings.back, data: this.toData(AdminSettingsAction.MENU) }],
+          [{ text: locale.adminSettings.back, data: this.toData(AdminSettingsAction.PAUSE) }],
         ],
       },
       dialog: null,
@@ -181,47 +265,17 @@ export class AdminSettingsHandler implements BotHandler {
       { actorId: actor.user?.id ?? BotAccess.OWNER, until },
       AdminSettingsMessages.PAUSED,
     );
-    return this.showMenu(locale, today);
+    return this.showPause(locale, today);
   }
 
-  private toState(locale: Locale, pause: ReportsPause | null, today: string) {
-    const texts = locale.adminSettings;
-    if (!pause) {
-      return texts.reportsOn;
-    }
-    if (pause.until === null) {
-      return texts.pausedForever;
-    }
-    if (pause.until === today) {
-      return texts.pausedToday;
-    }
-    return texts.pausedUntil(
-      new Intl.DateTimeFormat(locale.phrases.dateLocale, ADMIN_SETTINGS_DATE_FORMAT).format(
-        this.toInstant(pause.until),
-      ),
-    );
-  }
-
-  private toSwitchButton(
-    texts: Locale['adminSettings'],
-    ai: SettingsAi,
-    action: AdminSettingsAction,
-    field: keyof SettingsAi,
-    text: 'ai' | 'aiCommits' | 'aiComments',
-  ) {
-    const isOn = ai[field];
-    return {
-      text: `${texts[text].name}: ${isOn ? texts.on : texts.off}`,
-      data: this.toData(action, isOn ? ADMIN_SETTINGS_OFF : ADMIN_SETTINGS_ON),
-    };
+  private async resume(actor: BotActor, locale: Locale, today: string): Promise<BotReply> {
+    await this.settingsService.resumeReports();
+    this.logger.log({ actorId: actor.user?.id ?? BotAccess.OWNER }, AdminSettingsMessages.RESUMED);
+    return this.showPause(locale, today);
   }
 
   private isAhead(date: string, today: string) {
     return date > today && date <= addDays(today, ADMIN_SETTINGS_DAYS_AHEAD);
-  }
-
-  private toInstant(date: string) {
-    return new Date(`${date}${ADMIN_SETTINGS_DATE_TIME_SUFFIX}`);
   }
 
   private toData(...parts: string[]) {

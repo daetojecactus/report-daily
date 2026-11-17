@@ -104,7 +104,7 @@ export class EmployeesCard {
               EMPLOYEES_REPORT_DATE_FORMAT,
             ).format(
               new Date(`${report.reportDate}${EMPLOYEES_REPORT_DATE_SUFFIX}`),
-            )} — ${card.reportStatuses[report.status]}`
+            )}: ${card.reportStatuses[report.status]}`
           : card.noReport
       }`,
     );

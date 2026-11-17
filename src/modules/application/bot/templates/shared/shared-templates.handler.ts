@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { ScreenButtonStyle } from 'src/common/channel/types/screen.enums';
 import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
 import type { ScreenButton } from 'src/common/channel/types/chat-channel.interface';
 import { escapeMarkdown } from 'src/common/utils/markdown.util';
@@ -9,13 +10,17 @@ import { ADMIN_MENU_DATA } from '../../admin/constants/admin.constants';
 import { BotSection } from '../../core/bot.decorator';
 import { BotAccess, BotNamespace } from '../../core/types/bot.enums';
 import type { BotActor, BotContext, BotHandler, BotReply } from '../../core/types/bot.interface';
-import { BOT_BUTTON_DATA_SEPARATOR } from '../../core/constants/bot.constants';
+import {
+  BOT_BUTTON_DATA_SEPARATOR,
+  BOT_BUTTON_LABEL_MAX_LENGTH,
+} from '../../core/constants/bot.constants';
 import { TemplateAddAction } from '../add/types/template-add.enums';
 import { TemplateEditAction } from '../edit/types/template-edit.enums';
 import { SHARED_TEMPLATES_BUTTON_SCHEMA } from './constants/shared-templates.constants';
 import { SharedTemplatesMessages } from './constants/shared-templates.messages';
 import { SharedTemplatesAction } from './types/shared-templates.enums';
 
+import { truncateText, withNotice } from 'src/common/utils/text.util';
 @Injectable()
 @BotSection({ access: BotAccess.ADMIN, namespace: BotNamespace.SHARED_TEMPLATES })
 export class SharedTemplatesHandler implements BotHandler {
@@ -52,14 +57,16 @@ export class SharedTemplatesHandler implements BotHandler {
     const texts = locale.sharedTemplates;
     const templates = await this.templateService.findShared();
     return this.reply(
-      [
-        ...(notice ? [notice, ''] : []),
-        texts.title(templates.length),
-        templates.length ? texts.hint : texts.empty,
-      ],
+      withNotice(
+        [texts.title(templates.length), templates.length ? texts.hint : texts.empty],
+        notice,
+      ),
       [
         ...templates.map(({ id, name }) => [
-          { text: name, data: this.toData(SharedTemplatesAction.CARD, id) },
+          {
+            text: truncateText(name, BOT_BUTTON_LABEL_MAX_LENGTH),
+            data: this.toData(SharedTemplatesAction.CARD, id),
+          },
         ]),
         [
           {
@@ -115,6 +122,7 @@ export class SharedTemplatesHandler implements BotHandler {
           {
             text: locale.templates.confirm,
             data: this.toData(SharedTemplatesAction.CONFIRM_DELETE, id),
+            style: ScreenButtonStyle.DANGER,
           },
           { text: locale.templates.cancel, data: this.toData(SharedTemplatesAction.CARD, id) },
         ],

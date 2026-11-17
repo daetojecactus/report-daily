@@ -1,5 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { ScreenButtonStyle } from 'src/common/channel/types/screen.enums';
 import { Channel } from 'src/common/channel/types/channel.enums';
 import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
 import type { ChatChannel, ChatInput } from 'src/common/channel/types/chat-channel.interface';
@@ -287,7 +288,11 @@ describe('EmployeeBindHandler', () => {
     const asked = await open(button(`bind:unbind:${USER.id}:telegram`));
     expect(asked.screen.text).toBe(texts.confirmUnbind('Telegram', NAME));
     expect(asked.screen.buttons?.[0]).toEqual([
-      { text: 'Yes, unbind', data: `bind:unbindok:${USER.id}:telegram` },
+      {
+        text: 'Yes, unbind',
+        data: `bind:unbindok:${USER.id}:telegram`,
+        style: ScreenButtonStyle.DANGER,
+      },
       expect.objectContaining({ text: 'Cancel' }),
     ]);
 

@@ -123,9 +123,12 @@ describe('Slack', () => {
       'chat.postMessage',
       (body) => body.channel === `D${memberId}`,
     );
-    expect(String(reply.text)).toContain('*Команды*');
+    expect(reply.text).toBe('Команды');
     expect(reply.blocks).toEqual(
-      expect.arrayContaining([expect.objectContaining({ type: 'section' })]),
+      expect.arrayContaining([
+        { type: 'header', text: { type: 'plain_text', text: 'Команды', emoji: true } },
+        expect.objectContaining({ type: 'section' }),
+      ]),
     );
     expect(reply.unfurl_links).toBe('false');
   });
@@ -142,7 +145,7 @@ describe('Slack', () => {
       'chat.postMessage',
       (body) => body.channel === `D${memberId}`,
     );
-    expect(String(reply.text)).toContain('*Команды*');
+    expect(reply.text).toBe('Команды');
     expect(await fakeSlackApi.requests()).toContainEqual({
       method: 'users.info',
       body: expect.objectContaining({ user: memberId, include_locale: 'true' }) as object,

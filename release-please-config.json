@@ -3,9 +3,6 @@
   "bootstrap-sha": "1ae55a0103c3d8381be3029cc442f2ff31b8209b",
   "release-type": "node",
   "include-component-in-tag": false,
-  "versioning": "prerelease",
-  "prerelease": true,
-  "prerelease-type": "beta",
   "pull-request-title-pattern": "chore(release): release ${version}",
   "packages": {
     ".": {

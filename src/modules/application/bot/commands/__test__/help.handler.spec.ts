@@ -42,11 +42,9 @@ describe('HelpHandler', () => {
     );
 
     expect(open(actor({ isOwner: true })).screen.buttons).toEqual([
-      [
-        { text: 'Report', data: 'rpt:menu' },
-        { text: 'Settings', data: 'set:menu' },
-        { text: 'Management', data: 'adm:menu' },
-      ],
+      [{ text: 'Report', data: 'rpt:menu' }],
+      [{ text: 'Settings', data: 'set:menu' }],
+      [{ text: 'Management', data: 'adm:menu' }],
     ]);
   });
 
@@ -54,7 +52,7 @@ describe('HelpHandler', () => {
     menuService.listCommands.mockReturnValue([{ command: 'start', description: 'start' }]);
 
     expect(open(actor({ user: null })).screen).toEqual({
-      text: [locale.help.title, '/start — start'].join('\n'),
+      text: [locale.help.title, '/start: start'].join('\n'),
     });
   });
 });

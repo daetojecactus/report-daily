@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.0.0-beta.1](https://github.com/daetojecactus/report-daily/compare/v1.0.0-beta.0...v1.0.0-beta.1) (2026-11-17)
+## [1.0.0-beta.1](https://github.com/daetojecactus/report-daily/releases/tag/v1.0.0-beta.1) (2026-11-17)
 
 
 ### Features

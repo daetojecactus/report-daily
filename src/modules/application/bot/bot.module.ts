@@ -18,6 +18,7 @@ import { ReportQueueModule } from 'src/modules/queue/report/report-queue.module'
 import { AccessService } from './core/access.service';
 import { AdminHandler } from './admin/admin.handler';
 import { AdminSettingsHandler } from './admin/settings/admin-settings.handler';
+import { AdminSettingsView } from './admin/settings/admin-settings.view';
 import { BroadcastHandler } from './admin/broadcast/broadcast.handler';
 import { BotService } from './bot.service';
 import { BOT_CHANNELS } from './core/constants/bot.constants';
@@ -44,6 +45,7 @@ import { TemplateAddHandler } from './templates/add/template-add.handler';
 import { TemplateEditHandler } from './templates/edit/template-edit.handler';
 import { TemplatesDraft } from './templates/templates.draft';
 import { TemplatesHandler } from './templates/templates.handler';
+import { TemplatesView } from './templates/templates.view';
 import { RouterService } from './core/router.service';
 import { SettingsHandler } from './settings/settings.handler';
 import { SettingsView } from './settings/settings.view';
@@ -75,6 +77,7 @@ import { SettingsView } from './settings/settings.view';
     CancelHandler,
     AdminHandler,
     AdminSettingsHandler,
+    AdminSettingsView,
     BroadcastHandler,
     EmployeesHandler,
     EmployeesCard,
@@ -87,6 +90,7 @@ import { SettingsView } from './settings/settings.view';
     ReportView,
     ReportDelivery,
     TemplatesHandler,
+    TemplatesView,
     TemplatesDraft,
     TemplateAddHandler,
     TemplateEditHandler,

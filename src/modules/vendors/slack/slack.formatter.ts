@@ -3,12 +3,16 @@ import type { MarkdownMarks } from 'src/common/types/markdown.interface';
 import { renderMarkdown, splitMarkdown } from 'src/common/utils/markdown.util';
 import {
   SLACK_CHANNEL_MARK,
+  SLACK_CODE_MARK,
   SLACK_COMMAND_MENTION,
   SLACK_ESCAPED_CHARACTERS,
   SLACK_ESCAPES,
   SLACK_MARKUP,
   SLACK_SPECIAL_CHARACTERS,
   SLACK_SPECIAL_MARK,
+  SLACK_TITLE_END,
+  SLACK_TITLE_PATTERN,
+  SLACK_TITLE_START,
   SLACK_UNESCAPES,
   SLACK_URL_SCHEME,
   SLACK_USER_MARK,
@@ -26,6 +30,14 @@ export class SlackFormatter {
     link: (content, url) => `<${this.escape(url)}|${content}>`,
   };
 
+  private readonly titleMarks: MarkdownMarks = {
+    text: (text) => text,
+    code: (code) => code,
+    bold: (content) => `${SLACK_TITLE_START}${content}${SLACK_TITLE_END}`,
+    italic: (content) => content,
+    link: (content) => content,
+  };
+
   format(markdown: string): string {
     return renderMarkdown(markdown, this.marks);
   }
@@ -33,8 +45,18 @@ export class SlackFormatter {
   formatCommands(markdown: string) {
     return markdown.replace(
       SLACK_COMMAND_MENTION,
-      (_, before: string, word: string) => `${before}${SLACK_SLASH_COMMAND} ${word}`,
+      (_, before: string, open: string, word: string, close: string) => {
+        const command = `${SLACK_SLASH_COMMAND} ${word}`;
+        return open || close
+          ? `${before}${open}${command}${close}`
+          : `${before}${SLACK_CODE_MARK}${command}${SLACK_CODE_MARK}`;
+      },
     );
+  }
+
+  toTitle(line: string) {
+    const match = SLACK_TITLE_PATTERN.exec(renderMarkdown(line, this.titleMarks));
+    return match ? `${match[1]}${match[2]}` : null;
   }
 
   split(markdown: string, limit = SLACK_SPLIT_LIMIT): string[] {

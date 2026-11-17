@@ -6,6 +6,7 @@ import { SettingsService } from 'src/modules/application/settings/settings.servi
 import type { User } from 'src/modules/application/user/types/user.interface';
 import { RedisService } from 'src/modules/infrastructure/redis/redis.service';
 import type { LlmPrompt } from 'src/modules/vendors/llm/types/llm.interface';
+import { LlmError } from 'src/modules/vendors/llm/llm.error';
 import { LlmService } from 'src/modules/vendors/llm/llm.service';
 import {
   AI_ANSWER_BASE_TOKENS,
@@ -14,6 +15,7 @@ import {
   AI_COLON,
   AI_COLON_WINDOW,
   AI_COMMENTS_PER_LINE,
+  AI_COMMENT_CLEANUP,
   AI_COMMENT_MAX_LENGTH,
   AI_COMMITS_PER_LINE,
   AI_CUT_MARK,
@@ -135,7 +137,11 @@ export class AiService {
       }
     } catch (error) {
       this.logger.warn(
-        { lines: lines.length, error: getErrorMessage(error).slice(0, AI_ERROR_MAX_LENGTH) },
+        {
+          lines: lines.length,
+          error: getErrorMessage(error).slice(0, AI_ERROR_MAX_LENGTH),
+          ...(error instanceof LlmError ? error.usage : null),
+        },
         AiMessages.FAILED,
       );
     }
@@ -187,11 +193,7 @@ export class AiService {
         title,
         ...(kind ? { type: kind } : {}),
         ...(commits.length ? { commits: commits.slice(0, AI_COMMITS_PER_LINE) } : {}),
-        ...(comments.length
-          ? {
-              comments: comments.slice(0, AI_COMMENTS_PER_LINE).map((comment) => this.cut(comment)),
-            }
-          : {}),
+        ...this.toComments(comments),
         ...(names ? { names: this.toNames(names) } : {}),
       })),
     });
@@ -284,8 +286,20 @@ export class AiService {
     };
   }
 
-  private cut(comment: string) {
-    const text = comment.replace(AI_SPACES_PATTERN, ' ').trim();
+  private toComments(comments: string[]) {
+    const excerpts = [
+      ...new Set(comments.map((comment) => this.toExcerpt(comment)).filter(Boolean)),
+    ].slice(0, AI_COMMENTS_PER_LINE);
+    return excerpts.length ? { comments: excerpts } : {};
+  }
+
+  private toExcerpt(comment: string) {
+    const text = AI_COMMENT_CLEANUP.reduce(
+      (result, [pattern, replacement]) => result.replace(pattern, replacement),
+      comment,
+    )
+      .replace(AI_SPACES_PATTERN, ' ')
+      .trim();
     return text.length > AI_COMMENT_MAX_LENGTH
       ? `${text.slice(0, AI_COMMENT_MAX_LENGTH)}${AI_CUT_MARK}`
       : text;

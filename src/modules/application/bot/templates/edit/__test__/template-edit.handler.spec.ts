@@ -1,6 +1,7 @@
 import { Logger } from '@nestjs/common';
 import type { ConfigService } from '@nestjs/config';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { ScreenButtonStyle } from 'src/common/channel/types/screen.enums';
 import { Channel } from 'src/common/channel/types/channel.enums';
 import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
 import type { ChatInput } from 'src/common/channel/types/chat-channel.interface';
@@ -136,7 +137,7 @@ describe('TemplateEditHandler', () => {
         text: NO_PREVIEW,
         buttons: [
           [
-            { text: 'Save', data: 'tpledit:save' },
+            { text: 'Save', data: 'tpledit:save', style: ScreenButtonStyle.PRIMARY },
             { text: 'Edit text', data: `tpledit:text:${OWN.id}` },
           ],
           [{ text: 'Cancel', data: 'tpledit:cancel' }],

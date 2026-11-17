@@ -66,6 +66,14 @@ class DuplicateHelpHandler implements BotHandler {
   }
 }
 
+@Injectable()
+@BotSection({ access: BotAccess.ADMIN, commands: [BotCommand.ADMIN], namespace: 'guarded' })
+class GuardedHandler implements BotHandler {
+  handle(): BotReply {
+    return { screen: { text: 'Management' } };
+  }
+}
+
 const DIALOG_KEY = `dialog:telegram:${EMPLOYEE_ID}`;
 
 function event(userId: string, input: ChatInput, languageCode: string | null = 'en'): ChatEvent {
@@ -215,9 +223,9 @@ describe('BotService', () => {
     expect(channel.sendScreen).toHaveBeenCalledWith(EMPLOYEE_ID, {
       text: [
         en.help.title,
-        `/start — ${en.commands.start}`,
-        `/help — ${en.commands.help}`,
-        `/cancel — ${en.commands.cancel}`,
+        `/start: ${en.commands.start}`,
+        `/help: ${en.commands.help}`,
+        `/cancel: ${en.commands.cancel}`,
       ].join('\n'),
     });
   });
@@ -377,6 +385,23 @@ describe('BotService', () => {
     expect(channel.sendScreen).toHaveBeenNthCalledWith(2, EMPLOYEE_ID, {
       text: en.cancel.nothing,
     });
+  });
+
+  it('stays silent on a command above the access level and keeps the dialog', async () => {
+    const guarded = await createModule([GuardedHandler]);
+    await guarded.init();
+    asEmployee();
+    store.set(DIALOG_KEY, JSON.stringify({ namespace: 'guarded', step: 'name', data: {} }));
+
+    await guarded.get(BotService).handle(event(EMPLOYEE_ID, command('admin')));
+
+    expect(channel.sendScreen).not.toHaveBeenCalled();
+    expect(store.has(DIALOG_KEY)).toBe(true);
+
+    asEmployee({ isAdmin: true });
+    await guarded.get(BotService).handle(event(EMPLOYEE_ID, command('admin')));
+    expect(channel.sendScreen).toHaveBeenCalledWith(EMPLOYEE_ID, { text: 'Management' });
+    await guarded.close();
   });
 
   it('drops a dialog when the admin access was removed', async () => {

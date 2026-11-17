@@ -36,7 +36,10 @@ export class ReportRewriter {
       { userId: user.id, role: user.role, gender: user.gender, language, locale },
     );
     entries.forEach(([item], position) => {
-      item.text = texts.get(String(position + 1)) ?? item.text;
+      const text = texts.get(String(position + 1));
+      if (text !== undefined) {
+        item.text = item.note ? locale.phrases.withNote(text, item.note) : text;
+      }
     });
     context.ai.used = model !== null;
     return model;

@@ -16,7 +16,7 @@ export class ActivitySummaries {
     for (const result of results.filter((item) => this.isSummarized(item))) {
       const { action, details } = result.choice.main;
       const place = this.isAcrossProjects(result)
-        ? [ACTIVITY_SUMMARY_ACROSS_KEY, this.toSharedName(result) ?? '']
+        ? [ACTIVITY_SUMMARY_ACROSS_KEY, this.toGroupName(result)]
         : [this.findProjectId(result.line)];
       const key = [...place, action, ...details.toSorted()].join('|');
       groups.set(key, [...(groups.get(key) ?? []), result]);
@@ -54,6 +54,12 @@ export class ActivitySummaries {
       result.choice.main.details.includes(ActivityDetail.DEPENDENCIES) ||
       this.toSharedName(result) !== null
     );
+  }
+
+  private toGroupName(result: ActivityResult) {
+    return result.choice.main.action === ActivityAction.DELETED
+      ? ''
+      : (this.toSharedName(result) ?? '');
   }
 
   private toSharedName({ line, choice }: ActivityResult) {

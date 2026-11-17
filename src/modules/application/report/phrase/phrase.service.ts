@@ -18,6 +18,7 @@ import {
   PHRASE_CONTEXTS,
   PHRASE_COUNTS,
   PHRASE_NAME_FACTS,
+  PHRASE_ACROSS_PLURALS,
   PHRASE_NAMES,
   PHRASE_NOTED_ACTIONS,
   PHRASE_SUMMARIES,
@@ -72,9 +73,10 @@ export class PhraseService {
     if (projects) {
       const titles = new Set(results.map(({ line }) => this.toTitle(line)));
       const [title] = titles;
+      const action = (titles.size > 1 && PHRASE_ACROSS_PLURALS.get(key)) || key;
       return locale.phrases.summaryLine(
         [
-          this.toGendered(locale.phrases.actions[key], gender),
+          this.toGendered(locale.phrases.actions[action], gender),
           ...(titles.size === 1 && title ? [locale.phrases.quote(title)] : []),
           locale.phrases.inProjects(projects.length),
         ].join(' '),
@@ -95,6 +97,19 @@ export class PhraseService {
         results.map(({ line }) => this.toReference(locale, line)),
       ),
     );
+  }
+
+  summarizeSame(parts: PhraseParts, projects: string[], locale: Locale) {
+    const texts = locale.phrases;
+    const text = texts.summaryLine(
+      [
+        parts.actionText,
+        ...(parts.title ? [texts.quote(parts.title)] : []),
+        texts.inProjects(projects.length),
+      ].join(' '),
+      this.toList(locale, projects),
+    );
+    return parts.note ? texts.withNote(text, parts.note) : text;
   }
 
   private toList(locale: Locale, items: string[]) {

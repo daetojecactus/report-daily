@@ -64,6 +64,11 @@ export interface EmployeesLocale {
     roleChanged: (name: string, role: string) => string;
     blocked: (name: string) => string;
     unblocked: (name: string) => string;
+    confirmBlock: (name: string) => string;
+    confirmUnblock: (name: string) => string;
+    confirmReport: (name: string) => string;
+    confirmMakeAdmin: (name: string) => string;
+    confirmRemoveAdmin: (name: string) => string;
     confirmDelete: (name: string) => string;
     deleted: (name: string) => string;
     self: string;

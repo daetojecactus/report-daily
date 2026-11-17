@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { SourceActionKind, SourceRefType } from 'src/modules/application/source/types/source.enums';
+import {
+  SourceActionKind,
+  SourceEventAction,
+  SourceRefType,
+} from 'src/modules/application/source/types/source.enums';
 import type { GroupedIssue } from 'src/modules/application/source/types/source-day.interface';
 import type { SourceFact } from 'src/modules/application/source/types/source.interface';
 import { JobRole } from 'src/modules/application/user/types/user.enums';
@@ -13,6 +17,7 @@ import {
   fact,
   ME,
   pushEvent,
+  refEvent,
 } from './activity.fixture';
 
 const SPRINT = '2026-08-03 – 2026-08-16';
@@ -172,6 +177,34 @@ describe('ActivitySummaries', () => {
       ['project-1', 'project-2', 'project-3'],
     ]);
     expect(collect(['login', 'cart', 'menu'])).toEqual([]);
+  });
+
+  it('sums up deleted branches in several projects whatever their names', () => {
+    const projects = [1, 2, 3].map((id) => ({ id, name: `project-${id}`, path: '', webUrl: '' }));
+    const service = createService();
+    const results = service.classify(
+      {
+        projects,
+        issues: [],
+        standaloneMergeRequests: [],
+        standalonePushes: ['restore-dev-1a', 'restore-dev-2b', 'restore-dev-3c'].map(
+          (ref, index) => ({
+            projectId: index + 1,
+            ref,
+            refType: SourceRefType.BRANCH,
+            mainBranch: false,
+            events: [refEvent(at(11), SourceEventAction.DELETED)],
+          }),
+        ),
+        standaloneEvents: [],
+      },
+      { username: ME, role: JobRole.DEVELOPER },
+      createIndex(),
+    );
+
+    expect(service.summarize(results, projects).map(({ projects: names }) => names)).toEqual([
+      ['project-1', 'project-2', 'project-3'],
+    ]);
   });
 
   it('sums up estimates and moves too, but never code or comments', () => {

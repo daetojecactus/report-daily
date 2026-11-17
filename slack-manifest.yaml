@@ -21,7 +21,6 @@ oauth_config:
       - chat:write
       - commands
       - im:history
-      - im:write
       - users:read
 settings:
   event_subscriptions:

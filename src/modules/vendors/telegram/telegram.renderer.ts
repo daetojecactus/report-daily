@@ -5,6 +5,11 @@ import type {
   ScreenUserPicker,
 } from 'src/common/channel/types/chat-channel.interface';
 import { TELEGRAM_USER_PICKER_REQUEST_ID } from './constants/telegram.constants';
+import {
+  TELEGRAM_MARKUP_PATTERN,
+  TELEGRAM_SCREEN_WIDTH,
+  TELEGRAM_WIDTH_FILLER,
+} from './constants/telegram-format.constants';
 import { TelegramParseMode } from './types/telegram.enums';
 import { TelegramFormatter } from './telegram.formatter';
 import type {
@@ -18,7 +23,7 @@ export class TelegramRenderer {
   constructor(private readonly telegramFormatter: TelegramFormatter) {}
 
   renderMessages(screen: Screen): TelegramMessageContent[] {
-    const parts = this.renderParts(screen);
+    const parts = this.renderParts(this.toWide(screen));
     const last = parts[parts.length - 1];
     if (screen.userPicker) {
       last.reply_markup = this.toUserPicker(screen.userPicker);
@@ -31,7 +36,7 @@ export class TelegramRenderer {
   }
 
   renderEdit(screen: Screen): TelegramMessageContent | null {
-    const parts = this.renderParts(screen);
+    const parts = this.renderParts(this.toWide(screen));
     if (parts.length > 1) {
       return null;
     }
@@ -42,12 +47,23 @@ export class TelegramRenderer {
     return content;
   }
 
-  private renderParts(screen: Screen): TelegramMessageContent[] {
-    return this.telegramFormatter.split(screen.text).map((part) => ({
+  private renderParts(text: string): TelegramMessageContent[] {
+    return this.telegramFormatter.split(text).map((part) => ({
       text: this.telegramFormatter.format(part),
       parse_mode: TelegramParseMode.HTML,
       link_preview_options: { is_disabled: true },
     }));
+  }
+
+  private toWide({ text, buttons, userPicker }: Screen) {
+    if (!buttons?.length || userPicker) {
+      return text;
+    }
+    const lines = text.split('\n');
+    const last = lines.length - 1;
+    const width = lines[last].replace(TELEGRAM_MARKUP_PATTERN, '').length;
+    lines[last] += TELEGRAM_WIDTH_FILLER.repeat(Math.max(0, TELEGRAM_SCREEN_WIDTH - width));
+    return lines.join('\n');
   }
 
   private toInlineKeyboard(buttons: ScreenButton[][]): TelegramInlineKeyboardMarkup {

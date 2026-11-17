@@ -153,8 +153,8 @@ describe('Telegram bot', () => {
     await fakeBotApi.pushUpdate(privateMessage(telegramId, '/help'));
 
     const { text } = await replyTo(telegramId);
-    expect(text).toContain(`/start — ${en.commands.start}`);
-    expect(text).toContain(`/cancel — ${en.commands.cancel}`);
+    expect(text).toContain(`/start: ${en.commands.start}`);
+    expect(text).toContain(`/cancel: ${en.commands.cancel}`);
     expect(text).toContain(en.help.privacy);
   });
 
@@ -258,7 +258,9 @@ describe('Telegram bot', () => {
     expect(
       await fakeBotApi.waitForRequest(
         'sendMessage',
-        (body) => body.chat_id === ownerChat && body.text === '<b>Management</b>',
+        (body) =>
+          body.chat_id === ownerChat &&
+          String(body.text).startsWith('<b>Management</b>\nEmployees: '),
       ),
     ).toMatchObject({
       reply_markup: {
@@ -293,7 +295,7 @@ describe('Telegram bot', () => {
       inline_keyboard: [
         [
           {
-            text: `${tag} Admin · Developer`,
+            text: `${tag} Ad… · Developer`,
             callback_data: `emp:card:${user.id}:0`,
           },
         ],
@@ -311,12 +313,20 @@ describe('Telegram bot', () => {
     expect(card.text).toContain('Telegram: connected');
   });
 
-  it('forbids /admin to an employee who is not an admin', async () => {
+  it('stays silent on /admin from an employee who is not an admin', async () => {
     const { telegramId } = await createEmployee();
 
     await fakeBotApi.pushUpdate(privateMessage(telegramId, '/admin'));
+    await fakeBotApi.pushUpdate(privateMessage(telegramId, '/help'));
 
-    expect((await replyTo(telegramId)).text).toBe(en.bot.forbidden);
+    const help = await replyTo(telegramId);
+    expect(help.text).toMatch(/^<b>Commands<\/b>/);
+    expect(help.text).not.toContain('/admin');
+    expect(
+      (await fakeBotApi.requests('sendMessage')).filter(
+        ({ body }) => body.chat_id === String(telegramId),
+      ),
+    ).toHaveLength(1);
   });
 
   it('opens /admin with the shared templates for an admin', async () => {
@@ -487,7 +497,13 @@ describe('Telegram bot', () => {
       hasActivity: false,
     });
 
-    await fakeBotApi.pushUpdate(buttonPress(TEST_OWNER_TELEGRAM_ID, `mng:report:${user.id}`, 1951));
+    await fakeBotApi.pushUpdate(buttonPress(TEST_OWNER_TELEGRAM_ID, `mng:report:${user.id}`, 1950));
+    expect(
+      (await fakeBotApi.waitForRequest('editMessageText', (body) => body.message_id === 1950)).text,
+    ).toContain(`Build and send <b>${user.displayName}</b> the report of today?`);
+    await fakeBotApi.pushUpdate(
+      buttonPress(TEST_OWNER_TELEGRAM_ID, `mng:report:${user.id}:ok`, 1951),
+    );
 
     expect(
       (await fakeBotApi.waitForRequest('editMessageText', (body) => body.message_id === 1951)).text,
@@ -510,11 +526,14 @@ describe('Telegram bot', () => {
       return fakeBotApi.waitForRequest('editMessageText', (body) => body.message_id === messageId);
     };
 
-    expect((await press(`mng:block:${user.id}`, 901)).text).toContain('Employee blocked');
+    expect((await press(`mng:block:${user.id}`, 900)).text).toContain(
+      `Block <b>${user.displayName}</b>?`,
+    );
+    expect((await press(`mng:block:${user.id}:ok`, 901)).text).toContain('Employee blocked');
     await fakeBotApi.pushUpdate(privateMessage(telegramId, '/start'));
     expect((await replyTo(telegramId)).text).toContain(`<code>${telegramId}</code>`);
 
-    expect((await press(`mng:unblock:${user.id}`, 902)).text).toContain('Employee unblocked');
+    expect((await press(`mng:unblock:${user.id}:ok`, 902)).text).toContain('Employee unblocked');
     const [unblocked] = await db.select().from(users).where(eq(users.id, user.id));
     expect(unblocked.status).toBe(UserStatus.ACTIVE);
 
@@ -529,7 +548,13 @@ describe('Telegram bot', () => {
     });
     const chatId = String(telegramId);
 
-    await fakeBotApi.pushUpdate(buttonPress(TEST_OWNER_TELEGRAM_ID, `mng:admin:${user.id}`, 1001));
+    await fakeBotApi.pushUpdate(buttonPress(TEST_OWNER_TELEGRAM_ID, `mng:admin:${user.id}`, 1000));
+    expect(
+      (await fakeBotApi.waitForRequest('editMessageText', (body) => body.message_id === 1000)).text,
+    ).toContain(`Make <b>${user.displayName}</b> an admin?`);
+    await fakeBotApi.pushUpdate(
+      buttonPress(TEST_OWNER_TELEGRAM_ID, `mng:admin:${user.id}:ok`, 1001),
+    );
     expect(
       (await fakeBotApi.waitForRequest('editMessageText', (body) => body.message_id === 1001)).text,
     ).toContain('is an admin now');
@@ -550,14 +575,24 @@ describe('Telegram bot', () => {
     expect((await replyTo(telegramId)).text).toBe('<b>Management</b>');
 
     await fakeBotApi.pushUpdate(
-      buttonPress(TEST_OWNER_TELEGRAM_ID, `mng:noadmin:${user.id}`, 1002),
+      buttonPress(TEST_OWNER_TELEGRAM_ID, `mng:noadmin:${user.id}:ok`, 1002),
     );
     await fakeBotApi.waitForRequest('editMessageText', (body) => body.message_id === 1002);
     await fakeBotApi.pushUpdate(privateMessage(telegramId, '/admin'));
-    await fakeBotApi.waitForRequest(
-      'sendMessage',
-      (body) => body.chat_id === chatId && body.text === en.bot.forbidden,
-    );
+    await fakeBotApi.pushUpdate(privateMessage(telegramId, '/help'));
+    expect(
+      (
+        await fakeBotApi.waitForRequest(
+          'sendMessage',
+          (body) => body.chat_id === chatId && String(body.text).startsWith('<b>Commands</b>'),
+        )
+      ).text,
+    ).not.toContain('/admin');
+    expect(
+      (await fakeBotApi.requests('sendMessage')).filter(
+        ({ body }) => body.chat_id === chatId && body.text === en.bot.forbidden,
+      ),
+    ).toEqual([]);
   });
 
   it('keeps employee management for owners only', async () => {
@@ -576,9 +611,12 @@ describe('Telegram bot', () => {
     const chatId = String(telegramId);
 
     await fakeBotApi.pushUpdate(privateMessage(telegramId, '/settings'));
-    expect((await replyTo(telegramId)).text).toContain('<b>My settings</b>');
+    expect((await replyTo(telegramId)).text).toMatch(/^<b>Settings<\/b>\nLanguage: English\n/);
+    expect((await press(telegramId, 'set:general', 1100)).text).toContain('Language: English');
 
-    expect((await press(telegramId, 'set:lang:ru', 1101)).text).toContain('<b>Мои настройки</b>');
+    expect((await press(telegramId, 'set:lang:ru', 1101)).text).toContain(
+      '<b>Основные настройки</b>',
+    );
     const menu = await fakeBotApi.waitForRequest(
       'setMyCommands',
       (body) => (body.scope as { chat_id?: string }).chat_id === chatId,
@@ -609,12 +647,18 @@ describe('Telegram bot', () => {
 
     await fakeBotApi.pushUpdate(privateMessage(telegramId, '/settings'));
     const menu = await replyTo(telegramId);
-    expect(menu.text).toContain('Gender: male');
-    expect(JSON.stringify(menu.reply_markup)).not.toContain('set:ai');
+    expect(JSON.stringify(menu.reply_markup)).toContain('Reports');
+    expect(JSON.stringify(menu.reply_markup)).not.toContain('Reports and AI');
+    expect((await press(telegramId, 'set:reports', 1200)).text).toBe(
+      ['<b>Reports</b>', 'Scheduled report: yes'].join('\n'),
+    );
 
-    expect((await press(telegramId, 'set:ai:off', 1201)).text).toBe(en.bot.expired);
+    expect((await press(telegramId, 'set:ai:off:ok', 1201)).text).toBe(en.bot.expired);
     expect((await press(telegramId, 'set:gender:female', 1203)).text).toContain('Gender: female');
-    await press(telegramId, 'set:sched:off', 1204);
+    expect((await press(telegramId, 'set:sched:off', 1204)).text).toContain('Now: yes');
+    expect((await press(telegramId, 'set:sched:off:ok', 1205)).text).toContain(
+      'Scheduled report: no',
+    );
 
     const [stored] = await db.select().from(users).where(eq(users.id, user.id));
     expect(stored).toMatchObject({
@@ -653,7 +697,7 @@ describe('Telegram bot', () => {
     await press(telegramId, 'trtadd:role:all', 1403);
     await press(telegramId, 'trtadd:dim:priority', 1404);
     expect((await press(telegramId, 'trtadd:val:low', 1405)).text).toBe(
-      `Done: <b>${label}</b> for everyone — Priority: Low.`,
+      `Done: <b>${label}</b> for everyone: Priority: Low.`,
     );
 
     expect(
@@ -696,7 +740,7 @@ describe('Telegram bot', () => {
     );
     await press(telegramId, `trtmng:open:${mapping.id}`, 1502);
     expect((await press(telegramId, `trtmng:set:${mapping.id}:1`, 1503)).text).toBe(
-      `Done: <b>${label}</b> for everyone — now Priority: High.`,
+      `Done: <b>${label}</b> for everyone is now Priority: High.`,
     );
     expect(await findStored()).toMatchObject([{ value: Priority.HIGH }]);
 
@@ -712,20 +756,24 @@ describe('Telegram bot', () => {
 
     expect((await press(telegramId, 'aset:menu', 2001)).text).toContain(en.adminSettings.reportsOn);
     expect((await press(telegramId, 'aset:forever', 2002)).text).toContain(
-      en.adminSettings.pausedForever,
+      en.adminSettings.confirmForever,
+    );
+    expect((await db.select().from(settings)).some((row) => row.reportsPaused)).toBe(false);
+    expect((await press(telegramId, 'aset:forever:ok', 2005)).text).toContain(
+      en.adminSettings.now(en.adminSettings.pausedForever),
     );
     expect(await db.select().from(settings)).toMatchObject([
       { reportsPaused: true, reportsPausedUntil: null },
     ]);
-    expect((await press(telegramId, 'aset:resume', 2003)).text).toContain(
-      en.adminSettings.reportsOn,
+    expect((await press(telegramId, 'aset:resume:ok', 2003)).text).toContain(
+      en.adminSettings.now(en.adminSettings.reportsOn),
     );
   });
 
   it('keeps the settings closed to an admin', async () => {
     const { telegramId } = await createEmployee({ isAdmin: true });
 
-    expect((await press(telegramId, 'aset:forever', 2004)).text).toBe(en.bot.forbidden);
+    expect((await press(telegramId, 'aset:forever:ok', 2004)).text).toBe(en.bot.forbidden);
     expect(await db.select().from(settings)).toMatchObject([{ reportsPaused: false }]);
   });
 

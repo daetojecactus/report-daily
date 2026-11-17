@@ -1,5 +1,6 @@
 import type { ConfigService } from '@nestjs/config';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { ScreenButtonStyle } from 'src/common/channel/types/screen.enums';
 import { Channel } from 'src/common/channel/types/channel.enums';
 import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
 import type { ChatChannel, ChatInput } from 'src/common/channel/types/chat-channel.interface';
@@ -16,6 +17,8 @@ import type { BotDialog } from '../../core/types/bot.interface';
 import type { MenuService } from '../../core/menu.service';
 import { createEmployee } from '../../__test__/bot.fixture';
 import type { AiService } from 'src/modules/application/ai/ai.service';
+import type { TemplateService } from 'src/modules/application/report/template/template.service';
+import { TemplatesView } from '../../templates/templates.view';
 import { SettingsHandler } from '../settings.handler';
 import { SettingsView } from '../settings.view';
 
@@ -25,18 +28,10 @@ const ru = i18nService.getLocale(Language.RU);
 const FOUND = createEmployee();
 const USER = FOUND.user;
 const TIME_ZONE_DIALOG: BotDialog = { namespace: 'set', step: 'tz', data: {} };
+const COMMAND: ChatInput = { type: ChatInputType.COMMAND, command: 'settings' };
 const MENU_BUTTONS = [
-  [
-    { text: 'Language', data: 'set:lang' },
-    { text: 'Report time', data: 'set:time' },
-  ],
-  [
-    { text: 'Time zone', data: 'set:tz' },
-    { text: 'Gender', data: 'set:gender' },
-  ],
-  [{ text: 'Scheduled report: yes', data: 'set:sched:off' }],
-  [{ text: 'AI: yes', data: 'set:ai:off' }],
-  [{ text: 'Data in AI: yes', data: 'set:aidata:off' }],
+  [{ text: 'General', data: 'set:general' }],
+  [{ text: 'Reports and AI', data: 'set:reports' }],
   [{ text: 'Report template', data: 'tpl:menu' }],
 ];
 
@@ -57,6 +52,7 @@ describe('SettingsHandler', () => {
   };
   const menuService = { syncEmployee: vi.fn() };
   const aiService = { isEnabled: vi.fn<AiService['isEnabled']>(() => true) };
+  const templateService = { findAvailable: vi.fn<TemplateService['findAvailable']>() };
   const handler = new SettingsHandler(
     userService as unknown as UserService,
     channelService as unknown as ChannelService,
@@ -65,6 +61,8 @@ describe('SettingsHandler', () => {
     new SettingsView({ get: () => 'Asia/Almaty' } as unknown as ConfigService<AppEnvs, true>),
     [{ channel: Channel.TELEGRAM }, { channel: Channel.SLACK }] as ChatChannel[],
     aiService as unknown as AiService,
+    templateService as unknown as TemplateService,
+    new TemplatesView(),
   );
 
   function open(input: ChatInput, dialog: BotDialog | null = null, user: User | null = USER) {
@@ -85,23 +83,28 @@ describe('SettingsHandler', () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
+    aiService.isEnabled.mockReturnValue(true);
+    templateService.findAvailable.mockResolvedValue([]);
     channelService.findByUser.mockResolvedValue([FOUND.channel]);
     channelService.findBound.mockResolvedValue([FOUND.channel]);
   });
 
-  it('shows the current settings on /settings', async () => {
-    expect(await open({ type: ChatInputType.COMMAND, command: 'settings' })).toEqual({
+  it('opens the overview of the settings with the sections on /settings', async () => {
+    expect(await open(COMMAND)).toEqual({
       screen: {
         text: [
-          '**My settings**',
+          '**Settings**',
           'Language: English',
           'Report time: 18:00',
           'Time zone: `Asia/Almaty`, default',
           'Gender: male',
           '',
-          '**Scheduled report** — send the report automatically at your time on days with actions; `/report` always works',
-          '**AI** — improve the wording of report lines with AI',
-          '**Data in AI** — send the titles of my commits and excerpts of my comments to AI',
+          'Scheduled report: yes',
+          'AI: yes',
+          'Data in AI: yes',
+          '',
+          'Delivery channels: Telegram',
+          'Report template: Standard',
         ].join('\n'),
         buttons: MENU_BUTTONS,
       },
@@ -109,20 +112,108 @@ describe('SettingsHandler', () => {
     });
   });
 
+  it('names the chosen template and the receiving channels in the overview', async () => {
+    const SLACK = { ...FOUND.channel, channel: Channel.SLACK, externalId: 'U0ANNA01' };
+    channelService.findBound.mockResolvedValue([FOUND.channel, SLACK]);
+    templateService.findAvailable.mockResolvedValue([
+      { id: 'template-1', name: 'Weekly', ownerId: null },
+    ] as Awaited<ReturnType<TemplateService['findAvailable']>>);
+
+    const { screen } = await open(COMMAND, null, { ...USER, templateId: 'template-1' });
+
+    expect(screen.text).toContain('Delivery channels: Telegram, Slack');
+    expect(screen.text).toContain('Report template: Weekly (shared)');
+  });
+
+  it('shows the general settings with their values and a way back', async () => {
+    expect(await open(button('set:general'))).toEqual({
+      screen: {
+        text: [
+          '**General**',
+          'Language: English',
+          'Report time: 18:00',
+          'Time zone: `Asia/Almaty`, default',
+          'Gender: male',
+        ].join('\n'),
+        buttons: [
+          [
+            { text: 'Language', data: 'set:lang' },
+            { text: 'Report time', data: 'set:time' },
+          ],
+          [
+            { text: 'Time zone', data: 'set:tz' },
+            { text: 'Gender', data: 'set:gender' },
+          ],
+          [{ text: 'Back', data: 'set:menu' }],
+        ],
+      },
+      dialog: null,
+    });
+  });
+
+  it('shows the report switches with their values', async () => {
+    expect(
+      await open(button('set:reports'), null, { ...USER, aiEnabled: false, aiDataOptOut: true }),
+    ).toEqual({
+      screen: {
+        text: ['**Reports and AI**', 'Scheduled report: yes', 'AI: no', 'Data in AI: no'].join(
+          '\n',
+        ),
+        buttons: [
+          [{ text: 'Scheduled report', data: 'set:sched:off' }],
+          [{ text: 'AI', data: 'set:ai:on' }],
+          [{ text: 'Data in AI', data: 'set:aidata:on' }],
+          [{ text: 'Back', data: 'set:menu' }],
+        ],
+      },
+      dialog: null,
+    });
+  });
+
   it('shows no AI switches and refuses them while AI is not set up', async () => {
-    aiService.isEnabled.mockReturnValueOnce(false);
-    const { screen } = await open({ type: ChatInputType.COMMAND, command: 'settings' });
-
-    expect(screen.text).not.toContain('AI');
-    expect(screen.buttons?.flat().map(({ data }) => data)).not.toEqual(
-      expect.arrayContaining(['set:ai:off']),
-    );
-
     aiService.isEnabled.mockReturnValue(false);
-    expect(await open(button('set:ai:off'))).toEqual({ screen: { text: en.bot.expired } });
+
+    expect((await open(COMMAND)).screen.buttons?.[1]).toEqual([
+      { text: 'Reports', data: 'set:reports' },
+    ]);
+    expect((await open(button('set:reports'))).screen.text).toBe(
+      ['**Reports**', 'Scheduled report: yes'].join('\n'),
+    );
+    expect(await open(button('set:ai:off:ok'))).toEqual({ screen: { text: en.bot.expired } });
     expect(await open(button('set:aidata:off'))).toEqual({ screen: { text: en.bot.expired } });
     expect(userService.updateSettings).not.toHaveBeenCalled();
-    aiService.isEnabled.mockReturnValue(true);
+  });
+
+  it('asks before a switch and stores it only when confirmed', async () => {
+    expect(await open(button('set:ai:off'))).toEqual({
+      screen: {
+        text: ['**AI**', en.settings.ai.description, 'Now: yes'].join('\n'),
+        buttons: [
+          [
+            { text: 'Turn off', data: 'set:ai:off:ok', style: ScreenButtonStyle.DANGER },
+            { text: 'Back', data: 'set:reports' },
+          ],
+        ],
+      },
+      dialog: null,
+    });
+    expect(userService.updateSettings).not.toHaveBeenCalled();
+  });
+
+  it.each<[string, UserSettingsUpdate]>([
+    ['set:sched:off:ok', { scheduleEnabled: false }],
+    ['set:sched:on:ok', { scheduleEnabled: true }],
+    ['set:ai:off:ok', { aiEnabled: false }],
+    ['set:ai:on:ok', { aiEnabled: true }],
+    ['set:aidata:off:ok', { aiDataOptOut: true }],
+    ['set:aidata:on:ok', { aiDataOptOut: false }],
+  ])('stores the confirmed switch %s and returns to the reports', async (data, update) => {
+    userService.updateSettings.mockResolvedValue({ ...USER, ...update });
+
+    const { screen } = await open(button(data));
+
+    expect(userService.updateSettings).toHaveBeenCalledWith(USER.id, update);
+    expect(screen.text.split('\n')[0]).toBe('**Reports and AI**');
   });
 
   it('switches the language, the screen and the menu', async () => {
@@ -135,14 +226,17 @@ describe('SettingsHandler', () => {
       language: Language.RU,
     });
     expect(menuService.syncEmployee).toHaveBeenCalledWith(updated, [FOUND.channel]);
-    expect(screen.text.split('\n').slice(0, 2)).toEqual([ru.settings.title, 'Язык: Русский']);
+    expect(screen.text.split('\n').slice(0, 2)).toEqual([
+      `**${ru.settings.general}**`,
+      'Язык: Русский',
+    ]);
   });
 
-  it('offers the languages', async () => {
+  it('offers the languages with a way back to the general settings', async () => {
     expect((await open(button('set:lang'))).screen.buttons).toEqual([
       [{ text: 'Русский', data: 'set:lang:ru' }],
       [{ text: 'English', data: 'set:lang:en' }],
-      [{ text: 'Back', data: 'set:menu' }],
+      [{ text: 'Back', data: 'set:general' }],
     ]);
   });
 
@@ -157,6 +251,7 @@ describe('SettingsHandler', () => {
         data: `set:time:${hour}`,
       })),
     );
+    expect(screen.buttons?.[4]).toEqual([{ text: 'Back', data: 'set:general' }]);
   });
 
   it('offers the minutes of an hour', async () => {
@@ -169,17 +264,12 @@ describe('SettingsHandler', () => {
     ]);
   });
 
-  it('saves the report time', async () => {
-    userService.updateSettings.mockResolvedValue({
-      ...USER,
-      reportTime: '09:30:00',
-    });
+  it('saves the report time and returns to the general settings', async () => {
+    userService.updateSettings.mockResolvedValue({ ...USER, reportTime: '09:30:00' });
 
     const { screen } = await open(button('set:time:09:30'));
 
-    expect(userService.updateSettings).toHaveBeenCalledWith(USER.id, {
-      reportTime: '09:30',
-    });
+    expect(userService.updateSettings).toHaveBeenCalledWith(USER.id, { reportTime: '09:30' });
     expect(screen.text).toContain('Report time: 09:30');
   });
 
@@ -189,7 +279,7 @@ describe('SettingsHandler', () => {
         text: en.settings.timeZonePrompt('`Asia/Almaty`, default'),
         buttons: [
           [{ text: 'Default: Asia/Almaty', data: 'set:tz:default' }],
-          [{ text: 'Back', data: 'set:menu' }],
+          [{ text: 'Back', data: 'set:general' }],
         ],
       },
       dialog: TIME_ZONE_DIALOG,
@@ -197,10 +287,7 @@ describe('SettingsHandler', () => {
   });
 
   it('saves a typed time zone in its canonical form', async () => {
-    userService.updateSettings.mockResolvedValue({
-      ...USER,
-      timezone: 'Europe/Moscow',
-    });
+    userService.updateSettings.mockResolvedValue({ ...USER, timezone: 'Europe/Moscow' });
 
     const reply = await open(
       { type: ChatInputType.TEXT, text: ' europe/moscow ' },
@@ -227,41 +314,7 @@ describe('SettingsHandler', () => {
 
     await open(button('set:tz:default'));
 
-    expect(userService.updateSettings).toHaveBeenCalledWith(USER.id, {
-      timezone: null,
-    });
-  });
-
-  it('shows the switched off values with the buttons to switch them on', async () => {
-    const { screen } = await open({ type: ChatInputType.COMMAND, command: 'settings' }, null, {
-      ...USER,
-      scheduleEnabled: false,
-      aiEnabled: false,
-      aiDataOptOut: true,
-    });
-
-    expect(screen.buttons?.slice(2)).toEqual([
-      [{ text: 'Scheduled report: no', data: 'set:sched:on' }],
-      [{ text: 'AI: no', data: 'set:ai:on' }],
-      [{ text: 'Data in AI: no', data: 'set:aidata:on' }],
-      [{ text: 'Report template', data: 'tpl:menu' }],
-    ]);
-  });
-
-  it.each<[string, UserSettingsUpdate]>([
-    ['set:sched:off', { scheduleEnabled: false }],
-    ['set:sched:on', { scheduleEnabled: true }],
-    ['set:ai:off', { aiEnabled: false }],
-    ['set:ai:on', { aiEnabled: true }],
-    ['set:aidata:off', { aiDataOptOut: true }],
-    ['set:aidata:on', { aiDataOptOut: false }],
-  ])('stores the switch %s', async (data, update) => {
-    userService.updateSettings.mockResolvedValue({ ...USER, ...update });
-
-    const { screen } = await open(button(data));
-
-    expect(userService.updateSettings).toHaveBeenCalledWith(USER.id, update);
-    expect(screen.text.split('\n')[0]).toBe(en.settings.title);
+    expect(userService.updateSettings).toHaveBeenCalledWith(USER.id, { timezone: null });
   });
 
   it('offers the genders', async () => {
@@ -273,7 +326,7 @@ describe('SettingsHandler', () => {
             { text: 'male', data: 'set:gender:male' },
             { text: 'female', data: 'set:gender:female' },
           ],
-          [{ text: 'Back', data: 'set:menu' }],
+          [{ text: 'Back', data: 'set:general' }],
         ],
       },
       dialog: null,
@@ -281,16 +334,11 @@ describe('SettingsHandler', () => {
   });
 
   it('saves the gender', async () => {
-    userService.updateSettings.mockResolvedValue({
-      ...USER,
-      gender: Gender.FEMALE,
-    });
+    userService.updateSettings.mockResolvedValue({ ...USER, gender: Gender.FEMALE });
 
     const { screen } = await open(button('set:gender:female'));
 
-    expect(userService.updateSettings).toHaveBeenCalledWith(USER.id, {
-      gender: Gender.FEMALE,
-    });
+    expect(userService.updateSettings).toHaveBeenCalledWith(USER.id, { gender: Gender.FEMALE });
     expect(screen.text).toContain('Gender: female');
   });
 
@@ -301,48 +349,66 @@ describe('SettingsHandler', () => {
     'set:tz:moscow',
     'set:ai',
     'set:aidata:yes',
+    'set:ai:off:yes',
     'set:gender:other',
     'set:preset',
     'set:empty:off',
     'set:leave',
     'set:other',
   ])('answers the outdated button %s', async (data) => {
-    expect((await open(button(data))).screen).toEqual({
-      text: en.bot.expired,
-    });
+    expect((await open(button(data))).screen).toEqual({ text: en.bot.expired });
   });
 
   describe('with Telegram and Slack', () => {
     const SLACK = { ...FOUND.channel, channel: Channel.SLACK, externalId: 'U0ANNA01' };
-    const CHANNELS_LINE = `**${en.settings.channels.name}** — ${en.settings.channels.description}`;
 
-    it('shows a switch for each channel', async () => {
+    it('offers the delivery channels only with two of them', async () => {
+      expect((await open(COMMAND)).screen.buttons).toEqual(MENU_BUTTONS);
+
       channelService.findBound.mockResolvedValue([FOUND.channel, SLACK]);
-
-      const { screen } = await open({ type: ChatInputType.COMMAND, command: 'settings' });
-
+      expect((await open(COMMAND)).screen.buttons).toContainEqual([
+        { text: 'Delivery channels', data: 'set:channels' },
+      ]);
       expect(channelService.findBound).toHaveBeenCalledWith(USER.id, [
         Channel.TELEGRAM,
         Channel.SLACK,
       ]);
-      expect(screen.text).toContain(CHANNELS_LINE);
-      expect(screen.buttons).toContainEqual([
-        { text: 'Telegram: yes', data: 'set:recv:telegram:off' },
-        { text: 'Slack: yes', data: 'set:recv:slack:off' },
-      ]);
     });
 
-    it('hides the channels with only one channel', async () => {
-      const { screen } = await open({ type: ChatInputType.COMMAND, command: 'settings' });
+    it('shows each channel with its value', async () => {
+      channelService.findBound.mockResolvedValue([FOUND.channel, { ...SLACK, receives: false }]);
 
-      expect(screen.text).not.toContain(CHANNELS_LINE);
-      expect(screen.buttons).toEqual(MENU_BUTTONS);
+      expect((await open(button('set:channels'))).screen).toEqual({
+        text: ['**Delivery channels**', 'Telegram: yes', 'Slack: no'].join('\n'),
+        buttons: [
+          [
+            { text: 'Telegram', data: 'set:recv:telegram:off' },
+            { text: 'Slack', data: 'set:recv:slack:on' },
+          ],
+          [{ text: 'Back', data: 'set:menu' }],
+        ],
+      });
+    });
+
+    it('asks before switching a channel', async () => {
+      channelService.findBound.mockResolvedValue([FOUND.channel, SLACK]);
+
+      expect((await open(button('set:recv:slack:off'))).screen).toEqual({
+        text: ['**Slack**', en.settings.channelDescription, 'Now: yes'].join('\n'),
+        buttons: [
+          [
+            { text: 'Turn off', data: 'set:recv:slack:off:ok', style: ScreenButtonStyle.DANGER },
+            { text: 'Back', data: 'set:channels' },
+          ],
+        ],
+      });
+      expect(channelService.updateReceiving).not.toHaveBeenCalled();
     });
 
     it('switches a channel off and on again', async () => {
       channelService.findBound.mockResolvedValue([FOUND.channel, SLACK]);
 
-      await open(button('set:recv:slack:off'));
+      await open(button('set:recv:slack:off:ok'));
       expect(channelService.updateReceiving).toHaveBeenLastCalledWith(
         USER.id,
         [Channel.TELEGRAM, Channel.SLACK],
@@ -350,7 +416,7 @@ describe('SettingsHandler', () => {
       );
 
       channelService.findBound.mockResolvedValue([FOUND.channel, { ...SLACK, receives: false }]);
-      await open(button('set:recv:slack:on'));
+      await open(button('set:recv:slack:on:ok'));
       expect(channelService.updateReceiving).toHaveBeenLastCalledWith(
         USER.id,
         [Channel.TELEGRAM, Channel.SLACK],
@@ -361,14 +427,12 @@ describe('SettingsHandler', () => {
     it('keeps the last channel on', async () => {
       channelService.findBound.mockResolvedValue([FOUND.channel, { ...SLACK, receives: false }]);
 
-      const { screen } = await open(button('set:recv:telegram:off'));
+      const { screen } = await open(button('set:recv:telegram:off:ok'));
 
       expect(channelService.updateReceiving).not.toHaveBeenCalled();
-      expect(screen.text.startsWith(`${en.settings.lastChannel}\n\n**My settings**`)).toBe(true);
-      expect(screen.buttons).toContainEqual([
-        { text: 'Telegram: yes', data: 'set:recv:telegram:off' },
-        { text: 'Slack: no', data: 'set:recv:slack:on' },
-      ]);
+      expect(screen.text.startsWith(`**Delivery channels**\n${en.settings.lastChannel}\n\n`)).toBe(
+        true,
+      );
     });
 
     it('treats every channel as on when none is', async () => {
@@ -377,7 +441,7 @@ describe('SettingsHandler', () => {
         { ...SLACK, receives: false },
       ]);
 
-      await open(button('set:recv:telegram:off'));
+      await open(button('set:recv:telegram:off:ok'));
 
       expect(channelService.updateReceiving).toHaveBeenCalledWith(
         USER.id,
@@ -387,7 +451,7 @@ describe('SettingsHandler', () => {
     });
 
     it('ignores a switch of a channel the employee does not have', async () => {
-      await open(button('set:recv:slack:off'));
+      await open(button('set:recv:slack:off:ok'));
 
       expect(channelService.updateReceiving).not.toHaveBeenCalled();
     });
