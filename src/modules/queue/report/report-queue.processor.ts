@@ -37,7 +37,9 @@ export class ReportQueueProcessor extends QueueHost {
       }
       const saved =
         maxAgeMs === 0 ? null : await this.reportService.findFresh(userId, date, maxAgeMs);
-      const report = saved ?? (await this.reportService.build(userId, date));
+      const report = saved
+        ? await this.reportService.redraw(saved)
+        : await this.reportService.build(userId, date);
       if (report.status === ReportStatus.EMPTY || !report.content) {
         if (notice) {
           await this.botService.sendTo(notice.target, { text: notice.empty });

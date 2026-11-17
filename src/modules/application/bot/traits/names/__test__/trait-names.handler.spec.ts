@@ -172,9 +172,9 @@ describe('TraitNamesHandler', () => {
     expect(traitNameService.setIgnored).toHaveBeenCalledWith(name(1).id, true);
     expect(screen.text).toBe(
       [
+        locale.traitNames.title(4),
         locale.traitNames.ignored('**team::1**'),
         '',
-        locale.traitNames.title(4),
         locale.traitNames.hint(30),
       ].join('\n'),
     );
@@ -191,9 +191,9 @@ describe('TraitNamesHandler', () => {
     expect(traitNameService.findUnmappedPage).toHaveBeenCalledWith(Source.GITLAB, true, 8, 0);
     expect(screen.text).toBe(
       [
+        locale.traitNames.ignoredTitle(0),
         locale.traitNames.restored('**team::1**'),
         '',
-        locale.traitNames.ignoredTitle(0),
         locale.traitNames.ignoredEmpty,
       ].join('\n'),
     );

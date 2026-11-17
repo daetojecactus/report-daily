@@ -1,9 +1,11 @@
 import type { Channel } from './channel.enums';
 import type { ChatInputType } from './chat-input.enums';
+import type { ScreenButtonStyle } from './screen.enums';
 
 export interface ScreenButton {
   text: string;
   data: string;
+  style?: ScreenButtonStyle;
 }
 
 export interface ScreenUserPicker {

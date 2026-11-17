@@ -1,6 +1,7 @@
 import { Logger } from '@nestjs/common';
 import type { ConfigService } from '@nestjs/config';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { ScreenButtonStyle } from 'src/common/channel/types/screen.enums';
 import { Channel } from 'src/common/channel/types/channel.enums';
 import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
 import type { ChatInput } from 'src/common/channel/types/chat-channel.interface';
@@ -98,7 +99,7 @@ describe('EmployeeManageHandler', () => {
       ],
       [{ text: 'System analyst', data: `mng:set:${USER.id}:system_analyst` }],
       [{ text: 'DevOps', data: `mng:set:${USER.id}:devops` }],
-      [{ text: 'Cancel', data: `emp:card:${USER.id}:0` }],
+      [{ text: 'Back', data: `emp:card:${USER.id}:0` }],
     ]);
   });
 
@@ -108,7 +109,7 @@ describe('EmployeeManageHandler', () => {
     expect(userService.changeRole).toHaveBeenCalledWith(USER.id, JobRole.QA);
     expect(reply).toEqual({
       screen: {
-        text: 'Role changed: **Anna \\*S\\*** — QA.',
+        text: 'Role changed: **Anna \\*S\\***, QA.',
         buttons: [[CARD], [LIST]],
       },
       dialog: null,
@@ -121,7 +122,7 @@ describe('EmployeeManageHandler', () => {
   ])('can %s an employee', async (action, method, text) => {
     userService[method].mockResolvedValue(USER);
 
-    const reply = await open(`mng:${action}:${USER.id}`);
+    const reply = await open(`mng:${action}:${USER.id}:ok`);
 
     expect(userService[method]).toHaveBeenCalledWith(USER.id);
     expect(menuService.syncEmployee).toHaveBeenCalledWith(USER, [CHANNEL]);
@@ -137,8 +138,8 @@ describe('EmployeeManageHandler', () => {
       text: locale.employeeManage.confirmDelete('Anna \\*S\\*'),
       buttons: [
         [
-          { text: 'Yes, delete', data: `mng:confirm:${USER.id}` },
-          { text: 'Cancel', data: `emp:card:${USER.id}:0` },
+          { text: 'Yes, delete', data: `mng:confirm:${USER.id}`, style: ScreenButtonStyle.DANGER },
+          { text: 'Back', data: `emp:card:${USER.id}:0` },
         ],
       ],
     });
@@ -155,10 +156,14 @@ describe('EmployeeManageHandler', () => {
     });
   });
 
-  it.each(['block', 'unblock', 'delete', 'confirm', 'admin', 'noadmin'])(
+  it.each(['block:ok', 'unblock:ok', 'delete', 'confirm', 'admin:ok', 'noadmin:ok'])(
     'refuses to %s yourself',
     async (action) => {
-      const reply = await open(`mng:${action}:${USER.id}`, { user: USER });
+      const [name, confirm] = action.split(':');
+      const reply = await open(
+        [`mng:${name}:${USER.id}`, ...(confirm ? [confirm] : [])].join(':'),
+        { user: USER },
+      );
 
       expect(reply.screen).toEqual({
         text: locale.employeeManage.self,
@@ -172,12 +177,12 @@ describe('EmployeeManageHandler', () => {
 
   it('makes an employee an admin and back and refreshes the menu', async () => {
     userService.setAdmin.mockResolvedValueOnce({ ...USER, isAdmin: true });
-    expect((await open(`mng:admin:${USER.id}`)).screen?.text).toBe(
+    expect((await open(`mng:admin:${USER.id}:ok`)).screen?.text).toBe(
       locale.employeeManage.madeAdmin('Anna \\*S\\*'),
     );
 
     userService.setAdmin.mockResolvedValueOnce(USER);
-    expect((await open(`mng:noadmin:${USER.id}`)).screen?.text).toBe(
+    expect((await open(`mng:noadmin:${USER.id}:ok`)).screen?.text).toBe(
       locale.employeeManage.removedAdmin('Anna \\*S\\*'),
     );
 
@@ -192,6 +197,48 @@ describe('EmployeeManageHandler', () => {
     await open(`mng:set:${USER.id}:devops`);
 
     expect(userService.changeRole).toHaveBeenCalledWith(USER.id, JobRole.DEVOPS);
+  });
+
+  it.each([
+    [
+      'block',
+      'Block **Anna \\*S\\***? The bot stops answering them and sending reports.',
+      'Block',
+      ScreenButtonStyle.DANGER,
+    ],
+    ['unblock', 'Unblock **Anna \\*S\\***?', 'Unblock', ScreenButtonStyle.PRIMARY],
+    [
+      'report',
+      'Build and send **Anna \\*S\\*** the report of today?',
+      'Report now',
+      ScreenButtonStyle.PRIMARY,
+    ],
+    [
+      'admin',
+      'Make **Anna \\*S\\*** an admin? An admin creates and edits shared templates.',
+      'Make admin',
+      ScreenButtonStyle.PRIMARY,
+    ],
+    [
+      'noadmin',
+      'Remove the admin access of **Anna \\*S\\***?',
+      'Remove admin',
+      ScreenButtonStyle.DANGER,
+    ],
+  ])('asks before %s and changes nothing yet', async (action, text, label, style) => {
+    expect((await open(`mng:${action}:${USER.id}`)).screen).toEqual({
+      text,
+      buttons: [
+        [
+          { text: label, data: `mng:${action}:${USER.id}:ok`, style },
+          { text: 'Back', data: `emp:card:${USER.id}:0` },
+        ],
+      ],
+    });
+    expect(userService.block).not.toHaveBeenCalled();
+    expect(userService.unblock).not.toHaveBeenCalled();
+    expect(userService.setAdmin).not.toHaveBeenCalled();
+    expect(producer.addReport).not.toHaveBeenCalled();
   });
 
   it('reports a deleted employee', async () => {
@@ -215,7 +262,7 @@ describe('EmployeeManageHandler', () => {
   it('builds the report of today for the employee and tells the admin the outcome only', async () => {
     vi.useFakeTimers({ now: Date.parse('2026-11-09T20:30:00Z') });
 
-    expect(await open(`mng:report:${USER.id}`, { chatId: '77', externalId: '77' })).toEqual({
+    expect(await open(`mng:report:${USER.id}:ok`, { chatId: '77', externalId: '77' })).toEqual({
       screen: { text: locale.employeeManage.reportQueued('Anna \\*S\\*'), buttons: [[CARD]] },
       dialog: null,
     });
@@ -241,7 +288,7 @@ describe('EmployeeManageHandler', () => {
     });
 
     for (let attempt = 0; attempt < 2; attempt++) {
-      expect((await open(`mng:report:${USER.id}`)).screen.text).toBe(
+      expect((await open(`mng:report:${USER.id}:ok`)).screen.text).toBe(
         locale.employeeManage.reportUnavailable('Anna \\*S\\*'),
       );
     }

@@ -24,6 +24,7 @@ import { ReportComposer } from '../report.composer';
 import { ReportStatus } from '../types/report.enums';
 import type { ReportDraft } from '../types/report.interface';
 import { reports } from '../report.schema';
+import { reportTemplates } from '../template/template.schema';
 import { ReportService } from '../report.service';
 import type { ReportContext } from '../template/types/template.interface';
 
@@ -100,6 +101,39 @@ describe('ReportService', () => {
     expect(compose).toHaveBeenCalledWith(
       expect.objectContaining({ date: DATE, language: Language.RU }),
     );
+  });
+
+  it('draws a saved report again with the template the employee picked since', async () => {
+    compose.mockResolvedValueOnce({
+      context: {
+        version: 1,
+        isEmpty: false,
+        itemsCount: 1,
+        projects: [{ name: 'project', url: null, items: [{ text: 'Fixed a bug' }] }],
+      } as ReportContext,
+      content: 'project:\n• Fixed a bug',
+      templateId: null,
+      aiModel: null,
+    } as ReportDraft);
+    const saved = await reportService.build(userId, DATE);
+    expect(await reportService.redraw(saved)).toBe(saved);
+
+    const [template] = await db
+      .insert(reportTemplates)
+      .values({ name: 'Short', body: 'Lines: {{ context.itemsCount }}', ownerId: userId })
+      .returning();
+    await db.update(users).set({ templateId: template.id });
+
+    expect(await reportService.redraw(saved)).toMatchObject({
+      id: saved.id,
+      content: 'Lines: 1',
+      templateId: template.id,
+      generatedAt: saved.generatedAt,
+    });
+    expect(compose).toHaveBeenCalledTimes(1);
+    expect(await db.select().from(reports)).toMatchObject([
+      { content: 'Lines: 1', templateId: template.id },
+    ]);
   });
 
   it('writes the text of a report only to the trace log', async () => {

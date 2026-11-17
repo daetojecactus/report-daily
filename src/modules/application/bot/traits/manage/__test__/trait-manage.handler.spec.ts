@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { ScreenButtonStyle } from 'src/common/channel/types/screen.enums';
 import { Channel } from 'src/common/channel/types/channel.enums';
 import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
 import type { ChatInput } from 'src/common/channel/types/chat-channel.interface';
@@ -81,10 +82,10 @@ describe('TraitManageHandler', () => {
         text: [
           locale.traitManage.askValue(BOLD, 'for everyone', 'Priority', 'Low'),
           '',
-          '**Critical** — Needed right now',
-          '**High** — Needed soon',
-          '**Medium** — As planned',
-          '**Low** — When there is time',
+          '**Critical**: Needed right now',
+          '**High**: Needed soon',
+          '**Medium**: As planned',
+          '**Low**: When there is time',
         ].join('\n'),
         buttons: [
           [
@@ -157,7 +158,11 @@ describe('TraitManageHandler', () => {
       text: locale.traitManage.confirmDrop(BOLD, 2),
       buttons: [
         [
-          { text: 'Yes, delete', data: `trtmng:dropok:${MAPPING.id}` },
+          {
+            text: 'Yes, delete',
+            data: `trtmng:dropok:${MAPPING.id}`,
+            style: ScreenButtonStyle.DANGER,
+          },
           { text: 'Cancel', data: `trt:card:${MAPPING.id}:0` },
         ],
       ],

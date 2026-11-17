@@ -11,7 +11,6 @@ import { LlmMessages } from '../constants/llm.messages';
 import { LlmAnthropicRepository } from '../llm-anthropic.repository';
 import { LlmClient } from '../llm.client';
 import { LlmFormat } from '../types/llm.enums';
-import { LlmError } from '../llm.error';
 import { LlmOpenAiRepository } from '../llm-openai.repository';
 import { LlmService } from '../llm.service';
 
@@ -182,7 +181,7 @@ describe('LlmService', () => {
       async (content) => {
         const { ask } = createService(LlmApi.OPENAI, [completion(content)]);
 
-        await expect(ask()).rejects.toThrow(new LlmError(LlmMessages.INVALID_ANSWER));
+        await expect(ask()).rejects.toThrow(LlmMessages.INVALID_ANSWER);
       },
     );
 
@@ -192,7 +191,7 @@ describe('LlmService', () => {
         completion(`${ANSWER} and then`, 'length'),
       ]);
 
-      await expect(ask()).rejects.toThrow(new LlmError(LlmMessages.CUT_ANSWER));
+      await expect(ask()).rejects.toThrow(LlmMessages.CUT_ANSWER);
       expect((await ask()).data).toEqual(DATA);
     });
   });
@@ -252,7 +251,7 @@ describe('LlmService', () => {
         message(ANSWER),
       ]);
 
-      await expect(ask()).rejects.toThrow(new LlmError(LlmMessages.REFUSED));
+      await expect(ask()).rejects.toThrow(LlmMessages.REFUSED);
       expect((await ask()).format).toBe(LlmFormat.JSON_SCHEMA);
       expect(bodies).toHaveLength(2);
     });
@@ -260,7 +259,10 @@ describe('LlmService', () => {
     it('says the answer was cut at the token limit', async () => {
       const { ask } = createService(LlmApi.ANTHROPIC, [message(CUT_ANSWER, 'max_tokens')]);
 
-      await expect(ask()).rejects.toThrow(new LlmError(LlmMessages.CUT_ANSWER));
+      await expect(ask()).rejects.toMatchObject({
+        message: LlmMessages.CUT_ANSWER,
+        usage: { inputTokens: 700, outputTokens: 60, thinkingTokens: 20 },
+      });
     });
 
     it('does not step down on an access error', async () => {

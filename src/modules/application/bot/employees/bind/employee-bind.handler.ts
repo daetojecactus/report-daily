@@ -1,4 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
+import { ScreenButtonStyle } from 'src/common/channel/types/screen.enums';
 import { Channel } from 'src/common/channel/types/channel.enums';
 import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
 import type { ChatChannel } from 'src/common/channel/types/chat-channel.interface';
@@ -100,6 +101,7 @@ export class EmployeeBindHandler implements BotHandler {
                 user.id,
                 channel,
               ].join(BOT_BUTTON_DATA_SEPARATOR),
+              style: ScreenButtonStyle.DANGER,
             },
             { ...this.toCardButton(locale, user.id), text: locale.employeeBind.cancel },
           ],

@@ -15,7 +15,7 @@ export class HelpHandler implements BotHandler {
     const allowed = this.menuService.listCommands(actor, locale);
     const lines = [
       locale.help.title,
-      ...allowed.map(({ command, description }) => `/${command} — ${description}`),
+      ...allowed.map(({ command, description }) => `/${command}: ${description}`),
     ];
     if (actor.user) {
       lines.push('', locale.help.privacy);
@@ -24,7 +24,10 @@ export class HelpHandler implements BotHandler {
       allowed.some((item) => item.command === String(command)),
     ).map(({ command, data }) => ({ text: locale.help.sections[command], data }));
     return {
-      screen: { text: lines.join('\n'), ...(buttons.length ? { buttons: [buttons] } : {}) },
+      screen: {
+        text: lines.join('\n'),
+        ...(buttons.length ? { buttons: buttons.map((button) => [button]) } : {}),
+      },
     };
   }
 }

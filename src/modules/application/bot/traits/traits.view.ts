@@ -8,12 +8,20 @@ import type { TraitDimension } from 'src/modules/application/trait/types/trait.e
 import type { TraitValue } from 'src/modules/application/trait/types/trait.interface';
 import type { JobRole } from 'src/modules/application/user/types/user.enums';
 import { BotNamespace } from '../core/types/bot.enums';
-import { BOT_BUTTON_DATA_SEPARATOR } from '../core/constants/bot.constants';
+import {
+  BOT_BUTTON_DATA_SEPARATOR,
+  BOT_BUTTON_LABEL_MAX_LENGTH,
+} from '../core/constants/bot.constants';
 import type { TraitNameList } from './names/types/trait-names.enums';
 import { TraitNamesAction } from './names/types/trait-names.enums';
-import { TRAITS_BUTTONS_PER_ROW } from './constants/traits.constants';
+import {
+  TRAITS_BUTTONS_PER_ROW,
+  TRAITS_ITEM_NAME_MIN_LENGTH,
+  TRAITS_ITEM_SEPARATOR,
+} from './constants/traits.constants';
 import { TraitsAction } from './types/traits.enums';
 
+import { truncateText } from 'src/common/utils/text.util';
 @Injectable()
 export class TraitsView {
   toSourceName(sourceName: string) {
@@ -36,8 +44,16 @@ export class TraitsView {
     const values: readonly TraitValue[] = TRAIT_DICTIONARY[dimension];
     return values.map((value) => {
       const { name, description } = this.toValueText(locale, dimension, value);
-      return `**${name}** — ${description}`;
+      return `**${name}**: ${description}`;
     });
+  }
+
+  toItemLabel(sourceName: string, value: string) {
+    const room = Math.max(
+      TRAITS_ITEM_NAME_MIN_LENGTH,
+      BOT_BUTTON_LABEL_MAX_LENGTH - TRAITS_ITEM_SEPARATOR.length - value.length,
+    );
+    return [truncateText(sourceName, room), value].join(TRAITS_ITEM_SEPARATOR);
   }
 
   toRows(buttons: ScreenButton[]) {

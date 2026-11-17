@@ -29,6 +29,15 @@ export const AI_NAMES_PER_LINE = 5;
 
 export const AI_COMMENT_MAX_LENGTH = 150;
 
+export const AI_COMMENT_CLEANUP: [RegExp, string][] = [
+  [/!\[[^\]]*\]\([^)]*\)(?:\{[^}]*\})?/g, ' '],
+  [/\[([^\]]*)\]\([^)]*\)/g, '$1'],
+  [/\b(?:https?|ftp):\/\/\S+|\bwww\.\S+/gi, ' '],
+  [/[\w.+-]+@[\w-]+(?:\.[\w-]+)+/g, ' '],
+  [/(^|[^\w@])@[\w.-]+/g, '$1'],
+  [/\b(?=[\w-]*\d)(?=[\w-]*[a-z])[\w-]{24,}/gi, ' '],
+];
+
 export const AI_CUT_MARK = '…';
 
 export const AI_SCHEMA_NAME = 'report_lines';

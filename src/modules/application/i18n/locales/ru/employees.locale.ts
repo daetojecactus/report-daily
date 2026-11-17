@@ -25,12 +25,12 @@ export const ruEmployees: EmployeesLocale = {
       status: 'Статус',
       channels: 'Каналы',
       access: 'Доступ',
-      admin: 'админ — публикует общие шаблоны',
+      admin: 'админ, публикует общие шаблоны',
       noChannels: 'не подключены',
       reachable: 'подключён',
       unreachable: 'недоступен, бот не может написать',
       lastActivity: 'Последняя активность в GitLab',
-      activityHidden: 'не видно — профиль закрыт или событий ещё нет',
+      activityHidden: 'не видно: профиль закрыт или событий ещё нет',
       activityUnknown: 'не удалось проверить',
       lastReport: 'Последний отчёт',
       noReport: 'ещё не было',
@@ -57,7 +57,7 @@ export const ruEmployees: EmployeesLocale = {
     alreadyAdded: (name) => `**${name}** уже есть среди сотрудников.`,
     added: (name) => `Сотрудник добавлен: **${name}**.`,
     activityHidden:
-      'GitLab не показывает событий этого сотрудника: профиль закрыт или активности ещё не было. Если профиль закрыт, попросите сделать его публичным.',
+      'GitLab не показывает событий сотрудника: профиль закрыт или активности ещё не было. Закрытый профиль нужно сделать публичным.',
     activityUnknown: 'Не удалось проверить активность сотрудника в GitLab.',
     pending: 'Канал ещё не привязан, поэтому отчёты пока не отправляются.',
     openCard: 'Открыть карточку',
@@ -70,12 +70,19 @@ export const ruEmployees: EmployeesLocale = {
     unblock: 'Разблокировать',
     delete: 'Удалить',
     confirm: 'Да, удалить',
-    cancel: 'Отмена',
+    cancel: 'Назад',
     chooseRole: (name, role) => `**${name}**\nСейчас: ${role}. Выберите новую роль.`,
-    roleChanged: (name, role) => `Роль изменена: **${name}** — ${role}.`,
+    roleChanged: (name, role) => `Роль изменена: **${name}**, ${role}.`,
     blocked: (name) =>
       `Сотрудник заблокирован: **${name}**. Бот больше не отвечает ему и не присылает отчёты.`,
     unblocked: (name) => `Сотрудник разблокирован: **${name}**.`,
+    confirmBlock: (name) =>
+      `Заблокировать **${name}**? Бот перестанет отвечать ему и присылать отчёты.`,
+    confirmUnblock: (name) => `Разблокировать **${name}**?`,
+    confirmReport: (name) => `Собрать и отправить **${name}** отчёт за сегодня?`,
+    confirmMakeAdmin: (name) =>
+      `Сделать **${name}** админом? Админ создаёт и правит общие шаблоны.`,
+    confirmRemoveAdmin: (name) => `Снять админа с **${name}**?`,
     confirmDelete: (name) =>
       `Удалить сотрудника **${name}**? Его каналы и отчёты удалятся вместе с ним.`,
     deleted: (name) => `Сотрудник удалён: **${name}**.`,
@@ -86,7 +93,7 @@ export const ruEmployees: EmployeesLocale = {
     removedAdmin: (name) => `**${name}** больше не админ.`,
     reportNow: 'Отчёт сейчас',
     reportQueued: (name) =>
-      `Собираю отчёт за сегодня для **${name}**. Он придёт сотруднику; если действий нет или сборка не удастся, напишу сюда.`,
+      `Собираю отчёт за сегодня для **${name}**. Если действий нет или сборка не удастся, напишу сюда.`,
     reportEmpty: (name) => `У **${name}** за сегодня нет действий в GitLab, отчёт не отправлен.`,
     reportFailed: (name) => `Не получилось собрать отчёт для **${name}**: GitLab не ответил.`,
     reportUnavailable: (name) =>
@@ -98,15 +105,15 @@ export const ruEmployees: EmployeesLocale = {
     promptId: (channel, name) => `**${name}**\nВведите ${channel} ID сотрудника.`,
     idHint: {
       [Channel.TELEGRAM]:
-        'Telegram ID — число. Проще выбрать сотрудника кнопкой «Выбрать в Telegram».',
+        'Telegram ID состоит из цифр. Проще выбрать сотрудника кнопкой «Выбрать в Telegram».',
       [Channel.SLACK]:
         'Slack ID есть в профиле участника: меню из трёх точек, пункт «Copy member ID».',
     },
     pick: (channel) => `Выбрать в ${channel}`,
     pickPrompt: {
       [Channel.TELEGRAM]:
-        'Нажмите «Выбрать сотрудника» внизу экрана и выберите его из чатов или контактов. Отменить — /cancel.',
-      [Channel.SLACK]: 'Выберите сотрудника в списке ниже. Отменить — /cancel.',
+        'Нажмите «Выбрать сотрудника» внизу экрана и выберите его из чатов или контактов. Отменить: /cancel.',
+      [Channel.SLACK]: 'Выберите сотрудника в списке ниже. Отменить: /cancel.',
     },
     pickButton: 'Выбрать сотрудника',
     invalid: (channel) => `Это не похоже на ${channel} ID.`,
@@ -121,7 +128,7 @@ export const ruEmployees: EmployeesLocale = {
     },
     unbind: (channel) => `Отвязать ${channel}`,
     confirmUnbind: (channel, name) =>
-      `Отвязать ${channel} от **${name}**? Отчёты и рассылки туда больше не придут, а бот перестанет отвечать там сотруднику.`,
+      `Отвязать ${channel} от **${name}**? Отчёты и рассылки туда больше не придут.`,
     confirmUnbindButton: 'Да, отвязать',
     unbound: (channel, name) => `${channel} отвязан от **${name}**.`,
     notBound: (channel) => `У сотрудника не привязан ${channel}.`,

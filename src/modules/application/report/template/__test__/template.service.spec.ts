@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { SourceActionKind } from 'src/modules/application/source/types/source.enums';
 import { at, createIssue, fact } from '../../activity/__test__/activity.fixture';
 import { createGoldenIndex, loadGoldenDays } from '../../activity/__test__/activity.golden.fixture';
+import { TEMPLATE_OUTPUT_MAX_LENGTH } from '../constants/template.constants';
+import { TemplateMessages } from '../constants/template.messages';
 import type { TemplateRepository } from '../template.repository';
 import { TemplateService } from '../template.service';
 import { buildContext, createDay } from './template.fixture';
@@ -70,6 +72,15 @@ describe('TemplateService', () => {
       service.render('{% for i in (1..100000000) %}{{ i }}{% endfor %}', context),
     ).rejects.toThrow();
     await expect(service.render('{{ context.date | missing }}', context)).rejects.toThrow();
+  });
+
+  it('refuses a template that writes more than the limit, so a report is not a flood of messages', async () => {
+    const context = buildContext(createDay());
+    const flood = `{% for i in (1..${TEMPLATE_OUTPUT_MAX_LENGTH / 10 + 1}) %}0123456789{% endfor %}`;
+    const fits = `{% for i in (1..${TEMPLATE_OUTPUT_MAX_LENGTH / 10}) %}0123456789{% endfor %}`;
+
+    await expect(service.render(flood, context)).rejects.toThrow(TemplateMessages.OUTPUT_TOO_LONG);
+    expect(await service.render(fits, context)).toHaveLength(TEMPLATE_OUTPUT_MAX_LENGTH);
   });
 
   it('turns every golden day into lines under their projects', async () => {

@@ -1,5 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { ScreenButtonStyle } from 'src/common/channel/types/screen.enums';
 import { Channel } from 'src/common/channel/types/channel.enums';
 import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
 import type { ChatInput } from 'src/common/channel/types/chat-channel.interface';
@@ -117,7 +118,7 @@ describe('SharedTemplatesHandler', () => {
       text: locale.sharedTemplates.confirmDelete('QA \\*daily\\*', 3),
       buttons: [
         [
-          { text: 'Yes, delete', data: `tpls:delok:${SHARED.id}` },
+          { text: 'Yes, delete', data: `tpls:delok:${SHARED.id}`, style: ScreenButtonStyle.DANGER },
           { text: 'Cancel', data: `tpls:card:${SHARED.id}` },
         ],
       ],

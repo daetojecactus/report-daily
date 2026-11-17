@@ -11,6 +11,7 @@ import { TaskKind } from 'src/modules/application/trait/types/trait.enums';
 import { Gender, JobRole } from 'src/modules/application/user/types/user.enums';
 import type { RedisService } from 'src/modules/infrastructure/redis/redis.service';
 import { LlmFormat } from 'src/modules/vendors/llm/types/llm.enums';
+import { LlmError } from 'src/modules/vendors/llm/llm.error';
 import type { LlmService } from 'src/modules/vendors/llm/llm.service';
 import type { AiLine } from '../types/ai.interface';
 import { AiMessages } from '../constants/ai.messages';
@@ -136,6 +137,33 @@ describe('AiService', () => {
     });
   });
 
+  it('cleans links, images, mentions, emails and tokens out of the comments', async () => {
+    answer([]);
+    const noisy =
+      '@anna fixed the [login form](https://gitlab.example.com/a/-/issues/1), see https://example.com/x ![shot](/uploads/ab/shot.png){width=900 height=325}';
+
+    await service.reword(
+      [
+        {
+          ...LINES[0],
+          comments: [
+            noisy,
+            'write to anna@example.com, token glpat-AbCdEf1234567890XyZaBc',
+            '@boris @anna',
+            noisy,
+          ],
+        },
+      ],
+      PROFILE,
+    );
+
+    const data = llmService.completeJson.mock.calls[0][0].prompt.user.split('\n')[2];
+    expect((JSON.parse(data) as { lines: { comments: string[] }[] }).lines[0].comments).toEqual([
+      'fixed the login form, see',
+      'write to , token',
+    ]);
+  });
+
   it('keeps the lines when AI is off or there is nothing to reword', async () => {
     llmService.isEnabled.mockReturnValue(false);
     expect(await service.reword(LINES, PROFILE)).toEqual({ texts: new Map(), model: null });
@@ -229,6 +257,18 @@ describe('AiService', () => {
         maxTokens: 250,
       },
       AiMessages.REWORDED,
+    );
+  });
+
+  it('logs the tokens of an answer the model spent and that was cut', async () => {
+    const warn = vi.spyOn(Logger.prototype, 'warn');
+    llmService.completeJson.mockRejectedValueOnce(new LlmError('LLM answer was cut', USAGE));
+
+    await service.reword(LINES, PROFILE);
+
+    expect(warn).toHaveBeenCalledWith(
+      { lines: 2, error: 'LLM answer was cut', ...USAGE },
+      AiMessages.FAILED,
     );
   });
 

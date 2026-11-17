@@ -20,6 +20,8 @@ export const SETTINGS_ON = 'on';
 
 export const SETTINGS_OFF = 'off';
 
+export const SETTINGS_CONFIRM = 'ok';
+
 export const SETTINGS_HOURS = Array.from({ length: 24 }, (_, hour) =>
   String(hour).padStart(2, '0'),
 );
@@ -35,13 +37,29 @@ const SWITCH_SCHEMA = z
   .enum([SETTINGS_ON, SETTINGS_OFF])
   .transform((value) => value === SETTINGS_ON);
 
+const SWITCH_ACTION_SCHEMA = z.enum([
+  SettingsAction.SCHEDULE,
+  SettingsAction.AI,
+  SettingsAction.AI_DATA,
+]);
+
+const CONFIRM_SCHEMA = z.literal(SETTINGS_CONFIRM);
+
 const HOUR_SCHEMA = z.string().refine((hour) => SETTINGS_HOURS.includes(hour));
 
 const MINUTE_SCHEMA = z.string().refine((minute) => SETTINGS_MINUTES.includes(minute));
 
 export const SETTINGS_BUTTON_SCHEMA = z.union([
   z
-    .tuple([NAMESPACE_SCHEMA, z.literal(SettingsAction.MENU)])
+    .tuple([
+      NAMESPACE_SCHEMA,
+      z.enum([
+        SettingsAction.MENU,
+        SettingsAction.GENERAL,
+        SettingsAction.REPORTS,
+        SettingsAction.CHANNELS,
+      ]),
+    ])
     .transform(([, action]) => ({ action })),
   z
     .tuple([NAMESPACE_SCHEMA, z.literal(SettingsAction.LANGUAGE)])
@@ -75,15 +93,23 @@ export const SETTINGS_BUTTON_SCHEMA = z.union([
     .tuple([NAMESPACE_SCHEMA, z.literal(SettingsAction.GENDER), z.enum(Gender)])
     .transform(([, action, gender]) => ({ action, gender })),
   z
-    .tuple([
-      NAMESPACE_SCHEMA,
-      z.enum([SettingsAction.SCHEDULE, SettingsAction.AI, SettingsAction.AI_DATA]),
-      SWITCH_SCHEMA,
-    ])
-    .transform(([, action, isOn]) => ({ action, isOn })),
+    .tuple([NAMESPACE_SCHEMA, SWITCH_ACTION_SCHEMA, SWITCH_SCHEMA])
+    .transform(([, action, isOn]) => ({ action, isOn, isConfirmed: false })),
+  z
+    .tuple([NAMESPACE_SCHEMA, SWITCH_ACTION_SCHEMA, SWITCH_SCHEMA, CONFIRM_SCHEMA])
+    .transform(([, action, isOn]) => ({ action, isOn, isConfirmed: true })),
   z
     .tuple([NAMESPACE_SCHEMA, z.literal(SettingsAction.RECEIVE), z.enum(Channel), SWITCH_SCHEMA])
-    .transform(([, action, channel, isOn]) => ({ action, channel, isOn })),
+    .transform(([, action, channel, isOn]) => ({ action, channel, isOn, isConfirmed: false })),
+  z
+    .tuple([
+      NAMESPACE_SCHEMA,
+      z.literal(SettingsAction.RECEIVE),
+      z.enum(Channel),
+      SWITCH_SCHEMA,
+      CONFIRM_SCHEMA,
+    ])
+    .transform(([, action, channel, isOn]) => ({ action, channel, isOn, isConfirmed: true })),
 ]);
 
 export const SETTINGS_TEMPLATES_DATA = [BotNamespace.TEMPLATES, TemplatesAction.MENU].join(

@@ -1,5 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { Inject, Injectable, Logger } from '@nestjs/common';
+import { ScreenButtonStyle } from 'src/common/channel/types/screen.enums';
+import { withNotice } from 'src/common/utils/text.util';
 import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
 import type { ChatChannel } from 'src/common/channel/types/chat-channel.interface';
 import { escapeMarkdown } from 'src/common/utils/markdown.util';
@@ -65,11 +67,10 @@ export class BroadcastHandler implements BotHandler {
   private askText(locale: Locale, error?: string): BotReply {
     return {
       screen: {
-        text: [
-          ...(error ? [error, ''] : []),
-          locale.broadcast.title,
-          locale.broadcast.askText(BROADCAST_TEXT_MAX_LENGTH),
-        ].join('\n'),
+        text: withNotice(
+          [locale.broadcast.title, locale.broadcast.askText(BROADCAST_TEXT_MAX_LENGTH)],
+          error,
+        ).join('\n'),
         buttons: [[this.toButton(locale.broadcast.cancel, BroadcastAction.CANCEL)]],
       },
       dialog: this.toDialog(BroadcastStep.TEXT, {}),
@@ -94,7 +95,16 @@ export class BroadcastHandler implements BotHandler {
           texts.previewHint,
         ].join('\n'),
         buttons: [
-          ...(recipients ? [[this.toButton(texts.send(recipients), BroadcastAction.SEND)]] : []),
+          ...(recipients
+            ? [
+                [
+                  {
+                    ...this.toButton(texts.send(recipients), BroadcastAction.SEND),
+                    style: ScreenButtonStyle.PRIMARY,
+                  },
+                ],
+              ]
+            : []),
           [
             this.toButton(texts.editText, BroadcastAction.TEXT),
             this.toButton(texts.cancel, BroadcastAction.CANCEL),

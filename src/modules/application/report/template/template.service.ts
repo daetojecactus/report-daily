@@ -7,8 +7,10 @@ import {
   TEMPLATE_MEMORY_LIMIT,
   TEMPLATE_PARSE_LIMIT,
   TEMPLATE_RENDER_LIMIT_MS,
+  TEMPLATE_OUTPUT_MAX_LENGTH,
   TEMPLATE_STANDARD,
 } from './constants/template.constants';
+import { TemplateMessages } from './constants/template.messages';
 import type {
   ReportContext,
   ReportTemplate,
@@ -107,12 +109,20 @@ export class TemplateService {
     }
   }
 
-  render(source: string, context: ReportContext) {
-    return this.liquid.parseAndRender(source, { context }) as Promise<string>;
+  async render(source: string, context: ReportContext) {
+    const output = await this.renderSource(source, context);
+    if (output.length > TEMPLATE_OUTPUT_MAX_LENGTH) {
+      throw new Error(`${TemplateMessages.OUTPUT_TOO_LONG}: ${TEMPLATE_OUTPUT_MAX_LENGTH}`);
+    }
+    return output;
   }
 
   renderStandard(context: ReportContext) {
-    return this.render(TEMPLATE_STANDARD, context);
+    return this.renderSource(TEMPLATE_STANDARD, context);
+  }
+
+  private renderSource(source: string, context: ReportContext) {
+    return this.liquid.parseAndRender(source, { context }) as Promise<string>;
   }
 
   private toText(value: unknown): string {

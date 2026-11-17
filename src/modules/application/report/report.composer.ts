@@ -66,7 +66,7 @@ export class ReportComposer {
     return { timeZone, locale, day, results, summaries, context, content, templateId, aiModel };
   }
 
-  private async render(userId: string, templateId: string | null, context: ReportContext) {
+  async render(userId: string, templateId: string | null, context: ReportContext) {
     const template = templateId ? await this.templateService.findById(templateId) : null;
     if (template && this.templateService.isAvailable(template, userId)) {
       try {

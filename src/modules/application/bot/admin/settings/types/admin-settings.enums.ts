@@ -1,5 +1,6 @@
 export enum AdminSettingsAction {
   MENU = 'menu',
+  PAUSE = 'pause',
   TODAY = 'today',
   DAYS = 'days',
   UNTIL = 'until',

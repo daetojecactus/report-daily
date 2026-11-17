@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { ScreenButtonStyle } from 'src/common/channel/types/screen.enums';
 import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
 import type { ScreenButton } from 'src/common/channel/types/chat-channel.interface';
 import { escapeMarkdown } from 'src/common/utils/markdown.util';
@@ -10,7 +11,10 @@ import { AccessService } from '../core/access.service';
 import { BotSection } from '../core/bot.decorator';
 import { BotAccess, BotNamespace } from '../core/types/bot.enums';
 import type { BotActor, BotContext, BotHandler, BotReply } from '../core/types/bot.interface';
-import { BOT_BUTTON_DATA_SEPARATOR } from '../core/constants/bot.constants';
+import {
+  BOT_BUTTON_DATA_SEPARATOR,
+  BOT_BUTTON_LABEL_MAX_LENGTH,
+} from '../core/constants/bot.constants';
 import { SettingsAction } from '../settings/types/settings.enums';
 import { TEMPLATES_BUTTON_SCHEMA, TEMPLATES_STANDARD } from './constants/templates.constants';
 import { TemplatesMessages } from './constants/templates.messages';
@@ -18,6 +22,8 @@ import { TemplateAddAction } from './add/types/template-add.enums';
 import { TemplateEditAction } from './edit/types/template-edit.enums';
 import { TemplatesAction } from './types/templates.enums';
 
+import { TemplatesView } from './templates.view';
+import { truncateText, withNotice } from 'src/common/utils/text.util';
 @Injectable()
 @BotSection({ access: BotAccess.EMPLOYEE, namespace: BotNamespace.TEMPLATES })
 export class TemplatesHandler implements BotHandler {
@@ -27,6 +33,7 @@ export class TemplatesHandler implements BotHandler {
     private readonly templateService: TemplateService,
     private readonly userService: UserService,
     private readonly accessService: AccessService,
+    private readonly templatesView: TemplatesView,
   ) {}
 
   async handle({ actor, input, locale }: BotContext): Promise<BotReply> {
@@ -77,18 +84,23 @@ export class TemplatesHandler implements BotHandler {
       })),
     ];
     return this.reply(
-      [...(notice ? [notice, ''] : []), texts.title, texts.current(this.toName(locale, current))],
+      withNotice([texts.title, texts.current(this.templatesView.toName(locale, current))], notice),
       [
         ...choices.map(({ id, name }) => [
           {
-            text: id === (current?.id ?? TEMPLATES_STANDARD) ? texts.selected(name) : name,
+            text:
+              id === (current?.id ?? TEMPLATES_STANDARD)
+                ? texts.selected(
+                    truncateText(name, BOT_BUTTON_LABEL_MAX_LENGTH - texts.selected('').length),
+                  )
+                : truncateText(name, BOT_BUTTON_LABEL_MAX_LENGTH),
             data: this.toData(TemplatesAction.USE, id),
           },
         ]),
         [
           { text: texts.mine, data: this.toData(TemplatesAction.MINE) },
           {
-            text: texts.toSettings,
+            text: texts.back,
             data: [BotNamespace.SETTINGS, SettingsAction.MENU].join(BOT_BUTTON_DATA_SEPARATOR),
           },
         ],
@@ -111,21 +123,27 @@ export class TemplatesHandler implements BotHandler {
       { userId: user.id, templateId: template?.id ?? null },
       TemplatesMessages.CHOSEN,
     );
-    return this.showMenu(locale, updated, locale.templates.chosen(this.toName(locale, template)));
+    return this.showMenu(
+      locale,
+      updated,
+      locale.templates.chosen(this.templatesView.toName(locale, template)),
+    );
   }
 
   private async showMine(locale: Locale, user: User, notice?: string): Promise<BotReply> {
     const texts = locale.templates;
     const templates = await this.templateService.findOwn(user.id);
     return this.reply(
-      [
-        ...(notice ? [notice, ''] : []),
-        texts.mineTitle(templates.length),
-        ...(templates.length ? [] : [texts.mineEmpty]),
-      ],
+      withNotice(
+        [texts.mineTitle(templates.length), ...(templates.length ? [] : [texts.mineEmpty])],
+        notice,
+      ),
       [
         ...templates.map(({ id, name }) => [
-          { text: name, data: this.toData(TemplatesAction.CARD, id) },
+          {
+            text: truncateText(name, BOT_BUTTON_LABEL_MAX_LENGTH),
+            data: this.toData(TemplatesAction.CARD, id),
+          },
         ]),
         [
           {
@@ -179,7 +197,11 @@ export class TemplatesHandler implements BotHandler {
       [locale.templates.confirmDelete(escapeMarkdown(template.name))],
       [
         [
-          { text: locale.templates.confirm, data: this.toData(TemplatesAction.CONFIRM_DELETE, id) },
+          {
+            text: locale.templates.confirm,
+            data: this.toData(TemplatesAction.CONFIRM_DELETE, id),
+            style: ScreenButtonStyle.DANGER,
+          },
           { text: locale.templates.cancel, data: this.toData(TemplatesAction.CARD, id) },
         ],
       ],
@@ -207,6 +229,7 @@ export class TemplatesHandler implements BotHandler {
           {
             text: locale.templates.confirmMakeShared,
             data: this.toData(TemplatesAction.CONFIRM_SHARE, id),
+            style: ScreenButtonStyle.PRIMARY,
           },
           { text: locale.templates.cancel, data: this.toData(TemplatesAction.CARD, id) },
         ],
@@ -225,14 +248,6 @@ export class TemplatesHandler implements BotHandler {
 
   private canShare(actor: BotActor) {
     return this.accessService.isAllowed(actor, BotAccess.ADMIN);
-  }
-
-  private toName(locale: Locale, template: { name: string; ownerId: string | null } | null) {
-    if (!template) {
-      return locale.templates.standard;
-    }
-    const name = escapeMarkdown(template.name);
-    return template.ownerId ? name : locale.templates.shared(name);
   }
 
   private reply(lines: string[], buttons: ScreenButton[][]): BotReply {

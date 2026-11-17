@@ -50,12 +50,14 @@ export class BotService {
       );
       return;
     }
-    const { screen, newMessage } = await this.dispatch(
+    const reply = await this.dispatch(
       actor,
       event.input,
       this.i18nService.getLocale(actor.language),
     );
-    await this.reply(event, screen, actor, newMessage ?? false);
+    if (reply) {
+      await this.reply(event, reply.screen, actor, reply.newMessage ?? false);
+    }
   }
 
   async replyFailure(event: ChatEvent) {
@@ -106,7 +108,7 @@ export class BotService {
     actor: BotActor,
     input: ChatInput,
     locale: Locale,
-  ): Promise<Pick<BotReply, 'screen' | 'newMessage'>> {
+  ): Promise<Pick<BotReply, 'screen' | 'newMessage'> | null> {
     const isKnown = this.accessService.isKnown(actor);
     const dialog = isKnown ? await this.dialogService.find(actor) : null;
     const route = this.findRoute(input, dialog);
@@ -114,6 +116,13 @@ export class BotService {
       return { screen: this.explain(actor, input, locale) };
     }
     if (!this.accessService.isAllowed(actor, route.access)) {
+      if (isKnown && input.type === ChatInputType.COMMAND) {
+        this.logger.log(
+          { userId: actor.user?.id, command: input.command },
+          BotMessages.COMMAND_IGNORED,
+        );
+        return null;
+      }
       if (dialog) {
         await this.dialogService.delete(actor);
       }

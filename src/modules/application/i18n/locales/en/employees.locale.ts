@@ -70,12 +70,18 @@ export const enEmployees: EmployeesLocale = {
     unblock: 'Unblock',
     delete: 'Delete',
     confirm: 'Yes, delete',
-    cancel: 'Cancel',
+    cancel: 'Back',
     chooseRole: (name, role) => `**${name}**\nNow: ${role}. Choose the new role.`,
-    roleChanged: (name, role) => `Role changed: **${name}** — ${role}.`,
+    roleChanged: (name, role) => `Role changed: **${name}**, ${role}.`,
     blocked: (name) =>
       `Employee blocked: **${name}**. The bot no longer answers them or sends reports.`,
     unblocked: (name) => `Employee unblocked: **${name}**.`,
+    confirmBlock: (name) => `Block **${name}**? The bot stops answering them and sending reports.`,
+    confirmUnblock: (name) => `Unblock **${name}**?`,
+    confirmReport: (name) => `Build and send **${name}** the report of today?`,
+    confirmMakeAdmin: (name) =>
+      `Make **${name}** an admin? An admin creates and edits shared templates.`,
+    confirmRemoveAdmin: (name) => `Remove the admin access of **${name}**?`,
     confirmDelete: (name) =>
       `Delete the employee **${name}**? Their channels and reports are deleted with them.`,
     deleted: (name) => `Employee deleted: **${name}**.`,
@@ -86,7 +92,7 @@ export const enEmployees: EmployeesLocale = {
     removedAdmin: (name) => `**${name}** is no longer an admin.`,
     reportNow: 'Report now',
     reportQueued: (name) =>
-      `Building today's report for **${name}**. It goes to the employee; if there are no actions or the build fails, I'll write here.`,
+      `Building today's report for **${name}**. If there are no actions or the build fails, I'll write here.`,
     reportEmpty: (name) => `**${name}** has no actions in GitLab today, so no report was sent.`,
     reportFailed: (name) => `Could not build the report for **${name}**: GitLab did not answer.`,
     reportUnavailable: (name) =>
@@ -121,7 +127,7 @@ export const enEmployees: EmployeesLocale = {
     },
     unbind: (channel) => `Unbind ${channel}`,
     confirmUnbind: (channel, name) =>
-      `Unbind ${channel} from **${name}**? Reports and broadcasts stop going there, and the bot stops answering the employee there.`,
+      `Unbind ${channel} from **${name}**? Reports and broadcasts stop going there.`,
     confirmUnbindButton: 'Yes, unbind',
     unbound: (channel, name) => `${channel} unbound from **${name}**.`,
     notBound: (channel) => `The employee has no ${channel} bound.`,

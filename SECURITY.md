@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-Security fixes go into the latest release only. Until `1.0.0`, that is the latest pre-release.
+Security fixes go into the latest release only.
 
 ## Reporting a vulnerability
 

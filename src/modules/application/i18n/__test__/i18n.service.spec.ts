@@ -17,6 +17,8 @@ const NAMES = [
   'traits.values.area.ci_cd.name',
   'roles.qa',
   'roles.devops',
+  'rolesShort.qa',
+  'rolesShort.devops',
   'phrases.withNote',
   'phrases.counts.refs',
   'phrases.summaryLine',

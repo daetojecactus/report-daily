@@ -162,15 +162,30 @@ describe('EmployeesHandler', () => {
     });
   });
 
-  it('adds the status of an employee who is not active', async () => {
-    userService.count.mockResolvedValue(1);
+  it('shows the short status of an employee who is not active instead of the role', async () => {
+    userService.count.mockResolvedValue(2);
     userService.findPage.mockResolvedValue([
       employee(1, { role: JobRole.QA, status: UserStatus.BLOCKED }),
+      employee(2, { role: JobRole.PROJECT_MANAGER, status: UserStatus.PENDING }),
     ]);
 
     const { screen } = await open(button('emp:list:0'));
 
-    expect(screen.buttons?.[0][0].text).toBe('Employee 1 · QA · blocked');
+    expect(screen.buttons?.slice(0, 2).map(([{ text }]) => text)).toEqual([
+      'Employee 1 · blocked',
+      'Employee 2 · no channel',
+    ]);
+  });
+
+  it('cuts a long name so that the button fits', async () => {
+    userService.count.mockResolvedValue(1);
+    userService.findPage.mockResolvedValue([
+      employee(1, { displayName: 'Anastasia Konstantinopolskaya', role: JobRole.PROJECT_MANAGER }),
+    ]);
+
+    const { screen } = await open(button('emp:list:0'));
+
+    expect(screen.buttons?.[0][0].text).toBe('Anastasia Konstantino… · Manager');
   });
 
   it('shows a card with channels and the admin access', async () => {
@@ -201,7 +216,7 @@ describe('EmployeesHandler', () => {
         'Telegram: unreachable, the bot cannot write there',
         'Access: admin, publishes shared templates',
         'Last activity in GitLab: 9 November at 17:42',
-        'Last report: 8 November — delivered',
+        'Last report: 8 November: delivered',
       ].join('\n'),
       buttons: [
         [{ text: 'Report now', data: `mng:report:${user.id}` }],

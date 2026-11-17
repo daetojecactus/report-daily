@@ -14,7 +14,7 @@ import { LlmAnthropicRepository } from './llm-anthropic.repository';
 import { LlmClient } from './llm.client';
 import { LlmFormat } from './types/llm.enums';
 import { LlmError } from './llm.error';
-import type { LlmJsonAnswer, LlmJsonRequest } from './types/llm.interface';
+import type { LlmJsonAnswer, LlmJsonRequest, LlmUsage } from './types/llm.interface';
 import { LlmOpenAiRepository } from './llm-openai.repository';
 
 @Injectable()
@@ -51,7 +51,7 @@ export class LlmService {
           { name, schema },
           maxTokens,
         );
-        return { data: this.parse(content, schema, cut), model, format, usage };
+        return { data: this.parse(content, schema, cut, usage), model, format, usage };
       } catch (error) {
         const next = this.findNextFormat(format, error);
         if (!next) {
@@ -74,11 +74,11 @@ export class LlmService {
     return LLM_FORMATS[LLM_FORMATS.indexOf(format) + 1] ?? null;
   }
 
-  private parse<T>(content: string, schema: z.ZodType<T>, cut: boolean): T {
+  private parse<T>(content: string, schema: z.ZodType<T>, cut: boolean, usage: LlmUsage): T {
     const json = this.toJson(content);
     const parsed = json === undefined ? null : schema.safeParse(json);
     if (!parsed?.success) {
-      throw new LlmError(cut ? LlmMessages.CUT_ANSWER : LlmMessages.INVALID_ANSWER);
+      throw new LlmError(cut ? LlmMessages.CUT_ANSWER : LlmMessages.INVALID_ANSWER, usage);
     }
     return parsed.data;
   }

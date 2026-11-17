@@ -8,7 +8,10 @@ import { TraitNameService } from 'src/modules/application/trait/trait-name/trait
 import { BotSection } from '../../core/bot.decorator';
 import { BotAccess, BotNamespace } from '../../core/types/bot.enums';
 import type { BotActor, BotContext, BotHandler, BotReply } from '../../core/types/bot.interface';
-import { BOT_BUTTON_DATA_SEPARATOR } from '../../core/constants/bot.constants';
+import {
+  BOT_BUTTON_DATA_SEPARATOR,
+  BOT_BUTTON_LABEL_MAX_LENGTH,
+} from '../../core/constants/bot.constants';
 import { TraitAddAction } from '../add/types/trait-add.enums';
 import { TraitsView } from '../traits.view';
 import {
@@ -18,6 +21,7 @@ import {
 import { TraitNamesMessages } from './constants/trait-names.messages';
 import { TraitNameList, TraitNamesAction } from './types/trait-names.enums';
 
+import { truncateText, withNotice } from 'src/common/utils/text.util';
 @Injectable()
 @BotSection({ access: BotAccess.OWNER, namespace: BotNamespace.TRAIT_NAMES })
 export class TraitNamesHandler implements BotHandler {
@@ -76,7 +80,6 @@ export class TraitNamesHandler implements BotHandler {
 
     const texts = locale.traitNames;
     const lines = [
-      ...(notice ? [notice, ''] : []),
       ignored ? texts.ignoredTitle(total) : texts.title(total),
       total === 0
         ? ignored
@@ -97,9 +100,12 @@ export class TraitNamesHandler implements BotHandler {
             },
           ]
         : [];
-    return this.reply(lines.join('\n'), [
+    return this.reply(withNotice(lines, notice).join('\n'), [
       ...names.map((name) => [
-        { text: name.sourceName, data: this.toData(TraitNamesAction.CARD, name.id, current) },
+        {
+          text: truncateText(name.sourceName, BOT_BUTTON_LABEL_MAX_LENGTH),
+          data: this.toData(TraitNamesAction.CARD, name.id, current),
+        },
       ]),
       ...this.traitsView.toPageButtons(locale, current, pages, (target) =>
         this.traitsView.toNamesData(list, target),

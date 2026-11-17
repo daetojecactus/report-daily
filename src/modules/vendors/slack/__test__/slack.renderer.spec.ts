@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { ScreenButtonStyle } from 'src/common/channel/types/screen.enums';
 import { SlackBlockType } from '../types/slack.enums';
 import { SlackFormatter } from '../slack.formatter';
 import { SlackRenderer } from '../slack.renderer';
@@ -6,7 +7,7 @@ import { SlackRenderer } from '../slack.renderer';
 describe('SlackRenderer', () => {
   const renderer = new SlackRenderer(new SlackFormatter());
 
-  it('draws the text as a section and the button rows as action blocks', () => {
+  it('draws the title as a header, the text as a section and the button rows as action blocks', () => {
     expect(
       renderer.render({
         text: '**Settings**\nLanguage: English',
@@ -19,9 +20,10 @@ describe('SlackRenderer', () => {
         ],
       }),
     ).toEqual({
-      text: '*Settings*\nLanguage: English',
+      text: 'Settings',
       blocks: [
-        { type: 'section', text: { type: 'mrkdwn', text: '*Settings*\nLanguage: English' } },
+        { type: 'header', text: { type: 'plain_text', text: 'Settings', emoji: true } },
+        { type: 'section', text: { type: 'mrkdwn', text: 'Language: English' } },
         {
           type: 'actions',
           elements: [
@@ -89,9 +91,43 @@ describe('SlackRenderer', () => {
   });
 
   it('writes the bot commands in the text as the Slack command', () => {
-    expect(renderer.render({ text: 'Commands — /help' }).text).toBe(
-      'Commands — /report-daily help',
+    expect(renderer.render({ text: 'Commands: /help' }).text).toBe(
+      'Commands: `/report-daily help`',
     );
+  });
+
+  it('keeps a text without a title as it is and cuts a long title', () => {
+    expect(renderer.render({ text: 'Done: **QA** is shared\n\n**Templates** · 2' }).blocks).toEqual(
+      [
+        {
+          type: 'section',
+          text: { type: 'mrkdwn', text: 'Done: *QA* is shared\n\n*Templates* · 2' },
+        },
+      ],
+    );
+    expect(renderer.render({ text: `**${'t'.repeat(200)}**\n\nBody` }).blocks).toEqual([
+      { type: 'header', text: { type: 'plain_text', text: `${'t'.repeat(149)}…`, emoji: true } },
+      { type: 'section', text: { type: 'mrkdwn', text: 'Body' } },
+    ]);
+  });
+
+  it('colours the confirming buttons', () => {
+    const { blocks } = renderer.render({
+      text: '**Delete the template?**',
+      buttons: [
+        [
+          { text: 'Yes, delete', data: 'tpl:delok:1', style: ScreenButtonStyle.DANGER },
+          { text: 'Save', data: 'tpladd:save', style: ScreenButtonStyle.PRIMARY },
+          { text: 'Back', data: 'tpl:card:1' },
+        ],
+      ],
+    });
+
+    const actions = blocks[1];
+    expect(
+      actions.type === SlackBlockType.ACTIONS &&
+        actions.elements.map((element) => ('style' in element ? element.style : undefined)),
+    ).toEqual(['danger', 'primary', undefined]);
   });
 
   it('splits a part again when escaping makes it longer than Slack allows', () => {

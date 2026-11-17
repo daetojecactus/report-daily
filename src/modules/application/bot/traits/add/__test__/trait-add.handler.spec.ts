@@ -233,10 +233,10 @@ describe('TraitAddHandler', () => {
         text: [
           locale.traitAdd.chooseValue(BOLD, 'for everyone', 'Priority'),
           '',
-          '**Critical** — Needed right now',
-          '**High** — Needed soon',
-          '**Medium** — As planned',
-          '**Low** — When there is time',
+          '**Critical**: Needed right now',
+          '**High**: Needed soon',
+          '**Medium**: As planned',
+          '**Low**: When there is time',
         ].join('\n'),
         buttons: [
           [

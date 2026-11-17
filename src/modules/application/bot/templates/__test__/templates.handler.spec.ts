@@ -1,5 +1,6 @@
 import type { ConfigService } from '@nestjs/config';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { ScreenButtonStyle } from 'src/common/channel/types/screen.enums';
 import { Channel } from 'src/common/channel/types/channel.enums';
 import { ChatInputType } from 'src/common/channel/types/chat-input.enums';
 import type { ChatInput } from 'src/common/channel/types/chat-channel.interface';
@@ -14,6 +15,7 @@ import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import { createEmployee } from '../../__test__/bot.fixture';
 import { AccessService } from '../../core/access.service';
 import { TemplatesHandler } from '../templates.handler';
+import { TemplatesView } from '../templates.view';
 
 const locale = new I18nService().getLocale(Language.EN);
 const USER = createEmployee().user;
@@ -54,6 +56,7 @@ describe('TemplatesHandler', () => {
       {} as UserService,
       new I18nService(),
     ),
+    new TemplatesView(),
   );
   const open = (data: string, user: User = USER) =>
     handler.handle({
@@ -85,7 +88,7 @@ describe('TemplatesHandler', () => {
           [{ text: 'Mine *short* (selected)', data: `tpl:use:${OWN.id}` }],
           [
             { text: 'My templates', data: 'tpl:mine' },
-            { text: 'Settings', data: 'set:menu' },
+            { text: 'Back', data: 'set:menu' },
           ],
         ],
       },
@@ -114,6 +117,16 @@ describe('TemplatesHandler', () => {
 
     expect((await open(`tpl:use:${FOREIGN.id}`)).screen.text).toContain(locale.templates.notFound);
     expect(userService.updateSettings).not.toHaveBeenCalled();
+  });
+
+  it('cuts a long template name so that the button fits', async () => {
+    repository.find.mockResolvedValueOnce([
+      { ...OWN, name: 'A very long template name for the weekly review' },
+    ] as never);
+
+    expect((await open('tpl:mine')).screen.buttons?.[0][0].text).toBe(
+      'A very long template name for t…',
+    );
   });
 
   it('lists the own templates with a way to create one', async () => {
@@ -162,7 +175,7 @@ describe('TemplatesHandler', () => {
     });
     expect((await open(`tpl:del:${OWN.id}`)).screen.buttons).toEqual([
       [
-        { text: 'Yes, delete', data: `tpl:delok:${OWN.id}` },
+        { text: 'Yes, delete', data: `tpl:delok:${OWN.id}`, style: ScreenButtonStyle.DANGER },
         { text: 'Cancel', data: `tpl:card:${OWN.id}` },
       ],
     ]);
@@ -192,7 +205,11 @@ describe('TemplatesHandler', () => {
     ]);
     expect((await open(`tpl:share:${OWN.id}`, admin)).screen.buttons).toEqual([
       [
-        { text: 'Yes, make shared', data: `tpl:shareok:${OWN.id}` },
+        {
+          text: 'Yes, make shared',
+          data: `tpl:shareok:${OWN.id}`,
+          style: ScreenButtonStyle.PRIMARY,
+        },
         { text: 'Cancel', data: `tpl:card:${OWN.id}` },
       ],
     ]);

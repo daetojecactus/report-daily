@@ -14,7 +14,7 @@ import {
 import { ReportMessages } from './constants/report.messages';
 import { ReportComposer } from './report.composer';
 import { ReportStatus } from './types/report.enums';
-import type { ReportInsert } from './types/report.interface';
+import type { Report, ReportInsert } from './types/report.interface';
 import { ReportRepository } from './report.repository';
 import { reports } from './report.schema';
 
@@ -92,6 +92,34 @@ export class ReportService {
 
   findByDate(userId: string, reportDate: string) {
     return this.findOne(and(eq(reports.userId, userId), eq(reports.reportDate, reportDate))!);
+  }
+
+  async redraw(report: Report) {
+    const user = report.snapshot ? await this.userService.findById(report.userId) : null;
+    if (!user || !report.snapshot || report.status === ReportStatus.EMPTY) {
+      return report;
+    }
+    const { content, templateId } = await this.reportComposer.render(
+      user.id,
+      user.templateId,
+      report.snapshot,
+    );
+    if (content === report.content && templateId === report.templateId) {
+      return report;
+    }
+    const redrawn = await this.reportRepository.updateOne(eq(reports.id, report.id), {
+      content,
+      templateId,
+    });
+    this.logger.log(
+      { userId: user.id, reportDate: report.reportDate, templateId },
+      ReportMessages.REDRAWN,
+    );
+    this.logger.verbose(
+      { userId: user.id, reportDate: report.reportDate, content },
+      ReportMessages.TEXT,
+    );
+    return redrawn ?? report;
   }
 
   async build(userId: string, reportDate: string) {

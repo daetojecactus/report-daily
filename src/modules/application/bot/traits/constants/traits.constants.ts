@@ -6,6 +6,8 @@ export const TRAITS_PAGE_SIZE = 8;
 
 export const TRAITS_ITEM_SEPARATOR = ' · ';
 
+export const TRAITS_ITEM_NAME_MIN_LENGTH = 8;
+
 export const TRAITS_VALUE_PREFIX = '• ';
 
 export const TRAITS_BUTTONS_PER_ROW = 2;

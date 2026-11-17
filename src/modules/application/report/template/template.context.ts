@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import type { Locale } from 'src/modules/application/i18n/types/i18n.interface';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
 import type { Gender } from 'src/modules/application/user/types/user.enums';
+import { ACTIVITY_SUMMARY_MIN_PROJECTS } from '../activity/constants/activity.constants';
 import { ActivityTier } from '../activity/types/activity.enums';
 import type {
   ActivityLine,
@@ -80,9 +81,24 @@ export class TemplateContext {
         entries.push({ projectId, weight: this.toWeight(result), item });
       }
     }
-    const sorted = entries.toSorted((left, right) => right.weight - left.weight);
+    const same = this.findSame(entries);
+    for (const group of same) {
+      for (const { item } of group) {
+        sources.delete(item);
+      }
+      across.push(
+        this.toSameItem(
+          group,
+          locale,
+          group.map((entry) => projectName(entry.projectId)),
+        ),
+      );
+    }
+    const placedSame = new Set(same.flat());
+    const kept = entries.filter((entry) => !placedSame.has(entry));
+    const sorted = kept.toSorted((left, right) => right.weight - left.weight);
     const projects: TemplateProject[] = [
-      ...[...new Set(entries.map((entry) => entry.projectId))].map((projectId) => {
+      ...[...new Set(kept.map((entry) => entry.projectId))].map((projectId) => {
         const project = day.projects.find((item) => item.id === projectId);
         return {
           name: projectName(projectId),
@@ -145,6 +161,31 @@ export class TemplateContext {
       ref: this.phraseService.findReference(line) ?? line.pushes.at(0)?.ref ?? null,
       url: this.toUrl(line.issue?.webUrl ?? line.mergeRequests.at(0)?.webUrl ?? null),
       projectName,
+    };
+  }
+
+  private findSame(entries: TemplateEntry[]) {
+    const groups = new Map<string, TemplateEntry[]>();
+    for (const entry of entries) {
+      if (entry.item.type !== TemplateItemType.SUMMARY) {
+        groups.set(entry.item.text, [...(groups.get(entry.item.text) ?? []), entry]);
+      }
+    }
+    return [...groups.values()].filter((group) => {
+      const projectIds = new Set(group.map((entry) => entry.projectId));
+      return projectIds.size >= ACTIVITY_SUMMARY_MIN_PROJECTS && projectIds.size === group.length;
+    });
+  }
+
+  private toSameItem(group: TemplateEntry[], locale: Locale, projects: string[]): TemplateItem {
+    const [{ item }] = group;
+    return {
+      ...item,
+      text: this.phraseService.summarizeSame(item, projects, locale),
+      type: TemplateItemType.SUMMARY,
+      ref: null,
+      url: null,
+      projectName: locale.phrases.acrossProjects,
     };
   }
 

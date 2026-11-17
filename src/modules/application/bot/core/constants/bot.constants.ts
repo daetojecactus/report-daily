@@ -21,6 +21,8 @@ export const BOT_COMMAND_SCHEMA = z.enum(BotCommand);
 
 export const BOT_BUTTON_DATA_SEPARATOR = ':';
 
+export const BOT_BUTTON_LABEL_MAX_LENGTH = 32;
+
 export const BOT_BUTTON_DATA_SCHEMA = z
   .string()
   .max(64)
