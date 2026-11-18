@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/daetojecactus/report-daily/compare/v1.0.0...v1.1.0) (2026-11-18)
+
+
+### Features
+
+* **bot:** bind another channel switched off until the employee turns… ([#244](https://github.com/daetojecactus/report-daily/issues/244)) ([4dbb51f](https://github.com/daetojecactus/report-daily/commit/4dbb51fe1f0f83a0b2d3499268a07e3196d4a72e))
+
 ## [1.0.0](https://github.com/daetojecactus/report-daily/compare/v1.0.0-beta.1...v1.0.0) (2026-11-17)
 
 
