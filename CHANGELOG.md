@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/daetojecactus/report-daily/compare/v1.1.0...v1.1.1) (2026-11-18)
+
+
+### Bug Fixes
+
+* **report:** count only the branch's own commits when a push merges a… ([#247](https://github.com/daetojecactus/report-daily/issues/247)) ([876cda6](https://github.com/daetojecactus/report-daily/commit/876cda69b051ae7330379585c810be4d4958e652))
+
 ## [1.1.0](https://github.com/daetojecactus/report-daily/compare/v1.0.0...v1.1.0) (2026-11-18)
 
 
