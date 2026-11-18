@@ -40,4 +40,5 @@ export interface GitLabCommit {
   title: string;
   created_at: string;
   committed_date?: string;
+  parent_ids?: string[];
 }

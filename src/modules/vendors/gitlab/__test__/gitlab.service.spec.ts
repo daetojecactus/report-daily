@@ -21,6 +21,7 @@ describe('GitLabService', () => {
     findStateEvents: vi.fn(),
     findMergeRequestCommits: vi.fn(),
     findCommits: vi.fn(),
+    findFirstParentCommits: vi.fn(),
   };
   const service = new GitLabService(repository as unknown as GitLabRepository);
 
@@ -53,6 +54,33 @@ describe('GitLabService', () => {
   }
 
   it('finds the commits of a push from the oldest to the newest', async () => {
+    repository.findFirstParentCommits.mockResolvedValue([
+      { id: 'ccc' },
+      { id: 'bbb' },
+      { id: 'aaa' },
+    ]);
+
+    expect(await service.findPushCommits(3, push())).toEqual([{ id: 'bbb' }, { id: 'ccc' }]);
+    expect(repository.findFirstParentCommits).toHaveBeenCalledWith(3, 'ccc', 3);
+    expect(repository.findCommits).not.toHaveBeenCalled();
+  });
+
+  it('keeps only the commits made in the branch when a push merges another branch', async () => {
+    repository.findFirstParentCommits.mockResolvedValue([
+      { id: 'mmm' },
+      { id: 'aaa' },
+      { id: 'zzz' },
+    ]);
+
+    expect(await service.findPushCommits(3, push({ commit_count: 39, commit_to: 'mmm' }))).toEqual([
+      { id: 'mmm' },
+    ]);
+    expect(repository.findFirstParentCommits).toHaveBeenCalledWith(3, 'mmm', 40);
+    expect(repository.findCommits).not.toHaveBeenCalled();
+  });
+
+  it('reads every commit when the line of the branch misses its previous head', async () => {
+    repository.findFirstParentCommits.mockResolvedValue([{ id: 'ccc' }, { id: 'xxx' }]);
     repository.findCommits.mockResolvedValue([{ id: 'ccc' }, { id: 'bbb' }, { id: 'aaa' }]);
 
     expect(await service.findPushCommits(3, push())).toEqual([{ id: 'bbb' }, { id: 'ccc' }]);
@@ -66,13 +94,16 @@ describe('GitLabService', () => {
       { id: 'bbb' },
       { id: 'ccc' },
     ]);
+    expect(repository.findFirstParentCommits).not.toHaveBeenCalled();
   });
 
   it('asks for at most one page of commits', async () => {
+    repository.findFirstParentCommits.mockResolvedValue([]);
     repository.findCommits.mockResolvedValue([]);
 
     await service.findPushCommits(3, push({ commit_count: 250 }));
 
+    expect(repository.findFirstParentCommits).toHaveBeenCalledWith(3, 'ccc', 100);
     expect(repository.findCommits).toHaveBeenCalledWith(3, 'ccc', 100);
   });
 
@@ -81,6 +112,7 @@ describe('GitLabService', () => {
     ['a push without commits', { commit_count: 0 }],
   ])('finds no commits for %s', async (_name, overrides) => {
     expect(await service.findPushCommits(3, push(overrides))).toEqual([]);
+    expect(repository.findFirstParentCommits).not.toHaveBeenCalled();
     expect(repository.findCommits).not.toHaveBeenCalled();
   });
 

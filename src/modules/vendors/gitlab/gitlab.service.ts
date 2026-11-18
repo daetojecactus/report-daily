@@ -107,6 +107,10 @@ export class GitLabService {
     if (!to || !count) {
       return [];
     }
+    const branch = from ? await this.findBranchCommits(projectId, from, to, count) : null;
+    if (branch) {
+      return branch;
+    }
     const commits = await this.gitlabRepository.findCommits(
       projectId,
       to,
@@ -114,5 +118,15 @@ export class GitLabService {
     );
     const fromIndex = commits.findIndex((commit) => commit.id === from);
     return (fromIndex === -1 ? commits : commits.slice(0, fromIndex)).toReversed();
+  }
+
+  private async findBranchCommits(projectId: number, from: string, to: string, count: number) {
+    const commits = await this.gitlabRepository.findFirstParentCommits(
+      projectId,
+      to,
+      Math.min(count + 1, GITLAB_PAGE_SIZE),
+    );
+    const fromIndex = commits.findIndex((commit) => commit.id === from);
+    return fromIndex === -1 ? null : commits.slice(0, fromIndex).toReversed();
   }
 }

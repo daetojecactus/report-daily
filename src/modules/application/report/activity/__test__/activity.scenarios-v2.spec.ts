@@ -353,8 +353,8 @@ const SCENARIOS: Scenario[] = [
             commitCount: 2,
             commitTitle: 'update the page',
             commits: [
-              { id: 'a1', title: 'add e2e for payments' },
-              { id: 'a2', title: 'update the page' },
+              { id: 'a1', title: 'add e2e for payments', merge: false },
+              { id: 'a2', title: 'update the page', merge: false },
             ],
           }),
         ],
