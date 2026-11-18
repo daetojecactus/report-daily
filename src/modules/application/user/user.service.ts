@@ -131,11 +131,7 @@ export class UserService {
 
   @Transactional()
   async bindChannel(userId: string, channel: Channel, externalId: string) {
-    const created = await this.channelService.create({
-      userId,
-      channel,
-      externalId,
-    });
+    const created = await this.channelService.bind(userId, channel, externalId);
     await this.updateOne(and(eq(users.id, userId), eq(users.status, UserStatus.PENDING))!, {
       status: UserStatus.ACTIVE,
     });

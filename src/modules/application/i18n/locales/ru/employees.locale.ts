@@ -124,8 +124,10 @@ export const ruEmployees: EmployeesLocale = {
       [Channel.TELEGRAM]:
         'Если сотрудник ещё не писал боту, попросите его открыть бота и нажать Start.',
       [Channel.SLACK]:
-        'Бот сам пишет сотруднику в личные сообщения Slack, ему ничего делать не нужно.',
+        'Бот сам пишет сотруднику в личные сообщения Slack, нажимать Start не нужно.',
     },
+    notReceiving: (channel) =>
+      `Отчёты и рассылки пока приходят в прежний канал. Сотрудник сам включит ${channel} в /settings, раздел «Каналы отправки».`,
     unbind: (channel) => `Отвязать ${channel}`,
     confirmUnbind: (channel, name) =>
       `Отвязать ${channel} от **${name}**? Отчёты и рассылки туда больше не придут.`,

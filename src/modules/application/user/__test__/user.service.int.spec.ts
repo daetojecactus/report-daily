@@ -436,6 +436,44 @@ describe('User module', () => {
       expect((await findUser(user.id)).status).toBe(UserStatus.ACTIVE);
     });
 
+    it('binds the next channel off, so the reports keep going to the first one', async () => {
+      const user = await insertUser({ status: UserStatus.PENDING });
+
+      const telegram = await userService.bindChannel(user.id, Channel.TELEGRAM, String(nextId++));
+      const slack = await userService.bindChannel(user.id, Channel.SLACK, `U0BIND${nextId++}`);
+
+      expect(telegram.receives).toBe(true);
+      expect(slack.receives).toBe(false);
+      expect(
+        (await channelService.findReceiving(user.id, [Channel.TELEGRAM, Channel.SLACK])).map(
+          ({ channel }) => channel,
+        ),
+      ).toEqual([Channel.TELEGRAM]);
+    });
+
+    it('switches on a channel that gets the reports because none is chosen', async () => {
+      const user = await insertUser({ status: UserStatus.ACTIVE });
+      const telegram = await insertChannel(user.id, { receives: false });
+
+      const slack = await userService.bindChannel(user.id, Channel.SLACK, `U0BIND${nextId++}`);
+
+      expect((await findChannel(telegram.id)).receives).toBe(true);
+      expect(slack.receives).toBe(false);
+    });
+
+    it('keeps the channels as they were when the account is already bound', async () => {
+      const owner = await insertUser({ status: UserStatus.ACTIVE });
+      const taken = await insertChannel(owner.id, { channel: Channel.SLACK });
+      const user = await insertUser({ status: UserStatus.ACTIVE });
+      const telegram = await insertChannel(user.id, { receives: false });
+
+      await expect(
+        userService.bindChannel(user.id, Channel.SLACK, taken.externalId),
+      ).rejects.toThrow();
+
+      expect(await channelService.findByUser(user.id)).toEqual([telegram]);
+    });
+
     it.each([UserStatus.ACTIVE, UserStatus.BLOCKED])('keeps the %s status', async (status) => {
       const user = await insertUser({ status });
 

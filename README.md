@@ -155,7 +155,7 @@ Nobody sees another employee's report: owners see only whether the last one was 
 1. Add yourself first and check your own reports with `/report` and [`preview`](#preview) against GitLab.
 2. If the team's labels mean statuses, task types or priorities, map them in "Traits". Its "No traits" list shows the labels the bot met but does not understand.
 3. In `/admin`, "Employees", add the employees found in GitLab and choose the role and the gender. The role shapes the wording; the gender, the Russian word forms.
-4. Bind Telegram or Slack in each employee's card. In Telegram the employee opens the bot and presses Start; in Slack the bot writes first.
+4. Bind Telegram or Slack in each employee's card. In Telegram the employee opens the bot and presses Start; in Slack the bot writes first. A channel bound to an employee who already has one starts switched off: reports and broadcasts keep going to the previous channel until the employee turns the new one on in `/settings`, "Delivery channels".
 
 ## Report templates
 

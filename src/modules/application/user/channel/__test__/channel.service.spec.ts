@@ -11,6 +11,7 @@ function chat(channel: Channel, values: Partial<UserChannel> = {}) {
 describe('ChannelService', () => {
   const repository = {
     find: vi.fn<ChannelRepository['find']>(),
+    create: vi.fn<ChannelRepository['create']>(),
     updateOne: vi.fn<ChannelRepository['updateOne']>(),
   };
   const service = new ChannelService(repository as unknown as ChannelRepository);
@@ -39,6 +40,34 @@ describe('ChannelService', () => {
     expect(await service.findReceiving('user-1', [Channel.SLACK])).toEqual([
       chat(Channel.SLACK, { receives: false }),
     ]);
+  });
+
+  it.each<[string, UserChannel[], boolean]>([
+    ['on as the first channel', [], true],
+    ['off next to a channel that gets reports', [chat(Channel.TELEGRAM)], false],
+  ])('binds a channel %s', async (_name, bound, receives) => {
+    repository.find.mockResolvedValue(bound);
+
+    await service.bind('user-1', Channel.SLACK, 'U0ANNA01');
+
+    expect(repository.updateOne).not.toHaveBeenCalled();
+    expect(repository.create).toHaveBeenCalledWith({
+      userId: 'user-1',
+      channel: Channel.SLACK,
+      externalId: 'U0ANNA01',
+      receives,
+    });
+  });
+
+  it('keeps the reports in the channels that get them when none is chosen', async () => {
+    repository.find.mockResolvedValue([chat(Channel.TELEGRAM, { receives: false })] as never);
+
+    await service.bind('user-1', Channel.SLACK, 'U0ANNA01');
+
+    expect(repository.updateOne.mock.calls.map(([, values]) => values)).toEqual([
+      { receives: true },
+    ]);
+    expect(repository.create).toHaveBeenCalledWith(expect.objectContaining({ receives: false }));
   });
 
   it('switches every given channel on or off', async () => {

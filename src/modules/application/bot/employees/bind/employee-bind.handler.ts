@@ -247,9 +247,11 @@ export class EmployeeBindHandler implements BotHandler {
       { userId: user.id, channel, actorId: actor.user?.id ?? BotAccess.OWNER },
       EmployeeBindMessages.CHANNEL_BOUND,
     );
+    const channelName = locale.channels[channel];
     return this.toDone(locale, user.id, [
-      locale.employeeBind.bound(locale.channels[channel], escapeMarkdown(user.displayName)),
+      locale.employeeBind.bound(channelName, escapeMarkdown(user.displayName)),
       locale.employeeBind.hint[channel],
+      ...(bound.receives ? [] : [locale.employeeBind.notReceiving(channelName)]),
     ]);
   }
 
