@@ -123,8 +123,10 @@ export const enEmployees: EmployeesLocale = {
       [Channel.TELEGRAM]:
         'If the employee has not written to the bot yet, ask them to open it and press Start.',
       [Channel.SLACK]:
-        'The bot writes to the employee in Slack direct messages itself; they do not need to do anything.',
+        'The bot writes to the employee in Slack direct messages itself; they do not need to press Start.',
     },
+    notReceiving: (channel) =>
+      `Reports and broadcasts keep going to the previous channel. The employee turns ${channel} on in /settings, section "Delivery channels".`,
     unbind: (channel) => `Unbind ${channel}`,
     confirmUnbind: (channel, name) =>
       `Unbind ${channel} from **${name}**? Reports and broadcasts stop going there.`,

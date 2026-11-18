@@ -37,6 +37,15 @@ export class ChannelService {
     return this.find(eq(userChannels.userId, userId));
   }
 
+  async bind(userId: string, channel: Channel, externalId: string) {
+    const bound = await this.findByUser(userId);
+    if (!bound.some(({ receives }) => receives)) {
+      const all = bound.map((item) => item.channel);
+      await this.updateReceiving(userId, all, all);
+    }
+    return this.create({ userId, channel, externalId, receives: bound.length === 0 });
+  }
+
   toReceiving(channels: UserChannel[]) {
     const chosen = channels.filter(({ receives }) => receives);
     return chosen.length > 0 ? chosen : channels;

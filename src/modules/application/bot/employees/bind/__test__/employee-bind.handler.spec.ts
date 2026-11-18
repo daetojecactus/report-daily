@@ -196,6 +196,22 @@ describe('EmployeeBindHandler', () => {
     expect(reply.screen.text).toBe([`Slack bound: **${NAME}**.`, texts.hint.slack].join('\n\n'));
   });
 
+  it('tells that a channel bound next to another one does not get reports yet', async () => {
+    channelService.findByUser.mockResolvedValue([found.channel]);
+    userService.bindChannel.mockResolvedValue({
+      ...found.channel,
+      channel: Channel.SLACK,
+      externalId: 'U0ANNA01',
+      receives: false,
+    });
+
+    const reply = await open(text('U0ANNA01'), SLACK_DIALOG);
+
+    expect(reply.screen.text).toBe(
+      [`Slack bound: **${NAME}**.`, texts.hint.slack, texts.notReceiving('Slack')].join('\n\n'),
+    );
+  });
+
   it.each<[string, string, BotDialog, string]>([
     ['Telegram', '@anna', ID_DIALOG, `${texts.invalid('Telegram')} ${texts.idHint.telegram}`],
     ['Slack', '777000111', SLACK_DIALOG, `${texts.invalid('Slack')} ${texts.idHint.slack}`],
