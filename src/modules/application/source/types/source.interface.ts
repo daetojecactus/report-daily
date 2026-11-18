@@ -14,6 +14,7 @@ export interface SourceFact {
 interface CleanCommit {
   id: string;
   title: string;
+  merge: boolean;
 }
 
 export interface CleanPushData {

@@ -247,6 +247,7 @@ export class GitLabSourceBuilder {
         commits: (pushCommits.get(event.id) ?? []).map((commit) => ({
           id: commit.id,
           title: commit.title,
+          merge: (commit.parent_ids?.length ?? 0) > 1,
         })),
       },
       noteBody: event.note?.body,

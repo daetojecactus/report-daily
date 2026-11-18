@@ -455,12 +455,61 @@ describe('GitLabSourceBuilder', () => {
               ref: 'hotfix',
               refCount: null,
               commitTitle: 'fix: the cache',
-              commits: [{ id: `${REPORT_DATE}T09:00:00.000Z`, title: 'fix: the cache' }],
+              commits: [
+                { id: `${REPORT_DATE}T09:00:00.000Z`, title: 'fix: the cache', merge: false },
+              ],
             },
             noteBody: undefined,
           },
         ],
       },
+    ]);
+  });
+
+  it('marks a merge commit of a push and keeps the commit count of GitLab', () => {
+    const push = (id: number, commitCount: number) =>
+      createEvent({
+        id,
+        action_name: 'pushed to',
+        push_data: {
+          action: 'pushed',
+          ref_type: GitLabRefType.BRANCH,
+          ref_count: null,
+          ref: 'hotfix',
+          commit_count: commitCount,
+          commit_from: 'aaa',
+          commit_to: 'mmm',
+          commit_title: "Merge branch 'main' into hotfix",
+        },
+      });
+    const merge = {
+      ...createCommit(`${REPORT_DATE}T09:00:00.000Z`, "Merge branch 'main' into hotfix"),
+      parent_ids: ['aaa', 'zzz'],
+    };
+
+    const grouped = createBuilder().build(
+      {
+        projects: [createProject()],
+        issues: [],
+        mergeRequests: [],
+        pushes: [{ target: { projectId: 1, branch: 'hotfix' }, events: [push(7, 39), push(8, 3)] }],
+        directPushes: [],
+        refs: [],
+        targets: [],
+        pushCommits: new Map([[7, [merge]]]),
+      },
+      DAY,
+      { id: EMPLOYEE.id, username: USERNAME },
+    );
+
+    expect(
+      grouped.standalonePushes[0].events.map(({ pushData }) => ({
+        commitCount: pushData?.commitCount,
+        commits: pushData?.commits,
+      })),
+    ).toEqual([
+      { commitCount: 39, commits: [{ id: merge.id, title: merge.title, merge: true }] },
+      { commitCount: 3, commits: [] },
     ]);
   });
   describe('values at the end of the day', () => {

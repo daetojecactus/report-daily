@@ -147,7 +147,7 @@ export function pushEvent(time: string, titles: string[] = ['fix: the login']): 
   return refEvent(time, SourceEventAction.PUSHED_TO, {
     commitCount: titles.length,
     commitTitle: titles.at(-1) ?? null,
-    commits: titles.map((title, index) => ({ id: String(index), title })),
+    commits: titles.map((title, index) => ({ id: String(index), title, merge: false })),
   });
 }
 

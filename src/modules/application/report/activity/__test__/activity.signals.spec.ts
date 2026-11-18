@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { SOURCE_CLOSED_BY_MERGE_REQUEST } from 'src/modules/application/source/constants/source.constants';
-import { SourceActionKind, WorkItemType } from 'src/modules/application/source/types/source.enums';
+import {
+  SourceActionKind,
+  SourceEventAction,
+  WorkItemType,
+} from 'src/modules/application/source/types/source.enums';
 import type { GroupedIssue } from 'src/modules/application/source/types/source-day.interface';
 import { TaskFlag, TaskKind, WorkflowState } from 'src/modules/application/trait/types/trait.enums';
 import { ActivityRule, EngagementLevel } from '../types/activity.enums';
@@ -15,6 +19,7 @@ import {
   otherFact,
   othersMergeRequest,
   pushEvent,
+  refEvent,
   toSignals,
 } from './activity.fixture';
 
@@ -337,6 +342,36 @@ describe('ActivitySignals', () => {
           commitCount: 2,
           commitTitles: ['fix: a', 'test: b'],
         },
+      ]);
+    });
+
+    it('leaves the titles of merge commits out of the pushes', () => {
+      const merge = { id: 'm1', title: "Merge branch 'main' into 12-login", merge: true };
+      const mergeRequest = createMergeRequest({
+        events: [
+          refEvent(at(11), SourceEventAction.PUSHED_TO, {
+            commitCount: 2,
+            commitTitle: merge.title,
+            commits: [{ id: 'c1', title: 'fix: the login', merge: false }, merge],
+          }),
+          refEvent(at(12), SourceEventAction.PUSHED_TO, {
+            commitCount: 1,
+            commitTitle: merge.title,
+            commits: [merge],
+          }),
+        ],
+      });
+
+      const signals = toSignals({
+        issue: null,
+        event: null,
+        pushes: [],
+        mergeRequests: [mergeRequest],
+      });
+
+      expect(signals.pushes.map(({ commitTitles }) => commitTitles)).toEqual([
+        ['fix: the login'],
+        [],
       ]);
     });
 

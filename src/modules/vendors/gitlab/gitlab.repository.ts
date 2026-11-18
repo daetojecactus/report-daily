@@ -159,18 +159,26 @@ export class GitLabRepository {
     );
   }
 
-  async findCommits(projectId: number, ref: string, limit: number) {
-    const commits = await this.get<GitLabCommit[]>(
-      `${GITLAB_PROJECTS_PATH}/${projectId}${GITLAB_REPOSITORY_COMMITS_PATH}`,
-      { ref_name: ref, per_page: limit },
-    );
-    return commits ?? [];
+  findCommits(projectId: number, ref: string, limit: number) {
+    return this.findCommitPage(projectId, { ref_name: ref, per_page: limit });
+  }
+
+  findFirstParentCommits(projectId: number, ref: string, limit: number) {
+    return this.findCommitPage(projectId, { ref_name: ref, first_parent: true, per_page: limit });
   }
 
   findMergeRequestCommits(projectId: number, iid: number) {
     return this.getAll<GitLabCommit>(
       `${this.toIssuablePath(GitLabIssuable.MERGE_REQUESTS, projectId, iid)}${GITLAB_COMMITS_PATH}`,
     );
+  }
+
+  private async findCommitPage(projectId: number, query: GitLabQuery) {
+    const commits = await this.get<GitLabCommit[]>(
+      `${GITLAB_PROJECTS_PATH}/${projectId}${GITLAB_REPOSITORY_COMMITS_PATH}`,
+      query,
+    );
+    return commits ?? [];
   }
 
   private async get<T>(path: string, query: GitLabQuery = {}) {

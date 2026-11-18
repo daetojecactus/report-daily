@@ -225,7 +225,7 @@ export class ActivitySignals {
           mergeRequestIid,
           commitCount: event.pushData?.commitCount ?? 0,
           commitTitles: event.pushData?.commits.length
-            ? event.pushData.commits.map((commit) => commit.title)
+            ? event.pushData.commits.filter(({ merge }) => !merge).map(({ title }) => title)
             : event.pushData?.commitTitle
               ? [event.pushData.commitTitle]
               : [],

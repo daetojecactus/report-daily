@@ -198,6 +198,17 @@ describe('GitLabRepository', () => {
     });
   });
 
+  it('reads the commits of a ref along the first parent', async () => {
+    client.get.mockResolvedValueOnce(respond(200, [{ id: 'bbb' }]));
+
+    expect(await repository.findFirstParentCommits(3, 'bbb', 2)).toEqual([{ id: 'bbb' }]);
+    expect(client.get).toHaveBeenCalledWith('/projects/3/repository/commits', {
+      ref_name: 'bbb',
+      first_parent: true,
+      per_page: 2,
+    });
+  });
+
   it.each([401, 403, 400])('rejects without retries on status %i', async (status) => {
     client.get.mockResolvedValue(respond(status, { message: 'denied' }));
 

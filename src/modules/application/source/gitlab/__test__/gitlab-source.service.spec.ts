@@ -680,9 +680,9 @@ describe('GitLabSourceService', () => {
       expect.objectContaining({ ref: '12-login', commit_to: 'bbb' }),
     );
     const [push] = grouped.issues[0].mergeRequests[0].events;
-    expect(push.pushData?.commits).toEqual([{ id: 'bbb', title: 'fix: a bug' }]);
+    expect(push.pushData?.commits).toEqual([{ id: 'bbb', title: 'fix: a bug', merge: false }]);
     expect(grouped.standalonePushes[0].events[0].pushData?.commits).toEqual([
-      { id: 'bbb', title: 'fix: a bug' },
+      { id: 'bbb', title: 'fix: a bug', merge: false },
     ]);
   });
 
