@@ -285,4 +285,4 @@ pnpm watch
 
 ## License
 
-[Apache-2.0](LICENSE)
+Copyright 2026 Daniil Zubenko. Licensed under [Apache-2.0](LICENSE).

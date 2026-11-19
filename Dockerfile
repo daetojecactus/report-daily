@@ -10,7 +10,7 @@ RUN pnpm build && pnpm prune --prod
 FROM node:26.13.0-alpine3.24
 ENV NODE_ENV=production
 WORKDIR /app
-COPY LICENSE ./
+COPY LICENSE NOTICE ./
 COPY --from=build /app/package.json ./
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
