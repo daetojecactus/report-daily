@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.2.0](https://github.com/daetojecactus/report-daily/compare/v1.1.1...v1.2.0) (2026-11-22)
+
+
+### Features
+
+* **report:** report a branch only brought up to date with the main branch as its own line ([20d06dd](https://github.com/daetojecactus/report-daily/commit/20d06dd5d3d9de9c446547178b28fcf4577e4cfe))
+* **report:** word description edits, assignments and priority changes by what was done ([20d06dd](https://github.com/daetojecactus/report-daily/commit/20d06dd5d3d9de9c446547178b28fcf4577e4cfe))
+
+
+### Bug Fixes
+
+* **report:** leave the main branch's commits out of a rebased branch ([20d06dd](https://github.com/daetojecactus/report-daily/commit/20d06dd5d3d9de9c446547178b28fcf4577e4cfe))
+
 ## [1.1.1](https://github.com/daetojecactus/report-daily/compare/v1.1.0...v1.1.1) (2026-11-18)
 
 
