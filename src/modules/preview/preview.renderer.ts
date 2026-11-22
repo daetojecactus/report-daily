@@ -13,8 +13,10 @@ import type {
   StandalonePush,
 } from 'src/modules/application/source/types/source-day.interface';
 import {
+  PREVIEW_COPY_MARK,
   PREVIEW_HOUR_SECONDS,
   PREVIEW_INDENT,
+  PREVIEW_MERGE_MARK,
   PREVIEW_MINUTE_SECONDS,
   PREVIEW_REASONS,
   PREVIEW_TARGET_NAMES,
@@ -247,8 +249,15 @@ export class PreviewRenderer {
 
   private describeActions(actions: SourceFact[]) {
     return this.countRepeats(
-      actions.map(({ kind, value, users }) =>
-        [kind, value, ...users.map((user) => `@${user}`)].filter(Boolean).join(' '),
+      actions.map(({ kind, value, users, change }) =>
+        [
+          kind,
+          value,
+          ...users.map((user) => `@${user}`),
+          change ? `${change.before} +${change.added} -${change.removed}` : null,
+        ]
+          .filter(Boolean)
+          .join(' '),
       ),
     );
   }
@@ -259,7 +268,14 @@ export class PreviewRenderer {
 
   private describeCommits(events: CleanEvent[]) {
     const commits = events.flatMap((event) => event.pushData?.commits ?? []);
-    return commits.length ? `commits: ${commits.map((commit) => commit.title).join('; ')}` : '';
+    return commits.length
+      ? `commits: ${commits
+          .map(
+            ({ title, merge, copied }) =>
+              `${title}${merge ? PREVIEW_MERGE_MARK : ''}${copied ? PREVIEW_COPY_MARK : ''}`,
+          )
+          .join('; ')}`
+      : '';
   }
 
   private describeDuration(seconds: number) {

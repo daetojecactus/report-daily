@@ -3,10 +3,16 @@ import { getFailureReason } from 'src/common/utils/error.util';
 import {
   GITLAB_CLOSES_ISSUES_PATH,
   GITLAB_COMMITS_PATH,
+  GITLAB_DESCRIPTION_DIFF_FIELDS,
   GITLAB_EVENTS_PATH,
+  GITLAB_GRAPHQL_PATH,
   GITLAB_ITERATION_EVENTS_PATH,
   GITLAB_LABEL_EVENTS_PATH,
+  GITLAB_MERGE_BASE_PATH,
+  GITLAB_MERGE_BASE_REFS,
   GITLAB_MILESTONE_EVENTS_PATH,
+  GITLAB_NOTE_ALIAS,
+  GITLAB_NOTE_GLOBAL_ID,
   GITLAB_NOTES_PATH,
   GITLAB_PROJECTS_PATH,
   GITLAB_REPOSITORY_COMMITS_PATH,
@@ -15,10 +21,12 @@ import {
   GITLAB_WEIGHT_EVENTS_PATH,
 } from './constants/gitlab-paths.constants';
 import {
+  GITLAB_ABSENT_STATUSES,
   GITLAB_MAX_PAGES,
+  GITLAB_MERGE_BASE_ABSENT_STATUSES,
   GITLAB_NEXT_PAGE_HEADER,
-  GITLAB_NOT_FOUND,
   GITLAB_PAGE_SIZE,
+  GITLAB_QUERY_ERROR_MAX_LENGTH,
   GITLAB_RETRY_AFTER_HEADER,
   GITLAB_SERVER_ERROR,
   GITLAB_TOO_MANY_REQUESTS,
@@ -30,6 +38,7 @@ import { GitLabIssuable } from './types/gitlab.enums';
 import { GitLabRejectedError, GitLabRetryableError } from './gitlab.error';
 import type {
   GitLabCommit,
+  GitLabDescriptionQuery,
   GitLabHttpResponse,
   GitLabPage,
   GitLabProject,
@@ -173,6 +182,42 @@ export class GitLabRepository {
     );
   }
 
+  findMergeBase(projectId: number, refs: string[]) {
+    return this.get<GitLabCommit>(
+      `${GITLAB_PROJECTS_PATH}/${projectId}${GITLAB_MERGE_BASE_PATH}`,
+      { [GITLAB_MERGE_BASE_REFS]: refs },
+      GITLAB_MERGE_BASE_ABSENT_STATUSES,
+    );
+  }
+
+  async findDescriptionDiffs(noteIds: number[]) {
+    const fields = noteIds.map(
+      (id) =>
+        `${GITLAB_NOTE_ALIAS}${id}: note(id: "${GITLAB_NOTE_GLOBAL_ID}${id}") ${GITLAB_DESCRIPTION_DIFF_FIELDS}`,
+    );
+    const response = await this.gitlabClient.query(
+      JSON.stringify({ query: `query { ${fields.join(' ')} }` }),
+    );
+    if (!response.ok) {
+      throw this.toError(GITLAB_GRAPHQL_PATH, response);
+    }
+    const result = this.parse<GitLabDescriptionQuery>(GITLAB_GRAPHQL_PATH, response.body);
+    if (result.errors?.length) {
+      this.logger.warn(
+        { error: result.errors[0].message.slice(0, GITLAB_QUERY_ERROR_MAX_LENGTH) },
+        GitLabMessages.QUERY_REJECTED,
+      );
+      return null;
+    }
+    return new Map(
+      noteIds.flatMap((id) => {
+        const diff =
+          result.data?.[`${GITLAB_NOTE_ALIAS}${id}`]?.systemNoteMetadata?.descriptionVersion?.diff;
+        return diff ? [[id, diff] as const] : [];
+      }),
+    );
+  }
+
   private async findCommitPage(projectId: number, query: GitLabQuery) {
     const commits = await this.get<GitLabCommit[]>(
       `${GITLAB_PROJECTS_PATH}/${projectId}${GITLAB_REPOSITORY_COMMITS_PATH}`,
@@ -181,8 +226,8 @@ export class GitLabRepository {
     return commits ?? [];
   }
 
-  private async get<T>(path: string, query: GitLabQuery = {}) {
-    const page = await this.getPage<T>(path, query);
+  private async get<T>(path: string, query: GitLabQuery = {}, absent = GITLAB_ABSENT_STATUSES) {
+    const page = await this.getPage<T>(path, query, absent);
     return page?.body ?? null;
   }
 
@@ -208,20 +253,24 @@ export class GitLabRepository {
     return items;
   }
 
-  private async getPage<T>(path: string, query: GitLabQuery): Promise<GitLabPage<T> | null> {
+  private async getPage<T>(
+    path: string,
+    query: GitLabQuery,
+    absent = GITLAB_ABSENT_STATUSES,
+  ): Promise<GitLabPage<T> | null> {
     const response = await this.gitlabClient.get(path, query);
-    if (response.status === GITLAB_NOT_FOUND) {
+    if (absent.has(response.status)) {
       return null;
     }
     if (!response.ok) {
       throw this.toError(path, response);
     }
+    return { body: this.parse<T>(path, response.body), nextPage: this.toNextPage(response) };
+  }
 
+  private parse<T>(path: string, body: string) {
     try {
-      return {
-        body: JSON.parse(response.body) as T,
-        nextPage: this.toNextPage(response),
-      };
+      return JSON.parse(body) as T;
     } catch (error) {
       throw new GitLabRetryableError(
         `${GitLabMessages.INVALID_RESPONSE}: ${path}: ${getFailureReason(error)}`,

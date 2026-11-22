@@ -86,6 +86,34 @@ const SCENARIOS: Scenario[] = [
   },
   {
     id: '5.1',
+    name: 'an analyst writes the description of an empty task',
+    role: SYSTEM_ANALYST,
+    verdict: 'proposed',
+    line: task({
+      facts: [
+        fact(SourceActionKind.DESCRIPTION_CHANGED, at(10), {
+          change: { before: 0, added: 1724, removed: 0 },
+        }),
+      ],
+    }),
+    main: { action: ActivityAction.REQUIREMENTS, details: [ActivityDetail.WRITTEN] },
+  },
+  {
+    id: '5.1',
+    name: 'a manager fixes a few words of the description',
+    role: PROJECT_MANAGER,
+    verdict: 'proposed',
+    line: task({
+      facts: [
+        fact(SourceActionKind.DESCRIPTION_CHANGED, at(10), {
+          change: { before: 1624, added: 5, removed: 0 },
+        }),
+      ],
+    }),
+    main: { action: ActivityAction.REQUIREMENTS, details: [ActivityDetail.CORRECTED] },
+  },
+  {
+    id: '5.1',
     name: 'only the title is edited',
     role: PROJECT_MANAGER,
     verdict: 'changed',
@@ -353,14 +381,96 @@ const SCENARIOS: Scenario[] = [
             commitCount: 2,
             commitTitle: 'update the page',
             commits: [
-              { id: 'a1', title: 'add e2e for payments', merge: false },
-              { id: 'a2', title: 'update the page', merge: false },
+              { id: 'a1', title: 'add e2e for payments', merge: false, copied: false },
+              { id: 'a2', title: 'update the page', merge: false, copied: false },
             ],
           }),
         ],
       }),
     ),
     main: { action: ActivityAction.CODE, details: [ActivityDetail.TESTS] },
+  },
+  {
+    id: '5.11',
+    name: 'only main is merged into the branch of a task',
+    role: DEVELOPER,
+    verdict: 'proposed',
+    line: withMergeRequest(
+      createMergeRequest({
+        lastCommitAt: '2026-07-01T10:00:00.000Z',
+        events: [
+          refEvent(at(11), SourceEventAction.PUSHED_TO, {
+            commitCount: 39,
+            commits: [
+              { id: 'm1', title: "Merge branch 'main' into 12-login", merge: true, copied: false },
+            ],
+          }),
+        ],
+      }),
+    ),
+    main: { action: ActivityAction.BRANCH_UPDATED, details: [] },
+  },
+  {
+    id: '5.11',
+    name: 'the branch is rebased on main and a new commit follows',
+    role: DEVELOPER,
+    verdict: 'proposed',
+    line: withMergeRequest(
+      createMergeRequest({
+        lastCommitAt: '2026-07-01T10:00:00.000Z',
+        events: [
+          refEvent(at(10), SourceEventAction.PUSHED_TO, {
+            commitCount: 138,
+            commits: [{ id: 'c1', title: 'refactor: step 1', merge: false, copied: true }],
+          }),
+          pushEvent(at(15), ['wip: optimize types']),
+        ],
+      }),
+    ),
+    main: { action: ActivityAction.CODE, details: [ActivityDetail.RESUMED] },
+    signals: { kind: null },
+  },
+  {
+    id: '5.12',
+    name: 'a developer takes a task',
+    role: DEVELOPER,
+    verdict: 'proposed',
+    line: task({ facts: [fact(SourceActionKind.ASSIGNED, at(10), { users: [ME] })] }),
+    main: { action: ActivityAction.ASSIGNED, details: [ActivityDetail.TAKEN] },
+  },
+  {
+    id: '5.12',
+    name: 'an analyst hands a task over to a colleague',
+    role: SYSTEM_ANALYST,
+    verdict: 'proposed',
+    line: task({
+      facts: [
+        fact(SourceActionKind.ASSIGNED, at(10), { users: [OTHER] }),
+        fact(SourceActionKind.UNASSIGNED, at(10), { users: [ME] }),
+      ],
+    }),
+    main: { action: ActivityAction.ASSIGNED, details: [ActivityDetail.HANDED_OVER] },
+    dropped: [ActivityRule.REPLACED],
+  },
+  {
+    id: '5.13',
+    name: 'a manager lowers the priority of a task',
+    role: PROJECT_MANAGER,
+    verdict: 'proposed',
+    line: task({
+      labels: ['priority::low'],
+      startOfDay: { ...createIssue().startOfDay, labels: ['priority::high'] },
+      facts: [label('priority::low')],
+    }),
+    main: { action: ActivityAction.PRIORITIZED, details: [ActivityDetail.LOWERED] },
+  },
+  {
+    id: '5.13',
+    name: 'a manager sets a critical priority on a task without one',
+    role: PROJECT_MANAGER,
+    verdict: 'proposed',
+    line: task({ labels: ['priority::critical'], facts: [label('priority::critical')] }),
+    main: { action: ActivityAction.ESCALATED, details: [] },
   },
 ];
 
@@ -387,6 +497,9 @@ describe('V2 scenarios in the action engine', () => {
         '5.8',
         '5.9',
         '5.10',
+        '5.11',
+        '5.12',
+        '5.13',
         '6.1',
         '6.2',
       ]),
@@ -396,6 +509,6 @@ describe('V2 scenarios in the action engine', () => {
         (total, { verdict }) => ({ ...total, [verdict]: (total[verdict] ?? 0) + 1 }),
         {},
       ),
-    ).toEqual({ proposed: 19, phrase: 4, changed: 1 });
+    ).toEqual({ proposed: 27, phrase: 4, changed: 1 });
   });
 });

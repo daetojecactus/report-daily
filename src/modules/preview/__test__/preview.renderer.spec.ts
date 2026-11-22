@@ -180,6 +180,37 @@ describe('PreviewRenderer', () => {
     ]);
   });
 
+  it('prints the size of a description edit and marks merged and copied commits', () => {
+    const lines = render({
+      issues: [
+        createIssue({
+          labels: [],
+          facts: [
+            fact(SourceActionKind.DESCRIPTION_CHANGED, at(10), {
+              change: { before: 900, added: 450, removed: 50 },
+            }),
+          ],
+          mergeRequests: [
+            createMergeRequest({
+              events: [
+                refEvent(at(11), SourceEventAction.PUSHED_TO, {
+                  commitCount: 2,
+                  commits: [
+                    { id: 'm1', title: "Merge branch 'main'", merge: true, copied: false },
+                    { id: 'c1', title: 'feat: old', merge: false, copied: true },
+                  ],
+                }),
+              ],
+            }),
+          ],
+        }),
+      ],
+    });
+
+    expect(lines).toContain('    actions: description_changed 900 +450 -50');
+    expect(lines).toContain("      commits: Merge branch 'main' (merge); feat: old (copy)");
+  });
+
   it('prints a wiki page and a milestone with their actions', () => {
     const lines = render({
       standaloneEvents: [

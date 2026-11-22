@@ -13,6 +13,10 @@ export const PREVIEW_AI_COMMENTS_FLAG = '--ai-comments';
 
 export const PREVIEW_EMPTY_REPORT = '(no lines for the report)';
 
+export const PREVIEW_MERGE_MARK = ' (merge)';
+
+export const PREVIEW_COPY_MARK = ' (copy)';
+
 export const PREVIEW_REASONS: Record<ActivityReason, string> = {
   [ActivityReason.ONLY]: 'the only action',
   [ActivityReason.TIER]: 'a higher tier',

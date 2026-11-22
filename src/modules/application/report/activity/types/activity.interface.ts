@@ -48,6 +48,7 @@ export interface ActivityChange {
   state: WorkflowState | null;
   flags: TaskFlag[];
   priority: Priority | null;
+  kind: TaskKind | null;
   returnedFrom: WorkflowState | null;
 }
 
@@ -56,6 +57,7 @@ export interface ActivityPush {
   mergeRequestIid: number | null;
   commitCount: number;
   commitTitles: string[];
+  synced: boolean;
 }
 
 export interface ActivityLineSignals {

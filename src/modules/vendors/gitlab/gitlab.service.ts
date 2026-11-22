@@ -1,8 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { addDays } from 'src/common/utils/date.util';
-import { GITLAB_EVENTS_MARGIN_DAYS, GITLAB_PAGE_SIZE } from './constants/gitlab.constants';
+import {
+  GITLAB_EVENTS_MARGIN_DAYS,
+  GITLAB_NOTES_PER_QUERY,
+  GITLAB_PAGE_SIZE,
+} from './constants/gitlab.constants';
 import type { GitLabIssuable } from './types/gitlab.enums';
 import type { GitLabPushData } from './types/gitlab-event.interface';
+import type { GitLabPushCommits } from './types/gitlab.interface';
 import { GitLabRepository } from './gitlab.repository';
 
 @Injectable()
@@ -103,13 +108,24 @@ export class GitLabService {
   async findPushCommits(
     projectId: number,
     { commit_from: from, commit_to: to, commit_count: count }: GitLabPushData,
-  ) {
+  ): Promise<GitLabPushCommits> {
     if (!to || !count) {
-      return [];
+      return { commits: [], rewritten: false };
     }
-    const branch = from ? await this.findBranchCommits(projectId, from, to, count) : null;
-    if (branch) {
-      return branch;
+    if (from) {
+      const line = await this.gitlabRepository.findFirstParentCommits(
+        projectId,
+        to,
+        Math.min(count + 1, GITLAB_PAGE_SIZE),
+      );
+      const lineFrom = line.findIndex((commit) => commit.id === from);
+      if (lineFrom !== -1) {
+        return { commits: line.slice(0, lineFrom).toReversed(), rewritten: false };
+      }
+      const base = await this.gitlabRepository.findMergeBase(projectId, [from, to]);
+      if (base?.id !== from) {
+        return { commits: line.toReversed(), rewritten: true };
+      }
     }
     const commits = await this.gitlabRepository.findCommits(
       projectId,
@@ -117,16 +133,23 @@ export class GitLabService {
       Math.min(count, GITLAB_PAGE_SIZE),
     );
     const fromIndex = commits.findIndex((commit) => commit.id === from);
-    return (fromIndex === -1 ? commits : commits.slice(0, fromIndex)).toReversed();
+    return {
+      commits: (fromIndex === -1 ? commits : commits.slice(0, fromIndex)).toReversed(),
+      rewritten: false,
+    };
   }
 
-  private async findBranchCommits(projectId: number, from: string, to: string, count: number) {
-    const commits = await this.gitlabRepository.findFirstParentCommits(
-      projectId,
-      to,
-      Math.min(count + 1, GITLAB_PAGE_SIZE),
-    );
-    const fromIndex = commits.findIndex((commit) => commit.id === from);
-    return fromIndex === -1 ? null : commits.slice(0, fromIndex).toReversed();
+  async findDescriptionDiffs(noteIds: number[]) {
+    const diffs = new Map<number, string>();
+    for (let start = 0; start < noteIds.length; start += GITLAB_NOTES_PER_QUERY) {
+      const batch = await this.gitlabRepository.findDescriptionDiffs(
+        noteIds.slice(start, start + GITLAB_NOTES_PER_QUERY),
+      );
+      if (!batch) {
+        return diffs;
+      }
+      batch.forEach((diff, id) => diffs.set(id, diff));
+    }
+    return diffs;
   }
 }

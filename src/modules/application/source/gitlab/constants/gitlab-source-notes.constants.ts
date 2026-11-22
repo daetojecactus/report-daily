@@ -158,3 +158,18 @@ export const GITLAB_SOURCE_NOTE_SHAPE_REPLACEMENTS: [RegExp, string][] = [
   [/[^\x20-\x7E]+/g, 'X'],
   [/\s+/g, ' '],
 ];
+
+export const GITLAB_SOURCE_DIFF_PART_PATTERN =
+  /<span class="idiff(?: (addition|deletion))?">([\s\S]*?)<\/span>/g;
+
+export const GITLAB_SOURCE_DIFF_ADDITION = 'addition';
+
+export const GITLAB_SOURCE_DIFF_DELETION = 'deletion';
+
+export const GITLAB_SOURCE_DIFF_TAG_PATTERN = /<[^>]*>/g;
+
+export const GITLAB_SOURCE_DIFF_ENTITY_PATTERN = /&(?:#\d+|#x[\da-f]+|[a-z]+);/gi;
+
+export const GITLAB_SOURCE_DIFF_ENTITY = '_';
+
+export const GITLAB_SOURCE_DIFF_SPACE_PATTERN = /[\s\u21b5]/gu;

@@ -24,6 +24,7 @@ import {
 import {
   ACTIVITY_DELETE_ACTION,
   ACTIVITY_PUSH_ACTIONS,
+  ACTIVITY_PUSHED_TO_ACTION,
   ACTIVITY_WORK_ITEM_KINDS,
 } from './constants/activity-events.constants';
 import { ACTIVITY_RETURN_STATES } from './constants/activity-facts.constants';
@@ -189,6 +190,7 @@ export class ActivitySignals {
               : [],
           priority:
             this.traitService.findValues(index, name, TraitDimension.PRIORITY).at(0) ?? null,
+          kind: this.traitService.findValues(index, name, TraitDimension.TASK_KIND).at(0) ?? null,
           returnedFrom:
             state === WorkflowState.IN_PROGRESS
               ? ((previous ? [previous.state] : startStates).find((before) =>
@@ -197,7 +199,7 @@ export class ActivitySignals {
               : null,
         };
       })
-      .filter((change) => change.state || change.flags.length || change.priority);
+      .filter((change) => change.state || change.flags.length || change.priority || change.kind);
   }
 
   private toPushes(line: ActivityLine): ActivityPush[] {
@@ -220,16 +222,25 @@ export class ActivitySignals {
     return sources.flatMap(({ events, mergeRequestIid }) =>
       events
         .filter((event) => ACTIVITY_PUSH_ACTIONS.has(event.actionName) && event.pushData)
-        .map((event) => ({
-          time: Date.parse(event.createdAt),
-          mergeRequestIid,
-          commitCount: event.pushData?.commitCount ?? 0,
-          commitTitles: event.pushData?.commits.length
-            ? event.pushData.commits.filter(({ merge }) => !merge).map(({ title }) => title)
-            : event.pushData?.commitTitle
-              ? [event.pushData.commitTitle]
-              : [],
-        })),
+        .map((event) => {
+          const commits = event.pushData?.commits ?? [];
+          const fresh = commits.filter(({ merge, copied }) => !merge && !copied);
+          return {
+            time: Date.parse(event.createdAt),
+            mergeRequestIid,
+            commitCount: event.pushData?.commitCount ?? 0,
+            commitTitles: commits.length
+              ? fresh.map(({ title }) => title)
+              : event.pushData?.commitTitle
+                ? [event.pushData.commitTitle]
+                : [],
+            synced: commits.length
+              ? fresh.length === 0
+              : event.actionName === ACTIVITY_PUSHED_TO_ACTION &&
+                !event.pushData?.commitCount &&
+                Boolean(event.pushData?.ref),
+          };
+        }),
     );
   }
 

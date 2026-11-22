@@ -1,4 +1,5 @@
 import { SourceActionKind } from 'src/modules/application/source/types/source.enums';
+import { WorkflowState } from 'src/modules/application/trait/types/trait.enums';
 import { ActivityAction, ActivityDetail } from '../../activity/types/activity.enums';
 import { PhraseContext, PhraseCount, PhraseName, ReportPhrase } from '../types/phrase.enums';
 
@@ -8,7 +9,13 @@ export const PHRASE_CONTEXTS: [ActivityDetail, PhraseContext][] = [
   [ActivityDetail.AFTER_APPROVAL, PhraseContext.AFTER_APPROVAL],
   [ActivityDetail.AFTER_REVIEW, PhraseContext.AFTER_REVIEW],
   [ActivityDetail.AUTO_MERGE, PhraseContext.AUTO_MERGE],
+  [ActivityDetail.AFTER_DISCUSSION, PhraseContext.AFTER_DISCUSSION],
 ];
+
+export const PHRASE_STATE_CONTEXTS = new Map<WorkflowState, PhraseContext>([
+  [WorkflowState.PLANNED, PhraseContext.AND_PLANNED],
+  [WorkflowState.IN_PROGRESS, PhraseContext.AND_TAKEN_INTO_WORK],
+]);
 
 export const PHRASE_CONTEXT_ACTIONS = new Set<ActivityAction>([
   ActivityAction.MERGED,
@@ -16,6 +23,7 @@ export const PHRASE_CONTEXT_ACTIONS = new Set<ActivityAction>([
   ActivityAction.CLOSED,
   ActivityAction.COMPLETED,
   ActivityAction.PASSED,
+  ActivityAction.REQUIREMENTS,
 ]);
 
 export const PHRASE_CONTEXT_PARTS = new Map<PhraseContext, ActivityAction>([
@@ -25,6 +33,7 @@ export const PHRASE_CONTEXT_PARTS = new Map<PhraseContext, ActivityAction>([
 ]);
 
 export const PHRASE_NOTED_ACTIONS = new Set<ActivityAction>([
+  ActivityAction.BRANCH_UPDATED,
   ActivityAction.COMMENTED,
   ActivityAction.DISCUSSED,
   ActivityAction.HELPED,
@@ -80,9 +89,14 @@ export const PHRASE_SUMMARIES = [
   ReportPhrase.TASK_PLANNED,
   ReportPhrase.ESTIMATE_CHANGED,
   ReportPhrase.TASK_ESTIMATED,
-  ReportPhrase.PRIORITY_CHANGED,
+  ReportPhrase.PRIORITY_RAISED,
+  ReportPhrase.PRIORITY_LOWERED,
   ReportPhrase.PRIORITY_SET,
+  ReportPhrase.TASK_TAKEN,
   ReportPhrase.TASK_ASSIGNED,
+  ReportPhrase.TASK_HANDED_OVER,
+  ReportPhrase.TASK_REASSIGNED,
+  ReportPhrase.TASK_LEFT,
   ReportPhrase.ASSIGNEE_REMOVED,
   ReportPhrase.MOVED_FROM_PROJECT,
 ] as const;

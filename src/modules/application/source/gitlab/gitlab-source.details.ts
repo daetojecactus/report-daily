@@ -1,4 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import type { DayRange } from 'src/common/types/date.interface';
+import { isWithinDay } from 'src/common/utils/date.util';
 import { GitLabIssuable } from 'src/modules/vendors/gitlab/types/gitlab.enums';
 import type { GitLabEvent } from 'src/modules/vendors/gitlab/types/gitlab-event.interface';
 import type {
@@ -10,6 +12,7 @@ import type {
 import type { GitLabMilestoneEvent } from 'src/modules/vendors/gitlab/types/gitlab-history.interface';
 import type { GitLabProject } from 'src/modules/vendors/gitlab/types/gitlab.interface';
 import { GitLabService } from 'src/modules/vendors/gitlab/gitlab.service';
+import { SourceActionKind } from '../types/source.enums';
 import { GITLAB_SOURCE_ITERATION_DATES_SEPARATOR } from './constants/gitlab-source-keys.constants';
 import type {
   DayActivity,
@@ -22,12 +25,14 @@ import type {
   SourcePlanHistory,
 } from './types/gitlab-source.interface';
 import { GitLabSourceKeys } from './gitlab-source.keys';
+import { GitLabSourceNotes } from './gitlab-source.notes';
 
 @Injectable()
 export class GitLabSourceDetails {
   constructor(
     private readonly gitlabService: GitLabService,
     private readonly gitlabSourceKeys: GitLabSourceKeys,
+    private readonly gitlabSourceNotes: GitLabSourceNotes,
   ) {}
 
   async load(
@@ -175,6 +180,25 @@ export class GitLabSourceDetails {
             [id, await this.gitlabService.findPushCommits(projectId, push)] as const,
         ),
       ),
+    );
+  }
+
+  async loadDescriptionChanges(issues: IssueActivity[], employeeId: number, day: DayRange) {
+    const noteIds = issues.flatMap(({ notes }) =>
+      notes
+        .filter(
+          (note) =>
+            note.author.id === employeeId &&
+            isWithinDay(note.created_at, day) &&
+            this.gitlabSourceNotes.match(note)?.kind === SourceActionKind.DESCRIPTION_CHANGED,
+        )
+        .map((note) => note.id),
+    );
+    const diffs = noteIds.length
+      ? await this.gitlabService.findDescriptionDiffs(noteIds)
+      : new Map<number, string>();
+    return new Map(
+      [...diffs].map(([id, diff]) => [id, this.gitlabSourceNotes.parseDescriptionDiff(diff)]),
     );
   }
 

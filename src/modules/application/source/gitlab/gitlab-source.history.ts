@@ -154,7 +154,9 @@ export class GitLabSourceHistory {
 
   resolveLastCommitBeforeDate(commits: GitLabCommit[], day: DayRange) {
     const times = commits
-      .map((commit) => Date.parse(commit.committed_date ?? commit.created_at))
+      .map((commit) =>
+        Date.parse(commit.authored_date ?? commit.committed_date ?? commit.created_at),
+      )
       .filter((time) => time < day.start);
     return times.length ? new Date(Math.max(...times)).toISOString() : null;
   }

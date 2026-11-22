@@ -33,7 +33,7 @@ async function catchError<T extends Error>(
 }
 
 describe('GitLabRepository', () => {
-  const client = { get: vi.fn<GitLabClient['get']>() };
+  const client = { get: vi.fn<GitLabClient['get']>(), query: vi.fn<GitLabClient['query']>() };
   const repository = new GitLabRepository(client as unknown as GitLabClient);
 
   beforeAll(() => {
@@ -43,6 +43,7 @@ describe('GitLabRepository', () => {
   beforeEach(() => {
     client.get.mockReset();
     client.get.mockResolvedValue(respond(200, []));
+    client.query.mockReset();
   });
 
   it('searches up to ten active users by name or username', async () => {
@@ -207,6 +208,72 @@ describe('GitLabRepository', () => {
       first_parent: true,
       per_page: 2,
     });
+  });
+
+  it('finds the common ancestor of two commits', async () => {
+    client.get.mockResolvedValue(respond(200, { id: 'aaa' }));
+
+    expect(await repository.findMergeBase(3, ['aaa', 'ccc'])).toEqual({ id: 'aaa' });
+    expect(client.get).toHaveBeenCalledWith('/projects/3/repository/merge_base', {
+      'refs[]': ['aaa', 'ccc'],
+    });
+  });
+
+  it.each([
+    [404, '404 Merge Base Not Found'],
+    [400, 'Could not find ref: aaa'],
+  ])('finds no common ancestor on status %i', async (status, message) => {
+    client.get.mockResolvedValue(respond(status, { message }));
+
+    expect(await repository.findMergeBase(3, ['aaa', 'ccc'])).toBeNull();
+  });
+
+  it('asks for the description history of the notes in one GraphQL query', async () => {
+    client.query.mockResolvedValue(
+      respond(200, {
+        data: {
+          note11: { systemNoteMetadata: { descriptionVersion: { diff: '<span>a</span>' } } },
+          note12: { systemNoteMetadata: { descriptionVersion: { diff: null } } },
+          note13: null,
+        },
+      }),
+    );
+
+    expect([...((await repository.findDescriptionDiffs([11, 12, 13])) ?? [])]).toEqual([
+      [11, '<span>a</span>'],
+    ]);
+    const [body] = client.query.mock.calls[0];
+    expect(JSON.parse(body)).toEqual({
+      query:
+        'query { note11: note(id: "gid://gitlab/Note/11") { systemNoteMetadata { descriptionVersion { diff } } } note12: note(id: "gid://gitlab/Note/12") { systemNoteMetadata { descriptionVersion { diff } } } note13: note(id: "gid://gitlab/Note/13") { systemNoteMetadata { descriptionVersion { diff } } } }',
+    });
+  });
+
+  it('skips the description history and warns when the GraphQL query has errors', async () => {
+    const warn = vi.spyOn(Logger.prototype, 'warn');
+    client.query.mockResolvedValue(
+      respond(200, {
+        errors: [{ message: "Field 'diff' doesn't exist on type 'DescriptionVersion'" }],
+      }),
+    );
+
+    expect(await repository.findDescriptionDiffs([11])).toBeNull();
+    expect(warn).toHaveBeenCalledWith(
+      { error: "Field 'diff' doesn't exist on type 'DescriptionVersion'" },
+      'GitLab GraphQL query returned errors, the description history is skipped',
+    );
+    warn.mockRestore();
+  });
+
+  it('retries the GraphQL query on a server error and rejects it on 401', async () => {
+    client.query.mockResolvedValueOnce(respond(502, { message: 'error' }));
+    client.query.mockResolvedValueOnce(respond(401, { message: 'error' }));
+
+    const retried = await catchError(repository.findDescriptionDiffs([11]), GitLabRetryableError);
+    const rejected = await catchError(repository.findDescriptionDiffs([11]), GitLabRejectedError);
+
+    expect(retried.message).toBe('GitLab API error: /api/graphql: 502');
+    expect(rejected.message).toBe('GitLab API error: /api/graphql: 401');
   });
 
   it.each([401, 403, 400])('rejects without retries on status %i', async (status) => {

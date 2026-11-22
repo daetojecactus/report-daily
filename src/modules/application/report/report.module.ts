@@ -5,6 +5,7 @@ import { SourceModule } from 'src/modules/application/source/source.module';
 import { TraitModule } from 'src/modules/application/trait/trait.module';
 import { UserModule } from 'src/modules/application/user/user.module';
 import { ActivityCodeDetector } from './activity/detectors/activity-code.detector';
+import { ActivityDiscussionDetector } from './activity/detectors/activity-discussion.detector';
 import { ActivityEventDetector } from './activity/detectors/activity-event.detector';
 import { ActivityLifecycleDetector } from './activity/detectors/activity-lifecycle.detector';
 import { ActivityLinkDetector } from './activity/detectors/activity-link.detector';
@@ -40,6 +41,7 @@ import { TemplateService } from './template/template.service';
     ActivityPlanDetector,
     ActivityLinkDetector,
     ActivityEventDetector,
+    ActivityDiscussionDetector,
     ActivityChains,
     ActivitySelector,
     ActivitySummaries,

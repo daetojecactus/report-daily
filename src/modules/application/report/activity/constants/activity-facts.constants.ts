@@ -106,6 +106,13 @@ export const ACTIVITY_CODE_CHANGE_FACTS = new Set<SourceActionKind>([
   SourceActionKind.COMMIT_MENTIONED,
 ]);
 
+export const ACTIVITY_BRANCH_UPDATE_FACTS = new Set<SourceActionKind>([
+  SourceActionKind.PUSHED,
+  SourceActionKind.DIFF_LINE_CHANGED,
+  SourceActionKind.COMMIT_MENTIONED,
+  SourceActionKind.MARKED_DRAFT,
+]);
+
 export const ACTIVITY_COMMIT_FACTS = new Set<SourceActionKind>([
   SourceActionKind.PUSHED,
   SourceActionKind.COMMIT_MENTIONED,

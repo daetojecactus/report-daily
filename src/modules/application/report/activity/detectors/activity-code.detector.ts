@@ -4,6 +4,7 @@ import type { GroupedMergeRequest } from 'src/modules/application/source/types/s
 import { TaskFlag, TaskKind, WorkflowState } from 'src/modules/application/trait/types/trait.enums';
 import { ACTIVITY_BRANCH_PUSH_ACTION } from '../constants/activity-events.constants';
 import {
+  ACTIVITY_BRANCH_UPDATE_FACTS,
   ACTIVITY_CODE_CHANGE_FACTS,
   ACTIVITY_CODE_FACTS,
   ACTIVITY_COMMIT_FACTS,
@@ -41,18 +42,43 @@ export class ActivityCodeDetector {
     if (!changed) {
       return facts.length ? [this.toCode(facts, this.toStartDetails(signals, facts), [])] : [];
     }
-    if (this.isHelping(signals)) {
+    if (this.isBranchUpdate(signals, facts)) {
+      return [
+        this.toCandidate(
+          ActivityAction.BRANCH_UPDATED,
+          ACTIVITY_WEIGHTS.BRANCH_UPDATED,
+          facts.filter((fact) => fact.kind !== SourceActionKind.MARKED_DRAFT),
+          signals.removedFlags.includes(TaskFlag.NEEDS_REBASE) ? [ActivityDetail.REBASE] : [],
+          pushes,
+        ),
+      ];
+    }
+    const work = { ...signals, pushes: pushes.filter((push) => !push.synced) };
+    if (this.isHelping(work)) {
       return [
         this.toCandidate(
           ActivityAction.HELPED,
           ACTIVITY_WEIGHTS.HELPED,
           facts,
           signals.dialog ? [ActivityDetail.DIALOG] : [],
-          pushes,
+          work.pushes,
         ),
       ];
     }
-    return [this.toCode(facts, this.toCodeDetails(signals, facts), pushes)];
+    return [this.toCode(facts, this.toCodeDetails(work, facts), work.pushes)];
+  }
+
+  private isBranchUpdate(
+    { pushes, line, dependencies }: ActivityLineSignals,
+    facts: ActivityFact[],
+  ) {
+    return (
+      !dependencies &&
+      pushes.length > 0 &&
+      pushes.every((push) => push.synced) &&
+      facts.every((fact) => ACTIVITY_BRANCH_UPDATE_FACTS.has(fact.kind)) &&
+      !this.hasForeignMention(line, facts)
+    );
   }
 
   private isHelping({

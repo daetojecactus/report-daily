@@ -33,6 +33,7 @@ import { TraitService } from 'src/modules/application/trait/trait.service';
 import type { TraitNameService } from 'src/modules/application/trait/trait-name/trait-name.service';
 import { JobRole } from 'src/modules/application/user/types/user.enums';
 import { ActivityCodeDetector } from '../detectors/activity-code.detector';
+import { ActivityDiscussionDetector } from '../detectors/activity-discussion.detector';
 import { ActivityEventDetector } from '../detectors/activity-event.detector';
 import { ActivityLifecycleDetector } from '../detectors/activity-lifecycle.detector';
 import { ActivityLinkDetector } from '../detectors/activity-link.detector';
@@ -80,6 +81,7 @@ const MAPPINGS: [string, TraitDimension, TraitValue][] = [
   ['type::dependency', TraitDimension.TASK_KIND, TaskKind.DEPENDENCY],
   ['priority::critical', TraitDimension.PRIORITY, Priority.CRITICAL],
   ['priority::high', TraitDimension.PRIORITY, Priority.HIGH],
+  ['priority::low', TraitDimension.PRIORITY, Priority.LOW],
   ['qa::returned', TraitDimension.FLAG, TaskFlag.RETURNED_FROM_QA],
   ['needs-rebase', TraitDimension.FLAG, TaskFlag.NEEDS_REBASE],
   ['type::ignore', TraitDimension.FLAG, TaskFlag.EXCLUDE_FROM_REPORT],
@@ -147,7 +149,12 @@ export function pushEvent(time: string, titles: string[] = ['fix: the login']): 
   return refEvent(time, SourceEventAction.PUSHED_TO, {
     commitCount: titles.length,
     commitTitle: titles.at(-1) ?? null,
-    commits: titles.map((title, index) => ({ id: String(index), title, merge: false })),
+    commits: titles.map((title, index) => ({
+      id: String(index),
+      title,
+      merge: false,
+      copied: false,
+    })),
   });
 }
 
@@ -276,6 +283,7 @@ export function createDetectors() {
     new ActivityPlanDetector(),
     new ActivityLinkDetector(),
     new ActivityEventDetector(),
+    new ActivityDiscussionDetector(),
   );
 }
 

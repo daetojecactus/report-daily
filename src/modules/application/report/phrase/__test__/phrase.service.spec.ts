@@ -502,15 +502,49 @@ describe('PhraseService', () => {
   });
 
   it('sums up the assignees set in several tasks', () => {
-    const assigned = (iid: number) =>
+    const assigned = (iid: number, ...facts: ReturnType<typeof fact>[]) =>
       createIssue({
         iid,
-        facts: [fact(SourceActionKind.ASSIGNED, at(10), { users: ['dev.other'] })],
+        facts: [fact(SourceActionKind.ASSIGNED, at(10), { users: ['dev.other'] }), ...facts],
       });
+    const handedOver = [1, 2, 3].map((iid) =>
+      assigned(iid, fact(SourceActionKind.UNASSIGNED, at(10), { users: [ME] })),
+    );
 
     expect(summarize([assigned(1), assigned(2), assigned(3)], { gender: Gender.FEMALE })).toEqual([
-      'Назначила исполнителей 3 задачам: #1, #2, #3',
+      'Передала в работу 3 задачи: #1, #2, #3',
     ]);
+    expect(summarize(handedOver)).toEqual(['Передал коллегам 3 задачи: #1, #2, #3']);
+    expect(summarize(handedOver, { language: Language.EN })).toEqual([
+      'Handed 3 tasks over to colleagues: #1, #2, #3',
+    ]);
+  });
+
+  it('says who the task went to', () => {
+    const line = (...facts: ReturnType<typeof fact>[]) => issueLine(createIssue({ facts }));
+    const add = (users: string[]) => fact(SourceActionKind.ASSIGNED, at(10), { users });
+    const remove = (users: string[]) => fact(SourceActionKind.UNASSIGNED, at(10), { users });
+
+    expect(
+      [
+        line(add([ME])),
+        line(add(['dev.other'])),
+        line(remove([ME]), add(['dev.other'])),
+        line(remove(['dev.third']), add(['dev.other'])),
+        line(remove([ME])),
+        line(remove(['dev.other'])),
+      ].map((item) => describeLine(item, { gender: Gender.FEMALE })),
+    ).toEqual([
+      'Взяла задачу «Issue 12»',
+      'Передала задачу в работу «Issue 12»',
+      'Передала задачу коллеге «Issue 12»',
+      'Переназначила задачу «Issue 12»',
+      'Сняла себя с задачи «Issue 12»',
+      'Сняла исполнителя «Issue 12»',
+    ]);
+    expect(describeLine(line(add([ME])), { language: Language.EN })).toBe(
+      'Picked up the task “Issue 12”',
+    );
   });
 
   it('sums up the priorities set and changed in several tasks', () => {
@@ -521,19 +555,165 @@ describe('PhraseService', () => {
         startOfDay: { ...createIssue().startOfDay, labels: start },
         facts: [fact(SourceActionKind.LABEL_ADDED, at(10), { value: 'priority::high' })],
       });
-    const changed = [1, 2, 3].map((iid) => prioritized(iid, ['priority::critical']));
+    const lowered = [1, 2, 3].map((iid) => prioritized(iid, ['priority::critical']));
+    const raised = [1, 2, 3].map((iid) => prioritized(iid, ['priority::low']));
 
     expect(summarize([prioritized(1), prioritized(2), prioritized(3)])).toEqual([
       'Назначил приоритет 3 задачам: #1, #2, #3',
     ]);
-    expect(summarize(changed, { gender: Gender.FEMALE })).toEqual([
-      'Изменила приоритет у 3 задач: #1, #2, #3',
+    expect(summarize(lowered, { gender: Gender.FEMALE })).toEqual([
+      'Понизила приоритет у 3 задач: #1, #2, #3',
     ]);
-    expect(summarize(changed, { language: Language.EN })).toEqual([
-      'Changed the priority of 3 tasks: #1, #2, #3',
+    expect(summarize(raised)).toEqual(['Повысил приоритет у 3 задач: #1, #2, #3']);
+    expect(summarize(raised, { language: Language.EN })).toEqual([
+      'Raised the priority of 3 tasks: #1, #2, #3',
     ]);
     expect(describeLine(issueLine(prioritized(12)), { role: JobRole.PROJECT_MANAGER })).toBe(
       'Назначил приоритет «Issue 12»',
     );
+  });
+
+  it('sets a critical priority or raises a priority to critical', () => {
+    const critical = (start: string[]) =>
+      issueLine(
+        createIssue({
+          labels: ['priority::critical'],
+          startOfDay: { ...createIssue().startOfDay, labels: start },
+          facts: [fact(SourceActionKind.LABEL_ADDED, at(10), { value: 'priority::critical' })],
+        }),
+      );
+
+    expect(describeLine(critical([]))).toBe('Назначил критический приоритет «Issue 12»');
+    expect(describeLine(critical(['priority::high']), { gender: Gender.FEMALE })).toBe(
+      'Повысила приоритет до критического «Issue 12»',
+    );
+  });
+
+  it('says how much of the task description was written and after what', () => {
+    const edited = (
+      change: { before: number; added: number; removed: number },
+      ...facts: ReturnType<typeof fact>[]
+    ) =>
+      issueLine(
+        createIssue({
+          facts: [fact(SourceActionKind.DESCRIPTION_CHANGED, at(10), { change }), ...facts],
+        }),
+      );
+    const analyst = { role: JobRole.SYSTEM_ANALYST, gender: Gender.FEMALE };
+
+    expect(
+      [
+        edited({ before: 0, added: 600, removed: 0 }),
+        edited({ before: 900, added: 450, removed: 50 }),
+        edited({ before: 2000, added: 200, removed: 1400 }),
+        edited({ before: 1600, added: 5, removed: 0 }),
+        issueLine(createIssue({ facts: [fact(SourceActionKind.DESCRIPTION_CHANGED, at(10))] })),
+      ].map((line) => describeLine(line, analyst)),
+    ).toEqual([
+      'Описала задачу «Issue 12»',
+      'Дополнила описание задачи «Issue 12»',
+      'Переработала описание задачи «Issue 12»',
+      'Поправила описание задачи «Issue 12»',
+      'Обновила описание задачи «Issue 12»',
+    ]);
+    expect(
+      describeLine(
+        edited(
+          { before: 900, added: 450, removed: 50 },
+          otherFact(SourceActionKind.COMMENTED, at(9)),
+        ),
+        analyst,
+      ),
+    ).toBe('Дополнила описание задачи по итогам обсуждения «Issue 12»');
+    expect(
+      describeLine(
+        edited(
+          { before: 0, added: 600, removed: 0 },
+          fact(SourceActionKind.LABEL_ADDED, at(11), { value: 'status::todo' }),
+        ),
+        analyst,
+      ),
+    ).toBe('Описала задачу и взяла в план «Issue 12»');
+    expect(
+      describeLine(
+        edited(
+          { before: 0, added: 600, removed: 0 },
+          fact(SourceActionKind.LABEL_ADDED, at(11), { value: 'status::doing' }),
+        ),
+        { role: JobRole.PROJECT_MANAGER, language: Language.EN },
+      ),
+    ).toBe('Described the task and handed it over for development “Issue 12”');
+  });
+
+  it('keeps small description edits apart from planning', () => {
+    const line = issueLine(
+      createIssue({
+        facts: [
+          fact(SourceActionKind.DESCRIPTION_CHANGED, at(10), {
+            change: { before: 1600, added: 5, removed: 0 },
+          }),
+          fact(SourceActionKind.LABEL_ADDED, at(11), { value: 'status::todo' }),
+        ],
+      }),
+    );
+
+    expect(describeLine(line, { role: JobRole.SYSTEM_ANALYST })).toBe(
+      'Взял задачу в план спринта «Issue 12»',
+    );
+  });
+
+  it('names an update of the branch, a task kind, a removed reviewer and a talk in a task waiting for details', () => {
+    const merge = refEvent(at(11), SourceEventAction.PUSHED_TO, {
+      commitCount: 39,
+      commits: [
+        { id: 'm1', title: "Merge branch 'main' into 12-login", merge: true, copied: false },
+      ],
+    });
+
+    expect(
+      describeLine(
+        issueLine(
+          createIssue({
+            labels: ['status::review'],
+            mergeRequests: [createMergeRequest({ events: [merge] })],
+          }),
+        ),
+      ),
+    ).toBe('Обновил ветку «Issue 12» · задача на ревью');
+    expect(
+      describeLine(
+        issueLine(
+          createIssue({
+            facts: [fact(SourceActionKind.LABEL_ADDED, at(10), { value: 'type::feature' })],
+          }),
+        ),
+        { gender: Gender.FEMALE },
+      ),
+    ).toBe('Указала тип задачи «Issue 12»');
+    expect(
+      describeLine({
+        issue: null,
+        event: null,
+        pushes: [],
+        mergeRequests: [
+          othersMergeRequest({
+            facts: [
+              fact(SourceActionKind.REVIEW_REQUEST_REMOVED, at(10), { users: ['dev.other'] }),
+            ],
+          }),
+        ],
+      }),
+    ).toBe('Снял ревьюера «Merge request 5»');
+    expect(
+      describeLine(
+        issueLine(
+          createIssue({
+            labels: ['status::need information'],
+            facts: [fact(SourceActionKind.COMMENTED, at(10))],
+          }),
+        ),
+        { role: JobRole.PROJECT_MANAGER },
+      ),
+    ).toBe('Обсудил детали задачи «Issue 12» · задача ждёт уточнений');
   });
 });

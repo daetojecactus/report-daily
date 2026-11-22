@@ -168,7 +168,9 @@ export class GitLabSourceFacts {
     }
     const match = this.gitlabSourceNotes.match(note);
     if (match) {
-      return [this.toFact(match.kind, note.created_at, note.author, context, match.value)];
+      const fact = this.toFact(match.kind, note.created_at, note.author, context, match.value);
+      const change = context.descriptionChanges.get(note.id);
+      return [change ? { ...fact, change } : fact];
     }
     if (!this.gitlabSourceNotes.isKnown(note)) {
       this.logger.warn(

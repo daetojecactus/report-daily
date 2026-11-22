@@ -4,7 +4,7 @@ import type { Locale } from 'src/modules/application/i18n/types/i18n.interface';
 import { ItemState, SourceActionKind } from 'src/modules/application/source/types/source.enums';
 import type { WorkflowState } from 'src/modules/application/trait/types/trait.enums';
 import type { Gender } from 'src/modules/application/user/types/user.enums';
-import { ActivityAction } from '../activity/types/activity.enums';
+import { ActivityAction, ActivityDetail } from '../activity/types/activity.enums';
 import type {
   ActivityCandidate,
   ActivityLine,
@@ -21,6 +21,7 @@ import {
   PHRASE_ACROSS_PLURALS,
   PHRASE_NAMES,
   PHRASE_NOTED_ACTIONS,
+  PHRASE_STATE_CONTEXTS,
   PHRASE_SUMMARIES,
   PHRASE_SUMMARY_NAMES,
 } from './constants/phrase.constants';
@@ -58,7 +59,10 @@ export class PhraseService {
         ? texts.stateLine(state)
         : `${this.toGendered(texts.actions[key], gender)}${this.toValue(locale, key, line, main)}`;
     const context = this.findContext(main);
-    const actionText = [phrase, ...(context ? [texts.contexts[context]] : [])].join(' ');
+    const actionText = [
+      phrase,
+      ...(context ? [this.toGendered(texts.contexts[context], gender)] : []),
+    ].join(' ');
     const title = this.toTitle(line);
     const text = [actionText, ...(title ? [texts.quote(title)] : [])].join(' ');
     const note =
@@ -129,7 +133,10 @@ export class PhraseService {
     if (!PHRASE_CONTEXT_ACTIONS.has(candidate.action)) {
       return null;
     }
-    const context = PHRASE_CONTEXTS.find(([detail]) => candidate.details.includes(detail))?.[1];
+    const context =
+      (candidate.details.includes(ActivityDetail.WITH_STATE) && candidate.state
+        ? PHRASE_STATE_CONTEXTS.get(candidate.state)
+        : undefined) ?? PHRASE_CONTEXTS.find(([detail]) => candidate.details.includes(detail))?.[1];
     const partAction = context ? PHRASE_CONTEXT_PARTS.get(context) : undefined;
     if (!context || candidate.parts.some(({ action }) => action === partAction)) {
       return null;
