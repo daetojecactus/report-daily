@@ -117,8 +117,12 @@ function createGitLab(data: GitLabData) {
     ),
     findMergeRequestCommits: vi.fn(() => Promise.resolve([])),
     findPushCommits: vi.fn((_projectId: number, push: GitLabPushData) =>
-      Promise.resolve([{ id: push.commit_to ?? '', title: 'fix: a bug', created_at: '' }]),
+      Promise.resolve({
+        commits: [{ id: push.commit_to ?? '', title: 'fix: a bug', created_at: '' }],
+        rewritten: false,
+      }),
     ),
+    findDescriptionDiffs: vi.fn(() => Promise.resolve(new Map<number, string>())),
   };
 }
 
@@ -129,7 +133,11 @@ function collect(
 ) {
   const scanner = { findHiddenItems: vi.fn(() => Promise.resolve(hidden)) };
   const keys = new GitLabSourceKeys();
-  const details = new GitLabSourceDetails(gitlab as unknown as GitLabService, keys);
+  const details = new GitLabSourceDetails(
+    gitlab as unknown as GitLabService,
+    keys,
+    new GitLabSourceNotes(),
+  );
   return new GitLabSourceService(
     gitlab as unknown as GitLabService,
     createBuilder(),
@@ -680,9 +688,11 @@ describe('GitLabSourceService', () => {
       expect.objectContaining({ ref: '12-login', commit_to: 'bbb' }),
     );
     const [push] = grouped.issues[0].mergeRequests[0].events;
-    expect(push.pushData?.commits).toEqual([{ id: 'bbb', title: 'fix: a bug', merge: false }]);
+    expect(push.pushData?.commits).toEqual([
+      { id: 'bbb', title: 'fix: a bug', merge: false, copied: false },
+    ]);
     expect(grouped.standalonePushes[0].events[0].pushData?.commits).toEqual([
-      { id: 'bbb', title: 'fix: a bug', merge: false },
+      { id: 'bbb', title: 'fix: a bug', merge: false, copied: false },
     ]);
   });
 
@@ -709,6 +719,47 @@ describe('GitLabSourceService', () => {
     expect(grouped.issues[0].facts.filter((fact) => fact.own).map((fact) => fact.kind)).toEqual([
       'description_changed',
     ]);
+  });
+
+  it('reads the size of the own description edits of the day from the description history', async () => {
+    const employee = { id: GITLAB_USER_ID, username: 'dev.me', name: 'Me' };
+    const gitlab = createGitLab({
+      events: [issueEvent(12)],
+      issues: [createIssue({ iid: 12 })],
+      notes: {
+        [`issues:${PROJECT_ID}:12`]: [
+          createNote({ id: 41, body: 'changed the description', author: employee }),
+          createNote({ id: 42, body: 'changed the description' }),
+          createNote({
+            id: 43,
+            body: 'changed the description',
+            author: employee,
+            created_at: '2026-08-01T10:00:00.000Z',
+          }),
+          createNote({ id: 44, body: 'changed title from **a** to **b**', author: employee }),
+        ],
+      },
+    });
+    gitlab.findDescriptionDiffs.mockResolvedValue(
+      new Map([[41, '<span class="idiff">kept</span><span class="idiff addition">new</span>']]),
+    );
+
+    const grouped = await collect(gitlab);
+
+    expect(gitlab.findDescriptionDiffs).toHaveBeenCalledWith([41]);
+    expect(
+      grouped.issues[0].facts
+        .filter((fact) => fact.kind === SourceActionKind.DESCRIPTION_CHANGED)
+        .map((fact) => fact.change),
+    ).toEqual([{ before: 4, added: 3, removed: 0 }, undefined]);
+  });
+
+  it('does not ask for the description history without own description edits', async () => {
+    const gitlab = createGitLab({ events: [issueEvent(12)], issues: [createIssue({ iid: 12 })] });
+
+    await collect(gitlab);
+
+    expect(gitlab.findDescriptionDiffs).not.toHaveBeenCalled();
   });
 
   it('adds the items changed without events to the day', async () => {

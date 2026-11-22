@@ -86,7 +86,9 @@ export class ActivityChains {
         details: () => [],
       },
       {
-        isHead: (candidate) => candidate.action === ActivityAction.REQUIREMENTS,
+        isHead: (candidate) =>
+          candidate.action === ActivityAction.REQUIREMENTS &&
+          !candidate.details.includes(ActivityDetail.CORRECTED),
         isPart: (candidate, head) =>
           (isState(candidate, [WorkflowState.PLANNED, WorkflowState.IN_PROGRESS]) ||
             candidate.action === ActivityAction.PLANNED) &&

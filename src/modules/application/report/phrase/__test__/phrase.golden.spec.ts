@@ -50,8 +50,9 @@ const REWORDED: Record<string, string> = {
   CLOSED_WITHOUT_MERGE: 'Закрыл задачу без вливания',
   COMMENTED: 'Прокомментировал',
   COMPLETED_BY_MERGE: 'Влил изменения и завершил задачу',
-  DELEGATED_TASK: 'Назначил исполнителя задачи',
+  DELEGATED_TASK: 'Передал задачу в работу',
   MERGED_OTHERS_WORK: 'Влил работу коллеги',
+  PROVIDED_REQUIREMENTS: 'Обновил описание задачи',
   TESTED_AND_APPROVED: 'Протестировал и одобрил',
   TESTED_WITH_COMMENTS: 'Протестировал и оставил замечания',
 };

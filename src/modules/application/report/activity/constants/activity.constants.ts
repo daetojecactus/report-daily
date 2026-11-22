@@ -22,6 +22,12 @@ export const ACTIVITY_EXCLUDING_RULES = new Set<ActivityRule>([
 
 export const ACTIVITY_MANY_COMMENTS = 3;
 
+export const ACTIVITY_DESCRIPTION_SMALL = 30;
+
+export const ACTIVITY_DESCRIPTION_WRITTEN_BEFORE = 100;
+
+export const ACTIVITY_DESCRIPTION_REWORK = 300;
+
 export const ACTIVITY_PASSED_SKIPPED_DETAILS = new Set<ActivityDetail>([
   ActivityDetail.TESTED,
   ActivityDetail.AFTER_APPROVAL,

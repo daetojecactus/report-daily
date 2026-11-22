@@ -1,7 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import type { GitLabNote } from 'src/modules/vendors/gitlab/types/gitlab-history.interface';
+import type { SourceTextChange } from '../types/source.interface';
 import {
   GITLAB_SOURCE_DATE_ACTIONS,
+  GITLAB_SOURCE_DIFF_ADDITION,
+  GITLAB_SOURCE_DIFF_DELETION,
+  GITLAB_SOURCE_DIFF_ENTITY,
+  GITLAB_SOURCE_DIFF_ENTITY_PATTERN,
+  GITLAB_SOURCE_DIFF_PART_PATTERN,
+  GITLAB_SOURCE_DIFF_SPACE_PATTERN,
+  GITLAB_SOURCE_DIFF_TAG_PATTERN,
   GITLAB_SOURCE_DATE_CHANGE_PATTERN,
   GITLAB_SOURCE_DATE_NOTE_PATTERN,
   GITLAB_SOURCE_MONTHS,
@@ -121,6 +129,23 @@ export class GitLabSourceNotes {
         : [],
       removed: removedAt === -1 ? [] : this.toMentions(body.slice(removedAt)),
     };
+  }
+
+  parseDescriptionDiff(diff: string): SourceTextChange {
+    const change = { before: 0, added: 0, removed: 0 };
+    for (const [, part, html] of diff.matchAll(GITLAB_SOURCE_DIFF_PART_PATTERN)) {
+      const size = html
+        .replace(GITLAB_SOURCE_DIFF_TAG_PATTERN, '')
+        .replace(GITLAB_SOURCE_DIFF_ENTITY_PATTERN, GITLAB_SOURCE_DIFF_ENTITY)
+        .replace(GITLAB_SOURCE_DIFF_SPACE_PATTERN, '').length;
+      if (part === GITLAB_SOURCE_DIFF_ADDITION) {
+        change.added += size;
+      } else {
+        change.before += size;
+        change.removed += part === GITLAB_SOURCE_DIFF_DELETION ? size : 0;
+      }
+    }
+    return change;
   }
 
   private toMentions(text: string) {

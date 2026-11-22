@@ -14,7 +14,7 @@ export type GenderedText = string | Record<Gender, string>;
 export interface PhrasesLocale {
   phrases: {
     actions: Record<ReportPhrase, GenderedText>;
-    contexts: Record<PhraseContext, string>;
+    contexts: Record<PhraseContext, GenderedText>;
     states: Record<WorkflowState, string>;
     closed: string;
     stateLine: (state: string) => string;

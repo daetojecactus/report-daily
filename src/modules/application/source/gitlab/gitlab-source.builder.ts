@@ -7,7 +7,16 @@ import type {
   GitLabLabelEvent,
   GitLabNote,
 } from 'src/modules/vendors/gitlab/types/gitlab-history.interface';
-import type { CleanEvent, CleanLabelEvent, CleanNote } from '../types/source.interface';
+import type {
+  GitLabCommit,
+  GitLabPushCommits,
+} from 'src/modules/vendors/gitlab/types/gitlab.interface';
+import type {
+  CleanEvent,
+  CleanLabelEvent,
+  CleanNote,
+  SourceTextChange,
+} from '../types/source.interface';
 import type {
   GroupedDailyData,
   GroupedIssue,
@@ -42,11 +51,17 @@ export class GitLabSourceBuilder {
     private readonly gitlabSourceNotes: GitLabSourceNotes,
   ) {}
 
-  build(activity: DayActivity, day: DayRange, employee: SourceEmployee): GroupedDailyData {
+  build(
+    activity: DayActivity,
+    day: DayRange,
+    employee: SourceEmployee,
+    descriptionChanges: Map<number, SourceTextChange>,
+  ): GroupedDailyData {
     const context: SourceBuildContext = {
       day,
       employee,
       pushCommits: activity.pushCommits,
+      descriptionChanges,
       reciprocalNotes: this.findReciprocalNotes(activity, day, employee),
     };
     return {
@@ -229,7 +244,10 @@ export class GitLabSourceBuilder {
     };
   }
 
-  private cleanEvents(events: GitLabEvent[], { pushCommits }: SourceBuildContext): CleanEvent[] {
+  private cleanEvents(
+    events: GitLabEvent[],
+    { pushCommits, day }: SourceBuildContext,
+  ): CleanEvent[] {
     return events.map((event) => ({
       id: event.id,
       projectId: event.project_id,
@@ -244,14 +262,42 @@ export class GitLabSourceBuilder {
         ref: event.push_data.ref,
         refCount: event.push_data.ref_count,
         commitTitle: event.push_data.commit_title,
-        commits: (pushCommits.get(event.id) ?? []).map((commit) => ({
-          id: commit.id,
-          title: commit.title,
-          merge: (commit.parent_ids?.length ?? 0) > 1,
-        })),
+        commits: this.cleanCommits(pushCommits.get(event.id), day),
       },
       noteBody: event.note?.body,
     }));
+  }
+
+  private cleanCommits(push: GitLabPushCommits | undefined, day: DayRange) {
+    if (!push) {
+      return [];
+    }
+    return (push.rewritten ? this.findCreatedCommits(push.commits, day) : push.commits).map(
+      (commit) => ({
+        id: commit.id,
+        title: commit.title,
+        merge: (commit.parent_ids?.length ?? 0) > 1,
+        copied: push.rewritten && Date.parse(commit.authored_date ?? commit.created_at) < day.start,
+      }),
+    );
+  }
+
+  private findCreatedCommits(commits: GitLabCommit[], day: DayRange) {
+    const head = commits.at(-1);
+    if (!head) {
+      return [];
+    }
+    const created: GitLabCommit[] = [];
+    for (const commit of commits.toReversed()) {
+      if (
+        commit.committer_email !== head.committer_email ||
+        Date.parse(commit.committed_date ?? commit.created_at) < day.start
+      ) {
+        break;
+      }
+      created.unshift(commit);
+    }
+    return created.length ? created : [head];
   }
 
   private cleanNotes(notes: GitLabNote[], day: DayRange): CleanNote[] {

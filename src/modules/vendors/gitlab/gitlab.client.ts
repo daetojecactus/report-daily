@@ -2,9 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { getFailureReason } from 'src/common/utils/error.util';
 import type { AppEnvs } from 'src/modules/infrastructure/config/config.env';
-import { GITLAB_API_PATH } from './constants/gitlab-paths.constants';
+import { GITLAB_API_PATH, GITLAB_GRAPHQL_PATH } from './constants/gitlab-paths.constants';
 import {
   GITLAB_CERTIFICATE_ERROR_CODES,
+  GITLAB_CONTENT_TYPE_HEADER,
+  GITLAB_JSON_CONTENT_TYPE,
   GITLAB_MAX_CONCURRENT_REQUESTS,
   GITLAB_REQUEST_TIMEOUT_MS,
   GITLAB_TOKEN_HEADER,
@@ -17,6 +19,7 @@ import type { GitLabHttpResponse, GitLabQuery } from './types/gitlab.interface';
 @Injectable()
 export class GitLabClient {
   private readonly apiUrl: string;
+  private readonly graphqlUrl: string;
   private readonly token: string;
   private activeRequests = 0;
   private readonly waitingRequests: (() => void)[] = [];
@@ -26,27 +29,44 @@ export class GitLabClient {
       .get('GITLAB_URL', { infer: true })
       .replace(GITLAB_URL_TRAILING_SLASHES, '');
     this.apiUrl = `${url}${GITLAB_API_PATH}`;
+    this.graphqlUrl = `${url}${GITLAB_GRAPHQL_PATH}`;
     this.token = configService.get('GITLAB_TOKEN', { infer: true });
   }
 
-  async get(path: string, query: GitLabQuery = {}) {
+  get(path: string, query: GitLabQuery = {}) {
+    const url = new URL(`${this.apiUrl}${path}`);
+    for (const [key, value] of Object.entries(query)) {
+      for (const item of [value].flat()) {
+        url.searchParams.append(key, String(item));
+      }
+    }
+    return this.send(path, url, { headers: { [GITLAB_TOKEN_HEADER]: this.token } });
+  }
+
+  query(body: string) {
+    return this.send(GITLAB_GRAPHQL_PATH, new URL(this.graphqlUrl), {
+      method: 'POST',
+      headers: {
+        [GITLAB_TOKEN_HEADER]: this.token,
+        [GITLAB_CONTENT_TYPE_HEADER]: GITLAB_JSON_CONTENT_TYPE,
+      },
+      body,
+    });
+  }
+
+  private async send(path: string, url: URL, init: RequestInit) {
     await this.takeSlot();
     try {
-      return await this.request(path, query);
+      return await this.request(path, url, init);
     } finally {
       this.releaseSlot();
     }
   }
 
-  private async request(path: string, query: GitLabQuery): Promise<GitLabHttpResponse> {
-    const url = new URL(`${this.apiUrl}${path}`);
-    for (const [key, value] of Object.entries(query)) {
-      url.searchParams.set(key, String(value));
-    }
-
+  private async request(path: string, url: URL, init: RequestInit): Promise<GitLabHttpResponse> {
     try {
       const response = await fetch(url, {
-        headers: { [GITLAB_TOKEN_HEADER]: this.token },
+        ...init,
         signal: AbortSignal.timeout(GITLAB_REQUEST_TIMEOUT_MS),
       });
       return {

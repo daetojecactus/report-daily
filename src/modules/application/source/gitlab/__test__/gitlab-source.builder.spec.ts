@@ -8,6 +8,7 @@ import {
 } from 'src/modules/vendors/gitlab/types/gitlab.enums';
 import type { GitLabMergeRequest } from 'src/modules/vendors/gitlab/types/gitlab-issue.interface';
 import type { GitLabNote } from 'src/modules/vendors/gitlab/types/gitlab-history.interface';
+import type { GitLabCommit } from 'src/modules/vendors/gitlab/types/gitlab.interface';
 import { SOURCE_CLOSED_BY_MERGE_REQUEST } from '../../constants/source.constants';
 import { ItemState, SourceActionKind, SourceRefType, WorkItemType } from '../../types/source.enums';
 import { GitLabSourceMessages } from '../constants/gitlab-source.messages';
@@ -71,6 +72,7 @@ function buildMergeRequest(
     },
     DAY,
     { id: EMPLOYEE.id, username: USERNAME },
+    new Map(),
   ).standaloneMergeRequests;
   return grouped;
 }
@@ -103,6 +105,7 @@ function buildIssue(overrides: Partial<IssueActivity> = {}) {
     },
     DAY,
     { id: EMPLOYEE.id, username: USERNAME },
+    new Map(),
   ).issues;
   return grouped;
 }
@@ -264,6 +267,20 @@ describe('GitLabSourceBuilder', () => {
     expect(grouped.lastCommitAt).toBe('2026-08-01T22:00:00.000Z');
   });
 
+  it('takes the last commit by its author date, which a rebase keeps', () => {
+    const grouped = buildMergeRequest(createMergeRequest(), {
+      commits: [
+        {
+          ...createCommit(`${REPORT_DATE}T10:00:00.000Z`),
+          authored_date: '2026-07-12T10:00:00.000Z',
+          committed_date: `${REPORT_DATE}T10:00:00.000Z`,
+        },
+      ],
+    });
+
+    expect(grouped.lastCommitAt).toBe('2026-07-12T10:00:00.000Z');
+  });
+
   it('has no last commit when every commit is of the report day', () => {
     const grouped = buildMergeRequest(createMergeRequest(), {
       commits: [createCommit(`${REPORT_DATE}T10:00:00.000Z`)],
@@ -346,6 +363,7 @@ describe('GitLabSourceBuilder', () => {
       },
       DAY,
       { id: EMPLOYEE.id, username: USERNAME },
+      new Map(),
     );
 
     expect(
@@ -401,11 +419,18 @@ describe('GitLabSourceBuilder', () => {
         refs: [],
         targets: [],
         pushCommits: new Map([
-          [7, [createCommit(`${REPORT_DATE}T09:00:00.000Z`, 'fix: the cache')]],
+          [
+            7,
+            {
+              commits: [createCommit(`${REPORT_DATE}T09:00:00.000Z`, 'fix: the cache')],
+              rewritten: false,
+            },
+          ],
         ]),
       },
       DAY,
       { id: EMPLOYEE.id, username: USERNAME },
+      new Map(),
     );
 
     expect(grouped.projects).toEqual([
@@ -456,7 +481,12 @@ describe('GitLabSourceBuilder', () => {
               refCount: null,
               commitTitle: 'fix: the cache',
               commits: [
-                { id: `${REPORT_DATE}T09:00:00.000Z`, title: 'fix: the cache', merge: false },
+                {
+                  id: `${REPORT_DATE}T09:00:00.000Z`,
+                  title: 'fix: the cache',
+                  merge: false,
+                  copied: false,
+                },
               ],
             },
             noteBody: undefined,
@@ -496,10 +526,11 @@ describe('GitLabSourceBuilder', () => {
         directPushes: [],
         refs: [],
         targets: [],
-        pushCommits: new Map([[7, [merge]]]),
+        pushCommits: new Map([[7, { commits: [merge], rewritten: false }]]),
       },
       DAY,
       { id: EMPLOYEE.id, username: USERNAME },
+      new Map(),
     );
 
     expect(
@@ -508,10 +539,130 @@ describe('GitLabSourceBuilder', () => {
         commits: pushData?.commits,
       })),
     ).toEqual([
-      { commitCount: 39, commits: [{ id: merge.id, title: merge.title, merge: true }] },
+      {
+        commitCount: 39,
+        commits: [{ id: merge.id, title: merge.title, merge: true, copied: false }],
+      },
       { commitCount: 3, commits: [] },
     ]);
   });
+  it('keeps the commits a rewriting push made on the day and marks the ones it copied', () => {
+    const commit = (id: string, authored: string, committed: string, committer = 'me@x') => ({
+      id,
+      title: `feat: ${id}`,
+      created_at: committed,
+      authored_date: authored,
+      committed_date: committed,
+      committer_email: committer,
+    });
+    const push = createEvent({
+      id: 7,
+      action_name: 'pushed to',
+      push_data: {
+        action: 'pushed',
+        ref_type: GitLabRefType.BRANCH,
+        ref_count: null,
+        ref: 'hotfix',
+        commit_count: 138,
+        commit_from: 'old',
+        commit_to: 'new',
+        commit_title: 'feat: new',
+      },
+    });
+    const build = (commits: GitLabCommit[]) =>
+      createBuilder()
+        .build(
+          {
+            projects: [createProject()],
+            issues: [],
+            mergeRequests: [],
+            pushes: [{ target: { projectId: 1, branch: 'hotfix' }, events: [push] }],
+            directPushes: [],
+            refs: [],
+            targets: [],
+            pushCommits: new Map([[7, { commits, rewritten: true }]]),
+          },
+          DAY,
+          { id: EMPLOYEE.id, username: USERNAME },
+          new Map(),
+        )
+        .standalonePushes[0].events[0].pushData?.commits.map(({ id, copied }) => [id, copied]);
+
+    expect(
+      build([
+        commit('main', '2026-08-01T09:00:00.000Z', '2026-08-01T09:00:00.000Z', 'other@x'),
+        commit(
+          'today-main',
+          `${REPORT_DATE}T08:00:00.000Z`,
+          `${REPORT_DATE}T08:00:00.000Z`,
+          'other@x',
+        ),
+        commit('rebased', '2026-07-12T10:00:00.000Z', `${REPORT_DATE}T10:00:00.000Z`),
+        commit('new', `${REPORT_DATE}T10:30:00.000Z`, `${REPORT_DATE}T10:30:00.000Z`),
+      ]),
+    ).toEqual([
+      ['rebased', true],
+      ['new', false],
+    ]);
+    expect(
+      build([
+        commit('older', '2026-07-01T09:00:00.000Z', '2026-07-01T09:00:00.000Z'),
+        commit('head', '2026-07-09T09:00:00.000Z', '2026-07-09T09:00:00.000Z'),
+      ]),
+    ).toEqual([['head', true]]);
+  });
+
+  it('gives a description change its size from the description history', () => {
+    const change = { before: 100, added: 40, removed: 5 };
+    const grouped = createBuilder().build(
+      {
+        projects: [],
+        issues: [
+          {
+            issue: createIssue(),
+            events: [],
+            notes: [
+              createNote({
+                id: 31,
+                body: 'changed the description',
+                created_at: `${REPORT_DATE}T10:00:00.000Z`,
+                author: EMPLOYEE,
+              }),
+              createNote({
+                id: 32,
+                body: 'changed the description',
+                created_at: `${REPORT_DATE}T11:00:00.000Z`,
+                author: EMPLOYEE,
+              }),
+            ],
+            labelEvents: [],
+            stateEvents: [],
+            milestones: NO_PLANS,
+            iterations: NO_PLANS,
+            weightEvents: [],
+            mergeRequests: [],
+            pushes: [],
+          },
+        ],
+        mergeRequests: [],
+        pushes: [],
+        directPushes: [],
+        refs: [],
+        targets: [],
+        pushCommits: new Map(),
+      },
+      DAY,
+      { id: EMPLOYEE.id, username: USERNAME },
+      new Map([[31, change]]),
+    );
+
+    expect(
+      grouped.issues[0].facts
+        .filter((item) => item.kind === SourceActionKind.DESCRIPTION_CHANGED)
+        .map((item) => item.change),
+    ).toEqual([change, undefined]);
+  });
+
   describe('values at the end of the day', () => {
     const AFTER_THE_DAY = '2026-08-03T09:00:00.000Z';
 
@@ -719,6 +870,7 @@ describe('GitLabSourceBuilder', () => {
         },
         DAY,
         { id: EMPLOYEE.id, username: USERNAME },
+        new Map(),
       );
 
       expect(grouped.issues.map(({ iid, facts }) => [iid, facts.map(({ kind }) => kind)])).toEqual([

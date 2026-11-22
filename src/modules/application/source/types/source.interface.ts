@@ -2,6 +2,12 @@ import type { UserSource } from 'src/modules/application/user/user-source/types/
 import type { LabelAction, Source, SourceActionKind, SourceRefType } from './source.enums';
 import type { GroupedDailyData } from './source-day.interface';
 
+export interface SourceTextChange {
+  before: number;
+  added: number;
+  removed: number;
+}
+
 export interface SourceFact {
   kind: SourceActionKind;
   at: string;
@@ -9,12 +15,14 @@ export interface SourceFact {
   own: boolean;
   value: string | null;
   users: string[];
+  change?: SourceTextChange;
 }
 
 interface CleanCommit {
   id: string;
   title: string;
   merge: boolean;
+  copied: boolean;
 }
 
 export interface CleanPushData {

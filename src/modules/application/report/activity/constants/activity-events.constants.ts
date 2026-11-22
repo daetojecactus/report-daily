@@ -78,6 +78,8 @@ export const ACTIVITY_WORK_ITEM_KINDS = new Map<WorkItemType, TaskKind>([
 
 export const ACTIVITY_BRANCH_PUSH_ACTION: string = SourceEventAction.PUSHED_NEW;
 
+export const ACTIVITY_PUSHED_TO_ACTION: string = SourceEventAction.PUSHED_TO;
+
 export const ACTIVITY_DELETE_ACTION: string = SourceEventAction.DELETED;
 
 export const ACTIVITY_PUSH_ACTIONS = new Set<string>([

@@ -268,9 +268,13 @@ export const ruPhrases: PhrasesLocale = {
         male: 'Передал задачу дальше',
         female: 'Передала задачу дальше',
       },
-      [ReportPhrase.PRIORITY_RAISED]: {
-        male: 'Повысил приоритет',
-        female: 'Повысила приоритет',
+      [ReportPhrase.CRITICAL_PRIORITY_SET]: {
+        male: 'Назначил критический приоритет',
+        female: 'Назначила критический приоритет',
+      },
+      [ReportPhrase.PRIORITY_RAISED_TO_CRITICAL]: {
+        male: 'Повысил приоритет до критического',
+        female: 'Повысила приоритет до критического',
       },
       [ReportPhrase.MERGE_SCHEDULED]: {
         male: 'Поставил мердж-реквест на автомерж',
@@ -324,6 +328,7 @@ export const ruPhrases: PhrasesLocale = {
         male: 'Обновил ветку и разрешил конфликты',
         female: 'Обновила ветку и разрешила конфликты',
       },
+      [ReportPhrase.BRANCH_UPDATED]: { male: 'Обновил ветку', female: 'Обновила ветку' },
       [ReportPhrase.TESTS_WRITTEN]: { male: 'Написал тесты', female: 'Написала тесты' },
       [ReportPhrase.IMPLEMENTATION_STARTED]: {
         male: 'Начал реализацию',
@@ -348,25 +353,22 @@ export const ruPhrases: PhrasesLocale = {
         female: 'Отправила изменения в',
       },
       [ReportPhrase.CODE_WORK]: { male: 'Работал над кодом', female: 'Работала над кодом' },
-      [ReportPhrase.REQUIREMENTS_AND_PLANNED]: {
-        male: 'Уточнил требования и взял задачу в план',
-        female: 'Уточнила требования и взяла задачу в план',
+      [ReportPhrase.DESCRIPTION_WRITTEN]: { male: 'Описал задачу', female: 'Описала задачу' },
+      [ReportPhrase.DESCRIPTION_EXPANDED]: {
+        male: 'Дополнил описание задачи',
+        female: 'Дополнила описание задачи',
       },
-      [ReportPhrase.REQUIREMENTS_AND_TAKEN_INTO_WORK]: {
-        male: 'Уточнил требования и передал задачу в работу',
-        female: 'Уточнила требования и передала задачу в работу',
+      [ReportPhrase.DESCRIPTION_REWORKED]: {
+        male: 'Переработал описание задачи',
+        female: 'Переработала описание задачи',
       },
-      [ReportPhrase.REQUIREMENTS_AFTER_DISCUSSION]: {
-        male: 'Уточнил требования по итогам обсуждения',
-        female: 'Уточнила требования по итогам обсуждения',
+      [ReportPhrase.DESCRIPTION_CORRECTED]: {
+        male: 'Поправил описание задачи',
+        female: 'Поправила описание задачи',
       },
       [ReportPhrase.DESCRIPTION_UPDATED]: {
         male: 'Обновил описание задачи',
         female: 'Обновила описание задачи',
-      },
-      [ReportPhrase.REQUIREMENTS_CLARIFIED]: {
-        male: 'Уточнил требования',
-        female: 'Уточнила требования',
       },
       [ReportPhrase.DECOMPOSED]: {
         male: 'Декомпозировал задачу',
@@ -443,17 +445,31 @@ export const ruPhrases: PhrasesLocale = {
         female: 'Помогла с исправлением бага',
       },
       [ReportPhrase.HELPED_WITH_TASK]: { male: 'Помог с задачей', female: 'Помогла с задачей' },
+      [ReportPhrase.TASK_TAKEN]: { male: 'Взял задачу', female: 'Взяла задачу' },
+      [ReportPhrase.TASK_HANDED_OVER]: {
+        male: 'Передал задачу коллеге',
+        female: 'Передала задачу коллеге',
+      },
+      [ReportPhrase.TASK_REASSIGNED]: {
+        male: 'Переназначил задачу',
+        female: 'Переназначила задачу',
+      },
+      [ReportPhrase.TASK_LEFT]: { male: 'Снял себя с задачи', female: 'Сняла себя с задачи' },
       [ReportPhrase.ASSIGNEE_REMOVED]: {
         male: 'Снял исполнителя',
         female: 'Сняла исполнителя',
       },
       [ReportPhrase.TASK_ASSIGNED]: {
-        male: 'Назначил исполнителя задачи',
-        female: 'Назначила исполнителя задачи',
+        male: 'Передал задачу в работу',
+        female: 'Передала задачу в работу',
       },
-      [ReportPhrase.PRIORITY_CHANGED]: {
-        male: 'Изменил приоритет',
-        female: 'Изменила приоритет',
+      [ReportPhrase.PRIORITY_RAISED]: {
+        male: 'Повысил приоритет',
+        female: 'Повысила приоритет',
+      },
+      [ReportPhrase.PRIORITY_LOWERED]: {
+        male: 'Понизил приоритет',
+        female: 'Понизила приоритет',
       },
       [ReportPhrase.PRIORITY_SET]: {
         male: 'Назначил приоритет',
@@ -472,16 +488,17 @@ export const ruPhrases: PhrasesLocale = {
         male: 'Обновил описание',
         female: 'Обновила описание',
       },
+      [ReportPhrase.TASK_KIND_SET]: {
+        male: 'Указал тип задачи',
+        female: 'Указала тип задачи',
+      },
       [ReportPhrase.LABELS_UPDATED]: { male: 'Обновил лейблы', female: 'Обновила лейблы' },
       [ReportPhrase.STATUS_UPDATED]: { male: 'Обновил статус', female: 'Обновила статус' },
       [ReportPhrase.MARKED_DRAFT]: {
         male: 'Перевёл мердж-реквест в черновик',
         female: 'Перевела мердж-реквест в черновик',
       },
-      [ReportPhrase.REVIEWERS_CHANGED]: {
-        male: 'Изменил ревьюеров',
-        female: 'Изменила ревьюеров',
-      },
+      [ReportPhrase.REVIEWER_REMOVED]: { male: 'Снял ревьюера', female: 'Сняла ревьюера' },
       [ReportPhrase.REMOVED_FROM_SPRINT]: {
         male: 'Убрал задачу из спринта',
         female: 'Убрала задачу из спринта',
@@ -520,6 +537,10 @@ export const ruPhrases: PhrasesLocale = {
         male: 'Уточнил детали бага',
         female: 'Уточнила детали бага',
       },
+      [ReportPhrase.TASK_DETAILS_DISCUSSED]: {
+        male: 'Обсудил детали задачи',
+        female: 'Обсудила детали задачи',
+      },
       [ReportPhrase.COMMENTED]: { male: 'Прокомментировал', female: 'Прокомментировала' },
       [ReportPhrase.WORKED_ON_TASK]: {
         male: 'Работал над задачей',
@@ -532,6 +553,12 @@ export const ruPhrases: PhrasesLocale = {
       [PhraseContext.AFTER_APPROVAL]: 'после одобрения',
       [PhraseContext.AFTER_REVIEW]: 'после ревью',
       [PhraseContext.AUTO_MERGE]: 'через автомерж',
+      [PhraseContext.AFTER_DISCUSSION]: 'по итогам обсуждения',
+      [PhraseContext.AND_PLANNED]: { male: 'и взял в план', female: 'и взяла в план' },
+      [PhraseContext.AND_TAKEN_INTO_WORK]: {
+        male: 'и передал в работу',
+        female: 'и передала в работу',
+      },
     },
     states: {
       [WorkflowState.BACKLOG]: 'в бэклоге',
@@ -614,17 +641,37 @@ export const ruPhrases: PhrasesLocale = {
         male: `Оценил ${tasks(value)}`,
         female: `Оценила ${tasks(value)}`,
       }),
-      [ReportPhrase.PRIORITY_CHANGED]: (value) => ({
-        male: `Изменил приоритет у ${ofTasks(value)}`,
-        female: `Изменила приоритет у ${ofTasks(value)}`,
+      [ReportPhrase.PRIORITY_RAISED]: (value) => ({
+        male: `Повысил приоритет у ${ofTasks(value)}`,
+        female: `Повысила приоритет у ${ofTasks(value)}`,
+      }),
+      [ReportPhrase.PRIORITY_LOWERED]: (value) => ({
+        male: `Понизил приоритет у ${ofTasks(value)}`,
+        female: `Понизила приоритет у ${ofTasks(value)}`,
       }),
       [ReportPhrase.PRIORITY_SET]: (value) => ({
         male: `Назначил приоритет ${toTasks(value)}`,
         female: `Назначила приоритет ${toTasks(value)}`,
       }),
+      [ReportPhrase.TASK_TAKEN]: (value) => ({
+        male: `Взял ${tasks(value)}`,
+        female: `Взяла ${tasks(value)}`,
+      }),
       [ReportPhrase.TASK_ASSIGNED]: (value) => ({
-        male: `Назначил исполнителей ${toTasks(value)}`,
-        female: `Назначила исполнителей ${toTasks(value)}`,
+        male: `Передал в работу ${tasks(value)}`,
+        female: `Передала в работу ${tasks(value)}`,
+      }),
+      [ReportPhrase.TASK_HANDED_OVER]: (value) => ({
+        male: `Передал коллегам ${tasks(value)}`,
+        female: `Передала коллегам ${tasks(value)}`,
+      }),
+      [ReportPhrase.TASK_REASSIGNED]: (value) => ({
+        male: `Переназначил ${tasks(value)}`,
+        female: `Переназначила ${tasks(value)}`,
+      }),
+      [ReportPhrase.TASK_LEFT]: (value) => ({
+        male: `Снял себя с ${ofTasks(value)}`,
+        female: `Сняла себя с ${ofTasks(value)}`,
       }),
       [ReportPhrase.ASSIGNEE_REMOVED]: (value) => ({
         male: `Снял исполнителей с ${ofTasks(value)}`,

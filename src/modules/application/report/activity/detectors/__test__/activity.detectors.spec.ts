@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 import { SourceActionKind } from 'src/modules/application/source/types/source.enums';
 import type { SourceFact } from 'src/modules/application/source/types/source.interface';
 import { WorkflowState } from 'src/modules/application/trait/types/trait.enums';
-import { JobRole } from 'src/modules/application/user/types/user.enums';
 import { ActivityAction, ActivityDetail, ActivityRule } from '../../types/activity.enums';
 import type { ActivityLine } from '../../types/activity.interface';
 import {
@@ -270,30 +269,37 @@ describe('ActivityDetectors', () => {
       expect(action(['type::bug']).action).toBe(ActivityAction.ESCALATED);
     });
 
-    it('sets the priority of a task or changes the one it had at the start of the day', () => {
-      const priority = (start: string[]) =>
+    it('sets the priority of a task or raises or lowers the one it had at the start of the day', () => {
+      const priority = (start: string[], label = 'priority::high') =>
         summarize(
           detect(
             issueLine(
               createIssue({
-                labels: ['priority::high'],
+                labels: [label],
                 startOfDay: { ...createIssue().startOfDay, labels: start },
-                facts: [fact(SourceActionKind.LABEL_ADDED, at(10), { value: 'priority::high' })],
+                facts: [fact(SourceActionKind.LABEL_ADDED, at(10), { value: label })],
               }),
             ),
           ),
-        );
+        )[0];
 
-      expect(priority([])).toEqual([
-        { action: ActivityAction.PRIORITIZED, weight: 175, state: null, details: [] },
-      ]);
-      expect(priority(['priority::critical'])).toEqual([
-        {
-          action: ActivityAction.PRIORITIZED,
-          weight: 175,
-          state: null,
-          details: [ActivityDetail.CHANGED],
-        },
+      expect(priority([])).toEqual({
+        action: ActivityAction.PRIORITIZED,
+        weight: 175,
+        state: null,
+        details: [],
+      });
+      expect(priority(['priority::low']).details).toEqual([ActivityDetail.RAISED]);
+      expect(priority(['priority::critical']).details).toEqual([ActivityDetail.LOWERED]);
+      expect(priority(['priority::high']).details).toEqual([]);
+      expect(priority([], 'priority::critical')).toEqual({
+        action: ActivityAction.ESCALATED,
+        weight: 600,
+        state: null,
+        details: [],
+      });
+      expect(priority(['priority::high'], 'priority::critical').details).toEqual([
+        ActivityDetail.RAISED,
       ]);
     });
 
@@ -454,92 +460,25 @@ describe('ActivityDetectors', () => {
     });
   });
 
-  describe('discussion', () => {
-    it('detects requirements, assignments, comments and a title edit', () => {
-      const issue = createIssue({
-        facts: [
-          fact(SourceActionKind.DESCRIPTION_CHANGED, at(10)),
-          fact(SourceActionKind.TITLE_CHANGED, at(11)),
-          fact(SourceActionKind.ASSIGNED, at(12), { users: [OTHER] }),
-          fact(SourceActionKind.COMMENTED, at(13)),
-        ],
-      });
-
-      expect(summarize(detect(issueLine(issue), JobRole.SYSTEM_ANALYST))).toEqual([
-        { action: ActivityAction.REQUIREMENTS, weight: 320, state: null, details: [] },
-        { action: ActivityAction.ASSIGNED, weight: 200, state: null, details: [] },
-        { action: ActivityAction.COMMENTED, weight: 100, state: null, details: [] },
-        {
-          action: ActivityAction.EDITED,
-          weight: 150,
-          state: null,
-          details: [ActivityDetail.TITLE],
-        },
-      ]);
-    });
-
-    it('refines the requirements after a discussion in the issue', () => {
-      const edit = fact(SourceActionKind.DESCRIPTION_CHANGED, at(10));
-      const requirements = (issue: ReturnType<typeof createIssue>) =>
-        summarize(detect(issueLine(issue), JobRole.SYSTEM_ANALYST))[0];
-
-      expect(
-        requirements(createIssue({ facts: [otherFact(SourceActionKind.COMMENTED, at(9)), edit] })),
-      ).toMatchObject({
-        action: ActivityAction.REQUIREMENTS,
-        details: [ActivityDetail.AFTER_DISCUSSION],
-      });
-      expect(
-        requirements(createIssue({ facts: [edit, otherFact(SourceActionKind.COMMENTED, at(11))] })),
-      ).toMatchObject({ action: ActivityAction.REQUIREMENTS, details: [] });
-    });
-
-    it('assigns, reassigns in one step and unassigns', () => {
-      const reassigned = createIssue({
-        facts: [
-          fact(SourceActionKind.UNASSIGNED, at(10), { users: [ME] }),
-          fact(SourceActionKind.ASSIGNED, at(10), { users: [OTHER] }),
-        ],
-      });
-      const unassigned = createIssue({
-        facts: [fact(SourceActionKind.UNASSIGNED, at(10), { users: [OTHER] })],
-      });
-
-      expect(summarize(detect(issueLine(reassigned)))).toEqual([
-        { action: ActivityAction.ASSIGNED, weight: 200, state: null, details: [] },
-      ]);
-      expect(summarize(detect(issueLine(unassigned)))).toEqual([
-        {
-          action: ActivityAction.ASSIGNED,
-          weight: 200,
-          state: null,
-          details: [ActivityDetail.UNASSIGNED],
-        },
-      ]);
-    });
-
-    it('discusses in an own merge request when others answer and there is no code', () => {
-      const mergeRequest = createMergeRequest({
-        facts: [
-          otherFact(SourceActionKind.COMMENTED, at(9)),
-          fact(SourceActionKind.COMMENTED, at(10)),
-        ],
-      });
-
-      expect(
-        summarize(detect({ issue: null, event: null, pushes: [], mergeRequests: [mergeRequest] })),
-      ).toEqual([
-        {
-          action: ActivityAction.DISCUSSED,
-          weight: 200,
-          state: null,
-          details: [ActivityDetail.DIALOG],
-        },
-      ]);
-    });
-  });
-
   describe('edits', () => {
+    it('sets the task kind when every label of the edit is a kind', () => {
+      const labels = (...values: string[]) =>
+        summarize(
+          detect(
+            issueLine(
+              createIssue({
+                facts: values.map((value) => fact(SourceActionKind.LABEL_ADDED, at(10), { value })),
+              }),
+            ),
+          ),
+        );
+
+      expect(labels('type::feature')).toEqual([
+        { action: ActivityAction.EDITED, weight: 150, state: null, details: [ActivityDetail.KIND] },
+      ]);
+      expect(labels('type::feature', 'team::web')[0].details).toEqual([ActivityDetail.LABELS]);
+    });
+
     it('keeps own changes of a task without an action of their own as edits', () => {
       const issue = createIssue({
         facts: [

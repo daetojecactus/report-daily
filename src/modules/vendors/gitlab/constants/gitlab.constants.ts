@@ -2,6 +2,10 @@ export const GITLAB_URL_TRAILING_SLASHES = /\/+$/;
 
 export const GITLAB_TOKEN_HEADER = 'PRIVATE-TOKEN';
 
+export const GITLAB_CONTENT_TYPE_HEADER = 'content-type';
+
+export const GITLAB_JSON_CONTENT_TYPE = 'application/json';
+
 export const GITLAB_RETRY_AFTER_HEADER = 'retry-after';
 
 export const GITLAB_NEXT_PAGE_HEADER = 'x-next-page';
@@ -10,11 +14,21 @@ export const GITLAB_PAGE_SIZE = 100;
 
 export const GITLAB_MAX_PAGES = 20;
 
+export const GITLAB_NOTES_PER_QUERY = 20;
+
+export const GITLAB_QUERY_ERROR_MAX_LENGTH = 300;
+
 export const GITLAB_MAX_CONCURRENT_REQUESTS = 8;
 
 export const GITLAB_REQUEST_TIMEOUT_MS = 15_000;
 
 export const GITLAB_NOT_FOUND = 404;
+
+export const GITLAB_BAD_REQUEST = 400;
+
+export const GITLAB_ABSENT_STATUSES = new Set([GITLAB_NOT_FOUND]);
+
+export const GITLAB_MERGE_BASE_ABSENT_STATUSES = new Set([GITLAB_NOT_FOUND, GITLAB_BAD_REQUEST]);
 
 export const GITLAB_TOO_MANY_REQUESTS = 429;
 

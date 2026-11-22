@@ -3,5 +3,6 @@ export enum GitLabMessages {
   INVALID_RESPONSE = 'GitLab returned an invalid response',
   API_ERROR = 'GitLab API error',
   PAGE_LIMIT_REACHED = 'GitLab list has more pages than the limit, the rest is skipped',
+  QUERY_REJECTED = 'GitLab GraphQL query returned errors, the description history is skipped',
   CERTIFICATE_UNTRUSTED = 'GitLab certificate is not trusted, set NODE_EXTRA_CA_CERTS to the CA certificate',
 }

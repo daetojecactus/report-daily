@@ -1,14 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { SourceActionKind } from 'src/modules/application/source/types/source.enums';
-import { TRAIT_STATE_WEIGHTS } from 'src/modules/application/trait/constants/trait.constants';
+import {
+  TRAIT_DICTIONARY,
+  TRAIT_STATE_WEIGHTS,
+} from 'src/modules/application/trait/constants/trait.constants';
 import {
   Priority,
   TaskFlag,
   TaskKind,
+  TraitDimension,
   WorkflowState,
 } from 'src/modules/application/trait/types/trait.enums';
 import {
-  ACTIVITY_COMMENT_FACTS,
   ACTIVITY_EDIT_DETAILS,
   ACTIVITY_RETURN_STATES,
   ACTIVITY_REVIEW_FACTS,
@@ -17,6 +20,7 @@ import { ACTIVITY_MANY_COMMENTS } from '../constants/activity.constants';
 import { ACTIVITY_WEIGHTS } from '../constants/activity-weights.constants';
 import { ActivityAction, ActivityDetail, ActivityRule } from '../types/activity.enums';
 import { ActivityCodeDetector } from './activity-code.detector';
+import { ActivityDiscussionDetector } from './activity-discussion.detector';
 import { ActivityEventDetector } from './activity-event.detector';
 import { ActivityLifecycleDetector } from './activity-lifecycle.detector';
 import { ActivityLinkDetector } from './activity-link.detector';
@@ -37,6 +41,7 @@ export class ActivityDetectors {
     private readonly activityPlanDetector: ActivityPlanDetector,
     private readonly activityLinkDetector: ActivityLinkDetector,
     private readonly activityEventDetector: ActivityEventDetector,
+    private readonly activityDiscussionDetector: ActivityDiscussionDetector,
   ) {}
 
   detect(signals: ActivityLineSignals): ActivityCandidate[] {
@@ -49,7 +54,7 @@ export class ActivityDetectors {
       ...this.activityPlanDetector.detect(signals),
       ...this.activityLinkDetector.detect(signals),
       ...this.activityEventDetector.detect(signals),
-      ...this.detectDiscussion(signals),
+      ...this.activityDiscussionDetector.detect(signals),
     ];
     return [...candidates, ...this.detectEdits(signals, candidates), this.toStateOnly(signals)];
   }
@@ -98,7 +103,12 @@ export class ActivityDetectors {
             ? this.toCandidate(ActivityAction.RELEASE_BLOCKED, ACTIVITY_WEIGHTS.RELEASE_BLOCKED, [
                 fact,
               ])
-            : this.toCandidate(ActivityAction.ESCALATED, ACTIVITY_WEIGHTS.ESCALATED, [fact]),
+            : this.toCandidate(
+                ActivityAction.ESCALATED,
+                ACTIVITY_WEIGHTS.ESCALATED,
+                [fact],
+                this.toPriorityDetails(startPriority, priority),
+              ),
         );
       } else if (priority) {
         candidates.push(
@@ -106,12 +116,22 @@ export class ActivityDetectors {
             ActivityAction.PRIORITIZED,
             ACTIVITY_WEIGHTS.PRIORITIZED,
             [fact],
-            startPriority !== null && startPriority !== priority ? [ActivityDetail.CHANGED] : [],
+            this.toPriorityDetails(startPriority, priority),
           ),
         );
       }
     }
     return candidates;
+  }
+
+  private toPriorityDetails(before: Priority | null, after: Priority) {
+    const order = TRAIT_DICTIONARY[TraitDimension.PRIORITY];
+    if (before === null || before === after) {
+      return [];
+    }
+    return [
+      order.indexOf(after) < order.indexOf(before) ? ActivityDetail.RAISED : ActivityDetail.LOWERED,
+    ];
   }
 
   private detectReview(signals: ActivityLineSignals): ActivityCandidate[] {
@@ -212,65 +232,9 @@ export class ActivityDetectors {
     );
   }
 
-  private detectDiscussion(signals: ActivityLineSignals): ActivityCandidate[] {
-    const { own, ownMergeRequests } = signals;
-    const candidates: ActivityCandidate[] = [];
-    const requirements = own.filter(
-      (fact) => fact.kind === SourceActionKind.DESCRIPTION_CHANGED && fact.mergeRequestIid === null,
-    );
-    if (requirements.length) {
-      const edited = Math.max(...requirements.map((fact) => fact.time));
-      candidates.push(
-        this.toCandidate(
-          ActivityAction.REQUIREMENTS,
-          ACTIVITY_WEIGHTS.REQUIREMENTS,
-          requirements,
-          signals.others.some(
-            (fact) =>
-              fact.kind === SourceActionKind.COMMENTED &&
-              fact.mergeRequestIid === null &&
-              fact.time < edited,
-          )
-            ? [ActivityDetail.AFTER_DISCUSSION]
-            : [],
-        ),
-      );
-    }
-    const assignments = own.filter(
-      (fact) =>
-        fact.kind === SourceActionKind.ASSIGNED || fact.kind === SourceActionKind.UNASSIGNED,
-    );
-    if (assignments.length) {
-      candidates.push(
-        this.toCandidate(
-          ActivityAction.ASSIGNED,
-          ACTIVITY_WEIGHTS.ASSIGNED,
-          assignments,
-          assignments.some((fact) => fact.kind === SourceActionKind.ASSIGNED)
-            ? []
-            : [ActivityDetail.UNASSIGNED],
-        ),
-      );
-    }
-    const comments = own.filter(
-      (fact) =>
-        ACTIVITY_COMMENT_FACTS.has(fact.kind) &&
-        (fact.mergeRequestIid === null || ownMergeRequests.includes(fact.mergeRequestIid)),
-    );
-    if (comments.length) {
-      candidates.push(
-        signals.dialog
-          ? this.toCandidate(ActivityAction.DISCUSSED, ACTIVITY_WEIGHTS.DISCUSSED, comments, [
-              ActivityDetail.DIALOG,
-            ])
-          : this.toCandidate(ActivityAction.COMMENTED, ACTIVITY_WEIGHTS.COMMENTED, comments),
-      );
-    }
-    return candidates;
-  }
-
-  private detectEdits({ own }: ActivityLineSignals, candidates: ActivityCandidate[]) {
+  private detectEdits({ own, changes }: ActivityLineSignals, candidates: ActivityCandidate[]) {
     const used = new Set(candidates.flatMap((candidate) => candidate.facts));
+    const kinds = new Set(changes.filter((change) => change.kind).map((change) => change.fact));
     const edits = new Map<ActivityDetail, ActivityFact[]>();
     for (const fact of own) {
       const detail = ACTIVITY_EDIT_DETAILS.get(fact.kind);
@@ -279,7 +243,11 @@ export class ActivityDetectors {
       }
     }
     return [...edits].map(([detail, facts]) =>
-      this.toCandidate(ActivityAction.EDITED, ACTIVITY_WEIGHTS.EDITED, facts, [detail]),
+      this.toCandidate(ActivityAction.EDITED, ACTIVITY_WEIGHTS.EDITED, facts, [
+        detail === ActivityDetail.LABELS && facts.every((fact) => kinds.has(fact))
+          ? ActivityDetail.KIND
+          : detail,
+      ]),
     );
   }
 

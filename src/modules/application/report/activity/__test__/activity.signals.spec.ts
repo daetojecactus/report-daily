@@ -341,18 +341,24 @@ describe('ActivitySignals', () => {
           mergeRequestIid: 5,
           commitCount: 2,
           commitTitles: ['fix: a', 'test: b'],
+          synced: false,
         },
       ]);
     });
 
     it('leaves the titles of merge commits out of the pushes', () => {
-      const merge = { id: 'm1', title: "Merge branch 'main' into 12-login", merge: true };
+      const merge = {
+        id: 'm1',
+        title: "Merge branch 'main' into 12-login",
+        merge: true,
+        copied: false,
+      };
       const mergeRequest = createMergeRequest({
         events: [
           refEvent(at(11), SourceEventAction.PUSHED_TO, {
             commitCount: 2,
             commitTitle: merge.title,
-            commits: [{ id: 'c1', title: 'fix: the login', merge: false }, merge],
+            commits: [{ id: 'c1', title: 'fix: the login', merge: false, copied: false }, merge],
           }),
           refEvent(at(12), SourceEventAction.PUSHED_TO, {
             commitCount: 1,
@@ -372,6 +378,44 @@ describe('ActivitySignals', () => {
       expect(signals.pushes.map(({ commitTitles }) => commitTitles)).toEqual([
         ['fix: the login'],
         [],
+      ]);
+    });
+
+    it('marks a push that only updates the branch with merges, copies or known commits', () => {
+      const copy = { id: 'c2', title: 'feat: the login', merge: false, copied: true };
+      const merge = {
+        id: 'm1',
+        title: "Merge branch 'main' into 12-login",
+        merge: true,
+        copied: false,
+      };
+      const push = (time: string, data: Parameters<typeof refEvent>[2]) =>
+        refEvent(time, SourceEventAction.PUSHED_TO, data);
+      const mergeRequest = createMergeRequest({
+        events: [
+          push(at(9), { commitCount: 39, commits: [merge] }),
+          push(at(10), { commitCount: 138, commits: [copy] }),
+          push(at(11), { commitCount: 0 }),
+          push(at(12), { commitCount: 2, commits: [copy, { ...copy, id: 'c3', copied: false }] }),
+          push(at(13), { commitCount: 0, ref: null, refCount: 4 }),
+          push(at(14), { commitCount: 3, commitTitle: 'fix: the cache' }),
+        ],
+      });
+
+      const signals = toSignals({
+        issue: null,
+        event: null,
+        pushes: [],
+        mergeRequests: [mergeRequest],
+      });
+
+      expect(signals.pushes.map(({ commitTitles, synced }) => [commitTitles, synced])).toEqual([
+        [[], true],
+        [[], true],
+        [[], true],
+        [['feat: the login'], false],
+        [[], false],
+        [['fix: the cache'], false],
       ]);
     });
 

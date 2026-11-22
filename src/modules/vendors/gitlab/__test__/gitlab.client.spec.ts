@@ -13,6 +13,8 @@ interface ReceivedRequest {
   method?: string;
   url?: string;
   token?: string | string[];
+  contentType?: string;
+  body?: string;
 }
 
 type Reply = (response: ServerResponse) => void;
@@ -37,12 +39,18 @@ function close(target: Server) {
 }
 
 function receive(request: IncomingMessage, response: ServerResponse) {
-  received.push({
-    method: request.method,
-    url: request.url,
-    token: request.headers['private-token'],
+  const chunks: Buffer[] = [];
+  request.on('data', (chunk: Buffer) => chunks.push(chunk));
+  request.on('end', () => {
+    const body = Buffer.concat(chunks).toString();
+    received.push({
+      method: request.method,
+      url: request.url,
+      token: request.headers['private-token'],
+      ...(body ? { contentType: request.headers['content-type'], body } : {}),
+    });
+    reply(response);
   });
-  reply(response);
 }
 
 function replyWith(status: number, body: string, headers: Record<string, string> = {}): Reply {
@@ -121,6 +129,31 @@ describe('GitLabClient', () => {
         method: 'GET',
         url: '/api/v4/users?search=%D0%90%D0%BD%D0%BD%D0%B0+%D0%A1&active=true&per_page=10',
         token: TOKEN,
+      },
+    ]);
+  });
+
+  it('repeats a query parameter for every value of a list', async () => {
+    await createClient().get('/projects/3/repository/merge_base', { 'refs[]': ['aaa', 'ccc'] });
+
+    expect(received[0].url).toBe(
+      '/api/v4/projects/3/repository/merge_base?refs%5B%5D=aaa&refs%5B%5D=ccc',
+    );
+  });
+
+  it('posts a GraphQL query with the token to the GraphQL path', async () => {
+    reply = replyWith(200, '{"data":{}}');
+
+    const response = await createClient(`${serverUrl}/gitlab/`).query('{"query":"query { a }"}');
+
+    expect(response).toMatchObject({ ok: true, status: 200, body: '{"data":{}}' });
+    expect(received).toEqual([
+      {
+        method: 'POST',
+        url: '/gitlab/api/graphql',
+        token: TOKEN,
+        contentType: 'application/json',
+        body: '{"query":"query { a }"}',
       },
     ]);
   });

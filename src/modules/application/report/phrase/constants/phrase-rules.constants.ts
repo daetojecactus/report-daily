@@ -289,7 +289,12 @@ const TRANSITIONS: PhraseRule[] = [
     ] as const
   ).map(([state, phrase]) => ({ action: ActivityAction.STATE_SET, states: [state], phrase })),
   { action: ActivityAction.STATE_SET, phrase: ReportPhrase.WORKED_ON_TASK },
-  { action: ActivityAction.ESCALATED, phrase: ReportPhrase.PRIORITY_RAISED },
+  {
+    action: ActivityAction.ESCALATED,
+    details: [ActivityDetail.RAISED],
+    phrase: ReportPhrase.PRIORITY_RAISED_TO_CRITICAL,
+  },
+  { action: ActivityAction.ESCALATED, phrase: ReportPhrase.CRITICAL_PRIORITY_SET },
   { action: ActivityAction.MERGE_SCHEDULED, phrase: ReportPhrase.MERGE_SCHEDULED },
 ];
 
@@ -366,28 +371,20 @@ const WORK: PhraseRule[] = [
   ).map(([detail, phrase]) => ({ action: ActivityAction.CODE, details: [detail], phrase })),
   { action: ActivityAction.CODE, phrase: ReportPhrase.CODE_WORK },
   {
-    action: ActivityAction.REQUIREMENTS,
-    details: [ActivityDetail.WITH_STATE],
-    states: [WorkflowState.PLANNED],
-    phrase: ReportPhrase.REQUIREMENTS_AND_PLANNED,
+    action: ActivityAction.BRANCH_UPDATED,
+    details: [ActivityDetail.REBASE],
+    phrase: ReportPhrase.CONFLICTS_RESOLVED,
   },
-  {
-    action: ActivityAction.REQUIREMENTS,
-    details: [ActivityDetail.WITH_STATE],
-    states: [WorkflowState.IN_PROGRESS],
-    phrase: ReportPhrase.REQUIREMENTS_AND_TAKEN_INTO_WORK,
-  },
-  {
-    action: ActivityAction.REQUIREMENTS,
-    roles: ENGINEERS,
-    phrase: ReportPhrase.DESCRIPTION_UPDATED,
-  },
-  {
-    action: ActivityAction.REQUIREMENTS,
-    details: [ActivityDetail.AFTER_DISCUSSION],
-    phrase: ReportPhrase.REQUIREMENTS_AFTER_DISCUSSION,
-  },
-  { action: ActivityAction.REQUIREMENTS, phrase: ReportPhrase.REQUIREMENTS_CLARIFIED },
+  { action: ActivityAction.BRANCH_UPDATED, phrase: ReportPhrase.BRANCH_UPDATED },
+  ...(
+    [
+      [ActivityDetail.WRITTEN, ReportPhrase.DESCRIPTION_WRITTEN],
+      [ActivityDetail.EXPANDED, ReportPhrase.DESCRIPTION_EXPANDED],
+      [ActivityDetail.REWORKED, ReportPhrase.DESCRIPTION_REWORKED],
+      [ActivityDetail.CORRECTED, ReportPhrase.DESCRIPTION_CORRECTED],
+    ] as const
+  ).map(([detail, phrase]) => ({ action: ActivityAction.REQUIREMENTS, details: [detail], phrase })),
+  { action: ActivityAction.REQUIREMENTS, phrase: ReportPhrase.DESCRIPTION_UPDATED },
   { action: ActivityAction.DECOMPOSED, phrase: ReportPhrase.DECOMPOSED },
   {
     action: ActivityAction.DOCUMENTED,
@@ -465,17 +462,22 @@ const PARTICIPATION: PhraseRule[] = [
   { action: ActivityAction.DISCUSSED, phrase: ReportPhrase.SOLUTION_DISCUSSED },
   { action: ActivityAction.HELPED, kinds: [TaskKind.BUG], phrase: ReportPhrase.HELPED_FIX_BUG },
   { action: ActivityAction.HELPED, phrase: ReportPhrase.HELPED_WITH_TASK },
-  {
-    action: ActivityAction.ASSIGNED,
-    details: [ActivityDetail.UNASSIGNED],
-    phrase: ReportPhrase.ASSIGNEE_REMOVED,
-  },
+  ...(
+    [
+      [ActivityDetail.TAKEN, ReportPhrase.TASK_TAKEN],
+      [ActivityDetail.HANDED_OVER, ReportPhrase.TASK_HANDED_OVER],
+      [ActivityDetail.REASSIGNED, ReportPhrase.TASK_REASSIGNED],
+      [ActivityDetail.LEFT, ReportPhrase.TASK_LEFT],
+      [ActivityDetail.UNASSIGNED, ReportPhrase.ASSIGNEE_REMOVED],
+    ] as const
+  ).map(([detail, phrase]) => ({ action: ActivityAction.ASSIGNED, details: [detail], phrase })),
   { action: ActivityAction.ASSIGNED, phrase: ReportPhrase.TASK_ASSIGNED },
-  {
-    action: ActivityAction.PRIORITIZED,
-    details: [ActivityDetail.CHANGED],
-    phrase: ReportPhrase.PRIORITY_CHANGED,
-  },
+  ...(
+    [
+      [ActivityDetail.RAISED, ReportPhrase.PRIORITY_RAISED],
+      [ActivityDetail.LOWERED, ReportPhrase.PRIORITY_LOWERED],
+    ] as const
+  ).map(([detail, phrase]) => ({ action: ActivityAction.PRIORITIZED, details: [detail], phrase })),
   { action: ActivityAction.PRIORITIZED, phrase: ReportPhrase.PRIORITY_SET },
   {
     action: ActivityAction.ESTIMATED,
@@ -487,10 +489,11 @@ const PARTICIPATION: PhraseRule[] = [
     [
       [ActivityDetail.TITLE, ReportPhrase.TASK_RENAMED],
       [ActivityDetail.DESCRIPTION, ReportPhrase.DESCRIPTION_EDITED],
+      [ActivityDetail.KIND, ReportPhrase.TASK_KIND_SET],
       [ActivityDetail.LABELS, ReportPhrase.LABELS_UPDATED],
       [ActivityDetail.STATUS, ReportPhrase.STATUS_UPDATED],
       [ActivityDetail.DRAFT, ReportPhrase.MARKED_DRAFT],
-      [ActivityDetail.REVIEWERS, ReportPhrase.REVIEWERS_CHANGED],
+      [ActivityDetail.REVIEWERS, ReportPhrase.REVIEWER_REMOVED],
       [ActivityDetail.ITERATION, ReportPhrase.REMOVED_FROM_SPRINT],
       [ActivityDetail.MILESTONE, ReportPhrase.REMOVED_FROM_MILESTONE],
       [ActivityDetail.WEIGHT, ReportPhrase.ESTIMATE_REMOVED],
@@ -514,7 +517,7 @@ const PARTICIPATION: PhraseRule[] = [
     action: ActivityAction.COMMENTED,
     roles: MANAGERS,
     endStates: [WorkflowState.NEEDS_INFO],
-    phrase: ReportPhrase.REQUIREMENTS_CLARIFIED,
+    phrase: ReportPhrase.TASK_DETAILS_DISCUSSED,
   },
   {
     action: ActivityAction.COMMENTED,

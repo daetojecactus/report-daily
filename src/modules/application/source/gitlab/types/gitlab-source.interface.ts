@@ -4,6 +4,7 @@ import type {
   GitLabAuthor,
   GitLabCommit,
   GitLabProject,
+  GitLabPushCommits,
 } from 'src/modules/vendors/gitlab/types/gitlab.interface';
 import type { GitLabEvent } from 'src/modules/vendors/gitlab/types/gitlab-event.interface';
 import type {
@@ -17,6 +18,7 @@ import type {
   GitLabWeightEvent,
 } from 'src/modules/vendors/gitlab/types/gitlab-history.interface';
 import type { SourceActionKind, SourceRefType, SourceTargetType } from '../../types/source.enums';
+import type { SourceTextChange } from '../../types/source.interface';
 
 export interface SourceItem {
   projectId: number;
@@ -120,7 +122,7 @@ export interface DayActivity {
   directPushes: SourceEvents<SourceBranch>[];
   refs: SourceEvents<SourceRef>[];
   targets: SourceEvents<SourceTarget>[];
-  pushCommits: Map<number, GitLabCommit[]>;
+  pushCommits: Map<number, GitLabPushCommits>;
 }
 
 export interface SourceEmployee {
@@ -131,7 +133,8 @@ export interface SourceEmployee {
 export interface SourceBuildContext {
   day: DayRange;
   employee: SourceEmployee;
-  pushCommits: Map<number, GitLabCommit[]>;
+  pushCommits: Map<number, GitLabPushCommits>;
+  descriptionChanges: Map<number, SourceTextChange>;
   reciprocalNotes: Set<number>;
 }
 

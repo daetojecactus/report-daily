@@ -81,10 +81,12 @@ export class GitLabSourceService implements ActivitySource {
       gitlabUserId,
       day,
     );
-    return this.gitlabSourceBuilder.build(activity, day, {
-      id: gitlabUserId,
-      username: account.username,
-    });
+    return this.gitlabSourceBuilder.build(
+      activity,
+      day,
+      { id: gitlabUserId, username: account.username },
+      await this.gitlabSourceDetails.loadDescriptionChanges(activity.issues, gitlabUserId, day),
+    );
   }
 
   private async loadProjects(projectIds: number[]) {

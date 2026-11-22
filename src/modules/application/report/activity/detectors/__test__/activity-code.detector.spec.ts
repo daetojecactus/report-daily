@@ -63,19 +63,86 @@ describe('ActivityCodeDetector', () => {
     });
   });
 
-  it('does not take a merge of another branch for work on tests', () => {
-    const title = "Merge branch '7-add-e2e-tests' into '12-login'";
-    const mergeRequest = createMergeRequest({
-      events: [
-        refEvent(at(11), SourceEventAction.PUSHED_TO, {
-          commitCount: 1,
-          commitTitle: title,
-          commits: [{ id: 'm1', title, merge: true }],
-        }),
-      ],
+  describe('branch updates', () => {
+    const merge = (time: string) =>
+      refEvent(time, SourceEventAction.PUSHED_TO, {
+        commitCount: 39,
+        commitTitle: "Merge branch 'main' into 12-login",
+        commits: [
+          { id: 'm1', title: "Merge branch 'main' into 12-login", merge: true, copied: false },
+        ],
+      });
+    const rebase = (time: string) =>
+      refEvent(time, SourceEventAction.PUSHED_TO, {
+        commitCount: 138,
+        commits: [{ id: 'c1', title: 'test: the old tests', merge: false, copied: true }],
+      });
+    const lineOf = (mergeRequest: GroupedMergeRequest, issue = createIssue()) =>
+      summarize(detect(issueLine({ ...issue, mergeRequests: [mergeRequest] })));
+
+    it('updates the branch when the pushes of the day only merge or rebase it', () => {
+      expect(lineOf(createMergeRequest({ events: [merge(at(10)), rebase(at(11))] }))).toEqual([
+        { action: ActivityAction.BRANCH_UPDATED, weight: 255, state: null, details: [] },
+      ]);
     });
 
-    expect(codeOf(mergeRequest)?.details).toEqual([]);
+    it('resolves conflicts when an update removes the rebase flag', () => {
+      const issue = createIssue({
+        facts: [otherFact(SourceActionKind.LABEL_REMOVED, at(9), { value: 'needs-rebase' })],
+      });
+
+      expect(lineOf(createMergeRequest({ events: [merge(at(10))] }), issue)).toContainEqual({
+        action: ActivityAction.BRANCH_UPDATED,
+        weight: 255,
+        state: null,
+        details: [ActivityDetail.REBASE],
+      });
+    });
+
+    it('keeps work on code when a new commit follows the update and reads only the new one', () => {
+      const mergeRequest = createMergeRequest({
+        lastCommitAt: '2026-07-20T10:00:00.000Z',
+        events: [rebase(at(10)), pushEvent(at(15))],
+      });
+
+      expect(codeOf(mergeRequest)).toEqual({
+        action: ActivityAction.CODE,
+        weight: 315,
+        state: null,
+        details: [ActivityDetail.RESUMED],
+      });
+    });
+
+    it('updates the branch of a colleague instead of helping with it', () => {
+      const mergeRequest = othersMergeRequest({ events: [merge(at(10))] });
+
+      expect(lineOf(mergeRequest, createIssue({ assignees: [OTHER] }))[0].action).toBe(
+        ActivityAction.BRANCH_UPDATED,
+      );
+    });
+
+    it('keeps work on code for dependencies, an opened merge request and a mentioning commit', () => {
+      const dependencies = othersMergeRequest({
+        author: 'renovate-bot',
+        sourceBranch: 'renovate-ac/eslint-10.x',
+        events: [merge(at(10))],
+      });
+      const opened = createMergeRequest({
+        facts: [fact(SourceActionKind.OPENED, at(9))],
+        events: [merge(at(10))],
+      });
+      const mentioned = createIssue({
+        facts: [fact(SourceActionKind.COMMIT_MENTIONED, at(11), { value: 'abc1234' })],
+      });
+
+      expect(codeOf(dependencies, createIssue({ assignees: [OTHER] }))?.details).toEqual([
+        ActivityDetail.DEPENDENCIES,
+      ]);
+      expect(codeOf(opened)?.action).toBe(ActivityAction.CODE);
+      expect(codeOf(createMergeRequest({ events: [merge(at(10))] }), mentioned)?.details).toEqual([
+        ActivityDetail.MENTIONED,
+      ]);
+    });
   });
 
   it('sees work after a return from QA during the day', () => {
@@ -299,7 +366,7 @@ describe('ActivityCodeDetector', () => {
     const mention = fact(SourceActionKind.COMMIT_MENTIONED, at(11), { value: 'abc1234' });
     const ownCommit = refEvent(at(11), SourceEventAction.PUSHED_TO, {
       commitCount: 1,
-      commits: [{ id: 'abc1234def5678', title: 'fix: #12 the login', merge: false }],
+      commits: [{ id: 'abc1234def5678', title: 'fix: #12 the login', merge: false, copied: false }],
     });
 
     expect(summarize(detect(issueLine(createIssue({ facts: [mention] }))))).toEqual([
